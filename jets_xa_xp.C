@@ -40,11 +40,11 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     const int numhists = 16;
     TH1F* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy [pb]", eta_cuts[i], eta_cuts[i+1]), nbins, xbins);
+        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1]), nbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a} [GeV];d#sigma^{2}/d#it{x}_{a} dy [pb]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), nbins, xbins);
+        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), nbins, xbins);
         harr[i]->Sumw2();
     }
 

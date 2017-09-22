@@ -38,7 +38,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f #leq |#eta*| #leq %1.1f; #it{M}_{JJ} [GeV/#it{c}^{2}];d^{2}#sigma/d#it{M}_{JJ}d|#eta*| [pb (GeV/#it{c}^{#it{2}})^{-1}]", etastarcuts[i], etastarcuts[i+1]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f #leq #left|#eta*#right| #leq %1.1f; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 

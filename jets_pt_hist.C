@@ -12,14 +12,14 @@ void jets_pt_hist(std::vector<int> runNumbers) {
 
     const int numhists = 8;
     TH1D* harr[numhists];
-    harr[0] = new TH1D("eta0", "-4.9 < #eta < -3.2 (#times 0.005);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
-    harr[1] = new TH1D("eta1", "-3.2 < #eta < -2 (#times 0.03);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
-    harr[2] = new TH1D("eta2", "-2 < #eta < -1 (#times 0.1);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[3] = new TH1D("eta3", "-1 < #eta < 0 (#times 0.5);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[4] = new TH1D("eta4", "0 < #eta < 1 (#times 1);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[5] = new TH1D("eta5", "1 < #eta < 2 (#times 0.3);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[6] = new TH1D("eta6", "2 < #eta < 3.2 (#times 0.05);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_p200eta320)/sizeof(xbins_p200eta320[0])-1, xbins_p200eta320);
-    harr[7] = new TH1D("eta7", "3.2 < #eta < 4.9 (#times 0.01);#it{p}_{T}^{jet} [GeV/#it{c}];d^{2}#sigma/d#it{p}_{T}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_p320eta490)/sizeof(xbins_p320eta490[0])-1, xbins_p320eta490);
+    harr[0] = new TH1D("eta0", "-4.9 < #eta < -3.2 (#times 0.005);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
+    harr[1] = new TH1D("eta1", "-3.2 < #eta < -2 (#times 0.03);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
+    harr[2] = new TH1D("eta2", "-2 < #eta < -1 (#times 0.1);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
+    harr[3] = new TH1D("eta3", "-1 < #eta < 0 (#times 0.5);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
+    harr[4] = new TH1D("eta4", "0 < #eta < 1 (#times 1);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
+    harr[5] = new TH1D("eta5", "1 < #eta < 2 (#times 0.3);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
+    harr[6] = new TH1D("eta6", "2 < #eta < 3.2 (#times 0.05);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_p200eta320)/sizeof(xbins_p200eta320[0])-1, xbins_p200eta320);
+    harr[7] = new TH1D("eta7", "3.2 < #eta < 4.9 (#times 0.01);#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", sizeof(xbins_p320eta490)/sizeof(xbins_p320eta490[0])-1, xbins_p320eta490);
     for (int i = 0; i < numhists; i++) {
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
