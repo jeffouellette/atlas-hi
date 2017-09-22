@@ -1,179 +1,166 @@
-void jets_xa_xp(int runNumber, float luminosity) {
+#include "triggerUtil.C"
 
-        luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
+void jets_xa_xp(int runNumber, // Run number identifier.
+                float luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
+                const bool PbP = false) // Stores if this run was a Pb-p run (opposite direction). This makes the lab frame boost in the opposite direction. 
+{
 
-        float Z = 82; // value of Z for typical Pb
-	float A = 208; // value of A for Pb
-        float sqrt_s_nn = 8160;
-	float d_eta = 0.5;
-	// Store trigger names as an array of strings and loop over them to set the branch addresses
-	static const int trigLength = 24;
-	const char* m_trig_string[trigLength] = {
-                "HLT_j15_p320eta490_L1MBTS_1_1",
-                "HLT_j15_ion_p320eta490_L1MBTS_1_1",
-                "HLT_j30_0eta490_L1TE10",
-                "HLT_j30_ion_0eta490_L1TE10",
-                "HLT_j40_L1J5",
-                "HLT_j40_ion_L1J5",
-                "HLT_j45_p200eta320",
-                "HLT_j45_ion_p200eta320",
-                "HLT_j50_L1J10",
-                "HLT_j50_ion_L1J10",
-                "HLT_j55_p320eta490",
-                "HLT_j55_ion_p320eta490",
-                "HLT_j60",
-                "HLT_j60_ion_L1J20",
-                "HLT_j65_p200eta320",
-                "HLT_j65_ion_p200eta320",
-                "HLT_j75_L1J20",
-                "HLT_j75_ion_L1J20",
-                "HLT_j100_L1J20",
-                "HLT_j100_ion_L1J20",
-                "HLT_2j10_p320eta490_L1TE10",
-                "HLT_2j10_ion_p320eta490_L1TE10",
-                "HLT_2j30_p320eta490",
-                "HLT_2j30_ion_p320eta490"
-        };
-       
+    float eta_lab;
+    if (PbP) eta_lab = -0.465;
+    else eta_lab = 0.465;
 
-        // Map each trigger to a specific jet momentum cutoff range for each eta range 
-        std::map<int, float> trig_lower_0eta200;
-        std::map<int, float> trig_upper_0eta200;
-        trig_lower_0eta200[3] = 40;
-        trig_upper_0eta200[3] = 50;
-        trig_lower_0eta200[5] = 50;
-        trig_upper_0eta200[5] = 60;
-        trig_lower_0eta200[9] = 60;
-        trig_upper_0eta200[9] = 70;
-        trig_lower_0eta200[13] = 70;
-        trig_upper_0eta200[13] = 85;
-        trig_lower_0eta200[17] = 85;
-        trig_upper_0eta200[17] = 110;
-        trig_lower_0eta200[19] = 110;
-        trig_upper_0eta200[19] = 2000;
-        std::map<int, float> trig_lower_200eta320;
-        std::map<int, float> trig_upper_200eta320;
-        trig_lower_200eta320[3] = 40;
-        trig_upper_200eta320[3] = 50;
-        trig_lower_200eta320[5] = 50;
-        trig_upper_200eta320[5] = 55;
-        trig_lower_200eta320[7] = 55;
-        trig_upper_200eta320[7] = 60;
-        trig_lower_200eta320[9] = 60;
-        trig_upper_200eta320[9] = 70;
-        trig_lower_200eta320[13] = 70;
-        trig_upper_200eta320[13] = 75;
-        trig_lower_200eta320[15] = 75;
-        trig_upper_200eta320[15] = 85;
-        trig_lower_200eta320[17] = 85;
-        trig_upper_200eta320[17] = 110;
-        trig_lower_200eta320[19] = 110;
-        trig_upper_200eta320[19] = 2000;
-        std::map<int, float> trig_lower_320eta490;
-        std::map<int, float> trig_upper_320eta490;
-        trig_lower_320eta490[1] = 25;
-        trig_upper_320eta490[1] = 40;
-        trig_lower_320eta490[3] = 40;
-        trig_upper_320eta490[3] = 50;
-        trig_lower_320eta490[5] = 50;
-        trig_upper_320eta490[5] = 60;
-        trig_lower_320eta490[9] = 60;
-        trig_upper_320eta490[9] = 65;
-        trig_lower_320eta490[11] = 65;
-        trig_upper_320eta490[11] = 70;
-        trig_lower_320eta490[13] = 70;
-        trig_upper_320eta490[13] = 85;
-        trig_lower_320eta490[17] = 85;
-        trig_upper_320eta490[17] = 110;
-        trig_lower_320eta490[19] = 110;
-        trig_upper_320eta490[19] = 2000;
+    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-/*
-	// Store file names to process as a TChain
-	const char* files[10] = {
-	//	"user.khill.jetTreeMaker.2.4.30hi.001.00313187.f774_m1736_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313572.f774_m1736_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313574.f774_m1736_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313575.f774_m1736_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313629.f781_m1741_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313630.f781_m1741_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313833.f781_m1741_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00313929.f781_m1741_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00314014.f781_m1741_myOutput_hadd.root",
-		"user.khill.jetTreeMaker.2.4.30hi.001.00314157.f781_m1741_myOutput_hadd.root"
-	};
+    // Initialize maps of trigger numbers (as ordered above) to the appropriate jet cutoffs for a specific eta range. This is done to obtain continuous coverage over the p_t spectrum.
+    std::map<int, int> trig_lower_n200eta490 = get_trig_lower_n200eta490(); // Eta range : -4.9 < eta <= -3.2
+    std::map<int, int> trig_upper_n200eta490 = get_trig_upper_n200eta490();
+    std::map<int, int> trig_lower_0eta200 = get_trig_lower_0eta200(); // Eta range -2 < eta < 2
+    std::map<int, int> trig_upper_0eta200 = get_trig_upper_0eta200();
+    std::map<int, int> trig_lower_p200eta320 = get_trig_lower_p200eta320(); // Eta range: 2 <= eta < 3.2
+    std::map<int, int> trig_upper_p200eta320 = get_trig_upper_p200eta320();
+    std::map<int, int> trig_lower_p320eta490 = get_trig_lower_p320eta490(); // Eta range: 3.2 <= eta < 4.9
+    std::map<int, int> trig_upper_p320eta490 = get_trig_upper_p320eta490();
 
-	// Store luminosities of each run; must be of same length as files
-	const float luminosities[sizeof(files)/sizeof(files[0])] = {3.24, 0.0051, 1.2, 7.059, 6.251, 6.632, 4.70, 0.0506, 6.850, 9.153}; //units in nb^-1
-	float luminosity = 0;
-	for (int i = 0; i<sizeof(files)/sizeof(files[0]); i++) {
-		luminosity += luminosities[i]/1000; // divide by 1000 to convert nb^-1 to pb^-1
-	}
-*/
+    // End trigger-jet cutoff map initialization
 
-        TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
 
-	// Create arrays to store trigger values for each event
-	bool m_trig_bool[trigLength];
-	float m_trig_prescale[trigLength];
+    const float jet_cuts_n200eta490[7] = {40, 50, 60, 70, 85, 110, 2000};
+    const float jet_cuts_0eta200[7] = {40, 50, 60, 70, 85, 110, 2000};
+    const float jet_cuts_p200eta320[9] = {40, 50, 55, 60, 70, 75, 85, 110, 2000};
+    const float jet_cuts_p320eta490[9] = {25, 40, 50, 60, 65, 70, 85, 110, 2000};
+    
+    const float d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
+    const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const float harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-	// Create a TChain which combines the tree of each file into one tree
-	// Note that TChain inherits from TTree so it is a TTree as well
-	TChain* tree = new TChain("tree");
-	for (int i = 0; i < sizeof(files)/sizeof(files[0]); i++) {
-		tree->Add(files[i]); // Add each file to the TChain
-	}
+    const float xbins[29] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.68, 0.76, 0.84, 0.92, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
+    const int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1; 
+    // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
+    const int numhists = 16;
+    TH1F* harr[numhists];
+    for (int i = 0; i < numhists/2; i++) {
+        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy [pb]", eta_cuts[i], eta_cuts[i+1]), nbins, xbins);
+        harr[i]->Sumw2();
+    }
+    for (int i = numhists/2; i < numhists; i++) {
+        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a} [GeV];d#sigma^{2}/d#it{x}_{a} dy [pb]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), nbins, xbins);
+        harr[i]->Sumw2();
+    }
 
-	// Create arrays to store jet data for each event
-	float j_pt[5] = {};
-	float j_eta[5] = {};
-        float j_phi[5] = {};
-        float j_e[5] = {};
-        int njet = 0;
-	tree->SetBranchAddress("j_pt", j_pt);
-	tree->SetBranchAddress("j_eta", j_eta);
-        tree->SetBranchAddress("j_e", j_e);
-        tree->SetBranchAddress("njet", &njet);
-        tree->SetBranchAddress("j_phi", j_phi);
+    // Create arrays to store trigger values for each event
+    bool m_trig_bool[trigLength];
+    float m_trig_prescale[trigLength];
 
-	const float jet_cuts[11] = {25, 40, 50, 55, 60, 65, 70, 75, 85, 110, 2000}; // cutoff momenta for each jet	
+    // Create arrays to store jet data for each event
+    float j_pt[5] = {};
+    float j_eta[5] = {};
+    float j_phi[5] = {};
+    float j_e[5] = {};
+    int njet = 0;
+    tree->SetBranchAddress("j_pt", j_pt);
+    tree->SetBranchAddress("j_eta", j_eta);
+    tree->SetBranchAddress("j_e", j_e);
+    tree->SetBranchAddress("njet", &njet);
+    tree->SetBranchAddress("j_phi", j_phi);
+
+    // Set branch addresses
+    for (int i = 0; i < trigLength; i++) {
+        tree->SetBranchAddress(m_trig_string[i], &m_trig_bool[i]); 
+        tree->SetBranchAddress(Form("%s_prescale", m_trig_string[i]), &m_trig_prescale[i]);
+    }
+
+    // Iterate over each event
+    const int numentries = tree->GetEntries();
         
-	const float eta_cuts[7] = {0, 0.5, 1, 1.5, 2, 2.5, 3};  // cutoff pseudorapidity for each bin
-	
-	TH1F* harr[2];
+    const std::vector<int> trig_n200eta490 = {3, 5, 9, 13, 17, 19};
+    const std::vector<int> trig_0eta200 = {3, 5, 9, 13, 17, 19};
+    const std::vector<int> trig_p200eta320 = {3, 5, 7, 9, 13, 15, 17, 19};
+    const std::vector<int> trig_p320eta490 = {1, 3, 5, 9, 11, 13, 17, 19};
+    double jeta0, jpt0, jeta1, jpt1, xp, xa, extra_jpt_sum;
+    bool takeEvent;
+    for (int i = 0; i < numentries; i++) {
+        tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
-	harr[0] = new TH1F("xp", "#it{x}_{p};#it{x}_{i};d#sigma/d#it{x}_{i} [pb/GeV]", 80, 0, 1.6);
-	harr[1] = new TH1F("xa", "#it{x}_{a}", 80, 0, 1.6);
-	for (int i = 0; i< sizeof(harr)/sizeof(harr[0]); i++) {
-		harr[i]->Sumw2();  // tell each histogram to propagate errors
-	}
-	
-	// Set branch addresses
-	for (int i = 0; i < trigLength; i++) {
-		tree->SetBranchAddress(m_trig_string[i], &m_trig_bool[i]); 
-		tree->SetBranchAddress(Form("%s_prescale", m_trig_string[i]), &m_trig_prescale[i]);
-	}
+        extra_jpt_sum = 0;
+        for (int j = 2; j < njet; j++) {
+            extra_jpt_sum += j_pt[j];
+        }
+        takeEvent = extra_jpt_sum / (j_pt[0] + j_pt[1] + extra_jpt_sum) <= dijet_pt_frac_cutoff;
+        if (takeEvent) {
 
-	// Iterate over each event
-	int numentries = tree->GetEntries();
-	for (int i = 0; i < numentries; i++) {
-		tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
-                if (njet == 2 || (njet == 3 && (j_pt[2]-0.5*(j_pt[0]+j_pt[1]))/(j_pt[2]+0.5*j_pt[0]+0.5*j_pt[1]) <= 0.1)) {	// select 2 jet events or 3 jet events with 2 dominating jets
-		        for (int trig_num = 1; trig_num < 21; trig_num+=2) { // iterate over each trigger
-			        if (m_trig_bool[trig_num] && j_pt[0] >= jet_cuts[(trig_num-1)/2] && j_pt[0] < jet_cuts[(trig_num+1)/2]) { // if triggered, check whether the jet momentum falls in the correct range
-                                        harr[0]->Fill((TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+0.465)+j_pt[1]*TMath::Exp(j_eta[1]+0.465)), m_trig_prescale[trig_num]);
-                                        harr[1]->Fill((TMath::Sqrt(A/Z) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(-j_eta[0]-0.465)+j_pt[1]*TMath::Exp(-j_eta[1]-0.465)), m_trig_prescale[trig_num]);
-                                }
-				break; // probably unnecessary, but any jet should only be plotted once.
-			}
-		}
-	}
+            jpt0 = (double)j_pt[0];
+            jeta0 = (double)j_eta[0];
+            jpt1 = (double)j_pt[1];
+            jeta1 = (double)j_eta[1];
 
-	// Save to root file
-	TFile* output = new TFile(Form("./xdata/run%i.root", runNumber), "RECREATE");
-	for (int i = 0; i< sizeof(harr)/sizeof(harr[0]); i++) {
-		harr[i]->Scale(1/(A*luminosity), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
-		harr[i]->Write();
-	}
-	output->Close();
+            if (TMath::Abs(jeta0) < 2 && TMath::Abs(jeta0) >= 0) {
+                for (int trig_num : trig_0eta200) { // iterate over each trigger
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_0eta200[trig_num] && jpt0 < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
+                        for (int k = 2; k < 6; k++) {
+                            if (jeta0 >= eta_cuts[k] && jeta0 < eta_cuts[k+1]) {
+                                xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
+                                xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                                harr[k]->Fill(xp, m_trig_prescale[trig_num]);
+                                harr[k+8]->Fill(xa, m_trig_prescale[trig_num]);
+                                break;
+                            }
+                        }
+                        break; // any jet should only be plotted once.
+                    }
+                }
+            }
+            else if (jeta0 < 3.2 && jeta0 >= 2) {
+                for (int trig_num : trig_p200eta320) {
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p200eta320[trig_num] && jpt0 < trig_upper_p200eta320[trig_num]) {
+                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
+                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        harr[6]->Fill(xp, m_trig_prescale[trig_num]);
+                        harr[14]->Fill(xa, m_trig_prescale[trig_num]);
+                        break;
+                    }
+                }
+            }
+            else if (jeta0 < 4.9 && jeta0 >= 3.2) {
+                for (int trig_num : trig_p320eta490) {
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p320eta490[trig_num] && jpt0 < trig_upper_p320eta490[trig_num]) {
+                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
+                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        harr[7]->Fill(xp, m_trig_prescale[trig_num]);
+                        harr[15]->Fill(xa, m_trig_prescale[trig_num]);
+                        break;
+                    }
+                }
+            }
+            else if (jeta0 <= -2 && jeta0 > -3.2) {
+                for (int trig_num : trig_n200eta490) {
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
+                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
+                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        harr[1]->Fill(xp, m_trig_prescale[trig_num]);
+                        harr[9]->Fill(xa, m_trig_prescale[trig_num]);
+                        break;
+                    }
+                }
+            }
+            else if (jeta0 <= -3.2 && jeta0 > -4.9) {
+                for (int trig_num : trig_n200eta490) {
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
+                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
+                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        harr[0]->Fill(xp, m_trig_prescale[trig_num]);
+                        harr[8]->Fill(xa, m_trig_prescale[trig_num]);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    // Save to root file
+    TFile* output = new TFile(Form("./xdata/run_%i.root", runNumber), "RECREATE");
+    for (int i = 0; i < numhists; i++) {
+        harr[i]->Scale(harr_scales[i%(numhists/2)]/(A * luminosity * d_eta[i%(numhists/2)]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
+        harr[i]->Write();
+    }
+    output->Close();
 }

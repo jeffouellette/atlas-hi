@@ -2,22 +2,18 @@ root -b -q 'jets_pt.C (313067, 0.929)'&
 root -b -q 'jets_pt.C (313107, 10.843)'&
 root -b -q 'jets_pt.C (313136, 9.42)'&
 root -b -q 'jets_pt.C (313187, 3.24)'&
-
 root -b -q 'jets_pt.C (313259, 4.634)'&
 root -b -q 'jets_pt.C (313572, 0.0051)'&
 root -b -q 'jets_pt.C (313574, 1.2)'&
 root -b -q 'jets_pt.C (313575, 7.059)'&
-
 root -b -q 'jets_pt.C (313603, 8.158)'&
 root -b -q 'jets_pt.C (313629, 6.251)'&
 root -b -q 'jets_pt.C (313630, 6.632)'&
 root -b -q 'jets_pt.C (313695, 4.139)'&
-
 root -b -q 'jets_pt.C (313833, 4.70)'&
 root -b -q 'jets_pt.C (313878, 1.784)'&
 root -b -q 'jets_pt.C (313929, 0.0506)'&
 root -b -q 'jets_pt.C (314014, 6.850)'&
-
 root -b -q 'jets_pt.C (314157, 9.153)'&
 
 wait

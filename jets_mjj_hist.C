@@ -1,0 +1,60 @@
+void jets_mjj_hist(std::vector<int> runNumbers) {
+
+    const int numhists = 5;
+
+    const float ymin = 1e-2;
+    const float ymax = 6e7;
+    const float xmin = 1e1;
+    const float xmax = 6e3;
+
+    const double xbins [17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
+    const float etastarcuts[numhists+1] = {0, 0.5, 1, 1.5, 2, 3};
+
+    TH1D* harr[numhists];
+    for (int i = 0; i < numhists; i++) {
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f #leq |#eta*| #leq %1.1f; #it{M}_{JJ} [GeV/#it{c}^{2}];d^{2}#sigma/d#it{M}_{JJ}d|#eta*| [pb (GeV/#it{c}^{#it{2}})^{-1}]", etastarcuts[i], etastarcuts[i+1]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i]->Sumw2(); // instruct each histogram to propagate errors
+    }
+
+    for (int runNumber : runNumbers) {
+        TFile* thisfile = new TFile(Form("./mjj_data/run_%i.root", runNumber), "READ");
+        for (int j = 0; j < numhists; j++) {
+            harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", runNumber, j)));
+        }
+    }
+
+    TCanvas* c = new TCanvas("c", "", 1000, 800);   
+
+    gPad->SetLogy();
+    gPad->SetLogx();
+
+    gStyle->SetOptStat(0);
+    gStyle->SetOptTitle(kFALSE);
+
+    const Style_t mkstyles[8] = {kFullCircle, kFullDiamond, kFullSquare, kFullFourTrianglesX, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
+    const Color_t mkcolors[8] = {kAzure-5, kOrange-5, kTeal-5, kPink-5, kSpring-5, kViolet-5, kGray+3, kRed-2};
+
+    for (int i = 0; i < sizeof(harr)/sizeof(harr[0]); i++) {
+        harr[i]->SetMarkerStyle(mkstyles[i]);
+        harr[i]->SetMarkerColor(mkcolors[i]);
+        harr[i]->SetLineColor(mkcolors[i]);
+        harr[i]->Draw("same e1");
+        harr[i]->GetXaxis()->SetLimits(xmin, xmax);
+        harr[i]->SetMinimum(ymin);
+        harr[i]->SetMaximum(ymax);
+        //harr[i]->SetAxisRange(ymin, ymax, "Y");
+        //harr[i]->SetAxisRange(xmin, xmax, "X");
+        harr[i]->Draw("same e1");
+    }
+    c->Draw();
+
+    TLegend* legend = new TLegend(0.6, 0.55, 0.9, 0.9);
+    legend->SetHeader("Dijet center-of-mass pseudorapidities", "C");
+    for (int i = 0; i < numhists; i++) {
+        legend->AddEntry(harr[i], "");
+    }
+    legend->SetTextSize(0.022);
+    legend->Draw();
+
+    c->SaveAs("./Plots/jets_mjj_8.16TeV.pdf");
+}
