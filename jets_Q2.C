@@ -9,6 +9,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     if (PbP) eta_lab = -0.465;
     else eta_lab = 0.465;
 
+    const int numhists = 8;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
     // Initialize maps of trigger numbers (as ordered above) to the appropriate jet cutoffs for a specific eta range. This is done to obtain continuous coverage over the p_t spectrum.
@@ -28,10 +29,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
 
     //Useful arrays
-    const double xbins_n200eta490[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};           // Eta range: -4.9 < eta <= -2
-    const double xbins_0eta200[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};              // Eta range: -2 < eta < 2
-    const double xbins_p200eta320[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 2 <= eta < 3.2
-    const double xbins_p320eta490[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 3.2 <= eta < 4.9
+    const double xbins[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
     const float jet_cuts_n200eta490[7] = {40, 50, 60, 70, 85, 110, 6000};
     const float jet_cuts_0eta200[7] = {40, 50, 60, 70, 85, 110, 6000};
     const float jet_cuts_p200eta320[9] = {40, 50, 55, 60, 70, 75, 85, 110, 6000};
@@ -45,15 +43,8 @@ void jets_Q2(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[8];
 
-    harr[0] = new TH1D(Form("%ieta0", runNumber), "-4.9 < #eta < -3.2 (#times 0.005);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
-    harr[1] = new TH1D(Form("%ieta1", runNumber), "-3.2 < #eta < -2 (#times 0.03);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_n200eta490)/sizeof(xbins_n200eta490[0])-1, xbins_n200eta490);
-    harr[2] = new TH1D(Form("%ieta2", runNumber), "-2 < #eta < -1 (#times 0.1);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[3] = new TH1D(Form("%ieta3", runNumber), "-1 < #eta < 0 (#times 0.5);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[4] = new TH1D(Form("%ieta4", runNumber), "0 < #eta < 1 (#times 1);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[5] = new TH1D(Form("%ieta5", runNumber), "1 < #eta < 2 (#times 0.3);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_0eta200)/sizeof(xbins_0eta200[0])-1, xbins_0eta200);
-    harr[6] = new TH1D(Form("%ieta6", runNumber), "2 < #eta < 3.2 (#times 0.05);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_p200eta320)/sizeof(xbins_p200eta320[0])-1, xbins_p200eta320);
-    harr[7] = new TH1D(Form("%ieta7", runNumber), "3.2 < #eta < 4.9 (#times 0.01);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", sizeof(xbins_p320eta490)/sizeof(xbins_p320eta490[0])-1, xbins_p320eta490);
-    for (int i = 0; i< sizeof(harr)/sizeof(harr[0]); i++) {
+    for (int i = 0; i < numhists; i++) {
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f (#times %1.3f);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -168,7 +159,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
 
     // Write histograms to a root file
     TFile* output = new TFile(Form("./Q2_data/run_%i.root", runNumber), "RECREATE");
-    for (int i = 0; i< sizeof(harr)/sizeof(harr[0]); i++) {
+    for (int i = 0; i< numhists; i++) {
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
