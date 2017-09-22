@@ -41,8 +41,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     //const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
     // Create an array of 6 histograms, one for each rapidity region.   
-    TH1D* harr[8];
-
+    TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
         harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f (#times %1.3f);#it{|Q|} [GeV/#it{c}];d^{2}#sigma/d#it{|Q|}dy [pb (GeV/#it{c})^{-1}]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
@@ -53,9 +52,9 @@ void jets_Q2(const int runNumber, // Run number identifier.
     bool m_trig_bool[trigLength];   // stores whether trigger was triggered
     float m_trig_prescale[trigLength];      // stores the prescaling factor for the trigger
     // Create arrays to store jet data for each event
-    float j_pt[5] = {};
-    float j_eta[5] = {};
-    float j_e[5] = {};
+    float j_pt[60] = {};
+    float j_eta[60] = {};
+    float j_e[60] = {};
     int njet = 0;
 
     // Set branch addresses

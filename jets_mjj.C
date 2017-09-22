@@ -47,10 +47,10 @@ void jets_mjj(const int runNumber, // Run number identifier.
     bool m_trig_bool[trigLength];   // stores whether trigger was triggered
     float m_trig_prescale[trigLength];      // stores the prescaling factor for the trigger
     // Create arrays to store jet data for each event
-    float j_pt[5] = {};
-    float j_eta[5] = {};
-    float j_phi[5] = {};
-    float j_e[5] = {};
+    float j_pt[60] = {};
+    float j_eta[60] = {};
+    float j_phi[60] = {};
+    float j_e[60] = {};
     int njet = 0;
 
     // Set branch addresses

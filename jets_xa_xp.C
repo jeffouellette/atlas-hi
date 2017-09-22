@@ -53,10 +53,10 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     float m_trig_prescale[trigLength];
 
     // Create arrays to store jet data for each event
-    float j_pt[5] = {};
-    float j_eta[5] = {};
-    float j_phi[5] = {};
-    float j_e[5] = {};
+    float j_pt[60] = {};
+    float j_eta[60] = {};
+    float j_phi[60] = {};
+    float j_e[60] = {};
     int njet = 0;
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
