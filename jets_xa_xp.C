@@ -99,8 +99,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_0eta200[trig_num] && jpt0 < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
                         for (int k = 2; k < 6; k++) {
                             if (jeta0 >= eta_cuts[k] && jeta0 < eta_cuts[k+1]) {
-                                xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
-                                xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                                xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
+                                xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                                 harr[k]->Fill(xp, m_trig_prescale[trig_num]);
                                 harr[k+8]->Fill(xa, m_trig_prescale[trig_num]);
                                 break;
@@ -113,8 +113,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 < 3.2 && jeta0 >= 2) {
                 for (int trig_num : trig_p200eta320) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p200eta320[trig_num] && jpt0 < trig_upper_p200eta320[trig_num]) {
-                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
-                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
+                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[6]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[14]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -124,8 +124,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 < 4.9 && jeta0 >= 3.2) {
                 for (int trig_num : trig_p320eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p320eta490[trig_num] && jpt0 < trig_upper_p320eta490[trig_num]) {
-                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
-                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
+                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[7]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[15]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -135,8 +135,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 <= -2 && jeta0 > -3.2) {
                 for (int trig_num : trig_n200eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
-                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
-                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
+                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[1]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[9]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -146,8 +146,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 <= -3.2 && jeta0 > -4.9) {
                 for (int trig_num : trig_n200eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
-                        xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0*TMath::Exp(jeta0+eta_lab)+jpt1*TMath::Exp(jeta1+eta_lab)); 
-                        xa = (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0-eta_lab)+jpt1*TMath::Exp(-jeta1-eta_lab));
+                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
+                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[0]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[8]->Fill(xa, m_trig_prescale[trig_num]);
                         break;

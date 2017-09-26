@@ -26,6 +26,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     //Useful arrays
 
     const double xbins [17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
+    const int len_xbins = sizeof(xbins)/sizeof(xbins[0]);
 
     const double harr_scales[5] = {1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
@@ -38,7 +39,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f #leq #left|#eta*#right| #leq %1.1f; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g #leq #left|#eta*#right| #leq %g; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), len_xbins-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -79,6 +80,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     const std::vector<int> trig_p200eta320 = {3, 5, 7, 9, 13, 15, 17, 19};
     const std::vector<int> trig_p320eta490 = {1, 3, 5, 9, 11, 13, 17, 19};
     double jeta0, jeta1, jphi0, jphi1, jpt0, jpt1, je0, je1, etastar, mjj, jpz0, jpz1, extra_jpt_sum;
+    TLorentzVector jet0, jet1;
     bool takeEvent;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
@@ -103,10 +105,10 @@ void jets_mjj(const int runNumber, // Run number identifier.
 
             etastar = TMath::Abs(jeta0-jeta1)/2;
 
-            jpz0 = jpt0 * TMath::SinH(jeta0);
-            jpz1 = jpt1 * TMath::SinH(jeta1);
             //mjj = 2 * TMath::Abs(0.5*(jpt0+jpt1)) * TMath::CosH(etastar);
-            mjj = TMath::Sqrt((je0+je1)*(je0+je1) - TMath::Power((jpt0*TMath::Sin(jphi0) + jpt1*TMath::Sin(jphi1)), 2) - TMath::Power((jpt0*TMath::Cos(jphi0) + jpt1*TMath::Cos(jphi1)), 2) - TMath::Power(jpz0 + jpz1, 2));
+            jet0.SetPtEtaPhiE(jpt0, jeta0, jphi0, je0);
+            jet1.SetPtEtaPhiE(jpt1, jeta1, jphi1, je1);
+            mjj = get_mjj(jet0, jet1); 
 
             if (TMath::Abs(jeta0) < 2 && TMath::Abs(jeta0) >= 0) {
                 for (int trig_num : trig_0eta200) { // iterate over each trigger

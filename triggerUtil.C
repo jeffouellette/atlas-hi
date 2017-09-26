@@ -34,10 +34,21 @@ const char* m_trig_string[trigLength] = {
 };
 
 //TTree* tree;
+                               
+double get_xp(double jpt0, double jpt1, double jeta0, double jeta1) {
+        return (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0* TMath::Exp(jeta0)+jpt1*TMath::Exp(jeta1));
+}
 
+double get_xa(double jpt0, double jpt1, double jeta0, double jeta1) {
+        return (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0)+jpt1*TMath::Exp(-jeta1));
+}
 
 double get_q2(double xp, double je, double jpt){
     return (double)TMath::Sqrt(TMath::Sqrt(A/Z)*sqrt_s_nn*xp*(je-TMath::Sqrt(je*je-jpt*jpt)));
+}
+
+double get_mjj(TLorentzVector jet0, TLorentzVector jet1) {
+    return (jet0+jet1).Mag();
 }
 
 // Initialize maps of trigger numbers (as ordered above) to the appropriate jet cutoffs for a specific eta range. This is done to obtain continuous coverage over the p_t spectrum.

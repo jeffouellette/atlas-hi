@@ -43,7 +43,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f (#times %1.3f);#it{Q}^{dijet}_{12} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{12}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{dijet}_{avg} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{avg}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -78,7 +78,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     const std::vector<int> trig_0eta200 = {3, 5, 9, 13, 17, 19};
     const std::vector<int> trig_p200eta320 = {3, 5, 7, 9, 13, 15, 17, 19};
     const std::vector<int> trig_p320eta490 = {1, 3, 5, 9, 11, 13, 17, 19};
-    double jeta, jpt, q2low, q2high, extra_jpt_sum;
+    double jpt0, jpt1, jeta0, jeta1, je0, je1, xp, q2, extra_jpt_sum;
     bool takeEvent;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
@@ -90,18 +90,21 @@ void jets_Q2(const int runNumber, // Run number identifier.
         takeEvent = extra_jpt_sum / (j_pt[0] + j_pt[1] + extra_jpt_sum) <= dijet_pt_frac_cutoff;
         if (takeEvent) { // select 2 jet events or events with 2 dominating jets
 
-            jpt = (double)j_pt[0];
-            jeta = (double)j_eta[0];
+            jpt0 = (double)j_pt[0];
+            jpt1 = (double)j_pt[1];
+            jeta0 = (double)j_eta[0];
+            jeta1 = (double)j_eta[1];
+            je0 = (double)j_e[0];
+            je1 = (double)j_e[1];
+            xp = get_xp(jpt0, jpt1, jeta0+eta_lab, jeta1+eta_lab); 
+            q2 = 0.5 * (get_q2(xp, je0, jpt0) + get_q2(xp, je1, jpt1));
 
-            if (TMath::Abs(jeta) < 2 && TMath::Abs(jeta) >= 0) {
+            if (TMath::Abs(jeta0) < 2 && TMath::Abs(jeta0) >= 0) {
                 for (int trig_num : trig_0eta200) { // iterate over each trigger
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_0eta200[trig_num] && jpt < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_0eta200[trig_num] && jpt0 < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
                         for (int k = 2; k < 6; k++) {
-                            if (jeta >= eta_cuts[k] && jeta < eta_cuts[k+1]) {
-                                float xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+eta_lab)+j_pt[1]*TMath::Exp(j_eta[1]+eta_lab)); 
-                                q2low = get_q2(xp, (double)j_e[0], (double)j_pt[0]); 
-                                q2high = get_q2(xp, (double)j_e[1], (double)j_pt[1]);
-                                harr[k]->Fill(0.5*(q2high+q2low), m_trig_prescale[trig_num]);
+                            if (jeta0 >= eta_cuts[k] && jeta0 < eta_cuts[k+1]) {
+                                harr[k]->Fill(q2, m_trig_prescale[trig_num]);
                                 break;
                             }
                         }
@@ -109,46 +112,34 @@ void jets_Q2(const int runNumber, // Run number identifier.
                     }
                 }
             }
-            else if (jeta < 3.2 && jeta >= 2) {
+            else if (jeta0 < 3.2 && jeta0 >= 2) {
                 for (int trig_num : trig_p200eta320) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_p200eta320[trig_num] && jpt < trig_upper_p200eta320[trig_num]) {
-                        float xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+eta_lab)+j_pt[1]*TMath::Exp(j_eta[1]+eta_lab)); 
-                        q2low = get_q2(xp, (double)j_e[0], (double)j_pt[0]); 
-                        q2high = get_q2(xp, (double)j_e[1], (double)j_pt[1]);
-                        harr[6]->Fill(0.5*(q2high+q2low), m_trig_prescale[trig_num]);
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p200eta320[trig_num] && jpt0 < trig_upper_p200eta320[trig_num]) {
+                        harr[6]->Fill(q2, m_trig_prescale[trig_num]);
                         break;
                     }
                 }
             }
-            else if (jeta < 4.9 && jeta >= 3.2) {
+            else if (jeta0 < 4.9 && jeta0 >= 3.2) {
                 for (int trig_num : trig_p320eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_p320eta490[trig_num] && jpt < trig_upper_p320eta490[trig_num]) {
-                        float xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+eta_lab)+j_pt[1]*TMath::Exp(j_eta[1]+eta_lab)); 
-                        q2low = get_q2(xp, (double)j_e[0], (double)j_pt[0]); 
-                        q2high = get_q2(xp, (double)j_e[1], (double)j_pt[1]);
-                        harr[7]->Fill(0.5*(q2high+q2low), m_trig_prescale[trig_num]);
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p320eta490[trig_num] && jpt0 < trig_upper_p320eta490[trig_num]) {
+                        harr[7]->Fill(q2, m_trig_prescale[trig_num]);
                         break;
                     }
                 }
             }
-            else if (jeta <= -2 && jeta > -3.2) {
+            else if (jeta0 <= -2 && jeta0 > -3.2) {
                 for (int trig_num : trig_n200eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_n200eta490[trig_num] && jpt < trig_upper_n200eta490[trig_num]) {
-                        float xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+eta_lab)+j_pt[1]*TMath::Exp(j_eta[1]+eta_lab)); 
-                        q2low = get_q2(xp, (double)j_e[0], (double)j_pt[0]); 
-                        q2high = get_q2(xp, (double)j_e[1], (double)j_pt[1]);
-                        harr[1]->Fill(0.5*(q2high+q2low), m_trig_prescale[trig_num]);
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
+                        harr[1]->Fill(q2, m_trig_prescale[trig_num]);
                         break;
                     }
                 }
             }
-            else if (jeta <= -3.2 && jeta > -4.9) {
+            else if (jeta0 <= -3.2 && jeta0 > -4.9) {
                 for (int trig_num : trig_n200eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_n200eta490[trig_num] && jpt < trig_upper_n200eta490[trig_num]) {
-                        float xp = (TMath::Sqrt(Z/A) / sqrt_s_nn) * (j_pt[0]*TMath::Exp(j_eta[0]+eta_lab)+j_pt[1]*TMath::Exp(j_eta[1]+eta_lab)); 
-                        q2low = get_q2(xp, (double)j_e[0], (double)j_pt[0]); 
-                        q2high = get_q2(xp, (double)j_e[1], (double)j_pt[1]);
-                        harr[0]->Fill(0.5*(q2high+q2low), m_trig_prescale[trig_num]);
+                    if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
+                        harr[0]->Fill(q2, m_trig_prescale[trig_num]);
                         break;
                     }
                 }

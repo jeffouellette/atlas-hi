@@ -28,8 +28,8 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
         }
     }
 
-    TLegend* legend = new TLegend(0.56, 0.65, 0.9, 0.9);
-    legend->SetHeader("Leading jet pseudorapidity domain selections", "C");
+    TLegend* legend = new TLegend(0.60, 0.65, 0.9, 0.9);
+    legend->SetHeader("Leading jet pseudorapidities", "C");
     for (int i = 0; i < numhists/2; i+=2) {
             legend->AddEntry(harr[i], "");
     }
