@@ -43,7 +43,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{dijet}_{avg} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{avg}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -153,5 +153,8 @@ void jets_Q2(const int runNumber, // Run number identifier.
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
+    TVectorD lum_vec(1);
+    lum_vec[0] = luminosity;
+    lum_vec.Write("lum_vec");
     output->Close();
 }

@@ -162,5 +162,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
         harr[i]->Scale(harr_scales[i%(numhists/2)]/(A * luminosity * d_eta[i%(numhists/2)]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
+    TVectorD lum_vec(1);
+    lum_vec[0] = luminosity;
+    lum_vec.Write("lum_vec");
     output->Close();
 }

@@ -21,11 +21,14 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
         harr[i]->Sumw2();
     }
 
+    double integrated_luminosity = 0;
     for (int runNumber : runNumbers) {
         TFile* thisfile = new TFile(Form("./xdata/run_%i.root", runNumber), "READ");
         for (int j = 0; j < numhists; j++) {
             harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", runNumber, j)));
         }
+        TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
+        integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
 
     TLegend* legend = new TLegend(0.60, 0.65, 0.9, 0.9);
@@ -48,9 +51,18 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
         harr[i]->SetLineColor(mkcolors[i]);
         harr[i]->Draw("same e1");
     }
-//        gPad->SetTitle("#it{x}_{p} distribution");
     c1->Draw();
     legend->Draw();
+
+    TLatex* description = new TLatex();
+    description->SetTextAlign(22);
+    description->SetTextFont(42);
+    description->SetTextSize(0.036);
+    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.61, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.52, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    
     c1->SaveAs("./Plots/jets_xp_8.16TeV.pdf");
 
 
@@ -69,6 +81,13 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
     }
     c2->Draw();
     legend->Draw();
+
+    description->SetTextSize(0.036);
+    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.61, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.52, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    
     c2->SaveAs("./Plots/jets_xa_8.16TeV.pdf");
         
 }

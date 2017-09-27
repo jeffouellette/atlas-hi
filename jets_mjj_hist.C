@@ -1,3 +1,5 @@
+#include "TMathText.h"
+
 void jets_mjj_hist(std::vector<int> runNumbers) {
 
     const int numhists = 5;
@@ -17,11 +19,14 @@ void jets_mjj_hist(std::vector<int> runNumbers) {
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
+    double integrated_luminosity = 0;
     for (int runNumber : runNumbers) {
         TFile* thisfile = new TFile(Form("./mjj_data/run_%i.root", runNumber), "READ");
         for (int j = 0; j < numhists; j++) {
             harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", runNumber, j)));
         }
+        TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
+        integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
 
     TCanvas* c = new TCanvas("c", "", 1000, 800);   
@@ -58,11 +63,22 @@ void jets_mjj_hist(std::vector<int> runNumbers) {
     legend->SetTextSize(0.025);
     legend->Draw();
 
-    TLatex* eta_star_text = new TLatex();
+    TLatex* description = new TLatex();
+    description->SetTextAlign(22);
+    description->SetTextFont(42);
+    description->SetTextSize(0.036);
+    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.61, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.52, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+ 
+/*    TLatex* eta_star_text = new TLatex();
     eta_star_text->SetTextAlign(22);
     eta_star_text->SetTextFont(42);  
     eta_star_text->SetTextSize(0.036);
     eta_star_text->DrawLatexNDC(0.78, 0.55, "#eta* #equiv #frac{#eta_{1} #minus #eta_{2}}{2}");
+*/
+
 
     c->SaveAs("./Plots/jets_mjj_8.16TeV.pdf");
 }

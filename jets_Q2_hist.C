@@ -13,24 +13,21 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
     const int numhists = 8;
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g);#it{Q}^{dijet}_{avg} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{avg}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), len_xbins-1, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), len_xbins-1, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
+    double integrated_luminosity = 0;
     for (int runNumber : runNumbers) {
         TFile* thisfile = new TFile(Form("./Q2_data/run_%i.root", runNumber), "READ");
         for (int j = 0; j < numhists; j++) {
             harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", runNumber, j)));
         }
+        TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
+        integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
 
     TCanvas* c = new TCanvas("c", "", 1000, 800);   
-    TLegend* legend = new TLegend(0.6, 0.55, 0.9, 0.9);
-    legend->SetHeader("Leading jet pseudorapidities", "C");
-    for (int i = 0; i < numhists; i++) {
-        legend->AddEntry(harr[i], "");
-    }
-    legend->SetTextSize(0.022);
 
     gPad->SetLogy();
     gPad->SetLogx();
@@ -51,13 +48,26 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
         harr[draw_order[i]]->GetXaxis()->SetLimits(xmin, xmax);
         harr[draw_order[i]]->SetMinimum(ymin);
         harr[draw_order[i]]->SetMaximum(ymax);
-        //harr[draw_order[i]]->SetAxisRange(ymin, ymax, "Y");
-        //harr[draw_order[i]]->SetAxisRange(xmin, xmax, "X");
         harr[draw_order[i]]->Draw("same e1");
     }
     c->Draw();
 
+    TLegend* legend = new TLegend(0.6, 0.55, 0.9, 0.9);
+    legend->SetHeader("Leading jet pseudorapidities", "C");
+    for (int i = 0; i < numhists; i++) {
+        legend->AddEntry(harr[i], "");
+    }
+    legend->SetTextSize(0.022);
     legend->Draw();
+
+    TLatex* description = new TLatex();
+    description->SetTextAlign(22);
+    description->SetTextFont(42);
+    description->SetTextSize(0.036);
+    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.51, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.42, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
 
     c->SaveAs("./Plots/jets_Q2_8.16TeV.pdf");
 }

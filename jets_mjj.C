@@ -184,5 +184,9 @@ void jets_mjj(const int runNumber, // Run number identifier.
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
+
+    TVectorD lum_vec(1);
+    lum_vec[0] = luminosity;
+    lum_vec.Write("lum_vec");
     output->Close();
 }
