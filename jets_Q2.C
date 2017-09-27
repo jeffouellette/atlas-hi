@@ -2,12 +2,9 @@
 
 void jets_Q2(const int runNumber, // Run number identifier.
              float luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
-             const bool PbP = false) // Stores if this run was a Pb-p run (opposite direction). This makes the lab frame boost in the opposite direction. 
+             bool periodA)
 {
 
-    float eta_lab;
-    if (PbP) eta_lab = -0.465;
-    else eta_lab = 0.465;
 
     const int numhists = 8;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
@@ -96,7 +93,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
             jeta1 = (double)j_eta[1];
             je0 = (double)j_e[0];
             je1 = (double)j_e[1];
-            xp = get_xp(jpt0, jpt1, jeta0+eta_lab, jeta1+eta_lab); 
+            xp = get_xp(jpt0, jpt1, jeta0, jeta1, periodA); 
             q2 = 0.5 * (get_q2(xp, je0, jpt0) + get_q2(xp, je1, jpt1));
 
             if (TMath::Abs(jeta0) < 2 && TMath::Abs(jeta0) >= 0) {

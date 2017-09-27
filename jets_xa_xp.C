@@ -2,12 +2,8 @@
 
 void jets_xa_xp(int runNumber, // Run number identifier.
                 float luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
-                const bool PbP = false) // Stores if this run was a Pb-p run (opposite direction). This makes the lab frame boost in the opposite direction. 
+                bool periodA)
 {
-
-    float eta_lab;
-    if (PbP) eta_lab = -0.465;
-    else eta_lab = 0.465;
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
@@ -34,7 +30,7 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const float harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const float xbins[29] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.68, 0.76, 0.84, 0.92, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
+    const float xbins[34] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
     const int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1; 
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     const int numhists = 16;
@@ -94,13 +90,14 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             jpt1 = (double)j_pt[1];
             jeta1 = (double)j_eta[1];
 
+            xp = get_xp(jpt0, jpt1, jeta0, jeta1, periodA);
+            xa = get_xa(jpt0, jpt1, jeta0, jeta1, periodA);
+
             if (TMath::Abs(jeta0) < 2 && TMath::Abs(jeta0) >= 0) {
                 for (int trig_num : trig_0eta200) { // iterate over each trigger
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_0eta200[trig_num] && jpt0 < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
                         for (int k = 2; k < 6; k++) {
                             if (jeta0 >= eta_cuts[k] && jeta0 < eta_cuts[k+1]) {
-                                xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
-                                xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                                 harr[k]->Fill(xp, m_trig_prescale[trig_num]);
                                 harr[k+8]->Fill(xa, m_trig_prescale[trig_num]);
                                 break;
@@ -113,8 +110,6 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 < 3.2 && jeta0 >= 2) {
                 for (int trig_num : trig_p200eta320) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p200eta320[trig_num] && jpt0 < trig_upper_p200eta320[trig_num]) {
-                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
-                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[6]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[14]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -124,8 +119,6 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 < 4.9 && jeta0 >= 3.2) {
                 for (int trig_num : trig_p320eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_p320eta490[trig_num] && jpt0 < trig_upper_p320eta490[trig_num]) {
-                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
-                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[7]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[15]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -135,8 +128,6 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 <= -2 && jeta0 > -3.2) {
                 for (int trig_num : trig_n200eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
-                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
-                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[1]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[9]->Fill(xa, m_trig_prescale[trig_num]);
                         break;
@@ -146,8 +137,6 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             else if (jeta0 <= -3.2 && jeta0 > -4.9) {
                 for (int trig_num : trig_n200eta490) {
                     if (m_trig_bool[trig_num] && jpt0 >= trig_lower_n200eta490[trig_num] && jpt0 < trig_upper_n200eta490[trig_num]) {
-                        xp = get_xp(jpt0, jpt1, jeta0, jeta1 + eta_lab); 
-                        xa = get_xa(jpt0, jpt1, jeta0, jeta1 + eta_lab);
                         harr[0]->Fill(xp, m_trig_prescale[trig_num]);
                         harr[8]->Fill(xa, m_trig_prescale[trig_num]);
                         break;

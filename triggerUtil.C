@@ -35,12 +35,18 @@ const char* m_trig_string[trigLength] = {
 
 //TTree* tree;
                                
-double get_xp(double jpt0, double jpt1, double jeta0, double jeta1) {
-        return (TMath::Sqrt(Z/A) / sqrt_s_nn) * (jpt0* TMath::Exp(jeta0)+jpt1*TMath::Exp(jeta1));
+double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
+    double prefactor;
+    if (!periodA) prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
+    else prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
+    return prefactor * (jpt0* TMath::Exp(jeta0)+jpt1*TMath::Exp(jeta1));
 }
 
-double get_xa(double jpt0, double jpt1, double jeta0, double jeta1) {
-        return (TMath::Sqrt(A/Z) / sqrt_s_nn) * (jpt0*TMath::Exp(-jeta0)+jpt1*TMath::Exp(-jeta1));
+double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
+    double prefactor;
+    if (!periodA) prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
+    else prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
+    return prefactor * (jpt0*TMath::Exp(-jeta0)+jpt1*TMath::Exp(-jeta1));
 }
 
 double get_q2(double xp, double je, double jpt){
