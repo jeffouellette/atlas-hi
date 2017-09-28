@@ -60,7 +60,7 @@ void jets_mjj_hist(std::vector<int> runNumbers) {
         legend->AddEntry(harr[i], "");
     }
     legend->SetTextFont(42);
-    legend->SetTextSize(0.025);
+    legend->SetTextSize(0.024);
     legend->Draw();
 
     TLatex* description = new TLatex();

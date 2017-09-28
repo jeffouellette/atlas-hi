@@ -63,7 +63,7 @@ void jets_pt_hist(std::vector<int> runNumbers) {
     for (int i = 0; i < numhists; i++) {
         legend->AddEntry(harr[i], "");
     }
-    legend->SetTextSize(0.022);
+    legend->SetTextSize(0.024);
     legend->Draw();        
 
     TLatex* description = new TLatex();

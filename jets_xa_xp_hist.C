@@ -1,3 +1,5 @@
+#include "triggerUtil.C"
+
 void jets_xa_xp_hist(std::vector<int> runNumbers) {
 
     const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
@@ -32,12 +34,12 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
 
-    TLegend* legend = new TLegend(0.60, 0.65, 0.9, 0.9);
+    TLegend* legend = new TLegend(0.60, 0.67, 0.9, 0.9);
     legend->SetHeader("Leading jet pseudorapidities", "C");
     for (int i = 0; i < numhists/2; i+=2) {
             legend->AddEntry(harr[i], "");
     }
-    legend->SetTextSize(0.022);
+    legend->SetTextSize(0.024);
 
     TCanvas* c1 = new TCanvas("c1", "", 1000, 800); 
     gPad->SetLogy();
@@ -61,8 +63,8 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
     description->SetTextSize(0.036);
     description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
     description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.78, 0.61, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.78, 0.52, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    description->DrawLatexNDC(0.78, 0.51, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.42, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
     
     c1->SaveAs("./Plots/jets_xp_8.16TeV.pdf");
 
@@ -86,8 +88,8 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
     description->SetTextSize(0.036);
     description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
     description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.78, 0.61, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.78, 0.52, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    description->DrawLatexNDC(0.78, 0.51, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.42, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
     
     c2->SaveAs("./Plots/jets_xa_8.16TeV.pdf");
         

@@ -7,30 +7,7 @@ void jets_pt(const int runNumber, // Run number identifier.
     const int numhists = 8;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    /* ETA RANGES:
-        -4.9 < eta <= -3.2
-        -3.2 < eta <= -2
-        -2 < eta <= -1
-        -1 < eta <= 0
-        0 <= eta < 1
-        1 <= eta < 2
-        2 <= eta < 3.2
-        3.2 <= eta < 4.9
-    */
-
-    // Initialize maps of trigger numbers (as ordered above) to the appropriate jet cutoffs for a specific eta range. This is done to obtain continuous coverage over the p_t spectrum.
-
-    std::map<int, int> trig_lower_n200eta490 = get_trig_lower_n200eta490(); // Eta range : -4.9 < eta <= -3.2
-    std::map<int, int> trig_upper_n200eta490 = get_trig_upper_n200eta490();
-    std::map<int, int> trig_lower_0eta200 = get_trig_lower_0eta200();       // Eta range -2 < eta < 2
-    std::map<int, int> trig_upper_0eta200 = get_trig_upper_0eta200();
-    std::map<int, int> trig_lower_p200eta320 = get_trig_lower_p200eta320(); // Eta range: 2 <= eta < 3.2
-    std::map<int, int> trig_upper_p200eta320 = get_trig_upper_p200eta320();
-    std::map<int, int> trig_lower_p320eta490 = get_trig_lower_p320eta490(); // Eta range: 3.2 <= eta < 4.9
-    std::map<int, int> trig_upper_p320eta490 = get_trig_upper_p320eta490();
-
-    // End trigger-jet cutoff map initialization
-
+    initialize();
 
     TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
 
@@ -42,19 +19,14 @@ void jets_pt(const int runNumber, // Run number identifier.
     const double* xbins[numhists] = {xbins_n200eta490, xbins_n200eta490, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_p200eta320, xbins_p320eta490};
     const int len_xbins[numhists] = {16, 16, 16, 16, 16, 16, 18, 17};
 
-    const float jet_cuts_n200eta490[7] = {40, 50, 60, 70, 85, 110, 6000};
-    const float jet_cuts_0eta200[7] = {40, 50, 60, 70, 85, 110, 6000};
-    const float jet_cuts_p200eta320[9] = {40, 50, 55, 60, 70, 75, 85, 110, 6000};
-    const float jet_cuts_p320eta490[9] = {25, 40, 50, 60, 65, 70, 85, 110, 6000};
-
     const double d_eta[numhists] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
     const float eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[numhists] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
-    bool m_trig_bool[trigLength];   // stores whether trigger was triggered
-    float m_trig_prescale[trigLength];      // stores the prescaling factor for the trigger
+    bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
+    float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
     // Create arrays to store jet data for each event
     float j_pt[60] = {};
     float j_eta[60] = {};
@@ -64,9 +36,9 @@ void jets_pt(const int runNumber, // Run number identifier.
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
-    for (int i = 0; i < trigLength; i++) {
-        tree->SetBranchAddress(m_trig_string[i], &m_trig_bool[i]); 
-        tree->SetBranchAddress(Form("%s_prescale", m_trig_string[i]), &m_trig_prescale[i]);
+    for (Trigger* trig : trigger_vec) {
+        tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
+        tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }
 
     TH1D* harr[numhists];
@@ -79,57 +51,81 @@ void jets_pt(const int runNumber, // Run number identifier.
     // Iterate over each event
     const int numentries = tree->GetEntries();
 
-    const std::vector<int> trig_n200eta490 = {3, 5, 9, 13, 17, 19};
-    const std::vector<int> trig_0eta200 = {3, 5, 9, 13, 17, 19};
-    const std::vector<int> trig_p200eta320 = {3, 5, 7, 9, 13, 15, 17, 19};
-    const std::vector<int> trig_p320eta490 = {1, 3, 5, 9, 11, 13, 17, 19};
     double jeta, jpt;
+    bool takeEvent;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
         for (int j = 0; j < njet; j++) { // iterate over each jet momentum
             jeta = (double)j_eta[j];
             jpt = (double)j_pt[j];
-            if (TMath::Abs(jeta) < 2 && TMath::Abs(jeta) >= 0) {
-                for (int trig_num : trig_0eta200) { // iterate over each trigger
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_0eta200[trig_num] && jpt < trig_upper_0eta200[trig_num]) { // if triggered, check whether the jet momentum falls in the correct range
-                        for (int k = 2; k < 6; k++) {
-                            if (jeta >= eta_cuts[k] && jeta < eta_cuts[k+1]) {
-                                harr[k]->Fill((double)jpt, (double)m_trig_prescale[trig_num]);
-                                break;
-                            }
-                        }
-                        break; // any jet should only be plotted once.
+            if (0 < jeta && jeta < 1) {
+                for (Trigger* trig : triggers_p0eta100) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1; // Only take the event if triggered and trigger was not disabled
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[4]->Fill((double)jpt, m_trig_prescale[trig->index]);
+                        break; // Break to ensure that only one trigger allows the event to be recorded
                     }
                 }
             }
-            else if (jeta < 3.2 && jeta >= 2) {
-                for (int trig_num : trig_p200eta320) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_p200eta320[trig_num] && jpt < trig_upper_p200eta320[trig_num]) {
-                        harr[6]->Fill((double)jpt, (double)m_trig_prescale[trig_num]);
+            else if (-1 < jeta && jeta < 0) {
+                for (Trigger* trig : triggers_n100eta0) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[3]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (jeta < 4.9 && jeta >= 3.2) {
-                for (int trig_num : trig_p320eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_p320eta490[trig_num] && jpt < trig_upper_p320eta490[trig_num]) {
-                        harr[7]->Fill((double)jpt, (double)m_trig_prescale[trig_num]);
+            else if (1 < jeta && jeta < 2) {
+                for (Trigger* trig : triggers_p100eta200) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[5]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (jeta <= -2 && jeta > -3.2) {
-                for (int trig_num : trig_n200eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_n200eta490[trig_num] && jpt < trig_upper_n200eta490[trig_num]) {
-                        harr[1]->Fill((double)jpt, (double)m_trig_prescale[trig_num]);
+            else if (-2 < jeta && jeta < -1) {
+                for (Trigger* trig : triggers_n200eta100) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[2]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (jeta <= -3.2 && jeta > -4.9) {
-                for (int trig_num : trig_n200eta490) {
-                    if (m_trig_bool[trig_num] && jpt >= trig_lower_n200eta490[trig_num] && jpt < trig_upper_n200eta490[trig_num]) {
-                        harr[0]->Fill((double)jpt, (double)m_trig_prescale[trig_num]);
+            else if (2 < jeta && jeta < 3.2) {
+                for (Trigger* trig : triggers_p200eta320) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[6]->Fill((double)jpt, m_trig_prescale[trig->index]);
+                        break;
+                    }
+                }
+            }
+            else if (-3.2 < jeta && jeta < -2) {
+                for (Trigger* trig : triggers_n320eta200) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[1]->Fill((double)jpt, m_trig_prescale[trig->index]);
+                        break;
+                    }
+                }
+            }
+            else if (3.2 < jeta && jeta < 4.9) {
+                for (Trigger* trig : triggers_p320eta490) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[7]->Fill((double)jpt, m_trig_prescale[trig->index]);
+                        break;
+                    }
+                }
+            }
+            else if (-4.9 < jeta && jeta < -3.2) {
+                for (Trigger* trig : triggers_n490eta320) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
+                        harr[0]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
