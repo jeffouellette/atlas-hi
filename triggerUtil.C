@@ -1,5 +1,5 @@
 
-const float dijet_pt_frac_cutoff = 0.1; // Maximum fraction of transverse momentum of all jets but the first two for the event to be considered a dijet
+const float dijet_pt_frac_cutoff = 0.2; // Maximum fraction of transverse momentum of all jets but the first two for the event to be considered a dijet
 
 const float Z = 82;   // value of Z for Pb
 const float A = 208;  // value of A for Pb
@@ -36,17 +36,15 @@ const char* m_trig_string[trigLength] = {
 //TTree* tree;
                                
 double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
-    double prefactor;
-    if (!periodA) prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
-    else prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
-    return prefactor * (jpt0* TMath::Exp(jeta0)+jpt1*TMath::Exp(jeta1));
+    double prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
+    if (!periodA) return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
+    else return prefactor * (jpt0 * TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
 }
 
 double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
-    double prefactor;
-    if (!periodA) prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
-    else prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
-    return prefactor * (jpt0*TMath::Exp(-jeta0)+jpt1*TMath::Exp(-jeta1));
+    double prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
+    if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
+    else return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
 }
 
 double get_q2(double xp, double je, double jpt){

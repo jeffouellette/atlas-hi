@@ -30,7 +30,7 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const float harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const float xbins[34] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
+    const float xbins[30] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.76, 0.84, 0.92, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
     const int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1; 
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     const int numhists = 16;
