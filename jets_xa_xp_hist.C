@@ -2,7 +2,7 @@
 
 void jets_xa_xp_hist(std::vector<int> runNumbers) {
 
-    const int numbins = 36;
+    const int numbins = 40;
     const int numhists = 16;
     const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
 

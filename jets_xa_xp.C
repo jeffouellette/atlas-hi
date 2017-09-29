@@ -5,7 +5,7 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 bool periodA)
 {
 
-    const int numbins = 36;
+    const int numbins = 40;
     const int numhists = 16;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
