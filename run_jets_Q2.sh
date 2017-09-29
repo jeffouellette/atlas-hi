@@ -9,6 +9,9 @@ root -b -q 'jets_Q2.C (313285, 4.74, true)'&
 root -b -q 'jets_Q2.C (313295, 10.69, true)'&
 root -b -q 'jets_Q2.C (313333, 4.13, true)'&
 root -b -q 'jets_Q2.C (313435, 0.39, true)'&
+
+wait
+
 root -b -q 'jets_Q2.C (313572, 0.01, false)'&
 root -b -q 'jets_Q2.C (313574, 1.33, false)'&
 root -b -q 'jets_Q2.C (313575, 7.54, false)'&

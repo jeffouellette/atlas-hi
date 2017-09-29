@@ -9,6 +9,9 @@ root -b -q 'jets_mjj.C (313285, 4.74)'&
 root -b -q 'jets_mjj.C (313295, 10.69)'&
 root -b -q 'jets_mjj.C (313333, 4.13)'&
 root -b -q 'jets_mjj.C (313435, 0.39)'&
+
+wait
+
 root -b -q 'jets_mjj.C (313572, 0.01)'&
 root -b -q 'jets_mjj.C (313574, 1.33)'&
 root -b -q 'jets_mjj.C (313575, 7.54)'&
