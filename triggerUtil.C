@@ -41,15 +41,23 @@ double* linspace(double lo, double hi, int num) {
  * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
  */
 double* logspace(double lo, double hi, int num) {
-    double loglo;
-    if (lo > 0) loglo = TMath::Log2(lo);
-    else loglo = TMath::Log2(0.01*(hi-lo));
     double loghi = TMath::Log2(hi);
-    double* arr = linspace(loglo, loghi, num);
-    for (int i = 0; i <= num; i++) {
-        arr[i] = TMath::Power(2, arr[i]);
+    if (lo == 0) {
+        double* arr = linspace(TMath::Log2(hi/(2*num)), loghi, num-1);
+        double* arr_fixed = new double[num+1];
+        arr_fixed[0] = 0;
+        for (int i = 1; i <= num; i++) {
+            arr_fixed[i] = TMath::Power(2, arr[i-1]);
+        }
+        return arr_fixed;
+    } else {
+        double loglo = TMath::Log2(lo);
+        double* arr = linspace(loglo, loghi, num);
+        for (int i = 0; i <= num; i++) {
+            arr[i] = TMath::Power(2, arr[i]);
+        }
+        return arr;
     }
-    return arr;
 }
 
 /**
