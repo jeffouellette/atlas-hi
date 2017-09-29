@@ -1,10 +1,11 @@
 #include "triggerUtil.C"
 
 void jets_xa_xp(int runNumber, // Run number identifier.
-                float luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
+                double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
                 bool periodA)
 {
 
+    const int numbins = 36;
     const int numhists = 16;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
@@ -12,20 +13,19 @@ void jets_xa_xp(int runNumber, // Run number identifier.
 
     TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
 
-    const float d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
-    const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
-    const float harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
+    const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
+    const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const float xbins[30] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.76, 0.84, 0.92, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
-    const int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1; 
+    const double* xbins = logspace(0, 1.6, numbins);
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
-    TH1F* harr[numhists];
+    TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1]), nbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1F(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), nbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
 

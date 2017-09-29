@@ -1,7 +1,7 @@
 #include "triggerUtil.C"
 
 void jets_mjj(const int runNumber, // Run number identifier.
-        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+              double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
 
     const int numhists = 5;
@@ -18,7 +18,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
 
     const double harr_scales[5] = {1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const float etastarcuts[numhists+1] = {0, 0.5, 1, 1.5, 2, 3};
+    const double etastarcuts[numhists+1] = {0, 0.5, 1, 1.5, 2, 3};
     double d_eta[numhists];
     for (int i = 0; i < numhists; i++) {
         d_eta[i] = etastarcuts[i+1] - etastarcuts[i];
@@ -89,13 +89,15 @@ void jets_mjj(const int runNumber, // Run number identifier.
             //mjj = 2 * TMath::Abs(0.5*(jpt0+jpt1)) * TMath::CosH(etastar);
             jet0.SetPtEtaPhiE(jpt0, jeta0, jphi0, je0);
             jet1.SetPtEtaPhiE(jpt1, jeta1, jphi1, je1);
-            mjj = get_mjj(jet0, jet1); 
-
+            mjj = get_mjj(jet0, jet1);
+            bool plot_mjj = false;
+            double prescale = 0;
             if (0 < jeta0 && jeta0 < 1) {
                 for (Trigger* trig : triggers_p0eta100) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1; // Only take the event if triggered and trigger was not disabled
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[4]->Fill(mjj, m_trig_prescale[trig->index]);
+                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {                        
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break; // Break to ensure that only one trigger allows the event to be recorded
                     }
                 }
@@ -104,7 +106,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n100eta0) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[3]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -113,7 +116,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p100eta200) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[5]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -122,7 +126,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n200eta100) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[2]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -131,7 +136,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p200eta320) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[6]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -140,7 +146,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n320eta200) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[1]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -149,7 +156,8 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p320eta490) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[7]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
                 }
@@ -158,9 +166,17 @@ void jets_mjj(const int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n490eta320) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
-                        harr[0]->Fill(mjj, m_trig_prescale[trig->index]);
+                        plot_mjj = true;
+                        prescale = m_trig_prescale[trig->index];
                         break;
                     }
+                }
+            }
+            // Loop over histograms to find which one supports the etastar range
+            for (int j = 0; j < numhists; j++) {
+                if (etastarcuts[j] <= etastar && etastar < etastarcuts[j+1]) {
+                    harr[j]->Fill(mjj, prescale);
+                    break;
                 }
             }
         }

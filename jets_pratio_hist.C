@@ -3,7 +3,7 @@
 void jets_pratio_hist(std::vector<int> runNumbers) {
 
     const int numbins = 40;
-    const double* xbins = linspace(0, 20, numbins);
+    const double* xbins = logspace(0, 20, numbins);
     const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
@@ -13,7 +13,7 @@ void jets_pratio_hist(std::vector<int> runNumbers) {
     const int numhists = 8;
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g);#it{p}_{1}/#it{p}_{2} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{1}/#it{p}_{2}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[(i+2)%numhists], harr_scales[i]), numbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g);#it{p}_{1}/#it{p}_{2};d^{2}#sigma/d#it{p}_{1}/#it{p}_{2}dy #left[pb#right]", eta_cuts[i], eta_cuts[(i+2)%numhists], harr_scales[i]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -50,7 +50,7 @@ void jets_pratio_hist(std::vector<int> runNumbers) {
     }
     c->Draw();
 
-    TLegend* legend = new TLegend(0.6, 0.55, 0.9, 0.9);
+    TLegend* legend = new TLegend(0.6, 0.67, 0.9, 0.9);
     legend->SetHeader("Leading jet pseudorapidities", "C");
     for (int i = 0; i < numhists; i+=2) {
         legend->AddEntry(harr[i], "");

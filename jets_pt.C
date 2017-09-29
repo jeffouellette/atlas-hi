@@ -20,7 +20,7 @@ void jets_pt(const int runNumber, // Run number identifier.
     const int len_xbins[numhists] = {16, 16, 16, 16, 16, 16, 18, 17};
 
     const double d_eta[numhists] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
-    const float eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[numhists] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
 
     // Create branching addresses:  

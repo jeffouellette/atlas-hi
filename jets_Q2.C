@@ -1,7 +1,7 @@
 #include "triggerUtil.C"
 
 void jets_Q2(const int runNumber, // Run number identifier.
-             float luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
+             double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
              bool periodA)
 {
 
@@ -16,7 +16,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     //Useful arrays
     const double xbins[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
     const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
-    const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[8] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
 
     // Create an array of 6 histograms, one for each rapidity region.   

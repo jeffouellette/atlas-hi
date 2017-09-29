@@ -28,11 +28,26 @@ const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
 /**
  * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
  */
-double* linspace(int lo, int hi, int num) {
-    double* arr = &(new double[num+1])[0];
+double* linspace(double lo, double hi, int num) {
+    double* arr = new double[num+1];
     double delta = ((double)(hi)-(double)(lo))/(double)(num);
     for (int i = 0; i <= num; i++) {
         arr[i] = lo + i * delta;
+    }
+    return arr;
+}
+
+/**
+ * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
+ */
+double* logspace(double lo, double hi, int num) {
+    double loglo;
+    if (lo > 0) loglo = TMath::Log2(lo);
+    else loglo = TMath::Log2(0.01*(hi-lo));
+    double loghi = TMath::Log2(hi);
+    double* arr = linspace(loglo, loghi, num);
+    for (int i = 0; i <= num; i++) {
+        arr[i] = TMath::Power(2, arr[i]);
     }
     return arr;
 }

@@ -4,13 +4,13 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
 
     const double xbins[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
     const int len_xbins = sizeof(xbins)/sizeof(xbins[0]);
-    const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[8] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
 
-    const float ymin = 1e-2;
-    const float ymax = 6e7;
-    const float xmin = 1e1;
-    const float xmax = 6e3;
+    const double ymin = 1e-2;
+    const double ymax = 6e7;
+    const double xmin = 1e1;
+    const double xmax = 6e3;
 
     const int numhists = 8;
     TH1D* harr[numhists];

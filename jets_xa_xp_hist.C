@@ -2,25 +2,24 @@
 
 void jets_xa_xp_hist(std::vector<int> runNumbers) {
 
-    const float eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const int numbins = 36;
+    const int numhists = 16;
+    const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
 
-    const float ymin = 1e-1;
-    const float ymax = 5e8;
+    const double ymin = 1e-1;
+    const double ymax = 1e9;
 
     const Style_t mkstyles[8] = {kFullCircle, kFullDiamond, kFullSquare, kFullFourTrianglesX, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
     const Color_t mkcolors[8] = {kAzure-5, kOrange-5, kTeal-5, kPink-5, kSpring-5, kViolet-5, kGray+3, kRed-2};
 
-    const float xbins[30] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.76, 0.84, 0.92, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
-    //const float xbins[34] = {0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.6, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00, 1.08, 1.16, 1.24, 1.32, 1.40, 1.48, 1.56, 1.64};
-    const int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1; 
-    const int numhists = 16;
-    TH1F* harr[numhists];
+    const double* xbins = logspace(0, 1.6, numbins);
+    TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1F(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+2]), nbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+2]), numbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1F(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+2]), nbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+2]), numbins, xbins);
         harr[i]->Sumw2();
     }
 
@@ -28,7 +27,7 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
     for (int runNumber : runNumbers) {
         TFile* thisfile = new TFile(Form("./xdata/run_%i.root", runNumber), "READ");
         for (int j = 0; j < numhists; j++) {
-            harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", runNumber, j)));
+            harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", runNumber, j)));
         }
         TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity

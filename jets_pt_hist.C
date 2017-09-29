@@ -8,12 +8,12 @@ void jets_pt_hist(std::vector<int> runNumbers) {
     const double* xbins[numhists] = {xbins_n200eta490, xbins_n200eta490, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_p200eta320, xbins_p320eta490};
     const int len_xbins[numhists] = {16, 16, 16, 16, 16, 16, 18, 17};
 
-    const float ymin = 1e-2;
-    const float ymax = 6e7;
-    const float xmin = 1e1;
-    const float xmax = 6e3;
+    const double ymin = 1e-2;
+    const double ymax = 6e7;
+    const double xmin = 1e1;
+    const double xmax = 6e3;
 
-    const float eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[numhists] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
 
     TH1D* harr[numhists];
