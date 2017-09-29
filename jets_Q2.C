@@ -14,7 +14,8 @@ void jets_Q2(const int runNumber, // Run number identifier.
     TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
 
     //Useful arrays
-    const double xbins[17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
+    const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
+    const int numbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
     const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
     const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[8] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
@@ -22,14 +23,14 @@ void jets_Q2(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), sizeof(xbins)/sizeof(xbins[0])-1, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
-    bool m_trig_bool[trigLength];   // stores whether trigger was triggered
-    float m_trig_prescale[trigLength];      // stores the prescaling factor for the trigger
+    bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
+    float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
     // Create arrays to store jet data for each event
     float j_pt[60] = {};
     float j_eta[60] = {};

@@ -1,15 +1,18 @@
 void jets_pt_hist(std::vector<int> runNumbers) {
     const int numhists = 8;
 
-    const double xbins_n200eta490[16] = {25, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};           // Eta range: -4.9 < eta <= -2
+    const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
+    //const double xbins[41] = {25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 350, 400, 500, 600, 800, 1100, 1500, 2500, 6000};
+    const int numbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
+    /*const double xbins_n200eta490[16] = {25, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};           // Eta range: -4.9 < eta <= -2
     const double xbins_0eta200[16] = {25, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};              // Eta range: -2 < eta < 2
     const double xbins_p200eta320[18] = {25, 40, 50, 55, 60, 70, 75, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 2 <= eta < 3.2
     const double xbins_p320eta490[17] = {25, 40, 50, 60, 65, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 3.2 <= eta < 4.9
     const double* xbins[numhists] = {xbins_n200eta490, xbins_n200eta490, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_p200eta320, xbins_p320eta490};
     const int len_xbins[numhists] = {16, 16, 16, 16, 16, 16, 18, 17};
-
-    const double ymin = 1e-2;
-    const double ymax = 6e7;
+*/
+    const double ymin = 1e-6;
+    const double ymax = 2e7;
     const double xmin = 1e1;
     const double xmax = 6e3;
 
@@ -18,7 +21,7 @@ void jets_pt_hist(std::vector<int> runNumbers) {
 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g); #it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), len_xbins[i]-1, xbins[i]);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g); #it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -46,7 +49,7 @@ void jets_pt_hist(std::vector<int> runNumbers) {
 
     const int draw_order[8] = {4, 3, 5, 2, 6, 1, 7, 0};
 
-    for (int i = 0; i < sizeof(harr)/sizeof(harr[0]); i++) {
+    for (int i = 0; i < numhists; i++) {
         harr[draw_order[i]]->SetMarkerStyle(mkstyles[draw_order[i]]);
         harr[draw_order[i]]->SetMarkerColor(mkcolors[draw_order[i]]);
         harr[draw_order[i]]->SetLineColor(mkcolors[draw_order[i]]);

@@ -4,18 +4,19 @@ void jets_mjj_hist(std::vector<int> runNumbers) {
 
     const int numhists = 5;
 
-    const float ymin = 1e-2;
-    const float ymax = 6e7;
+    const float ymin = 1e-6;
+    const float ymax = 2e7;
     const float xmin = 1e1;
     const float xmax = 6e3;
 
-    const double xbins [17] = {25, 30, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};
+    const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
+    const int numbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
     const int len_xbins = sizeof(xbins)/sizeof(xbins[0]);
     const float etastarcuts[numhists+1] = {0, 0.5, 1, 1.5, 2, 3};
 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%g #leq #left|#eta*#right| #leq %g; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), len_xbins-1, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%g #leq #left|#eta*#right| #leq %g; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
