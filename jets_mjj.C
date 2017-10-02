@@ -95,7 +95,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             double prescale = 0;
             if (0 < jeta0 && jeta0 < 1) {
                 for (Trigger* trig : triggers_p0eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1; // Only take the event if triggered and trigger was not disabled
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0; // Only take the event if triggered and trigger was not disabled
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {                        
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -105,7 +105,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (-1 < jeta0 && jeta0 < 0) {
                 for (Trigger* trig : triggers_n100eta0) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -115,7 +115,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (1 < jeta0 && jeta0 < 2) {
                 for (Trigger* trig : triggers_p100eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -125,7 +125,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (-2 < jeta0 && jeta0 < -1) {
                 for (Trigger* trig : triggers_n200eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -135,7 +135,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (2 < jeta0 && jeta0 < 3.2) {
                 for (Trigger* trig : triggers_p200eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -145,7 +145,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (-3.2 < jeta0 && jeta0 < -2) {
                 for (Trigger* trig : triggers_n320eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -155,7 +155,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (3.2 < jeta0 && jeta0 < 4.9) {
                 for (Trigger* trig : triggers_p320eta490) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];
@@ -165,7 +165,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
             }
             else if (-4.9 < jeta0 && jeta0 < -3.2) {
                 for (Trigger* trig : triggers_n490eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
                         plot_mjj = true;
                         prescale = m_trig_prescale[trig->index];

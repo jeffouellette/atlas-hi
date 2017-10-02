@@ -6,12 +6,12 @@ using namespace std;
 
 // Global parameters
 
-const float dijet_pt_frac_cutoff = 0.2; // Maximum fraction of transverse momentum of all jets but the
+const double dijet_pt_frac_cutoff = 0.2; // Maximum fraction of transverse momentum of all jets but the
                                         // first two for the event to be considered a dijet.
 const int global_max_pt = 2000; // Maximum allowed transverse momentum
 
-const double min_eta = -1e3; // Minimum detectable pseudorapidity
-const double max_eta = 1e3; // Maximum detectable pseudorapidity
+const double min_eta = -4.9; // Minimum detectable pseudorapidity in hadronic calorimeter
+const double max_eta = 4.9; // Maximum detectable pseudorapidity
 
 const int trigthres = 10; // Jet pt threshold for triggers
 int numtrigs; // Total number of triggers
@@ -43,13 +43,11 @@ double* linspace(double lo, double hi, int num) {
 double* logspace(double lo, double hi, int num) {
     double loghi = TMath::Log2(hi);
     if (lo == 0) {
-        double* arr = linspace(TMath::Log2(hi/(2*num)), loghi, num-1);
-        double* arr_fixed = new double[num+1];
-        arr_fixed[0] = 0;
-        for (int i = 1; i <= num; i++) {
-            arr_fixed[i] = TMath::Power(2, arr[i-1]);
+        double* arr = linspace(TMath::Log2(hi/(2*num)), loghi, num);
+        for (int i = 0; i <= num; i++) {
+            arr[i] = TMath::Power(2, arr[i]);
         }
-        return arr_fixed;
+        return arr;
     } else {
         double loglo = TMath::Log2(lo);
         double* arr = linspace(loglo, loghi, num);
@@ -65,8 +63,8 @@ double* logspace(double lo, double hi, int num) {
  */
 double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
     double prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
-    if (!periodA) return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
-    else return prefactor * (jpt0 * TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
+    //if (!periodA) return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
+    return prefactor * (jpt0 * TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
 }
 
 /**
@@ -74,8 +72,8 @@ double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA
  */
 double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
     double prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
-    if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
-    else return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
+    //if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
+    return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
 }
 
 /**
@@ -91,39 +89,6 @@ double get_q2(double xp, double je, double jpt) {
 double get_mjj(TLorentzVector jet0, TLorentzVector jet1) {
     return (jet0+jet1).Mag();
 }
-
-
-//=========================================================================================================
-// Store trigger names as an array of strings and loop over them to set the branch addresses --- DEPRECATED
-/*static const int trigLength = 24;
-const char* m_trig_string[trigLength] = {
-    "HLT_j15_ion_p320eta490_L1MBTS_1_1",
-    "HLT_j15_p320eta490_L1MBTS_1_1",
-    "HLT_j30_ion_0eta490_L1TE10",
-    "HLT_j30_0eta490_L1TE10",
-    "HLT_j40_ion_L1J5",
-    "HLT_j40_L1J5",
-    "HLT_j45_ion_p200eta320",
-    "HLT_j45_p200eta320",
-    "HLT_j50_ion_L1J10",
-    "HLT_j50_L1J10",
-    "HLT_j55_ion_p320eta490",
-    "HLT_j55_p320eta490",
-    "HLT_j60_ion_L1J20",
-    "HLT_j60",
-    "HLT_j65_ion_p200eta320",
-    "HLT_j65_p200eta320",
-    "HLT_j75_ion_L1J20",
-    "HLT_j75_L1J20",
-    "HLT_j100_ion_L1J20",
-    "HLT_j100_L1J20",
-    "HLT_2j10_ion_p320eta490_L1TE10",
-    "HLT_2j10_p320eta490_L1TE10",
-    "HLT_2j30_ion_p320eta490",
-    "HLT_2j30_p320eta490"
-};*/
-//=========================================================================================================
-
 
 /**
  * Trigger stores information about a trigger, including a jet momenta range, pseudorapidity interval,
@@ -158,6 +123,9 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau) {
     index = 0;
 }
 
+/**
+ * Creates a copy of trigger t.
+ */
 Trigger::Trigger(const Trigger &t) {
     name = t.name;
     min_pt = t.min_pt;
@@ -212,15 +180,26 @@ std::vector<Trigger*> get_trigs_eta_range(double etal, double etau) {
  */
 void initialize () {
 
+    // Alternate ion triggers
+    /*trigger_vec.push_back(new Trigger("HLT_j15_ion_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j30_ion_0eta490_L1TE10", 30+trigthres, -4.9, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J5", 40+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j45_ion_p200eta320", 45+trigthres, 2, 3.2));
+    trigger_vec.push_back(new Trigger("HLT_j50_ion_L1J10", 50+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j55_ion_p320eta490", 55+trigthres, 3.2, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J20", 60+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j65_ion_p200eta320", 65+trigthres, 2, 3.2));
+    trigger_vec.push_back(new Trigger("HLT_j75_ion_L1J20", 75+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j100_ion_L1J20", 100+trigthres, min_eta, max_eta));*/
     // Create a vector of triggers.
-    trigger_vec.push_back(new Trigger("HLT_j15_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9));
+//    trigger_vec.push_back(new Trigger("HLT_j15_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9));
     trigger_vec.push_back(new Trigger("HLT_j30_0eta490_L1TE10", 30+trigthres, -4.9, 4.9));
     trigger_vec.push_back(new Trigger("HLT_j40_L1J5", 40+trigthres, min_eta, max_eta));
-    trigger_vec.push_back(new Trigger("HLT_j45_p200eta320", 45+trigthres, 2, 3.2));
+//    trigger_vec.push_back(new Trigger("HLT_j45_p200eta320", 45+trigthres, 2, 3.2));
     trigger_vec.push_back(new Trigger("HLT_j50_L1J10", 50+trigthres, min_eta, max_eta));
-    trigger_vec.push_back(new Trigger("HLT_j55_p320eta490", 55+trigthres, 3.2, 4.9));
+//    trigger_vec.push_back(new Trigger("HLT_j55_p320eta490", 55+trigthres, 3.2, 4.9));
     trigger_vec.push_back(new Trigger("HLT_j60", 60+trigthres, min_eta, max_eta));
-    trigger_vec.push_back(new Trigger("HLT_j65_p200eta320", 65+trigthres, 2, 3.2));
+//    trigger_vec.push_back(new Trigger("HLT_j65_p200eta320", 65+trigthres, 2, 3.2));
     trigger_vec.push_back(new Trigger("HLT_j75_L1J20", 75+trigthres, min_eta, max_eta));
     trigger_vec.push_back(new Trigger("HLT_j100_L1J20", 100+trigthres, min_eta, max_eta));
 

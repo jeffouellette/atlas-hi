@@ -54,7 +54,7 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     // Iterate over each event
     const int numentries = tree->GetEntries();
         
-    double jeta0, jpt0, jeta1, jpt1, xp, xa, extra_jpt_sum;
+    double leading_jpt, leading_jeta, jeta0, jpt0, jeta1, jpt1, xp, xa, extra_jpt_sum;
     bool takeEvent;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
@@ -65,89 +65,154 @@ void jets_xa_xp(int runNumber, // Run number identifier.
         }
         takeEvent = extra_jpt_sum / (j_pt[0] + j_pt[1] + extra_jpt_sum) <= dijet_pt_frac_cutoff;
         if (takeEvent) {
-
+            
             jpt0 = (double)j_pt[0];
-            jeta0 = (double)j_eta[0];
             jpt1 = (double)j_pt[1];
+            
+            jeta0 = (double)j_eta[0];
             jeta1 = (double)j_eta[1];
+            //if (periodA) {
+            //    jeta0 *= -1;
+            //    jeta1 *= -1;
+            //}
+
+            leading_jpt = std::max(jpt0, jpt1);
+            if (jpt0 == leading_jpt) leading_jeta = jeta0;
+            else leading_jeta = jeta1;
 
             xp = get_xp(jpt0, jpt1, jeta0, jeta1, periodA);
             xa = get_xa(jpt0, jpt1, jeta0, jeta1, periodA);
 
-            if (0 < jeta0 && jeta0 < 1) {
+            if (0 < leading_jeta && leading_jeta < 1) {
                 for (Trigger* trig : triggers_p0eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1; // Only take the event if triggered and trigger was not disabled
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0; // Only take the event if triggered and trigger was not disabled
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        if (!periodA) {
+                            harr[(numhists/4)]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)-1]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-1]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
                         harr[4]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[12]->Fill(xa, m_trig_prescale[trig->index]);
                         break; // Break to ensure that only one trigger allows the event to be recorded
                     }
                 }
             }
-            else if (-1 < jeta0 && jeta0 < 0) {
+            else if (-1 < leading_jeta && leading_jeta < 0) {
                 for (Trigger* trig : triggers_n100eta0) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)-1]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-1]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[3]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[11]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (1 < jeta0 && jeta0 < 2) {
+            else if (1 < leading_jeta && leading_jeta < 2) {
                 for (Trigger* trig : triggers_p100eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)+1]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+1]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)-2]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-2]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[5]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[13]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (-2 < jeta0 && jeta0 < -1) {
+            else if (-2 < leading_jeta && leading_jeta < -1) {
                 for (Trigger* trig : triggers_n200eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)-2]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-2]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)+1]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+1]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[2]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[10]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (2 < jeta0 && jeta0 < 3.2) {
+            else if (2 < leading_jeta && leading_jeta < 3.2) {
                 for (Trigger* trig : triggers_p200eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)+2]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+2]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)-3]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-3]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[6]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[14]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (-3.2 < jeta0 && jeta0 < -2) {
+            else if (-3.2 < leading_jeta && leading_jeta < -2) {
                 for (Trigger* trig : triggers_n320eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)-3]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-3]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)+2]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+2]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[1]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[9]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (3.2 < jeta0 && jeta0 < 4.9) {
+            else if (3.2 < leading_jeta && leading_jeta < 4.9) {
                 for (Trigger* trig : triggers_p320eta490) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)+3]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+3]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)-4]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-4]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[7]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[15]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
             }
-            else if (-4.9 < jeta0 && jeta0 < -3.2) {
+            else if (-4.9 < leading_jeta && leading_jeta < -3.2) {
                 for (Trigger* trig : triggers_n490eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
-                    if (takeEvent && trig->min_pt <= jpt0 && jpt0 < trig->max_pt) {
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
+                    if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
+                        /*if (!periodA) {
+                            harr[(numhists/4)-4]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)-4]->Fill(xa, m_trig_prescale[trig->index]);
+                        } else {
+                            harr[(numhists/4)+3]->Fill(xp, m_trig_prescale[trig->index]);
+                            harr[(3*numhists/4)+3]->Fill(xa, m_trig_prescale[trig->index]);
+                        }*/
                         harr[0]->Fill(xp, m_trig_prescale[trig->index]);
                         harr[8]->Fill(xa, m_trig_prescale[trig->index]);
                         break;

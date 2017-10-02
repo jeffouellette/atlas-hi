@@ -63,7 +63,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             jpt = (double)j_pt[j];
             if (0 < jeta && jeta < 1) {
                 for (Trigger* trig : triggers_p0eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1; // Only take the event if triggered and trigger was not disabled
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0; // Only take the event if triggered and trigger was not disabled
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[4]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break; // Break to ensure that only one trigger allows the event to be recorded
@@ -72,7 +72,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (-1 < jeta && jeta < 0) {
                 for (Trigger* trig : triggers_n100eta0) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[3]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -81,7 +81,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (1 < jeta && jeta < 2) {
                 for (Trigger* trig : triggers_p100eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[5]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -90,7 +90,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (-2 < jeta && jeta < -1) {
                 for (Trigger* trig : triggers_n200eta100) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[2]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -99,7 +99,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (2 < jeta && jeta < 3.2) {
                 for (Trigger* trig : triggers_p200eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[6]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -108,7 +108,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (-3.2 < jeta && jeta < -2) {
                 for (Trigger* trig : triggers_n320eta200) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[1]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -117,7 +117,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (3.2 < jeta && jeta < 4.9) {
                 for (Trigger* trig : triggers_p320eta490) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[7]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;
@@ -126,7 +126,7 @@ void jets_pt(const int runNumber, // Run number identifier.
             }
             else if (-4.9 < jeta && jeta < -3.2) {
                 for (Trigger* trig : triggers_n490eta320) {
-                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] != -1;
+                    takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= jpt && jpt < trig->max_pt) {
                         harr[0]->Fill((double)jpt, m_trig_prescale[trig->index]);
                         break;

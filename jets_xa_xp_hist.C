@@ -5,12 +5,13 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
     const int numbins = 40;
     const int numhists = 16;
     const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
+    const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
 
-    const double ymin = 1e-1;
-    const double ymax = 1e9;
+    const double ymin = 1e0;
+    const double ymax = 3e10;
 
     const Style_t mkstyles[8] = {kFullCircle, kFullDiamond, kFullSquare, kFullFourTrianglesX, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
-    const Color_t mkcolors[8] = {kAzure-5, kOrange-5, kTeal-5, kPink-5, kSpring-5, kViolet-5, kGray+3, kRed-2};
+    const Color_t mkcolors[8] = {kAzure-5, kTeal-5, kOrange-5, kPink-5, kSpring-5, kViolet-5, kRed-2, kGray+3};
 
     const double* xbins = logspace(0, 1.6, numbins);
     TH1D* harr[numhists];
@@ -42,6 +43,7 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
 
     TCanvas* c1 = new TCanvas("c1", "", 1000, 800); 
     gPad->SetLogy();
+    gPad->SetLogx();
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(kFALSE);    
     for (int i = 0; i < numhists/2; i+=2) {
@@ -70,6 +72,7 @@ void jets_xa_xp_hist(std::vector<int> runNumbers) {
 
     TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
     gPad->SetLogy();
+    gPad->SetLogx();
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(kFALSE);
     for (int i = numhists/2; i < numhists; i+=2) {
