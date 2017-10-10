@@ -1,6 +1,6 @@
 #include "triggerUtil.C"
 
-void jets_Q2_hist(std::vector<int> runNumbers) {
+void jets_Q2_hist(std::vector<int> thisRunNumbers) {
 
     const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
     const int numbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
@@ -9,8 +9,6 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
 
     const double ymin = 1e-6;
     const double ymax = 2e7;
-    const double xmin = 1e1;
-    const double xmax = 6e3;
 
     const int numhists = 8;
     TH1D* harr[numhists];
@@ -20,10 +18,10 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
     }
 
     double integrated_luminosity = 0;
-    for (int runNumber : runNumbers) {
-        TFile* thisfile = new TFile(Form("./Q2_data/run_%i.root", runNumber), "READ");
+    for (int thisRunNumber : thisRunNumbers) {
+        TFile* thisfile = new TFile(Form("./Q2_data/run_%i.root", thisRunNumber), "READ");
         for (int j = 0; j < numhists; j++) {
-            harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", runNumber, j)));
+            harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", thisRunNumber, j)));
         }
         TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
@@ -47,7 +45,6 @@ void jets_Q2_hist(std::vector<int> runNumbers) {
         harr[draw_order[i]]->SetMarkerColor(mkcolors[draw_order[i]]);
         harr[draw_order[i]]->SetLineColor(mkcolors[draw_order[i]]);
         harr[draw_order[i]]->Draw("same e1");
-        harr[draw_order[i]]->GetXaxis()->SetLimits(xmin, xmax);
         harr[draw_order[i]]->SetMinimum(ymin);
         harr[draw_order[i]]->SetMaximum(ymax);
         harr[draw_order[i]]->Draw("same e1");

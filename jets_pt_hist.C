@@ -1,40 +1,38 @@
-void jets_pt_hist(std::vector<int> runNumbers) {
+#include "triggerUtil.C"
+
+void jets_pt_hist(std::vector<int> thisRunNumbers) {
     const int numhists = 8;
 
-    const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
-    //const double xbins[41] = {25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 350, 400, 500, 600, 800, 1100, 1500, 2500, 6000};
-    const int numbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
-    /*const double xbins_n200eta490[16] = {25, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};           // Eta range: -4.9 < eta <= -2
-    const double xbins_0eta200[16] = {25, 40, 50, 60, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};              // Eta range: -2 < eta < 2
-    const double xbins_p200eta320[18] = {25, 40, 50, 55, 60, 70, 75, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 2 <= eta < 3.2
-    const double xbins_p320eta490[17] = {25, 40, 50, 60, 65, 70, 85, 110, 150, 200, 280, 400, 600, 850, 1100, 2000, 6000};   // Eta range: 3.2 <= eta < 4.9
-    const double* xbins[numhists] = {xbins_n200eta490, xbins_n200eta490, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_0eta200, xbins_p200eta320, xbins_p320eta490};
-    const int len_xbins[numhists] = {16, 16, 16, 16, 16, 16, 18, 17};
-*/
-    const double ymin = 1e-6;
-    const double ymax = 2e7;
-    const double xmin = 1e1;
-    const double xmax = 6e3;
-
-    const double eta_cuts[numhists+1] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
     const double harr_scales[numhists] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap
+
+    const double ymin = 1e-8;
+    const double ymax = 5e5;
 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g); #it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%g < #eta < %g (#times %g); #it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", etabins[i], etabins[i+1], harr_scales[i]), numpbins, pbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
     double integrated_luminosity = 0;
-    for (int runNumber : runNumbers) {
-        TFile* thisfile = new TFile(Form("./pt_data/run_%i.root", runNumber), "READ");
-        for (int j = 0; j < numhists; j++) {
-            harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", runNumber, j)));
-        }
+    std::vector<double> luminosity(thisRunNumbers.size(), 0);
+    TH1D* thishist;
+    TFile* thisfile;
+    for (int thisRunNumber : thisRunNumbers) {
+        
+        thisfile = new TFile(Form("./pt_data/run_%i.root", thisRunNumber), "READ");
         TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
+        
+        for (int j = 0; j < numhists; j++) {
+            thishist = (TH1D*)thisfile->Get(Form("%ieta%i", thisRunNumber, j));
+            for (int pbin = 0; pbin < numpbins; pbin++) {
+                if (thishist->GetBinContent(pbin+1) > 0) luminosity[pbin] += (*thisluminosityvec)[0];
+            }
+            harr[j]->Add(thishist);
+        }
+        thisfile->Close();
     }
-
 
     TCanvas* c = new TCanvas("c", "", 1000, 800);   
     
@@ -50,19 +48,22 @@ void jets_pt_hist(std::vector<int> runNumbers) {
     const int draw_order[8] = {4, 3, 5, 2, 6, 1, 7, 0};
 
     for (int i = 0; i < numhists; i++) {
-        harr[draw_order[i]]->SetMarkerStyle(mkstyles[draw_order[i]]);
-        harr[draw_order[i]]->SetMarkerColor(mkcolors[draw_order[i]]);
-        harr[draw_order[i]]->SetLineColor(mkcolors[draw_order[i]]);
-        harr[draw_order[i]]->Draw("same e1");
-        harr[draw_order[i]]->GetXaxis()->SetLimits(xmin, xmax);
-        harr[draw_order[i]]->SetMinimum(ymin);
-        harr[draw_order[i]]->SetMaximum(ymax);
-        harr[draw_order[i]]->Draw("same e1");
+        thishist = harr[draw_order[i]];
+        for (int pbin = 0; pbin < numpbins; pbin++) {
+            if (luminosity[pbin] != 0) thishist->SetBinContent(pbin+1, thishist->GetBinContent(pbin+1) / luminosity[pbin]);
+        }
+        thishist->SetMarkerStyle(mkstyles[draw_order[i]]);
+        thishist->SetMarkerColor(mkcolors[draw_order[i]]);
+        thishist->SetLineColor(mkcolors[draw_order[i]]);
+        thishist->Draw("same e1");
+        thishist->SetMinimum(ymin);
+        thishist->SetMaximum(ymax);
+        thishist->Draw("same e1");
     }
     c->Draw();
 
     TLegend* legend = new TLegend(0.6, 0.55, 0.9, 0.9);
-    legend->SetHeader("Leading jet pseudorapidities", "C");
+    legend->SetHeader("Jet pseudorapidities", "C");
     for (int i = 0; i < numhists; i++) {
         legend->AddEntry(harr[i], "");
     }

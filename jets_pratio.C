@@ -1,6 +1,6 @@
 #include "triggerUtil.C"
 
-void jets_pratio(const int runNumber, // Run number identifier.
+void jets_pratio(const int thisRunNumber, // Run number identifier.
                  double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
 
@@ -8,9 +8,9 @@ void jets_pratio(const int runNumber, // Run number identifier.
     const int numhists = 8;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    initialize();
+    initialize(thisRunNumber);
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
     //Useful arrays
     //const double xbins[62] = {0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.9, 4.1, 4.3, 4.5, 4.7, 5};
@@ -23,7 +23,7 @@ void jets_pratio(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{p}_{1}/#it{p}_{2};d^{2}#sigma/d#it{p}_{1}/#it{p}_{2}dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%g < #eta < %g (#times %g);#it{p}_{1}/#it{p}_{2};d^{2}#sigma/d#it{p}_{1}/#it{p}_{2}dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -145,7 +145,7 @@ void jets_pratio(const int runNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("./pratio_data/run_%i.root", runNumber), "RECREATE");
+    TFile* output = new TFile(Form("./pratio_data/run_%i.root", thisRunNumber), "RECREATE");
     for (int i = 0; i< numhists; i++) {
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

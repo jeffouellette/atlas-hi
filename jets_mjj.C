@@ -1,15 +1,15 @@
 #include "triggerUtil.C"
 
-void jets_mjj(const int runNumber, // Run number identifier.
+void jets_mjj(const int thisRunNumber, // Run number identifier.
               double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
 
     const int numhists = 5;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    initialize();
+    initialize(thisRunNumber);
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
     //Useful arrays
 
@@ -28,7 +28,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g #leq #left|#eta*#right| #leq %g; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%g #leq #left|#eta*#right| #leq %g; #it{M}_{JJ} #left[GeV/#it{c}^{2}#right];d^{2}#sigma/d#it{M}_{JJ}d#left|#eta*#right| #left[pb (GeV/#it{c}^{#it{2}})^{-1}#right]", etastarcuts[i], etastarcuts[i+1]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -184,7 +184,7 @@ void jets_mjj(const int runNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("./mjj_data/run_%i.root", runNumber), "RECREATE");
+    TFile* output = new TFile(Form("./mjj_data/run_%i.root", thisRunNumber), "RECREATE");
     for (int i = 0; i < numhists; i++) {
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

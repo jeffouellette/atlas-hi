@@ -1,6 +1,6 @@
 #include "triggerUtil.C"
 
-void jets_Q2(const int runNumber, // Run number identifier.
+void jets_Q2(const int thisRunNumber, // Run number identifier.
              double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
              bool periodA)
 {
@@ -9,9 +9,9 @@ void jets_Q2(const int runNumber, // Run number identifier.
     const int numhists = 8;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    initialize();
+    initialize(thisRunNumber);
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
     //Useful arrays
     const double xbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
@@ -23,7 +23,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     // Create an array of 6 histograms, one for each rapidity region.   
     TH1D* harr[numhists];
     for (int i = 0; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%g < #eta < %g (#times %g);#it{Q}^{avg}_{JJ} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{Q}_{JJ}dy #left[pb (GeV/#it{c})^{-1}#right]", eta_cuts[i], eta_cuts[i+1], harr_scales[i]), numbins, xbins);
         harr[i]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -148,7 +148,7 @@ void jets_Q2(const int runNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("./Q2_data/run_%i.root", runNumber), "RECREATE");
+    TFile* output = new TFile(Form("./Q2_data/run_%i.root", thisRunNumber), "RECREATE");
     for (int i = 0; i< numhists; i++) {
         harr[i]->Scale((harr_scales[i]) / (A * luminosity * d_eta[i]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

@@ -1,6 +1,6 @@
 #include "triggerUtil.C"
 
-void jets_xa_xp(int runNumber, // Run number identifier.
+void jets_xa_xp(int thisRunNumber, // Run number identifier.
                 double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
                 bool periodA)
 {
@@ -9,9 +9,9 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     const int numhists = 16;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    initialize();
+    initialize(thisRunNumber);
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", runNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
     const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
     const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
@@ -21,13 +21,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", runNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
+
+//    cout << numtrigs << endl;
 
     // Create arrays to store trigger values for each event
     bool m_trig_bool[numtrigs];
@@ -71,10 +73,6 @@ void jets_xa_xp(int runNumber, // Run number identifier.
             
             jeta0 = (double)j_eta[0];
             jeta1 = (double)j_eta[1];
-            //if (periodA) {
-            //    jeta0 *= -1;
-            //    jeta1 *= -1;
-            //}
 
             leading_jpt = std::max(jpt0, jpt1);
             if (jpt0 == leading_jpt) leading_jeta = jeta0;
@@ -94,8 +92,8 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                             harr[(numhists/4)-1]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-1]->Fill(xa, m_trig_prescale[trig->index]);
                         }
-                        harr[4]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[12]->Fill(xa, m_trig_prescale[trig->index]);
+                        //harr[4]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[12]->Fill(xa, m_trig_prescale[trig->index]);
                         break; // Break to ensure that only one trigger allows the event to be recorded
                     }
                 }
@@ -104,15 +102,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n100eta0) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)-1]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-1]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[3]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[11]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[3]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[11]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -121,15 +119,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p100eta200) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)+1]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+1]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)-2]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-2]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[5]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[13]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[5]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[13]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -138,15 +136,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n200eta100) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)-2]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-2]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)+1]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+1]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[2]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[10]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[2]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[10]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -155,15 +153,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p200eta320) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)+2]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+2]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)-3]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-3]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[6]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[14]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[6]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[14]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -172,15 +170,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n320eta200) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)-3]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-3]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)+2]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+2]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[1]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[9]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[1]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[9]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -189,15 +187,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_p320eta490) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)+3]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+3]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)-4]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-4]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[7]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[15]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[7]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[15]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -206,15 +204,15 @@ void jets_xa_xp(int runNumber, // Run number identifier.
                 for (Trigger* trig : triggers_n490eta320) {
                     takeEvent = m_trig_bool[trig->index] && m_trig_prescale[trig->index] > 0;
                     if (takeEvent && trig->min_pt <= leading_jpt && leading_jpt < trig->max_pt) {
-                        /*if (!periodA) {
+                        if (!periodA) {
                             harr[(numhists/4)-4]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)-4]->Fill(xa, m_trig_prescale[trig->index]);
                         } else {
                             harr[(numhists/4)+3]->Fill(xp, m_trig_prescale[trig->index]);
                             harr[(3*numhists/4)+3]->Fill(xa, m_trig_prescale[trig->index]);
-                        }*/
-                        harr[0]->Fill(xp, m_trig_prescale[trig->index]);
-                        harr[8]->Fill(xa, m_trig_prescale[trig->index]);
+                        }
+                        //harr[0]->Fill(xp, m_trig_prescale[trig->index]);
+                        //harr[8]->Fill(xa, m_trig_prescale[trig->index]);
                         break;
                     }
                 }
@@ -222,7 +220,7 @@ void jets_xa_xp(int runNumber, // Run number identifier.
         }
     }
     // Save to root file
-    TFile* output = new TFile(Form("./xdata/run_%i.root", runNumber), "RECREATE");
+    TFile* output = new TFile(Form("./xdata/run_%i.root", thisRunNumber), "RECREATE");
     for (int i = 0; i < numhists; i++) {
         harr[i]->Scale(harr_scales[i%(numhists/2)]/(A * luminosity * d_eta[i%(numhists/2)]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

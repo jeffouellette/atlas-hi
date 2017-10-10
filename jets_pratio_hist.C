@@ -1,6 +1,6 @@
 #include "triggerUtil.C"
 
-void jets_pratio_hist(std::vector<int> runNumbers) {
+void jets_pratio_hist(std::vector<int> thisRunNumbers) {
 
     const int numbins = 40;
     const double* xbins = logspace(0, 20, numbins);
@@ -18,10 +18,10 @@ void jets_pratio_hist(std::vector<int> runNumbers) {
     }
 
     double integrated_luminosity = 0;
-    for (int runNumber : runNumbers) {
-        TFile* thisfile = new TFile(Form("./pratio_data/run_%i.root", runNumber), "READ");
+    for (int thisRunNumber : thisRunNumbers) {
+        TFile* thisfile = new TFile(Form("./pratio_data/run_%i.root", thisRunNumber), "READ");
         for (int j = 0; j < numhists; j++) {
-            harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", runNumber, j)));
+            harr[j]->Add((TH1F*)thisfile->Get(Form("%ieta%i", thisRunNumber, j)));
         }
         TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
