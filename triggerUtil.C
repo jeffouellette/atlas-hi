@@ -29,6 +29,7 @@ const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
 const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 
+//TH2C* enabledTriggers;
 
 //=========================================================================================================
 // General functions
@@ -163,7 +164,7 @@ std::vector<std::vector<Trigger*>*>* trigger_pt_eta_bin_map;
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * To add new triggers, simply create a line like the one below with the trigger name, the momentum threshold, and its pseudorapidity interval.
  */
-void initialize (int rn, bool initTriggerMaps = true) {
+void initialize (int rn=0, bool initTriggerMaps = true) {
 
     cout << Form("Initializing trigger system for run number %i", rn) << endl;
 
@@ -197,6 +198,7 @@ void initialize (int rn, bool initTriggerMaps = true) {
     trigger_vec.push_back(new Trigger("HLT_j100_L1J20", 100+trigthres, min_eta, max_eta));*/
 
     numtrigs = trigger_vec.size();
+
     
     /** Assign indices for tree branching. **/
 
@@ -204,29 +206,50 @@ void initialize (int rn, bool initTriggerMaps = true) {
         trigger_vec[i]->index = i;
     }
 
-    Trigger* newtrig;
-    Trigger* maxtrig;
+
     /** Instantiate the pseudorapidity interval trigger vectors if required. **/
+    
     if (initTriggerMaps) {
+        Trigger* maxtrig;
 
         TFile* runFile = new TFile(Form("./trig_data/run_%i.root", runNumber), "READ");
         TH3D* h_meta = (TH3D*)runFile->Get("eta_pt_trig");
+//        enabledTriggers = new TH2C(Form("enabledTriggers_run%i", runNumber), "", numpbins, -0.5, numpbins+0.5, numetabins, -0.5, numetabins+0.5);
 
         trigger_pt_eta_bin_map = new std::vector<std::vector<Trigger*>*>(numetabins, new std::vector<Trigger*>(numpbins, 0));
         for (int ebin = 0; ebin < numetabins; ebin++) {
             for (int pbin = 0; pbin < numpbins; pbin++) {
                 maxtrig = trigger_vec[0];
+                double maxbincontent = 0.;
+                bool trigger_assigned = false;
                 for (Trigger* trig : trigger_vec) {
-                    if (h_meta->GetBinContent((trig->index)+1, pbin+1, ebin+1) > h_meta->GetBinContent((maxtrig->index)+1, pbin+1, ebin+1)) {
+                    if (h_meta->GetBinContent((trig->index)+1, pbin+1, ebin+1) > maxbincontent) {
                         maxtrig = trig;
+                        maxbincontent = h_meta->GetBinContent((maxtrig->index)+1, pbin+1, ebin+1);
+                        trigger_assigned = true;
                     }
                 }
-                //newtrig = new Trigger(*maxtrig);
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin] = new Trigger(*maxtrig);
-                if (h_meta->GetBinContent((maxtrig->index)+1, pbin+1, ebin+1) == 0.) {
-                    (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled = false;
-                }
-                /*if (runNumber == 313259) {
+                /*if (!trigger_assigned) {
+                    for (Trigger* trig : trigger_vec) {
+                        if (pbins[pbin] >= trig->min_pt && trig->lower_eta <= etabins[ebin] && etabins[ebin+1] <= trig->upper_eta) {
+                            maxtrig = trig;
+                            trigger_assigned = true;
+                            break;
+                        }
+                    }
+                }*/
+
+                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin] = new Trigger(*maxtrig); // Copy a new trigger with the maximum counts and assign it to this pt, eta bin
+                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled = trigger_assigned;
+
+                /*if (!trigger_assigned) {
+//                    enabledTriggers->SetBinContent(pbin+1, ebin+1, 1);
+                    (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled = false; // If the max trigger had no counts, the run wasn't sensitive to the bin, so mark the trigger bin as disabled..
+                }*/
+//                else enabledTriggers->SetBinContent(pbin+1, ebin+1, 0);
+
+                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->min_pt = pbins[pbin]; // Assign the minimum pt for that particular trigger bin.
+/*                if (runNumber == 313259) {
                     cout << Form("ebin=%i, pbin=%i, trig=%s with value %f, enabled=%i", ebin, pbin, maxtrig->name.c_str(), h_meta->GetBinContent((maxtrig->index)+1, pbin+1, ebin+1), (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled) << endl;
                 }*/
             }
@@ -234,21 +257,21 @@ void initialize (int rn, bool initTriggerMaps = true) {
         
         // Assign upper pt cuts. Triggers are already arranged properly by construction of the mapping.
         for (int ebin = 0; ebin < numetabins; ebin++) {
-            for (int pbin = 0; pbin < numpbins-1; pbin++) {
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->max_pt = (*((*trigger_pt_eta_bin_map)[ebin]))[pbin+1]->min_pt;
+            for (int pbin = 0; pbin < numpbins; pbin++) {
+                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->max_pt = pbins[pbin+1];
             }
-            (*((*trigger_pt_eta_bin_map)[ebin]))[numpbins-1]->max_pt = pbins[numpbins];
         }
-        runFile->Close();
 
-        if (rn == 313063) {
+        if (runNumber == 313063) {
             cout << Form("Example trigger assignment (run %i):", runNumber) << endl << endl;
             for (int ebin = 0; ebin < numetabins; ebin++) {
                 for (int pbin = 0; pbin < numpbins; pbin++) {
-                    cout << Form("ebin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%s,\tenabled=%i", ebin, pbin, etabins[ebin], etabins[ebin+1], (int)pbins[pbin], (int)pbins[pbin+1], (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->name.c_str(), (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled) << endl;
+                    cout << Form("ebin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%s,\tenabled=%i,\t val=%.2f", ebin, pbin, etabins[ebin], etabins[ebin+1], (int)pbins[pbin], (int)pbins[pbin+1], (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->name.c_str(), (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled, h_meta->GetBinContent(((*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->index)+1, pbin+1, ebin+1)) << endl;
                 }
             } 
         }
+
+        runFile->Close();
 
     }
 
