@@ -1,4 +1,4 @@
-#include "triggerUtil.C"
+#include "../triggerUtil.C"
 
 void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
@@ -9,7 +9,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     initialize(thisRunNumber, false);
     const int numhists = numtrigs;
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
@@ -43,7 +43,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
 
     double jpt, jeta;
-
+    TVectorD numtrigfirings(numtrigs); 
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -51,6 +51,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
             index = trig->index;
             if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue;
 
+            numtrigfirings[index]++;
             for (int j = 0; j < njet; j++) {
                 jpt = (double)j_pt[j];
                 jeta = (double)j_eta[j];
@@ -61,15 +62,18 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("./pt_data/trig_bin/run_%i.root", thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("../rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
-        harr[index]->Scale(1/(A * (trig->upper_eta - trig->lower_eta)), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
+        harr[index]->Scale(1/(A), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[index]->Write();
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
+
+    numtrigfirings.Write("trig_fire_vec");
+        
     output->Close();
 }
 

@@ -1,4 +1,4 @@
-#include "triggerUtil.C"
+#include "../triggerUtil.C"
 
 // IDEA: plot the number of times each trigger fired for a particular run number.
 // For overlapping triggers, this will improve statistics by choosing the trigger that fires more often.
@@ -111,9 +111,10 @@ void triggers(const int thisRunNumber, // Run number identifier.
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
 
-    TVector run_info(2);
+    TVector run_info(3);
     run_info[0] = thisRunNumber;
     run_info[1] = numtrigs;
+    run_info[2] = numentries;
     run_info.Write("run_info");
 
     output->Close();

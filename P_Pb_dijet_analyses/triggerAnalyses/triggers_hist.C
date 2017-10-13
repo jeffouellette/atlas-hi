@@ -1,4 +1,4 @@
-#include "triggerUtil.C"
+#include "../triggerUtil.C"
 
 void triggers_hist(int thisRunNumber) {
 
@@ -9,7 +9,7 @@ void triggers_hist(int thisRunNumber) {
     double minval = 1e0;
     double maxval;
 
-    TFile* thisfile = new TFile(Form("./trig_data/run_%i.root", thisRunNumber), "READ");
+    TFile* thisfile = new TFile(Form("../rootFiles/trig_data/run_%i.root", thisRunNumber), "READ");
     TH1D* harr[numtrigs];
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
