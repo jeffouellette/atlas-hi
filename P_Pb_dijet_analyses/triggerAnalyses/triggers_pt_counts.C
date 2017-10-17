@@ -7,7 +7,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
     initialize(thisRunNumber, false);
-    const int numhists = numtrigs;
+    const int numhists = numtrigs * numetabins;
 
     TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
@@ -33,9 +33,11 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     int pbin, ebin, index;
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
-        TString histname = Form("trig_pt_counts_run%i_trig%i", thisRunNumber, index);
-        harr[index] = new TH1D(histname, ";#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
-        harr[index]->Sumw2(); // instruct each histogram to propagate errors
+        for (ebin = 0; ebin < numetabins; ebin++) {
+            TString histname = Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin);
+            harr[index + ebin*numtrigs] = new TH1D(histname, ";#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
+            harr[index + ebin*numtrigs]->Sumw2(); // instruct each histogram to propagate errors
+        }
     }
 
 
@@ -43,7 +45,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
 
     double jpt, jeta;
-    TVectorD numtrigfirings(numtrigs); 
+    TVectorD numtrigfirings(numtrigs * numpbins * numetabins); 
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -51,13 +53,29 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
             index = trig->index;
             if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue;
 
-            numtrigfirings[index]++;
+            for (int pbin = 0; pbin < numpbins; pbin++) {
+                for (int ebin = 0; ebin < numetabins; ebin++) {
+                    for (int j = 0; j < njet; j++) {
+                        if (etabins[ebin] <= j_eta[j] && j_eta[j] <= etabins[ebin+1] && pbins[pbin] <= j_pt[j] && j_pt[j] <= pbins[pbin+1]) {
+                            numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs]++;
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            //numtrigfirings[index]++;
             for (int j = 0; j < njet; j++) {
                 jpt = (double)j_pt[j];
                 jeta = (double)j_eta[j];
-                if (jpt >= trig->min_pt && trig->lower_eta <= jeta && jeta < trig->upper_eta) harr[index]->Fill(jpt, m_trig_prescale[index]);
-            } 
 
+                ebin = 0;
+                while (etabins[ebin] <= jeta) ebin++;
+                ebin--;
+                if (ebin == -1 || ebin >= numetabins) continue;
+
+                if (jpt >= trig->min_pt && trig->lower_eta < jeta && jeta < trig->upper_eta) harr[index + ebin*numtrigs]->Fill(jpt, m_trig_prescale[index]);
+            } 
         }       
     }
 
@@ -65,8 +83,10 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     TFile* output = new TFile(Form("../rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
-        harr[index]->Scale(1/(A), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
-        harr[index]->Write();
+        for (ebin = 0; ebin < numetabins; ebin++) {
+            harr[index + ebin*numtrigs]->Scale(1/(A), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
+            harr[index + ebin*numtrigs]->Write();
+        }
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;

@@ -26,7 +26,8 @@ const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
 // Transverse momentum and pseudorapidity binning
 const double pbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
 const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
-const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
+//const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
+const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 
 //TH2C* enabledTriggers;
@@ -210,6 +211,64 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
     /** Instantiate the pseudorapidity interval trigger vectors if required. **/
     
     if (initTriggerMaps) {
+
+
+/*
+        double this_trig_integrated_luminosity_vec[numetabins] = {};
+        double integrated_luminosity_vec[10 * numetabins] = {};
+        TVectorD numtrigfirings(numhists);
+    
+        cout << "Starting loop over triggers..." << endl;
+    
+        // First combine trigger data from all runs into one histogram for each trigger. If the trigger never fired in a run, assume it wasn't on so don't add its luminosity.
+        TH1D* thishist;
+        for (Trigger* trig : trigger_vec) {
+            int index = trig->index;
+            for (int ebin = 0; ebin < numetabins; ebin++) {
+                this_trig_integrated_luminosity_vec[ebin] = 0;
+            }
+            for (int thisRunNumber : thisRunNumbers) {
+                TFile* thisfile = new TFile(Form("./rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "READ");
+                TVectorD* thisluminosityvec = (TVectorD*)thisfile->Get("lum_vec");
+    
+                double integral_deta = 0;
+                for (int ebin = 0; ebin < numetabins; ebin++) {
+                    thishist = (TH1D*)thisfile->Get(Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin));
+                    integral_deta += thishist->Integral();
+                }
+    
+                for (int ebin = 0; ebin < numetabins; ebin++) {
+                    if (integral_deta > 0) this_trig_integrated_luminosity_vec[ebin] += (*(TVectorD*)thisfile->Get("lum_vec"))[0];
+                    numtrigfirings[index + ebin*numtrigs] += (*((TVectorD*)thisfile->Get("trig_fire_vec")))[index];
+                }
+                thisfile->Close();
+            }
+            for (int ebin = 0; ebin < numetabins; ebin++) {
+                integrated_luminosity_vec[index + ebin*numtrigs] = this_trig_integrated_luminosity_vec[ebin];
+            }
+        }
+        // Calculate the best trigger to use for each bin, and be sure to scale by the correct deta, number of events, and luminosity.
+        int best_bins[numpbins * numetabins] = {};
+        int numtrigfires[numpbins * numetabins] = {};
+        for (int pbin = 0; pbin < numpbins; pbin++) {
+            for (int ebin = 0; ebin < numetabins; ebin++) {
+                double maxtrigfirings = 0;
+                for (Trigger* trig : trigger_vec) {
+                    if (trig->min_pt > pbins[pbin]) continue;
+                    int index = trig->index;
+                    if (numtrigfirings[index + ebin*numtrigs] > maxtrigfirings) {
+                        maxtrigfirings = numtrigfirings[index + ebin*numtrigs];
+                        best_bins[pbin + ebin*numpbins] = index + ebin*numtrigs;
+                    }
+                }
+                numtrigfires[pbin + ebin*numpbins] = maxtrigfirings;
+            }
+        }*/
+
+
+
+
+
         Trigger* maxtrig;
 
         TFile* trigFile = new TFile(Form("./trig_data/run_%i.root", runNumber), "READ");

@@ -58,6 +58,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
         
     double leading_jpt, leading_jeta, jeta0, jpt0, jeta1, jpt1, xp, xa, extra_jpt_sum;
     bool takeEvent;
+    int ebin, pbin;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -78,8 +79,17 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
             if (jpt0 == leading_jpt) leading_jeta = jeta0;
             else leading_jeta = jeta1;
 
+            ebin = 0;
+            while (etabins[ebin] < leading_jeta) ebin++;
+            ebin--;
+            pbin = 0;
+            while (pbins[pbin] < leading_jpt) pbin++;
+            pbin--;
+            if (pbin == -1 || pbin >= numpbins || ebin == -1 || ebin >= numetabins) continue;            
+
             xp = get_xp(jpt0, jpt1, jeta0, jeta1, periodA);
             xa = get_xa(jpt0, jpt1, jeta0, jeta1, periodA);
+
 
             if (0 < leading_jeta && leading_jeta < 1) {
                 for (Trigger* trig : triggers_p0eta100) {
