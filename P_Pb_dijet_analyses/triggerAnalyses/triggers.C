@@ -37,10 +37,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
         harr[i]->Sumw2();
     }
 
-    TH2D* h2_meta = new TH2D("pt_trig", ";Trigger bin;p^{jet}_{T} bin #left[GeV #it{c}^{-1}#right];Counts / dy Luminosity", numtrigs, trigbins, numpbins, ybins);
-
-    // Create an additional data storage histogram for binning in eta as well.
-    TH3D* h_meta = new TH3D("eta_pt_trig", "", numtrigs, trigbins, numpbins, ybins, numetabins, ebins);
+    TH2D* h2d = new TH2D("pt_trig", ";Trigger bin;p^{jet}_{T} bin #left[GeV #it{c}^{-1}#right];Counts / dy Luminosity", numtrigs, trigbins, numpbins, ybins);
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
@@ -87,9 +84,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
                 if (pbin == -1 || ebin == -1 || pbin >= numpbins || ebin >= numetabins) continue;
 
                 if (trig->lower_eta <= etabins[ebin] && etabins[ebin+1] <= trig->upper_eta && pbins[pbin] >= trig->min_pt) {
-                    h2_meta->Fill((double)index, (double)pbin);
-                    h_meta->Fill((double)index, (double)pbin, (double)ebin);
-                    if (thisRunNumber == 313063 && j_pt[j] > 400) cout << Form("Found high-pt jet with pt=%.1f. Trigger %i=%i with prescale %.1f (filling h_meta files, content of h_meta is now %g)", j_pt[j], index, m_trig_bool[index], m_trig_prescale[index], h_meta->GetBinContent(index+1, pbin+1, ebin+1)) << endl;
+                    h2d->Fill((double)index, (double)pbin);
                 }
             }
         }
@@ -103,9 +98,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
         harr[i]->Write();
     }
     
-    h2_meta->Write();
-
-    h_meta->Write();
+    h2d->Write();
 
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;

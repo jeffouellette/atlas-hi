@@ -51,20 +51,21 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
 
         for (Trigger* trig : trigger_vec) {
             index = trig->index;
-            if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue;
-
-            for (int pbin = 0; pbin < numpbins; pbin++) {
-                for (int ebin = 0; ebin < numetabins; ebin++) {
+            if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue; // if the trigger wasn't fired (or was disabled in some way) just continue.
+        
+            for (pbin = 0; pbin < numpbins; pbin++) {
+                for (ebin = 0; ebin < numetabins; ebin++) {
                     for (int j = 0; j < njet; j++) {
-                        if (etabins[ebin] <= j_eta[j] && j_eta[j] <= etabins[ebin+1] && pbins[pbin] <= j_pt[j] && j_pt[j] <= pbins[pbin+1]) {
+                        jpt = (double)j_pt[j];
+                        jeta = (double)j_eta[j];
+                        if (etabins[ebin] <= jeta && jeta < etabins[ebin+1] && pbins[pbin] <= jpt && jpt < pbins[pbin+1] && trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= jpt) {
                             numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs]++;
-                            continue;
+                            break;
                         }
                     }
                 }
             }
 
-            //numtrigfirings[index]++;
             for (int j = 0; j < njet; j++) {
                 jpt = (double)j_pt[j];
                 jeta = (double)j_eta[j];
@@ -74,7 +75,9 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                 ebin--;
                 if (ebin == -1 || ebin >= numetabins) continue;
 
-                if (jpt >= trig->min_pt && trig->lower_eta < jeta && jeta < trig->upper_eta) harr[index + ebin*numtrigs]->Fill(jpt, m_trig_prescale[index]);
+                if (trig->min_pt <= jpt && trig->lower_eta <= jeta && jeta < trig->upper_eta) {
+                    harr[index + ebin*numtrigs]->Fill(jpt, m_trig_prescale[index]);
+                }
             } 
         }       
     }
@@ -84,13 +87,17 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {
-            harr[index + ebin*numtrigs]->Scale(1/(A), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
+            harr[index + ebin*numtrigs]->Scale(1/A); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
             harr[index + ebin*numtrigs]->Write();
         }
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
+
+    TVectorD run_vec(1);
+    run_vec[0] = thisRunNumber;
+    run_vec.Write("run_vec");
 
     numtrigfirings.Write("trig_fire_vec");
         

@@ -16,7 +16,7 @@ const int trigthres = 10; // Jet pt threshold for triggers
 int numtrigs; // Total number of triggers
 
 // Directory information
-const char* trig_dir = "/Users/jeffouellette/Research/atlas-hi/trig_data/";
+const char* trig_dir = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/rootFiles/pt_data/trig_bin/";
 
 // Useful constants
 const float Z = 82;   // value of Z for Pb
@@ -75,7 +75,7 @@ double* logspace(double lo, double hi, int num) {
  */
 double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
     double prefactor = TMath::Sqrt(Z/A) / sqrt_s_nn;
-    //if (!periodA) return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
+    if (!periodA) return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
     return prefactor * (jpt0 * TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
 }
 
@@ -85,7 +85,7 @@ double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA
  */
 double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
     double prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
-    //if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
+    if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
     return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
 }
 
@@ -156,10 +156,10 @@ Trigger::Trigger(const Trigger* t) {
 
 
 /** Trigger vectors used for pt and eta binning. **/
-std::vector<TString> trig_file_names(0);
 std::vector<Trigger*> trigger_vec(0);
-std::vector<std::vector<Trigger*>*>* trigger_pt_eta_bin_map;
-
+//std::vector<std::vector<Trigger*>*>* trigger_pt_eta_bin_map;
+std::vector<double>* integrated_luminosity_vec;
+std::vector<int>* best_trig_indices;
 
 /**
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
@@ -212,14 +212,29 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
     
     if (initTriggerMaps) {
 
-
-/*
-        double this_trig_integrated_luminosity_vec[numetabins] = {};
-        double integrated_luminosity_vec[10 * numetabins] = {};
-        TVectorD numtrigfirings(numhists);
+        double* this_trig_integrated_luminosity_vec = linspace(0, 0, numetabins-1); // Dummy vector used to integrate luminosity over a particular trigger.
+        integrated_luminosity_vec = new std::vector<double>(numtrigs * numpbins * numetabins, 0); // Used to store the effective luminosity for each trigger at each pbin, ebin.
+        best_trig_indices = new std::vector<int>(numpbins * numetabins, 0);
+        TVectorD numtrigfirings(numtrigs * numpbins * numetabins);
     
         cout << "Starting loop over triggers..." << endl;
     
+        // Find all trigger analysis files.
+        TSystemDirectory dir(trig_dir, trig_dir);
+        TList *files = dir.GetListOfFiles();
+        std::vector<TString> filenames;
+        if (files) {
+            TSystemFile *file;
+            TString fname;
+            TIter next(files);
+            while ((file=(TSystemFile*)next())) {
+                fname = file->GetName();
+                if (!file->IsDirectory() && fname.EndsWith(".root")) {
+                    filenames.push_back(fname);
+                    if (rn == 313063) cout << "Found " << fname.Data() << endl;
+                }
+            }
+        }
         // First combine trigger data from all runs into one histogram for each trigger. If the trigger never fired in a run, assume it wasn't on so don't add its luminosity.
         TH1D* thishist;
         for (Trigger* trig : trigger_vec) {
@@ -227,10 +242,13 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
             for (int ebin = 0; ebin < numetabins; ebin++) {
                 this_trig_integrated_luminosity_vec[ebin] = 0;
             }
-            for (int thisRunNumber : thisRunNumbers) {
-                TFile* thisfile = new TFile(Form("./rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "READ");
-                TVectorD* thisluminosityvec = (TVectorD*)thisfile->Get("lum_vec");
-    
+            for (TString filename : filenames) {
+                TFile* thisfile = new TFile(Form("%s%s", trig_dir, filename.Data()), "READ");
+                double thisLuminosity = (*((TVectorD*)thisfile->Get("lum_vec")))[0];
+                int thisRunNumber = (int)(*((TVectorD*)thisfile->Get("run_vec")))[0];
+                TVectorD* thisNumTrigFirings = (TVectorD*)thisfile->Get("trig_fire_vec");
+
+                // Integrate the number of times the trigger fired over eta and pt. If the result is 0, assume that the trigger was effectively inactive, so don't add the luminosity to that bin.
                 double integral_deta = 0;
                 for (int ebin = 0; ebin < numetabins; ebin++) {
                     thishist = (TH1D*)thisfile->Get(Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin));
@@ -238,17 +256,18 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
                 }
     
                 for (int ebin = 0; ebin < numetabins; ebin++) {
-                    if (integral_deta > 0) this_trig_integrated_luminosity_vec[ebin] += (*(TVectorD*)thisfile->Get("lum_vec"))[0];
-                    numtrigfirings[index + ebin*numtrigs] += (*((TVectorD*)thisfile->Get("trig_fire_vec")))[index];
+                    if (integral_deta > 0) this_trig_integrated_luminosity_vec[ebin] += thisLuminosity;
+                    for (int pbin = 0; pbin < numpbins; pbin++) {
+                        numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs] += (*thisNumTrigFirings)[index + (pbin + ebin*numpbins)*numtrigs];
+                    }
                 }
                 thisfile->Close();
             }
             for (int ebin = 0; ebin < numetabins; ebin++) {
-                integrated_luminosity_vec[index + ebin*numtrigs] = this_trig_integrated_luminosity_vec[ebin];
+                (*integrated_luminosity_vec)[index + ebin*numtrigs] = this_trig_integrated_luminosity_vec[ebin];
             }
         }
         // Calculate the best trigger to use for each bin, and be sure to scale by the correct deta, number of events, and luminosity.
-        int best_bins[numpbins * numetabins] = {};
         int numtrigfires[numpbins * numetabins] = {};
         for (int pbin = 0; pbin < numpbins; pbin++) {
             for (int ebin = 0; ebin < numetabins; ebin++) {
@@ -256,80 +275,12 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
                 for (Trigger* trig : trigger_vec) {
                     if (trig->min_pt > pbins[pbin]) continue;
                     int index = trig->index;
-                    if (numtrigfirings[index + ebin*numtrigs] > maxtrigfirings) {
-                        maxtrigfirings = numtrigfirings[index + ebin*numtrigs];
-                        best_bins[pbin + ebin*numpbins] = index + ebin*numtrigs;
+                    if (numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs] > maxtrigfirings) {
+                        maxtrigfirings = numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs];
+                        (*best_trig_indices)[pbin + ebin*numpbins] = index;
                     }
                 }
                 numtrigfires[pbin + ebin*numpbins] = maxtrigfirings;
-            }
-        }*/
-
-
-
-
-
-        Trigger* maxtrig;
-
-        TFile* trigFile = new TFile(Form("./trig_data/run_%i.root", runNumber), "READ");
-        TH3D* h_meta = (TH3D*)trigFile->Get("eta_pt_trig");
-//        enabledTriggers = new TH2C(Form("enabledTriggers_run%i", runNumber), "", numpbins, -0.5, numpbins+0.5, numetabins, -0.5, numetabins+0.5);
-
-        TH1D* trigs_fired_hist = new TH1D("trigs_fired_hist", "", numtrigs, linspace(-0.5, numtrigs+0.5, numtrigs+1));
-        for (int trignum = 0; trignum < numtrigs; trignum++) {
-            trigs_fired_hist->Add((TH1D*)trigFile->Get(Form("trig%i", trignum)));
-        }
-
-        trigger_pt_eta_bin_map = new std::vector<std::vector<Trigger*>*>(numetabins, new std::vector<Trigger*>(numpbins, 0));
-        for (int ebin = 0; ebin < numetabins; ebin++) {
-            for (int pbin = 0; pbin < numpbins; pbin++) {
-                int max_index = 0;
-                double maxbincontent = 0.;
-                bool trigger_assigned = false;
-
-                // First try to assign the trigger which was fired the most in a particular bin.
-                for (int index = 0; index < numtrigs; index++) {
-                    if (h_meta->GetBinContent(index+1, pbin+1, ebin+1) > maxbincontent) {
-                        max_index = index;
-                        maxbincontent = h_meta->GetBinContent(max_index+1, pbin+1, ebin+1);
-                        trigger_assigned = true;
-                    }
-                }
-
-                // If you found a trigger which fired the most, assign that trigger to the bin.
-                if (trigger_assigned) {
-                    for (Trigger* trig : trigger_vec) {
-                        if (trig->index == max_index) {
-                            maxtrig = trig;
-                            break;
-                        }
-                    }
-                }
-                // Otherwise you need to check if there was a valid trigger for that bin and assign it, even though it had zero counts.
-                else {
-                    maxtrig = trigger_vec[0];
-                    for (Trigger* trig : trigger_vec) {
-                        if (trigs_fired_hist->GetBinContent(trig->index + 1) == 0) continue; // Only allow triggers which fired at all in the entire run.
-                        if (maxtrig->min_pt < trig->min_pt && trig->lower_eta <= etabins[ebin] && etabins[ebin+1] <= trig->upper_eta && trig->min_pt <= pbins[pbin]) {
-                            maxtrig = trig;
-                            trigger_assigned = true;
-                        }
-                    }
-                }
-
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin] = new Trigger(*maxtrig); // Copy a new trigger with the maximum counts and assign it to this pt, eta bin
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled = trigger_assigned; // If the max trigger had no counts, then the run must not have been sensitive to this bin.
-
-                /*if (!trigger_assigned) {
-//                    enabledTriggers->SetBinContent(pbin+1, ebin+1, 1);
-                }*/
-//                else enabledTriggers->SetBinContent(pbin+1, ebin+1, 0);
-
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->min_pt = pbins[pbin]; // Assign the minimum pt for that particular trigger bin.
-                (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->max_pt = pbins[pbin+1]; // Assign maximum pt.
-/*                if (runNumber == 313259) {
-                    cout << Form("ebin=%i, pbin=%i, trig=%s with value %f, enabled=%i", ebin, pbin, maxtrig->name.c_str(), h_meta->GetBinContent((maxtrig->index)+1, pbin+1, ebin+1), (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled) << endl;
-                }*/
             }
         }
 
@@ -337,13 +288,10 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
             cout << Form("Example trigger assignment (run %i):", runNumber) << endl << endl;
             for (int ebin = 0; ebin < numetabins; ebin++) {
                 for (int pbin = 0; pbin < numpbins; pbin++) {
-                    cout << Form("ebin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%s,\tenabled=%i,\tcounts=%.2f", ebin, pbin, etabins[ebin], etabins[ebin+1], (int)pbins[pbin], (int)pbins[pbin+1], (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->name.c_str(), (*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->enabled, h_meta->GetBinContent(((*((*trigger_pt_eta_bin_map)[ebin]))[pbin]->index)+1, pbin+1, ebin+1)) << endl;
+                    cout << Form("ebin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%i,\tcounts=%i", ebin, pbin, etabins[ebin], etabins[ebin+1], (int)pbins[pbin], (int)pbins[pbin+1], (*best_trig_indices)[pbin + ebin*numpbins], numtrigfires[pbin + ebin*numpbins]) << endl;
                 }
             } 
         }
-
-        trigFile->Close();
-
     }
 
     cout << Form("Initialization complete for run number %i", runNumber) << endl;  

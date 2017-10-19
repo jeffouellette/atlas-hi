@@ -92,22 +92,22 @@ void triggers_hist(int thisRunNumber) {
     description->SetTextFont(42);
     description->SetTextSize(0.012);
 
-    TH2D* h2_meta = (TH2D*)thisfile->Get("pt_trig");
-    h2_meta->GetXaxis()->SetLabelOffset(999);
-    h2_meta->GetXaxis()->SetLabelSize(0);
-    h2_meta->GetXaxis()->SetTickLength(0);
-    h2_meta->GetXaxis()->SetTitleOffset(1.3);
+    TH2D* h2d = (TH2D*)thisfile->Get("pt_trig");
+    h2d->GetXaxis()->SetLabelOffset(999);
+    h2d->GetXaxis()->SetLabelSize(0);
+    h2d->GetXaxis()->SetTickLength(0);
+    h2d->GetXaxis()->SetTitleOffset(1.3);
 
-    h2_meta->GetYaxis()->SetLabelOffset(999);
-    h2_meta->GetYaxis()->SetLabelSize(0);    
-    h2_meta->GetYaxis()->SetTickLength(0);
-    h2_meta->GetYaxis()->SetTitleOffset(1.2);
+    h2d->GetYaxis()->SetLabelOffset(999);
+    h2d->GetYaxis()->SetLabelSize(0);    
+    h2d->GetYaxis()->SetTickLength(0);
+    h2d->GetYaxis()->SetTitleOffset(1.2);
 
     
-    h2_meta->GetZaxis()->SetLabelSize(0.02);
-    h2_meta->GetZaxis()->SetTickLength(0.01);
-    h2_meta->GetZaxis()->SetTitleOffset(0.6);
-    h2_meta->Draw("COLZ");
+    h2d->GetZaxis()->SetLabelSize(0.02);
+    h2d->GetZaxis()->SetTickLength(0.01);
+    h2d->GetZaxis()->SetTitleOffset(0.6);
+    h2d->Draw("COLZ");
     
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;

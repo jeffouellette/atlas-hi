@@ -3,9 +3,7 @@
 void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
 
     const int numbins = 40;
-    const int numhists = 16;
-    const double eta_cuts[9] = {-4.9, -3.2, -2, -1, 0, 1, 2, 3.2, 4.9};  // cuts for each eta range
-    const double d_eta[8] = {1.7, 1.2, 1, 1, 1, 1, 1.2, 1.7};
+    const int numhists = 2*numetabins;
 
     const double ymin = 1e0;
     const double ymax = 3e10;
@@ -15,18 +13,18 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
 
     const double* xbins = logspace(0, 1.6, numbins);
     TH1D* harr[numhists];
-    for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", eta_cuts[i], eta_cuts[i+2]), numbins, xbins);
+    for (int i = 0; i < numetabins; i++) {
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
-    for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", eta_cuts[i%(numhists/2)], eta_cuts[(i%(numhists/2))+2]), numbins, xbins);
+    for (int i = numetabins; i < numhists; i++) {
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", etabins[i%(numetabins)], etabins[(i%(numetabins))+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
 
     double integrated_luminosity = 0;
     for (int thisRunNumber : thisRunNumbers) {
-        TFile* thisfile = new TFile(Form("./xdata/run_%i.root", thisRunNumber), "READ");
+        TFile* thisfile = new TFile(Form("../rootFiles/xdata/run_%i.root", thisRunNumber), "READ");
         for (int j = 0; j < numhists; j++) {
             harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", thisRunNumber, j)));
         }
@@ -34,9 +32,9 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
 
-    TLegend* legend = new TLegend(0.60, 0.67, 0.9, 0.9);
+    TLegend* legend = new TLegend(0.65, 0.60, 0.9, 0.9);
     legend->SetHeader("Leading jet pseudorapidities", "C");
-    for (int i = 0; i < numhists/2; i+=2) {
+    for (int i = 0; i < numetabins; i++) {
             legend->AddEntry(harr[i], "");
     }
     legend->SetTextSize(0.024);
@@ -46,9 +44,9 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     gPad->SetLogx();
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(kFALSE);    
-    for (int i = 0; i < numhists/2; i+=2) {
-        harr[i]->Add(harr[i+1]);
-        harr[i]->Scale(0.5);
+    for (int i = 0; i < numetabins; i++) {
+    //    harr[i]->Add(harr[i+1]);
+      //  harr[i]->Scale(0.5);
         harr[i]->SetAxisRange(ymin, ymax, "Y");
         harr[i]->SetMarkerStyle(mkstyles[i]);
         harr[i]->SetMarkerColor(mkcolors[i]);
@@ -64,10 +62,10 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     description->SetTextSize(0.036);
     description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
     description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.78, 0.51, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.78, 0.42, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    description->DrawLatexNDC(0.78, 0.56, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
     
-    c1->SaveAs("./Plots/jets_xp_8.16TeV.pdf");
+    c1->SaveAs("../Plots/jets_xp_8.16TeV.pdf");
 
 
     TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
@@ -75,13 +73,13 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     gPad->SetLogx();
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(kFALSE);
-    for (int i = numhists/2; i < numhists; i+=2) {
-        harr[i]->Add(harr[i+1]);
-        harr[i]->Scale(0.5);
+    for (int i = numetabins; i < numhists; i++) {
+       // harr[i]->Add(harr[i+1]);
+       // harr[i]->Scale(0.5);
         harr[i]->SetAxisRange(ymin, ymax, "Y");
-        harr[i]->SetMarkerStyle(mkstyles[i%(numhists/2)]);
-        harr[i]->SetMarkerColor(mkcolors[i%(numhists/2)]);
-        harr[i]->SetLineColor(mkcolors[i%(numhists/2)]);
+        harr[i]->SetMarkerStyle(mkstyles[i%(numetabins)]);
+        harr[i]->SetMarkerColor(mkcolors[i%(numetabins)]);
+        harr[i]->SetLineColor(mkcolors[i%(numetabins)]);
         harr[i]->Draw("same e1");
     }
     c2->Draw();
@@ -90,9 +88,9 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     description->SetTextSize(0.036);
     description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
     description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.78, 0.51, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.78, 0.42, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+    description->DrawLatexNDC(0.78, 0.56, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
     
-    c2->SaveAs("./Plots/jets_xa_8.16TeV.pdf");
+    c2->SaveAs("../Plots/jets_xa_8.16TeV.pdf");
         
 }
