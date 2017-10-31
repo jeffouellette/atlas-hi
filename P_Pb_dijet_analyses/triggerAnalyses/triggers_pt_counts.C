@@ -3,6 +3,8 @@
 void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
+    if (!runPeriodA && thisRunNumber < 313500) return;
+    if (!runPeriodB && thisRunNumber > 313500) return; 
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
@@ -45,7 +47,8 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
 
     double jpt, jeta;
-    TVectorD numtrigfirings(numtrigs * numpbins * numetabins); 
+    TVectorD numtrigfirings(numtrigs * numpbins * numetabins);
+    const bool flip_etas = runPeriodA && runPeriodB && thisRunNumber < 313500; 
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -58,6 +61,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                     for (int j = 0; j < njet; j++) {
                         jpt = (double)j_pt[j];
                         jeta = (double)j_eta[j];
+                        if (flip_etas) jeta *= -1;
                         if (etabins[ebin] <= jeta && jeta < etabins[ebin+1] && pbins[pbin] <= jpt && jpt < pbins[pbin+1] && trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= jpt) {
                             numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs]++;
                             break;
@@ -69,6 +73,8 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
             for (int j = 0; j < njet; j++) {
                 jpt = (double)j_pt[j];
                 jeta = (double)j_eta[j];
+
+                if (flip_etas) jeta *= -1;
 
                 ebin = 0;
                 while (etabins[ebin] <= jeta) ebin++;
@@ -83,7 +89,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("../rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%srun_%i.root", trig_dir.c_str(), thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {
@@ -95,8 +101,9 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
 
-    TVectorD run_vec(1);
+    TVectorD run_vec(2);
     run_vec[0] = thisRunNumber;
+    run_vec[1] = numetabins;
     run_vec.Write("run_vec");
 
     numtrigfirings.Write("trig_fire_vec");

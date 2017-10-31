@@ -7,8 +7,8 @@ using namespace std;
 
 // Global parameters
 int runNumber;
-const double dijet_pt_frac_cutoff = 0.2; // Maximum fraction of transverse momentum of all jets but the
-                                        // first two for the event to be considered a dijet.
+const double dijet_pt_ratio_cutoff = 0.7; // Minimum subleading-to-leading jet ratio for the event to be considered a dijet.
+
 const int global_max_pt = 6000; // Maximum allowed transverse momentum
 const double min_eta = -4.9; // Minimum detectable pseudorapidity in hadronic calorimeter
 const double max_eta = 4.9; // Maximum detectable pseudorapidity
@@ -16,7 +16,8 @@ const int trigthres = 10; // Jet pt threshold for triggers
 int numtrigs; // Total number of triggers
 
 // Directory information
-const char* trig_dir = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/rootFiles/pt_data/trig_bin/";
+string trig_dir;
+string plotPath;
 
 // Useful constants
 const float Z = 82;   // value of Z for Pb
@@ -26,11 +27,12 @@ const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
 // Transverse momentum and pseudorapidity binning
 const double pbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
 const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
-//const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
-const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
+const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
+//const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
-
-//TH2C* enabledTriggers;
+const bool runPeriodA = true;
+const bool runPeriodB = true;
+bool periodA;
 
 //=========================================================================================================
 // General functions
@@ -54,7 +56,7 @@ double* linspace(double lo, double hi, int num) {
 double* logspace(double lo, double hi, int num) {
     double loghi = TMath::Log2(hi);
     if (lo == 0) {
-        double* arr = linspace(TMath::Log2(hi/(2*num)), loghi, num);
+        double* arr = linspace(TMath::Log2(hi/(100*num)), loghi, num);
         for (int i = 0; i <= num; i++) {
             arr[i] = TMath::Power(2, arr[i]);
         }
@@ -157,7 +159,6 @@ Trigger::Trigger(const Trigger* t) {
 
 /** Trigger vectors used for pt and eta binning. **/
 std::vector<Trigger*> trigger_vec(0);
-//std::vector<std::vector<Trigger*>*>* trigger_pt_eta_bin_map;
 std::vector<double>* integrated_luminosity_vec;
 std::vector<int>* best_trig_indices;
 
@@ -171,20 +172,46 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
 
     /** Store run number as a global variable **/
     runNumber = rn;
+    if (rn < 313500) periodA = true;
+    else periodA = false;
 
     /** Create an array of triggers **/
 
+    // TODO use ION triggers for period A, but use NON-ION triggers for period B.
     // Ion triggers
+    trigger_vec.push_back(new Trigger("HLT_j10_ion_p320eta490_L1MBTS_1_1", 10+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j15_ion_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j25_ion_p320eta490_L1TE5", 25+trigthres, 3.2, 4.9)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j25_ion_p320eta490_L1TE10", 25+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j30_ion_0eta490_L1TE10", 30+trigthres, -4.9, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j30_ion_L1J5", 30+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j35_ion_p320eta490_L1TE10", 35+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J5", 40+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J10", 40+trigthres, min_eta, max_eta)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j45_ion_p200eta320", 45+trigthres, 2, 3.2));
+    trigger_vec.push_back(new Trigger("HLT_j45_ion_n200eta320", 45+trigthres, -3.2, -2)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j45_ion_p320eta490", 45+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j50_ion_L1J10", 50+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j55_ion_p200eta320", 55+trigthres, 2, 3.2)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j55_ion_n200eta320", 55+trigthres, -3.2, -2)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j55_ion_p320eta490", 55+trigthres, 3.2, 4.9));
+    trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J15", 60+trigthres, min_eta, max_eta)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J20", 60+trigthres, min_eta, max_eta));
     trigger_vec.push_back(new Trigger("HLT_j65_ion_p200eta320", 65+trigthres, 2, 3.2));
+    trigger_vec.push_back(new Trigger("HLT_j65_ion_n200eta320", 65+trigthres, -3.2, -2)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j65_ion_p320eta490", 65+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j75_ion_L1J20", 75+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j75_ion_p200eta320", 75+trigthres, 2, 3.2)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j75_ion_n200eta320", 75+trigthres, -3.2, -2)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j75_ion_p320eta490", 75+trigthres, 3.2, 4.9)); // SECONDARY
     trigger_vec.push_back(new Trigger("HLT_j100_ion_L1J20", 100+trigthres, min_eta, max_eta));
+    trigger_vec.push_back(new Trigger("HLT_j110_ion_L1J30", 110+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j125_ion_L1J30", 125+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j150_ion_L1J30", 150+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j175_ion_L1J50", 175+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j200_ion_L1J50", 200+trigthres, min_eta, max_eta)); // SECONDARY
+    trigger_vec.push_back(new Trigger("HLT_j250_ion_L1J50", 250+trigthres, min_eta, max_eta)); // SECONDARY
+
 
     // Alternate p-p triggers 
 /*  trigger_vec.push_back(new Trigger("HLT_j15_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9);
@@ -200,6 +227,14 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
 
     numtrigs = trigger_vec.size();
 
+    if (numtrigs == 10) {
+        plotPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/Plots/original";
+        trig_dir = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/rootFiles/pt_data/trig_bin/original/"; 
+    }
+    else {
+        plotPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/Plots/updated";
+        trig_dir = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/rootFiles/pt_data/trig_bin/updated/";
+    }
     
     /** Assign indices for tree branching. **/
 
@@ -213,14 +248,14 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
     if (initTriggerMaps) {
 
         double* this_trig_integrated_luminosity_vec = linspace(0, 0, numetabins-1); // Dummy vector used to integrate luminosity over a particular trigger.
-        integrated_luminosity_vec = new std::vector<double>(numtrigs * numpbins * numetabins, 0); // Used to store the effective luminosity for each trigger at each pbin, ebin.
+        integrated_luminosity_vec = new std::vector<double>(numtrigs * numetabins, 0); // Used to store the effective luminosity for each trigger at each pbin, ebin.
         best_trig_indices = new std::vector<int>(numpbins * numetabins, 0);
         TVectorD numtrigfirings(numtrigs * numpbins * numetabins);
     
         cout << "Starting loop over triggers..." << endl;
     
         // Find all trigger analysis files.
-        TSystemDirectory dir(trig_dir, trig_dir);
+        TSystemDirectory dir(trig_dir.c_str(), trig_dir.c_str());
         TList *files = dir.GetListOfFiles();
         std::vector<TString> filenames;
         if (files) {
@@ -243,9 +278,12 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
                 this_trig_integrated_luminosity_vec[ebin] = 0;
             }
             for (TString filename : filenames) {
-                TFile* thisfile = new TFile(Form("%s%s", trig_dir, filename.Data()), "READ");
+                TFile* thisfile = new TFile(Form("%s%s", trig_dir.c_str(), filename.Data()), "READ");
                 double thisLuminosity = (*((TVectorD*)thisfile->Get("lum_vec")))[0];
                 int thisRunNumber = (int)(*((TVectorD*)thisfile->Get("run_vec")))[0];
+                if (!runPeriodA && thisRunNumber < 313500) continue;
+                if (!runPeriodB && thisRunNumber > 313500) continue;
+                if (numetabins != (int)(*((TVectorD*)thisfile->Get("run_vec")))[1]) throw "Inequal number of eta bins!";
                 TVectorD* thisNumTrigFirings = (TVectorD*)thisfile->Get("trig_fire_vec");
 
                 // Integrate the number of times the trigger fired over eta and pt. If the result is 0, assume that the trigger was effectively inactive, so don't add the luminosity to that bin.

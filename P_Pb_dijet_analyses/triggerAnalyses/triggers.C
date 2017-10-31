@@ -4,28 +4,26 @@
 // For overlapping triggers, this will improve statistics by choosing the trigger that fires more often.
 
 void triggers(const int thisRunNumber, // Run number identifier.
-             double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
-             bool periodA)
+             double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
     initialize(thisRunNumber, false);
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
 
-    const double* trigbins = linspace(-0.5, numtrigs+0.5, numtrigs+1);
-    const double* ybins = linspace(-0.5, numpbins+0.5, numpbins+1);
-    const double* ebins = linspace(-0.5, numetabins+0.5, numetabins+1);
+    const double* trigbins = linspace(0, numtrigs+1, numtrigs+1);
+    const double* ybins = linspace(0, numpbins+1, numpbins+1);
 
     if (thisRunNumber == 313063) {
         cout << Form("Numtrigs: %i", numtrigs) << endl;
         for (Trigger* trig : trigger_vec) {
             int i = trig->index;
-            cout << Form("Trigger %s is bin %i centered at %.3f", trig->name.c_str(), i, 0.5*(trigbins[i+1]+trigbins[i])) << endl;
+            cout << Form("Trigger %s is bin %i centered at %.1f", trig->name.c_str(), i, 0.5*(trigbins[i+1]+trigbins[i])) << endl;
         }
         for (int pbin = 0; pbin < numpbins; pbin++) {
-            cout << Form("Momentum range %.0f...%.0f is bin %i centered at %.0f", pbins[pbin], pbins[pbin+1], pbin, 0.5*(ybins[pbin+1]+ybins[pbin])) << endl;
+            cout << Form("Momentum range %.0f...%.0f is bin %i centered at %.1f", pbins[pbin], pbins[pbin+1], pbin, 0.5*(ybins[pbin+1]+ybins[pbin])) << endl;
         }
     }
 
@@ -33,11 +31,11 @@ void triggers(const int thisRunNumber, // Run number identifier.
     TH1D* harr[numtrigs];
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
-        harr[i] = new TH1D(Form("trig%i", i), ";Trigger;Number of times triggered / integrated luminosity #left[pb^{-1}#right]", numtrigs, trigbins);
+        harr[i] = new TH1D(Form("trig%i", i), ";Trigger;N^{trig}_{counts} / #it{L}_{int} #left[pb^{-1}#right]", numtrigs, trigbins);
         harr[i]->Sumw2();
     }
 
-    TH2D* h2d = new TH2D("pt_trig", ";Trigger bin;p^{jet}_{T} bin #left[GeV #it{c}^{-1}#right];Counts / dy Luminosity", numtrigs, trigbins, numpbins, ybins);
+    TH2D* h2d = new TH2D("pt_trig", ";Trigger bin;p^{jet}_{T} bin #left[GeV/#it{c}#right];dN^{trig}_{counts} / #it{L}d#it{p}_{T} #left[(GeV/#it{c})^{-1} pb^{-1}#right]", numtrigs, trigbins, numpbins, ybins);
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
@@ -63,6 +61,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
     bool takeEvent;
     int numticks = 0;
     int index, pbin, ebin;
+    double jpt, jeta;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -71,30 +70,29 @@ void triggers(const int thisRunNumber, // Run number identifier.
             if (!m_trig_bool[index] || m_trig_prescale <= 0) continue;
         
             numticks++;
-            harr[index]->Fill(index);
+            harr[index]->Fill(((double)index)+0.5);
             
             for (int j = 0; j < njet; j++) {
+                jpt = (double)j_pt[j];
+                jeta = (double)j_eta[j];
+
                 pbin = 0;
-                while (pbins[pbin] <= j_pt[j]) pbin++;
+                while (pbins[pbin] <= jpt) pbin++;
                 pbin--;
-                ebin = 0;
-                while (etabins[ebin] <= j_eta[j]) ebin++;
-                ebin--;
 
-                if (pbin == -1 || ebin == -1 || pbin >= numpbins || ebin >= numetabins) continue;
+                if (pbin == -1 || pbin >= numpbins) continue;
 
-                if (trig->lower_eta <= etabins[ebin] && etabins[ebin+1] <= trig->upper_eta && pbins[pbin] >= trig->min_pt) {
-                    h2d->Fill((double)index, (double)pbin);
+                if (trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= pbins[pbin]) {
+                    h2d->Fill(((double)index)+0.5, ((double)pbin)+0.5);
                 }
             }
         }
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("./trig_data/run_%i.root", thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("../rootFiles/trig_data/run_%i.root", thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
-        harr[i]->Scale(1/((trig->upper_eta-trig->lower_eta)*luminosity));
         harr[i]->Write();
     }
     

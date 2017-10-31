@@ -27,8 +27,14 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
 
     double hscale, deta;
     double this_trig_integrated_luminosity_vec[numetabins] = {};
-    double integrated_luminosity_vec[10 * numetabins] = {};
+    double integrated_luminosity_vec[32 * numetabins] = {};
+    double total_luminosity = 0;
     TVectorD numtrigfirings(numtrigs*numpbins*numetabins);
+
+    TLatex* description = new TLatex();
+    description->SetTextAlign(22);
+    description->SetTextFont(42);
+    description->SetTextSize(0.026);
 
     cout << "Starting loop over triggers..." << endl;
 
@@ -42,8 +48,11 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
             this_trig_integrated_luminosity_vec[ebin] = 0;
         }
         for (int thisRunNumber : thisRunNumbers) {
-            TFile* thisfile = new TFile(Form("../rootFiles/pt_data/trig_bin/run_%i.root", thisRunNumber), "READ");
+            if (!runPeriodA && thisRunNumber < 313500) continue;
+            if (!runPeriodB && thisRunNumber > 313500) continue;
+            TFile* thisfile = new TFile(Form("%srun_%i.root", trig_dir.c_str(), thisRunNumber), "READ");
             TVectorD* thisluminosityvec = (TVectorD*)thisfile->Get("lum_vec");
+            if (index == 0) total_luminosity += (*thisluminosityvec)[0];
 
             double integral_deta = 0;
             for (int ebin = 0; ebin < numetabins; ebin++) {
@@ -53,8 +62,6 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
             }
             TVectorD* thisnumtrigfirings = (TVectorD*)thisfile->Get("trig_fire_vec");
             for (int ebin = 0; ebin < numetabins; ebin++) {
-                //thishist = harr[index + ebin*numtrigs];
-                //thishist->Add((TH1D*)thisfile->Get(Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin)));
                 if (integral_deta > 0) this_trig_integrated_luminosity_vec[ebin] += (*thisluminosityvec)[0];
                 for (int pbin = 0; pbin < numpbins; pbin++) {
                     numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs] += (*(thisnumtrigfirings))[index + (pbin + ebin*numpbins)*numtrigs];
@@ -74,7 +81,7 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
         for (int ebin = 0; ebin < numetabins; ebin++) {
             double maxtrigfirings = 0;
             for (Trigger* trig : trigger_vec) {
-                if (trig->min_pt > pbins[pbin] || trig->lower_eta > etabins[ebin] || trig->upper_eta < etabins[ebin+1]) continue;
+                if (pbins[pbin] < trig->min_pt || etabins[ebin] < trig->lower_eta || trig->upper_eta < etabins[ebin+1]) continue;
                 int index = trig->index;
                 if (numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs] > maxtrigfirings) {
                     maxtrigfirings = numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs];
@@ -92,7 +99,7 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
         int index = trig->index;
         for (int ebin = 0; ebin < numetabins; ebin++) {
             deta = std::min(trig->upper_eta - trig->lower_eta, etabins[ebin+1]-etabins[ebin]);
-            harr[index + ebin*numtrigs]->Scale(1 / (integrated_luminosity_vec[index + ebin*numtrigs] * deta), "width");
+            if (integrated_luminosity_vec[index+ebin*numtrigs] != 0) harr[index + ebin*numtrigs]->Scale(1 / (integrated_luminosity_vec[index + ebin*numtrigs] * deta), "width");
         }
     }
 
@@ -121,7 +128,7 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
             thishist->SetMarkerStyle(4);
             thishist->SetMarkerColor(12);
             thishist->SetLineColor(12);
-            legend->AddEntry(thishist, Form("Best statistics (#times 10^{%g})", bestharrscales[(int)((0.5*(numetabins-1))-TMath::Abs(ebin-(0.5*(numetabins-1))))]));
+            legend->AddEntry(thishist, Form("Best statistics (#times 10)"));
         }
         thishist->SetMinimum(ymin);
         thishist->SetMaximum(ymax);
@@ -148,21 +155,47 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
             thishist->SetMinimum(ymin);
             thishist->SetMaximum(ymax);
             thishist->GetYaxis()->SetTitleOffset(1.35);
+            thishist->GetXaxis()->SetTickLength(0.02);
+            thishist->GetYaxis()->SetTickLength(0.02);
             thishist->Draw("same e1");
             legend->AddEntry(thishist, Form("%s (#times %g)", trig->name.c_str(), hscale));
         }
     }
     for (int ebin = 0; ebin < numetabins; ebin++) {
         thishist = bestharr[ebin];
+        thishist->GetXaxis()->SetTickLength(0.02);
+        thishist->GetYaxis()->SetTickLength(0.02);
         thishist->Draw("same e1");
     }
 
-    legend->Draw();        
+    description->SetTextSize(0.036);
+    if (numetabins == 1) description->DrawLatexNDC(0.42, 0.85, "#bf{#it{ATLAS}} p-Pb");
+    else description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} p-Pb");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.50, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.41, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", total_luminosity*1000)); 
+
+    legend->Draw();
     trig_canvas->Draw();
+    string hname;
     if (numetabins > 1) {
-        trig_canvas->SaveAs("../Plots/triggers/ptSpectra_combined_etabinned.pdf");
+        hname = "../Plots/triggers/ptSpectra_combinedTriggers_etabinned";
     }
-    else trig_canvas->SaveAs("../Plots/triggers/ptSpectra_combinedTriggers_0eta490.pdf");
+    else hname = "../Plots/triggers/ptSpectra_combinedTriggers_0eta490";
+
+    if (runPeriodA && !runPeriodB) {
+        hname = hname + "_periodA";
+        description->DrawTextNDC(0.48, 0.75, "Period A");
+    }
+    else if (!runPeriodA && runPeriodB) {
+        hname = hname + "_periodB";
+        description->DrawTextNDC(0.48, 0.75, "Period B");
+    }
+    else if (runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.48, 0.75, "Period A(-#eta) & B(#eta)");
+    }
+
+    if (runPeriodA || runPeriodB) trig_canvas->SaveAs((hname + ".pdf").c_str());
 
 
     /** Create number of trigger firings plot to illustrate procedure **/
@@ -231,14 +264,30 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
     bestnumhist->SetLineColor(12);
     bestnumhist->SetMinimum(ymin);
     bestnumhist->SetMaximum(ymax);
+    num_canvas->SetTitle("Number of trigger firings");
     bestnumhist->Draw("same e1");
     numlegend->AddEntry(bestnumhist, "Best statistics");
     
+    description->SetTextSize(0.036);
+    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} p-Pb");
+    description->SetTextSize(0.032);
+    description->DrawLatexNDC(0.78, 0.50, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.41, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", total_luminosity*1000)); 
     num_canvas->Draw();
     numlegend->Draw();
-    num_canvas->SaveAs("../Plots/triggers/trigger_fire_count.pdf");
+    hname = "../Plots/triggers/trigger_fire_count";
+    if (runPeriodA && !runPeriodB) {
+        hname = hname + "_periodA";
+        description->DrawTextNDC(0.48, 0.75, "Period A");
+    }
+    else if (!runPeriodA && runPeriodB) {
+        hname = hname + "_periodB";
+        description->DrawTextNDC(0.48, 0.75, "Period B");
+    }
+    else if (runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.48, 0.75, "Period A(-#eta) & B(#eta)");
+    }
+
+    if (runPeriodA || runPeriodB) num_canvas->SaveAs((hname + ".pdf").c_str());
     
-
-
-
 }

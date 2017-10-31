@@ -3,13 +3,15 @@
 void triggers_hist(int thisRunNumber) {
 
     initialize(thisRunNumber, false);
-    const double* trigbins = linspace(-0.5, numtrigs+0.5, numtrigs+1);
-    const double* ybins = linspace(-0.5, numpbins+0.5, numpbins+1);
+    const double* trigbins = linspace(0, numtrigs+1, numtrigs+1);
+    const double* ybins = linspace(0, numpbins+1, numpbins+1);
 
     double minval = 1e0;
     double maxval;
 
     TFile* thisfile = new TFile(Form("../rootFiles/trig_data/run_%i.root", thisRunNumber), "READ");
+    TVectorD* lum_vec = (TVectorD*)thisfile->Get("lum_vec");
+    double luminosity = (*lum_vec)[0];
     TH1D* harr[numtrigs];
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
@@ -29,7 +31,7 @@ void triggers_hist(int thisRunNumber) {
     TLatex* description = new TLatex();
     description->SetTextAlign(22);
     description->SetTextFont(42);
-    description->SetTextSize(0.026);
+    description->SetTextSize(0.024);
 
     double maxbincontent = 0;
     double thisbincontent;
@@ -38,10 +40,13 @@ void triggers_hist(int thisRunNumber) {
         thisbincontent = harr[i]->GetBinContent(i+1);
         if (maxbincontent < thisbincontent) maxbincontent = thisbincontent;
     }
-    maxval = 6 * maxbincontent;
+    maxval = 6 * maxbincontent / luminosity;
 
+    int numticks = 0;
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
+        numticks += harr[i]->Integral();
+        harr[i]->Scale(1/luminosity);
         harr[i]->SetMarkerStyle(mkstyles[i%8]);
         harr[i]->SetMarkerColor(mkcolors[i%20]);
         harr[i]->SetLineColor(mkcolors[i%20]);
@@ -52,24 +57,26 @@ void triggers_hist(int thisRunNumber) {
         harr[i]->GetXaxis()->SetLabelSize(0);
         harr[i]->GetXaxis()->SetTickLength(0);
 
-        harr[i]->GetYaxis()->SetTickLength(0.015);
+        harr[i]->GetYaxis()->SetTitleOffset(1.3);
+        harr[i]->GetYaxis()->SetTickLength(0.0075);
 
         harr[i]->Draw("BAR, SAME, E2");
 
-        TLatex* text = description->DrawLatex(i, TMath::Power(10, TMath::Log10(minval) + 0.05*(TMath::Log10(maxval)-TMath::Log10(minval))), trig->name.c_str());
+        TLatex* text = description->DrawLatex(i+0.5, TMath::Power(10, TMath::Log10(minval) + 0.01*(TMath::Log10(maxval)-TMath::Log10(minval))), trig->name.c_str());
         text->SetTextAngle(90);
         text->SetTextAlign(12);
     }
+
     c1->Draw();
     
     description->SetTextSize(0.036);
     description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
-    description->SetTextSize(0.032);
+    description->SetTextSize(0.029);
     description->DrawLatexNDC(0.78, 0.84, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    TVectorD* lum_vec = (TVectorD*)thisfile->Get("lum_vec");
-    description->DrawLatexNDC(0.78, 0.75, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*(*lum_vec)[0])); 
+    description->DrawLatexNDC(0.78, 0.775, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*luminosity)); 
+    description->DrawLatexNDC(0.78, 0.72, Form("N^{total}_{counts} = %i", numticks)); 
 
-    c1->SaveAs(Form("./Plots/triggers/run_trig_%i.pdf", thisRunNumber));
+    c1->SaveAs(Form("../Plots/triggers/counts/run_trig_%i.pdf", thisRunNumber));
     cout << Form("Triggers for run number %i finished", thisRunNumber) << endl;
 
     TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
@@ -102,32 +109,44 @@ void triggers_hist(int thisRunNumber) {
     h2d->GetYaxis()->SetLabelSize(0);    
     h2d->GetYaxis()->SetTickLength(0);
     h2d->GetYaxis()->SetTitleOffset(1.2);
-
     
     h2d->GetZaxis()->SetLabelSize(0.02);
     h2d->GetZaxis()->SetTickLength(0.01);
     h2d->GetZaxis()->SetTitleOffset(0.6);
     h2d->Draw("COLZ");
-    
+    TLine* lineDrawer = new TLine(); 
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
-        TLatex* text = description->DrawLatex(i+0.25, -0.65, trig->name.c_str());
-        text->SetTextAngle(21);
+        TLatex* text = description->DrawLatex(i+0.30, -0.2, trig->name.c_str());
+        text->SetTextAngle(30);
+        lineDrawer->DrawLine(i - (0.16*numtrigs)*TMath::Cos(36.*TMath::Pi()/180.), 0 - (0.16*numtrigs)*((double)(numpbins)/(double)(numtrigs))*TMath::Sin(36.*TMath::Pi()/180.), i, 0);
     }
     description->SetTextSize(0.022);
     for (int pbin = 0; pbin < numpbins; pbin++) {
-        description->DrawLatex(-0.55, ybins[pbin], Form("%i", (int)pbins[pbin]));
+        description->DrawLatex(-0.05, ybins[pbin], Form("%i", (int)pbins[pbin]));
     }
-    description->DrawLatex(-0.55, ybins[numpbins], Form("%i", (int)pbins[numpbins]));
-
+    description->DrawLatex(-0.05, ybins[numpbins], Form("%i", (int)pbins[numpbins]));
+    h2d->GetXaxis()->SetNdivisions(numtrigs+1);
+    h2d->GetYaxis()->SetNdivisions(numpbins+1);
+    c2->SetGrid();
     c2->Draw();
     
+    TBox box1((int)(0.15*numtrigs), (int)(0.92*numpbins), (int)(0.35*numtrigs), (int)(0.98*numpbins));
+    box1.SetFillColor(kWhite);
+    box1.Draw();
     description->SetTextSize(0.036);
-    description->DrawLatexNDC(0.6, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
-    description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.84, 0.84, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.84, 0.75, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*(*lum_vec)[0])); 
+    description->SetTextAlign(22);
+    description->DrawLatex(0.5*(box1.GetX2()+box1.GetX1()), 0.5*(box1.GetY2()+box1.GetY1()), "#bf{#it{ATLAS}} #it{p-Pb}");
 
-    c2->SaveAs(Form("./Plots/triggers/run_trigpt_%i.pdf", thisRunNumber));
+    TBox box3((int)(0.72*numtrigs), (int)(0.04*numpbins), (int)(0.96*numtrigs), (int)(0.28*numpbins));
+    box3.SetFillColor(kWhite);
+    box3.Draw();
+    description->SetTextSize(0.029);
+    description->SetTextAlign(22);
+    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.76*(box3.GetY2()+box3.GetY1()), "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.5*(box3.GetY2()+box3.GetY1()), Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*luminosity)); 
+    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.24*(box3.GetY2()+box3.GetY1()), Form("N^{total}_{counts} = %i", numticks)); 
+
+    c2->SaveAs(Form("../Plots/triggers/counts_binned_pt/run_trigpt_%i.pdf", thisRunNumber));
     cout << Form("Triggers-pt joint plot for run %i finished", thisRunNumber) << endl;
 }

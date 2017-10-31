@@ -1,12 +1,11 @@
 #include "../triggerUtil.C"
 
 void jets_xa_xp(int thisRunNumber, // Run number identifier.
-                double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
-                bool periodA)
+                double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     initialize(thisRunNumber);
 
-    const int numbins = 40;
+    const int numbins = 100;
     const int numhists = 2*numetabins;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
@@ -14,17 +13,18 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
 
     const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const double* xbins = logspace(0, 1.6, numbins);
+    const double* xbins = logspace(2e-4, 1.6, numbins);
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d#sigma^{2}/d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}#sigma/d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numhists/2; i < numhists; i++) {
-        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d#sigma^{2}/d#it{x}_{a} dy #left[pb#right]", etabins[i%(numhists/2)], etabins[(i%(numhists/2))+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("%ieta%i", thisRunNumber, i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}#sigma/d#it{x}_{a} dy #left[pb#right]", etabins[i%(numhists/2)], etabins[(i%(numhists/2))+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
+    TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_run%i", thisRunNumber), ";#it{x}_{a};#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#it{x}_{a}", numbins, xbins, numbins, xbins);
 //    cout << numtrigs << endl;
 
     // Create arrays to store trigger values for each event
@@ -36,12 +36,14 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
     float j_eta[60] = {};
     float j_phi[60] = {};
     float j_e[60] = {};
+    int eventNumber = 0;
     int njet = 0;
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("j_e", j_e);
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("j_phi", j_phi);
+    tree->SetBranchAddress("eventNumber", &eventNumber);
 
     // Set branch addresses
     for (Trigger* trig : trigger_vec) {
@@ -52,47 +54,49 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
     // Iterate over each event
     const int numentries = tree->GetEntries();
 
-    double leading_jpt, leading_jeta, jeta0, jpt0, jeta1, jpt1, xp, xa, extra_jpt_sum;
+    double leadingjpt, leadingjeta, subleadingjpt, subleadingjeta, xp, xa, extra_jpt_sum;
     bool takeEvent;
     int ebin, pbin, index;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
+        leadingjpt = (double)j_pt[0];
+        subleadingjpt = (double)j_pt[1];
+        leadingjeta = (double)j_eta[0];
+        subleadingjeta = (double)j_eta[1];
+        for (int j = 0; j < njet; j++) {
+            if (j_pt[j] > leadingjpt) {
+                subleadingjpt = leadingjpt;
+                subleadingjeta = leadingjeta;
+                leadingjpt = (double)j_pt[j];
+                leadingjeta = (double)j_eta[j];
+            }
+        }
+
+        if (leadingjpt > 2000) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, thisRunNumber, eventNumber) << endl;
+       /* 
         extra_jpt_sum = 0;
         for (int j = 2; j < njet; j++) {
             extra_jpt_sum += j_pt[j];
         }
         takeEvent = extra_jpt_sum / (j_pt[0] + j_pt[1] + extra_jpt_sum) <= dijet_pt_frac_cutoff;
+*/
+        takeEvent = subleadingjpt/leadingjpt >= dijet_pt_ratio_cutoff;
         if (takeEvent) {
             
-            jpt0 = (double)j_pt[0];
-            jpt1 = (double)j_pt[1];
-            
-            jeta0 = (double)j_eta[0];
-            jeta1 = (double)j_eta[1];
-
-            if (jpt0 > jpt1) {
-                leading_jpt = jpt0;
-                leading_jeta = jeta0;
-            } else {
-                leading_jpt = jpt1;
-                leading_jeta = jeta1;
-            }
-
             ebin = 0;
-            while (etabins[ebin] < leading_jeta) ebin++;
+            while (etabins[ebin] < leadingjeta) ebin++;
             ebin--;
             pbin = 0;
-            while (pbins[pbin] < leading_jpt) pbin++;
+            while (pbins[pbin] < leadingjpt) pbin++;
             pbin--;
             if (pbin == -1 || pbin >= numpbins || ebin == -1 || ebin >= numetabins) continue;            
 
             index = (*best_trig_indices)[pbin + ebin*numpbins];
             takeEvent = m_trig_bool[index] && m_trig_prescale[index] > 0 && (*integrated_luminosity_vec)[index + ebin*numtrigs] > 0;
             if (!takeEvent) continue;
-
-            xp = get_xp(jpt0, jpt1, jeta0, jeta1, periodA);
-            xa = get_xa(jpt0, jpt1, jeta0, jeta1, periodA);
+            xp = get_xp(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, periodA);
+            xa = get_xa(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, periodA);
 
             if (!periodA) {
                 harr[ebin]->Fill(xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
@@ -101,6 +105,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
                 harr[numetabins-1-ebin]->Fill(xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
                 harr[numhists-1-ebin]->Fill(xa, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
             }
+            xaxpcorr->Fill(xa, xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
         }
     }
     // Save to root file
@@ -109,6 +114,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
         harr[i]->Scale(harr_scales[i%(numetabins)]/(A * (etabins[(i%numetabins)+1] - etabins[(i%numetabins)])), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
+    xaxpcorr->Write();
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
