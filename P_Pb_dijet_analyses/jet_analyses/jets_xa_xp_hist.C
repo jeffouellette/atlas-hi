@@ -1,7 +1,7 @@
 #include "../triggerUtil.C"
 
 void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
-
+    if (!runPeriodA && !runPeriodB) return;
     initialize(0, false);
     const int numbins = 100;
     const int numhists = 2*numetabins;
@@ -62,7 +62,6 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
         harr[i]->GetXaxis()->SetTitleOffset(0.7);
         harr[i]->GetXaxis()->SetLabelOffset(0.0025);
     }
-    c1->Draw();
     legend->Draw();
 
     TLatex* description = new TLatex();
@@ -73,10 +72,20 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     description->SetTextSize(0.032);
     description->DrawLatexNDC(0.67, 0.9, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+
+
+    string hname = plotPath + "/jets_xp_8.16TeV";
     if (runPeriodA && runPeriodB) { 
-        description->DrawLatexNDC(0.44, 0.9, "Period A(-#eta) & B(#eta)");
+        description->DrawLatexNDC(0.42, 0.91, "#it{x}_{p} Period A(-#eta) & B(#eta)");
+    } else if (runPeriodA && !runPeriodB) {
+        description->DrawLatexNDC(0.44, 0.91, "#it{x}_{p} Period A");
+        hname = hname + "_periodA";
+    } else if (!runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.44, 0.91, "#it{x}_{p} Period B");
+        hname = hname + "_periodB";
     }
-    c1->SaveAs((plotPath + "/jets_xp_8.16TeV.pdf").c_str());
+    c1->Draw();
+    c1->SaveAs((hname + ".pdf").c_str());
 
 
     TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
@@ -97,7 +106,6 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
         harr[i]->GetXaxis()->SetTitleOffset(0.7);
         harr[i]->GetXaxis()->SetLabelOffset(0.0025);
     }
-    c2->Draw();
     legend->Draw();
 
 //    description->SetTextSize(0.036);
@@ -105,11 +113,19 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     description->SetTextSize(0.032);
     description->DrawLatexNDC(0.67, 0.9, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
+
+    hname = plotPath + "/jets_xa_8.16TeV";
     if (runPeriodA && runPeriodB) { 
-        description->DrawLatexNDC(0.44, 0.9, "Period A(-#eta) & B(#eta)");
+        description->DrawLatexNDC(0.42, 0.91, "#it{x}_{a} Period A(-#eta) & B(#eta)");
+    } else if (runPeriodA && !runPeriodB) {
+        description->DrawLatexNDC(0.44, 0.91, "#it{x}_{a} Period A");
+        hname = hname + "_periodA";
+    } else if (!runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.44, 0.91, "#it{x}_{a} Period B");
+        hname = hname + "_periodB";
     }
-    
-    c2->SaveAs((plotPath + "/jets_xa_8.16TeV.pdf").c_str());
+    c2->Draw();
+    c2->SaveAs((hname + ".pdf").c_str());
 
 
     TCanvas* c3 = new TCanvas("c3", "", 1000, 800);
@@ -140,11 +156,19 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     description->SetTextAlign(22);
     description->DrawLatexNDC(0.19, 0.55, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.19, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*integrated_luminosity)); 
+    
+    hname = plotPath + "/jets_xa_xp_correlation_8.16TeV";
     if (runPeriodA && runPeriodB) { 
         description->DrawLatexNDC(0.19, 0.395, "Period A(-#eta) & B(#eta)");
+    } else if (runPeriodA && !runPeriodB) {
+        description->DrawLatexNDC(0.19, 0.395, "Period A");
+        hname = hname + "_periodA";
+    } else if (!runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.19, 0.395, "Period B");
+        hname = hname + "_periodB";
     }
 
     c3->Draw();
-    c3->SaveAs((plotPath + "/jets_xa_xp_correlation_8.16TeV.pdf").c_str());
+    c3->SaveAs((hname + ".pdf").c_str());
         
 }

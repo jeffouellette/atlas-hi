@@ -210,8 +210,8 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
 //    if (numetabins == 1) description->DrawLatexNDC(0.42, 0.85, "#bf{#it{ATLAS}} p-Pb");
 //    else description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} p-Pb");
     description->SetTextSize(0.032);
-    description->DrawLatexNDC(0.78, 0.50, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    description->DrawLatexNDC(0.78, 0.41, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", total_luminosity*1000)); 
+    description->DrawLatexNDC(0.78, 0.56, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.78, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", total_luminosity*1000)); 
 
     legend->Draw();
     trig_canvas->Draw();
