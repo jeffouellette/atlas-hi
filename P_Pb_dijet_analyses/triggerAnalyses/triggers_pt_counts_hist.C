@@ -1,9 +1,11 @@
 #include "../triggerUtil.C"
 
-void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
+void triggers_pt_counts_hist() {
 
     initialize(0, false);
-    const int numruns = thisRunNumbers.size();
+    std::vector<int>* thisRunNumbers = getRunNumbers();
+
+    const int numruns = (*thisRunNumbers).size();
     cout << "Building trigger pt histograms with " << numruns << " runs being used" << endl;
     const int numhists = numtrigs * numruns * numetabins;
 
@@ -64,13 +66,16 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
     // First combine trigger data from all runs into one histogram for each trigger. If the trigger never fired in a run, assume it wasn't on so don't add its luminosity.
     int thisRunNumber;
     for (int rnIndex = 0; rnIndex < numruns; rnIndex++) {
-        thisRunNumber = thisRunNumbers[rnIndex];
-        if (!runPeriodA && thisRunNumber < 313500) continue;
-        if (!runPeriodB && thisRunNumber > 313500) continue;
+        thisRunNumber = (*thisRunNumbers)[rnIndex];
+        if (skipRun(thisRunNumber)) {
+            cout << "Skipping run " << thisRunNumber << endl;
+            continue;
+        }
         
-        TFile* thisfile = new TFile(Form("%srun_%i.root", trig_dir.c_str(), thisRunNumber), "READ");
+        TFile* thisfile = new TFile(Form("%srun_%i.root", trigPath.c_str(), thisRunNumber), "READ");
         TVectorD* thisluminosityvec = (TVectorD*)thisfile->Get("lum_vec");
         TVectorD* thisrunvec = (TVectorD*)thisfile->Get("run_vec");
+
         assert (thisrunvec[0] == thisRunNumber); // Check that the data matches what we want to analyze.
         assert (thisrunvec[1] == numetabins);
         assert (thisrunvec[2] == numtrigs);
@@ -116,8 +121,8 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
         thisfile->Close();
     }
     for (int rnIndex = 0; rnIndex < numruns; rnIndex++) {
-        int thisRunNumber = thisRunNumbers[rnIndex];
-        if ((!runPeriodA && thisRunNumber < 313500) || (!runPeriodB && thisRunNumber > 313500)) continue;
+        int thisRunNumber = (*thisRunNumbers)[rnIndex];
+        if (skipRun(thisRunNumber)) continue;
 
         for (Trigger* trig : trigger_vec) {
             if (trig->iontrigger == thisRunNumber > 313500) continue;
@@ -170,9 +175,12 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
         thishist->SetMinimum(ymin);
         thishist->SetMaximum(ymax);
         thishist->GetYaxis()->SetTitleOffset(1.35);
+        thishist->GetXaxis()->SetTickLength(0.02);
+        thishist->GetYaxis()->SetTickLength(0.02);
+        thishist->Draw("same e1");
     }
 
-    // Plot pt spectra for individual triggers - ILLUSTRATIVE
+/*    // Plot pt spectra for individual triggers - ILLUSTRATIVE
     if (numetabins == 1) {
         for (Trigger* trig : trigger_vec) {
             int index = trig->index;
@@ -198,13 +206,7 @@ void triggers_pt_counts_hist(std::vector<int> thisRunNumbers) {
             thishist->Draw("same e1");
             legend->AddEntry(thishist, Form("%s (#times %g)", trig->name.c_str(), hscale));
         }
-    }
-    for (int ebin = 0; ebin < numetabins; ebin++) {
-        thishist = bestharr[ebin];
-        thishist->GetXaxis()->SetTickLength(0.02);
-        thishist->GetYaxis()->SetTickLength(0.02);
-        thishist->Draw("same e1");
-    }
+    }*/
 
 //    description->SetTextSize(0.036);
 //    if (numetabins == 1) description->DrawLatexNDC(0.42, 0.85, "#bf{#it{ATLAS}} p-Pb");

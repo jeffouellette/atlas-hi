@@ -3,15 +3,14 @@
 void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
-    if (!runPeriodA && thisRunNumber < 313500) return;
-    if (!runPeriodB && thisRunNumber > 313500) return; 
-
-    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
+    if (skipRun(thisRunNumber)) return;
 
     initialize(thisRunNumber, false);
+
+    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
     const int numhists = numtrigs * numetabins;
 
-    TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
@@ -94,7 +93,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("%srun_%i.root", trig_dir.c_str(), thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%srun_%i.root", trigPath.c_str(), thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {

@@ -3,14 +3,14 @@
 void jets_xa_xp(int thisRunNumber, // Run number identifier.
                 double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
-    if ((!runPeriodA && thisRunNumber < 313500) || (!runPeriodB && thisRunNumber > 313500)) return;
+    if (skipRun(thisRunNumber)) return;
     initialize(thisRunNumber);
 
     const int numbins = 100;
     const int numhists = 2*numetabins;
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
 
     const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 

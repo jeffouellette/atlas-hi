@@ -18,7 +18,7 @@
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313603, 8.1575371)'& #SECONDARY
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313629, 6.2506744)'&
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313630, 6.6318257)'& #SECONDARY
-##root -b -q '../triggerAnalyses/triggers_pt_counts.C (313688, 7.3617282)'& #SECONDARY ONLY
+#root -b -q '../triggerAnalyses/triggers_pt_counts.C (313688, 7.3617282)'& #SECONDARY ONLY
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313695, 4.1394285)'& #SECONDARY
 #
 #wait
@@ -29,12 +29,11 @@
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313935, 10.21076454)'&
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (313984, 2.198223)'&
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (314014, 6.854838)'& #SECONDARY
-##root -b -q '../triggerAnalyses/triggers_pt_counts.C (314105, 6.063611)'& #SECONDARY ONLY
+#root -b -q '../triggerAnalyses/triggers_pt_counts.C (314105, 6.063611)'& #SECONDARY ONLY
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (314112, 9.795848)'&
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (314157, 9.1529452)'& #SECONDARY
 #root -b -q '../triggerAnalyses/triggers_pt_counts.C (314170, 4.594566)'& #SECONDARY
 #
 #wait
 
-root -b -q '../triggerAnalyses/triggers_pt_counts_hist.C ({313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314112, 314157, 314170})'
-#root -b -q '../triggerAnalyses/triggers_pt_counts_hist.C ({313063, 313107, 313136, 313259, 313603, 313630, 313688, 313695, 313878, 313929, 314105, 314157, 314170})'
+root -b -q '../triggerAnalyses/triggers_pt_counts_hist.C ()'
