@@ -26,6 +26,8 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
 
     double integrated_luminosity = 0;
     for (int thisRunNumber : thisRunNumbers) {
+        if (!runPeriodA && thisRunNumber < 313500) continue;
+        if (!runPeriodB && thisRunNumber > 313500) continue;
         TFile* thisfile = new TFile(Form("../rootFiles/xdata/run_%i.root", thisRunNumber), "READ");
         for (int j = 0; j < numhists; j++) {
             harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", thisRunNumber, j)));
@@ -66,8 +68,8 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     TLatex* description = new TLatex();
     description->SetTextAlign(22);
     description->SetTextFont(42);
-    description->SetTextSize(0.036);
-    description->DrawLatexNDC(0.22, 0.9, "#bf{#it{ATLAS}} p-Pb");
+//    description->SetTextSize(0.036);
+//    description->DrawLatexNDC(0.22, 0.9, "#bf{#it{ATLAS}} p-Pb");
     description->SetTextSize(0.032);
     description->DrawLatexNDC(0.67, 0.9, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
@@ -98,8 +100,8 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     c2->Draw();
     legend->Draw();
 
-    description->SetTextSize(0.036);
-    description->DrawLatexNDC(0.22, 0.9, "#bf{#it{ATLAS}} p-Pb");
+//    description->SetTextSize(0.036);
+//    description->DrawLatexNDC(0.22, 0.9, "#bf{#it{ATLAS}} p-Pb");
     description->SetTextSize(0.032);
     description->DrawLatexNDC(0.67, 0.9, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
@@ -117,9 +119,9 @@ void jets_xa_xp_hist(std::vector<int> thisRunNumbers) {
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(kFALSE);
     xaxpcorr->Draw("colz");
-    description->SetTextSize(0.036);
     description->SetTextAlign(22);
-    description->DrawLatexNDC(0.77, 0.9, "#bf{#it{ATLAS}} p-Pb");
+//    description->SetTextSize(0.036);
+//    description->DrawLatexNDC(0.77, 0.9, "#bf{#it{ATLAS}} p-Pb");
 
     c3->SetMargin(0.06, 0.14, 0.07, 0.05);
     xaxpcorr->GetXaxis()->SetTitleOffset(0.7);

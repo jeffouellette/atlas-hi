@@ -48,11 +48,16 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
 
     double jpt, jeta;
     TVectorD numtrigfirings(numtrigs * numpbins * numetabins);
-    const bool flip_etas = runPeriodA && runPeriodB && thisRunNumber < 313500; 
+    for (int n = 0; n < numtrigs*numpbins*numetabins; n++) {
+        numtrigfirings[n] = 0;
+    }
+
+    const bool flip_etas = runPeriodA && runPeriodB && periodA; 
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
         for (Trigger* trig : trigger_vec) {
+            if (periodA == !trig->iontrigger) continue; // Only consider ion triggers in p. A and non-ion triggers in p. B
             index = trig->index;
             if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue; // if the trigger wasn't fired (or was disabled in some way) just continue.
         
@@ -101,9 +106,10 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");
 
-    TVectorD run_vec(2);
+    TVectorD run_vec(3);
     run_vec[0] = thisRunNumber;
     run_vec[1] = numetabins;
+    run_vec[2] = numtrigs;
     run_vec.Write("run_vec");
 
     numtrigfirings.Write("trig_fire_vec");

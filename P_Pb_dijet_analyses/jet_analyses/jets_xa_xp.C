@@ -3,6 +3,7 @@
 void jets_xa_xp(int thisRunNumber, // Run number identifier.
                 double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
+    if ((!runPeriodA && thisRunNumber < 313500) || (!runPeriodB && thisRunNumber > 313500)) return;
     initialize(thisRunNumber);
 
     const int numbins = 100;
@@ -92,20 +93,23 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
             pbin--;
             if (pbin == -1 || pbin >= numpbins || ebin == -1 || ebin >= numetabins) continue;            
 
-            index = (*best_trig_indices)[pbin + ebin*numpbins];
-            takeEvent = m_trig_bool[index] && m_trig_prescale[index] > 0 && (*integrated_luminosity_vec)[index + ebin*numtrigs] > 0;
+            index = best_bins[pbin + ebin*numpbins];
+            takeEvent = m_trig_bool[index] && m_trig_prescale[index] > 0 && kinematic_lumi_vec[pbin + ebin*numpbins] > 0;
             if (!takeEvent) continue;
             xp = get_xp(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, periodA);
             xa = get_xa(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, periodA);
+            double lumi = kinematic_lumi_vec[pbin + ebin*numpbins];
 
-            if (!periodA) {
-                harr[ebin]->Fill(xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
-                harr[ebin+numetabins]->Fill(xa, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
-            } else {
-                harr[numetabins-1-ebin]->Fill(xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
-                harr[numhists-1-ebin]->Fill(xa, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
+            if (periodA) {
+                leadingjeta *= -1;
+                ebin = 0;
+                while (etabins[ebin] < leadingjeta) ebin++;
+                ebin--;
             }
-            xaxpcorr->Fill(xa, xp, m_trig_prescale[index]/(*integrated_luminosity_vec)[index + ebin*numtrigs]);
+ 
+            harr[ebin]->Fill(xp, m_trig_prescale[index]/lumi);
+            harr[ebin+numetabins]->Fill(xa, m_trig_prescale[index]/lumi);
+            xaxpcorr->Fill(xa, xp, m_trig_prescale[index]/lumi);
         }
     }
     // Save to root file
