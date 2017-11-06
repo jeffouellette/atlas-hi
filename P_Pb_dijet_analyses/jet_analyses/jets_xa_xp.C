@@ -113,7 +113,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
         }
     }
     // Save to root file
-    TFile* output = new TFile(Form("../rootFiles/xdata/run_%i.root", thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%sxdata/run_%i.root", rootPath.c_str(), thisRunNumber), "RECREATE");
     for (int i = 0; i < numhists; i++) {
         harr[i]->Scale(harr_scales[i%(numetabins)]/(A * (etabins[(i%numetabins)+1] - etabins[(i%numetabins)])), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

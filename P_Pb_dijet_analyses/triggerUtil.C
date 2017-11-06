@@ -36,7 +36,7 @@ const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 int numtrigs; // Total number of triggers
 
-const bool runOldData = false;
+const bool runOldData = true;
 
 const bool runPeriodA = true;
 const bool runPeriodB = false;

@@ -9,7 +9,7 @@ void jets_pt(const int thisRunNumber, // Run number identifier.
     initialize(thisRunNumber, true);
     const int numhists = numetabins;
 
-    TTree* tree = (TTree*)(new TFile(Form("./rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
 
     //Useful arrays for binning and cutting jets between bins
     const double harr_scales[numhists] = {0.005, 0.03, 0.1, 0.5, 1, 0.3, 0.05, 0.01};   // rescaling factors so the histograms don't overlap

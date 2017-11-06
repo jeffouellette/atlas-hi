@@ -75,7 +75,7 @@ void jets_xa_xp_hist() {
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
 
 
-    string hname = plotPath + "jets_xp_8.16TeV";
+    string hname = "jets_xp_8.16TeV";
     if (runPeriodA && runPeriodB) { 
         description->DrawLatexNDC(0.42, 0.91, "#it{x}_{p} Period A(-#eta) & B(#eta)");
     } else if (runPeriodA && !runPeriodB) {
@@ -86,7 +86,7 @@ void jets_xa_xp_hist() {
         hname = hname + "_periodB";
     }
     c1->Draw();
-    c1->SaveAs((hname + ".pdf").c_str());
+    c1->SaveAs((plotPath + hname + ".pdf").c_str());
 
 
     TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
@@ -115,7 +115,7 @@ void jets_xa_xp_hist() {
     description->DrawLatexNDC(0.67, 0.9, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.67, 0.82, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", integrated_luminosity*1000)); 
 
-    hname = plotPath + "jets_xa_8.16TeV";
+    hname = "jets_xa_8.16TeV";
     if (runPeriodA && runPeriodB) { 
         description->DrawLatexNDC(0.42, 0.91, "#it{x}_{a} Period A(-#eta) & B(#eta)");
     } else if (runPeriodA && !runPeriodB) {
@@ -126,7 +126,7 @@ void jets_xa_xp_hist() {
         hname = hname + "_periodB";
     }
     c2->Draw();
-    c2->SaveAs((hname + ".pdf").c_str());
+    c2->SaveAs((plotPath + hname + ".pdf").c_str());
 
 
     TCanvas* c3 = new TCanvas("c3", "", 1000, 800);
@@ -158,7 +158,7 @@ void jets_xa_xp_hist() {
     description->DrawLatexNDC(0.19, 0.55, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
     description->DrawLatexNDC(0.19, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*integrated_luminosity)); 
     
-    hname = plotPath + "jets_xa_xp_correlation_8.16TeV";
+    hname = "jets_xa_xp_correlation_8.16TeV";
     if (runPeriodA && runPeriodB) { 
         description->DrawLatexNDC(0.19, 0.395, "Period A(-#eta) & B(#eta)");
     } else if (runPeriodA && !runPeriodB) {
@@ -170,6 +170,6 @@ void jets_xa_xp_hist() {
     }
 
     c3->Draw();
-    c3->SaveAs((hname + ".pdf").c_str());
+    c3->SaveAs((plotPath + hname + ".pdf").c_str());
         
 }
