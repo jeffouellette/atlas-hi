@@ -26,6 +26,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
     for (Trigger* trig : trigger_vec) {
+        if (periodA != trig->iontrigger) continue;
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }

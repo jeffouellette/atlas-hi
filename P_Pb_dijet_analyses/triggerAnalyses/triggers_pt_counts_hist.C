@@ -164,7 +164,7 @@ void triggers_pt_counts_hist() {
             thishist->SetMarkerStyle(mkstyles[ebin%7]);
             thishist->SetMarkerColor(mkcolors[(147*ebin)%20]);
             thishist->SetLineColor(mkcolors[(147*ebin)%20]);
-            legend->AddEntry(thishist, Form("%g < #eta < %g (#times 10^{%g})", etabins[ebin], etabins[ebin+1], bestharrscales[(int)((0.5*(numetabins-1))-TMath::Abs(ebin-(0.5*(numetabins-1))))]));
+            legend->AddEntry(thishist, Form("%g < #eta_{lab} < %g (#times 10^{%g})", etabins[ebin], etabins[ebin+1], bestharrscales[(int)((0.5*(numetabins-1))-TMath::Abs(ebin-(0.5*(numetabins-1))))]));
         } else {
             thishist->Scale(10);
             thishist->SetMarkerStyle(4);
@@ -219,9 +219,9 @@ void triggers_pt_counts_hist() {
     trig_canvas->Draw();
     string hname;
     if (numetabins > 1) {
-        hname = "../Plots/triggers/ptSpectra_combinedTriggers_etabinned";
+        hname = "ptSpectra_combinedTriggers_etabinned";
     }
-    else hname = "../Plots/triggers/ptSpectra_combinedTriggers_0eta490";
+    else hname = "ptSpectra_combinedTriggers_0eta490";
 
     if (runPeriodA && !runPeriodB) {
         hname = hname + "_periodA";
@@ -235,7 +235,7 @@ void triggers_pt_counts_hist() {
         description->DrawLatexNDC(0.48, 0.75, "Period A(-#eta) & B(#eta)");
     }
 
-    if (runPeriodA || runPeriodB) trig_canvas->SaveAs((hname + ".pdf").c_str());
+    if (runPeriodA || runPeriodB) trig_canvas->SaveAs((plotPath + hname + ".pdf").c_str());
 
 
     // DEPRECATED

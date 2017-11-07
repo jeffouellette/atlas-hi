@@ -6,12 +6,13 @@
 void triggers(const int thisRunNumber, // Run number identifier.
              double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
+    if (skipRun(thisRunNumber)) return;
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
     initialize(thisRunNumber, false);
 
-    TTree* tree = (TTree*)(new TFile(Form("../rundata/run_%i_raw.root", thisRunNumber)))->Get("tree");
+    TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
 
     const double* trigbins = linspace(0, numtrigs+1, numtrigs+1);
     const double* ybins = linspace(0, numpbins+1, numpbins+1);
@@ -90,7 +91,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("../rootFiles/trig_data/run_%i.root", thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%strig_data/run_%i.root", rootPath.c_str(), thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
         harr[i]->Write();

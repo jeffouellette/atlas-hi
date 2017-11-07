@@ -17,11 +17,11 @@ void jets_xa_xp_hist() {
     const double* xbins = logspace(2e-4, 1.6, numbins);
     TH1D* harr[numhists];
     for (int i = 0; i < numetabins; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}N/#it{L}_{int}d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta_{lab} < %1.1f;#it{x}_{p};d^{2}N/#it{L}_{int}d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
     for (int i = numetabins; i < numhists; i++) {
-        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}N/#it{L}_{int}d#it{x}_{a} dy #left[pb#right]", etabins[i%(numetabins)], etabins[(i%(numetabins))+1]), numbins, xbins);
+        harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta_{lab} < %1.1f;#it{x}_{a};d^{2}N/#it{L}_{int}d#it{x}_{a} dy #left[pb#right]", etabins[i%(numetabins)], etabins[(i%(numetabins))+1]), numbins, xbins);
         harr[i]->Sumw2();
     }
     TH2D* xaxpcorr = new TH2D("xaxpcorr", ";#it{x}_{a};#it{x}_{p};d^{2}N/#it{L}_{int}d#it{x}_{p}d#it{x}_{a}", numbins, xbins, numbins, xbins);

@@ -48,6 +48,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
 
     // Set branch addresses
     for (Trigger* trig : trigger_vec) {
+        if (periodA != trig->iontrigger) continue;
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }
