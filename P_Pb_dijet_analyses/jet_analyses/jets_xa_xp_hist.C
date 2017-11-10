@@ -14,7 +14,7 @@ void jets_xa_xp_hist() {
     const Style_t mkstyles[8] = {kFullCircle, kFullDiamond, kFullSquare, kFullFourTrianglesX, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
     const Color_t mkcolors[8] = {kAzure-5, kTeal-5, kOrange-5, kPink-5, kSpring-5, kViolet-5, kRed-2, kGray+3};
 
-    const double* xbins = logspace(2e-4, 1.6, numbins);
+    const double* xbins = logspace(2e-5, 1.6, numbins);
     TH1D* harr[numhists];
     for (int i = 0; i < numetabins; i++) {
         harr[i] = new TH1D(Form("eta%i", i), Form("%1.1f < #eta_{lab} < %1.1f;#it{x}_{p};d^{2}N/#it{L}_{int}d#it{x}_{p} dy #left[pb#right]", etabins[i], etabins[i+1]), numbins, xbins);
@@ -25,6 +25,7 @@ void jets_xa_xp_hist() {
         harr[i]->Sumw2();
     }
     TH2D* xaxpcorr = new TH2D("xaxpcorr", ";#it{x}_{a};#it{x}_{p};d^{2}N/#it{L}_{int}d#it{x}_{p}d#it{x}_{a}", numbins, xbins, numbins, xbins);
+    TH2D* fcalhist = new TH2D("fcalhist", ";#it{x}_{p};FCAL energy deposited;", numbins, xbins, numpbins, pbins);
 
     double integrated_luminosity = 0;
     for (int thisRunNumber : (*thisRunNumbers)) {
@@ -34,6 +35,7 @@ void jets_xa_xp_hist() {
             harr[j]->Add((TH1D*)thisfile->Get(Form("%ieta%i", thisRunNumber, j)));
         }
         xaxpcorr->Add((TH2D*)thisfile->Get(Form("xaxpcorr_run%i", thisRunNumber)));
+        fcalhist->Add((TH2D*)thisfile->Get(Form("fcalhist_run%i", thisRunNumber)));
         TVectorD* thisluminosityvec = (TVectorD*)(thisfile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
         integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
     }
@@ -171,5 +173,45 @@ void jets_xa_xp_hist() {
 
     c3->Draw();
     c3->SaveAs((plotPath + hname + ".pdf").c_str());
-        
+    
+    TCanvas* c4 = new TCanvas("c4", "", 1000, 800);
+    gPad->SetLogx();
+    gPad->SetLogy();
+    gPad->SetLogz();
+    gStyle->SetOptStat(0);
+    gStyle(SetOptTitle(kFalse));
+    fcalhist->Draw("colz");
+    description->SetTextAlign(22);
+    c3->SetMargin(0.06, 0.14, 0.07, 0.05);
+    fcalhist->GetXaxis()->SetTitleOffset(0.7);
+    fcalhist->GetXaxis()->SetTickLength(0.02);
+    fcalhist->GetXaxis()->SetLabelOffset(0.0025);
+
+    fcalhist->GetYaxis()->SetTitleOffset(0.7);
+    fcalhist->GetYaxis()->SetTickLength(0.02);
+    fcalhist->GetYaxis()->SetLabelOffset(0.0025);
+
+    fcalhist->GetZaxis()->SetLabelOffset(0.0025);
+    fcalhist->GetZaxis()->SetTickLength(0.01);
+    fcalhist->GetZaxis()->SetTitleOffset(1.2);
+
+    description->SetTextSize(0.032);
+    description->SetTextAlign(22);
+    description->DrawLatexNDC(0.19, 0.55, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    description->DrawLatexNDC(0.19, 0.47, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*integrated_luminosity)); 
+    
+    hname = "jets_xp_fcal_8.16TeV";
+    if (runPeriodA && runPeriodB) { 
+        description->DrawLatexNDC(0.19, 0.395, "Period A(-#eta) & B(#eta)");
+    } else if (runPeriodA && !runPeriodB) {
+        description->DrawLatexNDC(0.19, 0.395, "Period A");
+        hname = hname + "_periodA";
+    } else if (!runPeriodA && runPeriodB) {
+        description->DrawLatexNDC(0.19, 0.395, "Period B");
+        hname = hname + "_periodB";
+    }
+
+    c4->Draw();
+    c4->SaveAs((plotPath + hname + ".pdf").c_str());
+    
 }

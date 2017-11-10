@@ -14,7 +14,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
 
     const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const double* xbins = logspace(2e-4, 1.6, numbins);
+    const double* xbins = logspace(2e-5, 1.6, numbins);
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {
@@ -26,6 +26,8 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
         harr[i]->Sumw2();
     }
     TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_run%i", thisRunNumber), ";#it{x}_{a};#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#it{x}_{a}", numbins, xbins, numbins, xbins);
+
+    TH2D* fcalhist = new TH2D(Form("fcalhist_run%i", thisRunNumber), ";#it{x}_{p};FCAL energy deposited;", numbins, xbins, numpbins, pbins);
 //    cout << numtrigs << endl;
 
     // Create arrays to store trigger values for each event
@@ -39,11 +41,14 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
     float j_e[60] = {};
     int eventNumber = 0;
     int njet = 0;
+    float fcal_et = 0;
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("j_e", j_e);
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("j_phi", j_phi);
+    if (periodA) tree->SetBranchAddress("fcalC_et", &fcal_et);
+    else tree->SetBranchAddress("fcalA_et", &fcal_et);
     tree->SetBranchAddress("eventNumber", &eventNumber);
 
     // Set branch addresses
@@ -57,23 +62,25 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
 
     double leadingjpt, leadingjeta, subleadingjpt, subleadingjeta, xp, xa, extra_jpt_sum;
+    int leadingj, subleadingj;
     bool takeEvent;
     int ebin, pbin, index;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
-        leadingjpt = (double)j_pt[0];
-        subleadingjpt = (double)j_pt[1];
-        leadingjeta = (double)j_eta[0];
-        subleadingjeta = (double)j_eta[1];
+        leadingj = 0;
+        subleadingj = 1;
         for (int j = 0; j < njet; j++) {
-            if (j_pt[j] > leadingjpt) {
-                subleadingjpt = leadingjpt;
-                subleadingjeta = leadingjeta;
-                leadingjpt = (double)j_pt[j];
-                leadingjeta = (double)j_eta[j];
+            if (j_pt[j] > (double)j_pt[leadingj]) {
+                subleadingj = leadingj;
+                leadingj = j;
             }
         }
+        
+        leadingjeta = (double)j_eta[leadingj];
+        subleadingjeta = (double)j_eta[subleadingj];
+        leadingjpt = (double)j_pt[leadingj];
+        subleadingjpt = (double)j_pt[subleadingj];
 
         if (leadingjpt > 2000) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, thisRunNumber, eventNumber) << endl;
        /* 
@@ -111,15 +118,17 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
             harr[ebin]->Fill(xp, m_trig_prescale[index]/lumi);
             harr[ebin+numetabins]->Fill(xa, m_trig_prescale[index]/lumi);
             xaxpcorr->Fill(xa, xp, m_trig_prescale[index]/lumi);
+            fcalhist->Fill(xp, fcal_et, m_trig_prescale[index]/lumi);
         }
     }
     // Save to root file
     TFile* output = new TFile(Form("%sxdata/run_%i.root", rootPath.c_str(), thisRunNumber), "RECREATE");
     for (int i = 0; i < numhists; i++) {
-        harr[i]->Scale(harr_scales[i%(numetabins)]/(A * (etabins[(i%numetabins)+1] - etabins[(i%numetabins)])), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
+        harr[i]->Scale(harr_scales[i%(numetabins)]/(etabins[(i%numetabins)+1] - etabins[(i%numetabins)]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();
     }
     xaxpcorr->Write();
+    fcalhist->Write();
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
     lum_vec.Write("lum_vec");

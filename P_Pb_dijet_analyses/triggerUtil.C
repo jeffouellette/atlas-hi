@@ -7,7 +7,7 @@ using namespace std;
 
 // ANALYSIS DATA SELECTION - SET THESE VARIABLES FOR DESIRED DATA SELECTION CHOICE
 const int useDataVersion = 3;
-const bool runPeriodA = false;
+const bool runPeriodA = true;
 const bool runPeriodB = true;
 
 // Global parameters
@@ -35,7 +35,7 @@ const float A = 208;  // value of A for Pb
 const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
 
 // Transverse momentum and pseudorapidity binning
-const double pbins[42] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 220., 240., 260., 280., 300., 350., 400., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
+const double pbins[60] = {25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 115., 120., 125., 130., 135., 140., 145., 150., 155., 160., 165., 170., 175., 180., 185., 190., 195., 200., 205., 210., 220., 230., 240., 250., 260., 270., 280., 290., 300., 325., 350., 375., 400., 450., 500., 600., 800., 1100., 1500., 2000., 2500., 6000.};
 const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
 const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
 //const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
@@ -97,7 +97,7 @@ double get_xp(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA
  */
 double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool periodA) {
     double prefactor = TMath::Sqrt(A/Z) / sqrt_s_nn;
-    if (!periodA) return prefactor * (jpt0 + TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
+    if (!periodA) return prefactor * (jpt0 * TMath::Exp(-jeta0) + jpt1 * TMath::Exp(-jeta1));
     return prefactor * (jpt0 * TMath::Exp(jeta0) + jpt1 * TMath::Exp(jeta1));
 }
 
@@ -256,31 +256,31 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
     bool useLatestTriggers = useDataVersion >= 2;
 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j10_ion_p320eta490_L1MBTS_1_1", 10+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j15_ion_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9, true));
+    trigger_vec.push_back(new Trigger("HLT_j15_ion_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j25_ion_p320eta490_L1TE5", 25+trigthres, 3.2, 4.9, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j25_ion_p320eta490_L1TE10", 25+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j30_ion_0eta490_L1TE10", 30+trigthres, -4.9, 4.9, true));
+    trigger_vec.push_back(new Trigger("HLT_j30_ion_0eta490_L1TE10", 30+trigthres, -4.9, 4.9, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j30_ion_L1J5", 30+trigthres, min_eta, max_eta, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j35_ion_p320eta490_L1TE10", 35+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J5", 40+trigthres, min_eta, max_eta, true));
+    trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J5", 40+trigthres, min_eta, max_eta, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j40_ion_L1J10", 40+trigthres, min_eta, max_eta, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_ion_p200eta320", 45+trigthres, 2, 3.2, true));
+    trigger_vec.push_back(new Trigger("HLT_j45_ion_p200eta320", 45+trigthres, 2, 3.2, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_ion_n200eta320", 45+trigthres, -3.2, -2, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_ion_p320eta490", 45+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j50_ion_L1J10", 50+trigthres, min_eta, max_eta, true));
+    trigger_vec.push_back(new Trigger("HLT_j50_ion_L1J10", 50+trigthres, min_eta, max_eta, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_ion_p200eta320", 55+trigthres, 2, 3.2, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_ion_n200eta320", 55+trigthres, -3.2, -2, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_ion_p320eta490", 55+trigthres, 3.2, 4.9, true));
+    trigger_vec.push_back(new Trigger("HLT_j55_ion_p320eta490", 55+trigthres, 3.2, 4.9, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J15", 60+trigthres, min_eta, max_eta, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J20", 60+trigthres, min_eta, max_eta, true));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_ion_p200eta320", 65+trigthres, 2, 3.2, true));
+    trigger_vec.push_back(new Trigger("HLT_j60_ion_L1J20", 60+trigthres, min_eta, max_eta, true));
+    trigger_vec.push_back(new Trigger("HLT_j65_ion_p200eta320", 65+trigthres, 2, 3.2, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_ion_n200eta320", 65+trigthres, -3.2, -2, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_ion_p320eta490", 65+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_ion_L1J20", 75+trigthres, min_eta, max_eta, true));
+    trigger_vec.push_back(new Trigger("HLT_j75_ion_L1J20", 75+trigthres, min_eta, max_eta, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_ion_p200eta320", 75+trigthres, 2, 3.2, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_ion_n200eta320", 75+trigthres, -3.2, -2, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_ion_p320eta490", 75+trigthres, 3.2, 4.9, true)); 
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j100_ion_L1J20", 100+trigthres, min_eta, max_eta, true));
+    trigger_vec.push_back(new Trigger("HLT_j100_ion_L1J20", 100+trigthres, min_eta, max_eta, true));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j110_ion_L1J30", 110+trigthres, min_eta, max_eta, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j125_ion_L1J30", 125+trigthres, min_eta, max_eta, true)); 
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j150_ion_L1J30", 150+trigthres, min_eta, max_eta, true)); 
@@ -291,32 +291,32 @@ void initialize (int rn=0, bool initTriggerMaps = true) {
     // Alternate p-p triggers 
     useLatestTriggers = useDataVersion >= 3;
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j10_p320eta490_L1MBTS_1_1", 10+trigthres, 3.2, 4.9, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j15_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9, false));
+    trigger_vec.push_back(new Trigger("HLT_j15_p320eta490_L1MBTS_1_1", 15+trigthres, 3.2, 4.9, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j25_p320eta490_L1TE5", 25+trigthres, 3.2, 4.9, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j25_p320eta490_L1TE10", 25+trigthres, 3.2, 4.9, false));
-//    if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j30_L1J5", 30+trigthres, min_eta, max_eta, false));           //!
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j30_0eta490_L1TE10", 30+trigthres, min_eta, max_eta, false));//!
+    if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j30_L1J5", 30+trigthres, min_eta, max_eta, false));           //!
+    trigger_vec.push_back(new Trigger("HLT_j30_0eta490_L1TE10", 30+trigthres, min_eta, max_eta, false));//!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j35_p320eta490_L1TE10", 35+trigthres, 3.2, 4.9, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j40_L1J5", 40+trigthres, min_eta, max_eta, false));          //!
+    trigger_vec.push_back(new Trigger("HLT_j40_L1J5", 40+trigthres, min_eta, max_eta, false));          //!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j40_L1J10", 40+trigthres, min_eta, max_eta, false));          //!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_n200eta320", 45+trigthres, -3.2, -2, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_p200eta320", 45+trigthres, 2, 3.2, false));
+    trigger_vec.push_back(new Trigger("HLT_j45_p200eta320", 45+trigthres, 2, 3.2, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j45_p320eta490", 45+trigthres, 3.2, 4.9, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j50_L1J10", 50+trigthres, min_eta, max_eta, false));       //!
+    trigger_vec.push_back(new Trigger("HLT_j50_L1J10", 50+trigthres, min_eta, max_eta, false));       //!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_n200eta320", 55+trigthres, -3.2, -2, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_p200eta320", 55+trigthres, 2, 3.2, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j55_p320eta490", 55+trigthres, 3.2, 4.9, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j60", 60+trigthres, min_eta, max_eta, false));               //!
+    trigger_vec.push_back(new Trigger("HLT_j55_p320eta490", 55+trigthres, 3.2, 4.9, false));
+    trigger_vec.push_back(new Trigger("HLT_j60", 60+trigthres, min_eta, max_eta, false));               //!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j60_L1J15", 60+trigthres, min_eta, max_eta, false));          //!
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_n200eta320", 65+trigthres, -3.2, -2, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_p200eta320", 65+trigthres, 2, 3.2, false));
+    trigger_vec.push_back(new Trigger("HLT_j65_p200eta320", 65+trigthres, 2, 3.2, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j65_p320eta490", 65+trigthres, 3.2, 4.9, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_L1J20", 75+trigthres, min_eta, max_eta, false));
+    trigger_vec.push_back(new Trigger("HLT_j75_L1J20", 75+trigthres, min_eta, max_eta, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_n200eta320", 75+trigthres, -3.2, -2, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_p200eta320", 75+trigthres, 2, 3.2, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j75_p320eta490", 75+trigthres, 3.2, 4.9, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j90_L1J20", 90+trigthres, min_eta, max_eta, false));
-    if (!useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j100_L1J20", 100+trigthres, min_eta, max_eta, false));
+    trigger_vec.push_back(new Trigger("HLT_j100_L1J20", 100+trigthres, min_eta, max_eta, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j110", 110+trigthres, min_eta, max_eta, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j125_L1J30", 125+trigthres, min_eta, max_eta, false));
     if (useLatestTriggers) trigger_vec.push_back(new Trigger("HLT_j150_L1J30", 150+trigthres, min_eta, max_eta, false));
