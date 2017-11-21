@@ -14,7 +14,7 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
 
     const double harr_scales[8] = {1, 1, 1, 1, 1, 1, 1, 1};   // rescaling factors so the histograms don't overlap
 
-    const double* xbins = logspace(2e-5, 1.6, numbins);
+    const double* xbins = logspace(8e-5, 1.6, numbins);
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     TH1D* harr[numhists];
     for (int i = 0; i < numhists/2; i++) {

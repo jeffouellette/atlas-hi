@@ -21,7 +21,7 @@ void plot_electron_ptspectrum () {
 
     ATLASLabel(0.65, 0.87, "Internal", kBlack);
     myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, "#int#it{L}dt = 24 pb^{-1}");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
     myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
     myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
    // myMarkerText(0.65, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
@@ -73,7 +73,7 @@ void plot_invariantMass () {
    
     ATLASLabel(0.65, 0.87, "Internal", kBlack);
     myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, "#int#it{L}dt = 24 pb^{-1}");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
     myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
     myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
     
@@ -126,6 +126,15 @@ void plot_Z_ptspectrum () {
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("same e1");
+    
+    ATLASLabel(0.65, 0.87, "Internal", kBlack);
+    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+    myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
+    
+    myMarkerText(0.24, 0.86, mkcolors[0], mkstyles[0], "Opposite charges");
+    myMarkerText(0.24, 0.77, mkcolors[1], mkstyles[0], "Same charges");
 
 //    Z_ptspectrum_legend->Draw();
 
@@ -169,6 +178,11 @@ void plot_electron_ptspectrum_etabinned () {
         if (etabin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
     }
+
+    ATLASLabel(0.65, 0.87, "Internal", kBlack);
+    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");    
 //    draw_information (0.38, 0.34);
 //    electron_ptspectrum_etabinned_legend->Draw();
@@ -206,6 +220,11 @@ void plot_electron_ptspectrum_phibinned () {
         if (phibin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
     }
+
+    ATLASLabel(0.65, 0.87, "Internal", kBlack);
+    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+
 //    electron_ptspectrum_phibinned_legend->Draw();
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");
 //    draw_information (0.38, 0.34);
@@ -233,6 +252,7 @@ void plot_invariantMass_etabinned () {
         thishist = invariantMass_etabinned[etabin];
         if (thishist->GetBinContent(thishist->GetMaximumBin()) > new_ymax) new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
     }
+    float ylabel = 0.86;
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
         thishist = invariantMass_etabinned[etabin];
@@ -242,9 +262,16 @@ void plot_invariantMass_etabinned () {
         thishist->SetMarkerColor(mkcolors[(147*etabin)%10]);
         thishist->SetLineColor(mkcolors[(147*etabin)%10]);
         thishist->SetMaximum(2 * new_ymax);
+        myMarkerText(0.24, ylabel, mkcolors[(147*etabin)%10], mkstyles[0], Form("%g < #eta < %g", etabins[etabin], etabins[etabin+1]));
+        ylabel -= 0.09;
         if (etabin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
     }
+
+    ATLASLabel(0.65, 0.87, "Internal", kBlack);
+    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+
 //    invariantMass_legend->Draw();
 //    draw_title (0.5, 0.975, "Tight dielectrons invariant mass");
 //    draw_information (0.43, 0.87);
@@ -319,24 +346,25 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
     runNumber = 0;
     plotPath = "./Plots/";
 
+    const std::vector<char*> filesToProcess = {
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340634.f895_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v3.main.00340644.f895_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340683.f896_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340697.f896_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340814.f897_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340849.f897_m1907.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.v2.main.00340850.f897_m1907.root", dataPath.c_str()),
+    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340910.f898_m1907.root", dataPath.c_str()),
+    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340918.f898_m1907.root", dataPath.c_str()),
+    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340925.x540_m1902.root", dataPath.c_str()),
+    };
+
+    initialize_text();
     initialize_histograms ();
 
-    const std::vector<char*> filesToProcess = {
-        //Form("%suser.khill.pp5TeVAna_main.002.00340634.f895_m1902_myOutput_hadd.root", dataPath.c_str()),
-        //Form("%suser.khill.pp5TeVAna_main.004.00340644.f895_m1902_myOutput_hadd.root", dataPath.c_str()),
-        Form("%suser.khill.pp5TeVAna_main.004.00340683.f896_m1902_myOutput_hadd.root", dataPath.c_str()),
-        Form("%suser.khill.pp5TeVAna_main.004.00340697.f896_m1902_myOutput_hadd.root", dataPath.c_str())
-    };
-    std::vector<int> fileRunNumbers = {
-        //340634,
-        //340644,
-        340683,
-        340697
-    };
-    
-    for (int i = 0; i < filesToProcess.size(); i++) {
+    for (int i = 0; i < fileRunNumbers.size(); i++) {
         int rn = fileRunNumbers[i];
-        TFile* thisfile = new TFile(Form("./Data/%i_%s_out.root", rn, triggers[useTrigger].c_str()), "READ");
+        TFile* thisfile = new TFile(Form("./Data/RootOutput/%i_%s_out.root", rn, triggers[useTrigger].c_str()), "READ");
          
         electron_ptspectrum->Add((TH1F*)thisfile->Get(Form("run_%i_electron_ptspectrum_hist", rn)));
         for (int etabin = 0; etabin < numetabins; etabin++) {

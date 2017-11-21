@@ -7,7 +7,7 @@ using namespace std;
 
 // ANALYSIS DATA SELECTION - SET THESE VARIABLES FOR DESIRED DATA SELECTION CHOICE
 const int useDataVersion = 3;
-const bool runPeriodA = true;
+const bool runPeriodA = false;
 const bool runPeriodB = true;
 
 // Global parameters
