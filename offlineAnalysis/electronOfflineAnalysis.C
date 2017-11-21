@@ -44,6 +44,11 @@ float total_lumi = 0;
 // Analysis information
 const bool printStatementChecks = false; // for debugging
 const int ptcut = 20;
+const int Z_ptcut = 40;
+const int j_ptcut = 30;
+const float delta_phi_cut = 7./8. * pi;
+const int invM_lower_cut = 80;
+const int invM_upper_cut = 100;
 int useTrigger = 5;
 const int numTriggers = 10;
 const string triggers[numTriggers] = {"trigger_e10_loose_L1EM7", "trigger_e10_lhloose_L1EM7", "trigger_e15_loose_L1EM7", "trigger_e15_lhloose_L1EM7", "trigger_e15_lhloose_nod0_L1EM7", "trigger_e15_lhloose_L1EM12", "trigger_e15_lhmedium_L1EM12", "trigger_e15_lhloose_nod0_L1EM12", "trigger_e20_loose_L1EM15", "trigger_2e15_lhloose_L12EM12"};
@@ -53,7 +58,8 @@ const string triggers[numTriggers] = {"trigger_e10_loose_L1EM7", "trigger_e10_lh
 const double etabinshist[35] = {-2.60, -2.50, -2.47, -2.28, -2.09, -1.90, -1.71, -1.52, -1.37, -1.22, -1.07, -0.92, -0.77, -0.62, -0.47, -0.32, -0.17, 0, 0.17, 0.32, 0.47, 0.62, 0.77, 0.92, 1.07, 1.22, 1.37, 1.52, 1.71, 1.90, 2.09, 2.28, 2.47, 2.50, 2.60};
 //const double etabinshist[33] = {-2.53, -2.37, -2.21, -2.05, -1.89, -1.73, -1.56, -1.37, -1.22, -1.07, -0.92, -0.77, -0.62, -0.47, -0.32, -0.17, 0, 0.17, 0.32, 0.47, 0.62, 0.77, 0.92, 1.07, 1.22, 1.37, 1.56, 1.73, 1.89, 2.05, 2.21, 2.37, 2.53};
 const float etabins[7] = {-2.47, -1.52, -1.37, 0, 1.37, 1.52, 2.47};
-const float phibins[9] = {(float)(-pi), (float)(-0.75*pi), (float)(-0.5*pi), float(-0.25*pi), (float)(0), (float)(0.25*pi), (float)(0.5*pi), (float)(0.75*pi), (float)(pi)};
+const float phibins[5] = {(float)(-pi), (float)(-0.5*pi), (float)(0), (float)(0.5*pi), (float)(pi)};
+//const float phibins[9] = {(float)(-pi), (float)(-0.75*pi), (float)(-0.5*pi), float(-0.25*pi), (float)(0), (float)(0.25*pi), (float)(0.5*pi), (float)(0.75*pi), (float)(pi)};
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 const int numphibins = sizeof(phibins)/sizeof(phibins[0]) - 1;
 
@@ -75,6 +81,7 @@ TH2F* eta_phi_hist;
 TH2F* eta_phi_hist_no_pt_cut;
 TH1F* eta_phi_int_hist;
 TH1F* eta_phi_int_hist_no_pt_cut;
+TH1F* j_over_Z_hist;
 
 // Plotting variables
 TCanvas* thiscanvas;
@@ -120,7 +127,7 @@ void initialize_text () {
 /**
  * Initializes a new canvas.
  */
-void initialize_new_canvas (bool logy, float left_margin=0.1, float right_margin=0.1, float bottom_margin=0.1, float top_margin=0.1) {
+void initialize_new_canvas (bool logy) {
 
     thiscanvas = new TCanvas (canvasName.c_str(), "", 800, 600);
 
@@ -128,7 +135,6 @@ void initialize_new_canvas (bool logy, float left_margin=0.1, float right_margin
     gStyle->SetOptTitle(kFALSE);
     if (logy) gPad->SetLogy();
     gPad->SetTicks();
- //   thiscanvas->SetMargin (left_margin, right_margin, bottom_margin, top_margin);
     thiscanvas->Draw();
     return;
 }
@@ -183,10 +189,12 @@ void initialize_histograms() {
     eta_phi_hist = new TH2F (Form("run_%i_eta_phi_hist", runNumber), ";#eta_{lab};#phi;d^{2}N/d#phid#eta_{lab}", 34, etabinshist, 50, -pi, pi);
     eta_phi_hist->Sumw2();
     eta_phi_int_hist = new TH1F(Form("run_%i_eta_phi_int_hist", runNumber), ";#eta_{lab};dN/d#eta", 34, etabinshist);
+    eta_phi_int_hist->Sumw2();
 
     eta_phi_hist_no_pt_cut = new TH2F (Form("run_%i_eta_phi_hist_no_pt_cut", runNumber), ";#eta_{lab};#phi;d^{2}N/d#phid#eta_{lab}", 34, etabinshist, 50, -pi, pi);
     eta_phi_hist_no_pt_cut->Sumw2();
     eta_phi_int_hist_no_pt_cut = new TH1F(Form("run_%i_eta_phi_int_hist_no_pt_cut", runNumber), ";#eta_{lab};dN/d#eta", 34, etabinshist);
+    eta_phi_int_hist_no_pt_cut->Sumw2();
 
     electron_ptspectrum = new TH1F (Form("run_%i_electron_ptspectrum_hist", runNumber), ";#it{p}_{T}^{electron} #left[GeV/#it{c}#right];dN/d#it{p}_{T} #left[(GeV/#it{c})^{-1}#right]", 50, 20, 70);
     electron_ptspectrum->Sumw2();
@@ -200,6 +208,9 @@ void initialize_histograms() {
     Z_ptspectrum->Sumw2();
     Z_ptspectrum_samesign = new TH1F(Form("run_%i_Z_ptspectrum_samesign_hist", runNumber), ";#it{p}_{T}^{Z} #left[GeV/#it{c}#right];dN/d#it{p}_{T} #left[(GeV/#it{c})^{-1}#right]", 50, 0, 250);
     Z_ptspectrum_samesign->Sumw2();
+
+    j_over_Z_hist = new TH1F(Form("run_%i_j_over_Z_hist", runNumber), ";#it{p}_{T}^{leading jet}/#it{p}_{T}^{Z}cos#left(#Delta#phi#right);Counts / bin width", 40, 0, 3);
+    j_over_Z_hist->Sumw2();
 
     for (int etabin = 0; etabin < numetabins; etabin++) {
         electron_ptspectrum_etabinned[etabin] = new TH1F (Form("run_%i_electron_ptspectrum_hist_etabin%i", runNumber, etabin), ";#it{p}_{T}^{electron} #left[GeV/#it{c}#right];d^{2}N/d#it{p}_{T}dy #left[(GeV/#it{c})^{-1}#right]", 50, 20, 70);
@@ -220,6 +231,7 @@ void initialize_histograms() {
  */
 void save_electron_ptspectrum () {
     thishist = electron_ptspectrum;
+    if (printStatementChecks) cout << "Pt spectrum integral = " << thishist->Integral() << endl;
     thishist->Write();
     return;
 }
@@ -232,6 +244,7 @@ void save_invariantMass () {
     thishist = invariantMass;
     thishist->Write();
     thishist = invariantMass_samesign;
+    if (printStatementChecks) cout << "Invariant mass integral = " << thishist->Integral() << endl;
     thishist->Write();
     return;
 }
@@ -242,6 +255,7 @@ void save_invariantMass () {
  */
 void save_Z_ptspectrum () {
     thishist = Z_ptspectrum;
+    if (printStatementChecks) cout << "Z pt spectrum integral = " << thishist->Integral() << endl;
     thishist->Write();
     thishist = Z_ptspectrum_samesign;
     thishist->Write();
@@ -301,7 +315,7 @@ void save_eta_phi (bool boolptcut) {
     }
     
     // First calculate the integral over phi before we make any scalings.
-    for (int i = 0; i < 50; i++) {
+    /*for (int i = 0; i < 50; i++) {
         float sum = 0;
         float variance = 0;
         for (int j = 0; j < 50; j++) {
@@ -310,12 +324,20 @@ void save_eta_phi (bool boolptcut) {
         }
         thishist->SetBinContent(i+1, sum);
         thishist->SetBinError(i+1, TMath::Sqrt(variance));
-    }
+    }*/
 
     thishist->Write();
+    if (printStatementChecks) cout << "Eta integral = " << thishist->Integral() << endl;
     this2hist->Write();
 
     return;
+}
+
+
+void save_j_over_Z () {
+    thishist = j_over_Z_hist;
+    if (printStatementChecks) cout << "j/Z integral = " << thishist->Integral() << endl;
+    thishist->Write();
 }
 
 /***** End histogram-specific plotting functions *****/
@@ -392,8 +414,12 @@ void treeLoop () {
                     electron_ptspectrum_phibinned[phibin]->Fill(electron_pt[e1]);
                 }
                 
-                if (electron_pt[e1] > ptcut) eta_phi_hist->Fill(electron_eta[e1], electron_phi[e1]); // Only fill electron eta,phi if electron meets kinematic (pt) cut
+                if (electron_pt[e1] > ptcut) {
+                    eta_phi_hist->Fill(electron_eta[e1], electron_phi[e1]); // Only fill electron eta,phi if electron meets kinematic (pt) cut
+                    eta_phi_int_hist->Fill(electron_eta[e1]);
+                }
                 eta_phi_hist_no_pt_cut->Fill(electron_eta[e1], electron_phi[e1]);
+                eta_phi_int_hist_no_pt_cut->Fill(electron_eta[e1]);
 
                 evec1.SetPtEtaPhiM(electron_pt[e1], electron_eta[e1], electron_phi[e1], 0.511e-3); // Store 1st electron information in a TLorentzVector
                 for (int e2 = e1+1; e2 < electron_n; e2++) {
@@ -421,11 +447,12 @@ void treeLoop () {
                         Z_ptspectrum_samesign->Fill(Z_pt);
                         invariantMass_samesign->Fill(zvec.M());
                     }
+                    if (invM_lower_cut > zvec.M() || zvec.M() > invM_upper_cut) continue;
                     float j_sublead_pt = 0;
                     float j_lead_pt = 0;
                     for (int j = 0; j < njet; j++) {
                         jvec.SetPtEtaPhiE(j_pt[j], j_eta[j], j_phi[j], j_e[j]);
-                        if (jvec.DeltaR(evec1) < 0.3 || jvec.DeltaR(evec2) < 0.3) continue; // require delta r for the jet and both electrons to be higher than 0.3
+                        if (jvec.DeltaR(evec1) < 0.4 || jvec.DeltaR(evec2) < 0.4) continue; // require delta r for the jet and both electrons to be higher than 0.3
 
                         if (j_pt[j] >= j_lead_pt) {
                             j_sublead_pt = j_lead_pt;
@@ -435,15 +462,18 @@ void treeLoop () {
                             j_sublead_pt = j_pt[j];
                         }
                     }
+                    //if (Z_pt > Z_ptcut && j_lead_pt > j_ptcut) j_over_Z_hist->Fill(j_lead_pt/Z_pt);
                     useJets = j_lead_pt/j_sublead_pt > 3 && j_lead_pt > 120;
+                    float smallAngleDiff = 0;
                     for (int j = 0; j < njet; j++) {
                         if (j_pt[j] != j_lead_pt) continue;
-                        float smallAngleDiff = TMath::Abs(j_phi[j] - zvec.Phi());
+                        smallAngleDiff = TMath::Abs(j_phi[j] - zvec.Phi());
                         while (smallAngleDiff > pi) smallAngleDiff = TMath::Abs(smallAngleDiff - 2*pi);
                         if (useJets && electron_charge[e1] * electron_charge[e2] < 0 && Z_pt > 120 && (j_pt[j]-Z_pt)/(j_pt[j]+Z_pt) < 0.2 && smallAngleDiff > 7.*pi/8./* && zvec.Eta() * j_eta[j] < 0*/) {
                             cout << Form("Found back-to-back Z + jet in run %i, branch number %i! j_pt = %.1f GeV, Z_pt = %.1f GeV, j_phi-Z_phi = %.1f pi, j_eta = %.1f, Z_eta = %.1f", runNumber, i, j_pt[j], zvec.Pt(), smallAngleDiff/pi, j_eta[j], zvec.Eta()) << endl;
                         }
                     }
+                    if (smallAngleDiff > delta_phi_cut && Z_pt > Z_ptcut && j_lead_pt > j_ptcut) j_over_Z_hist->Fill(j_lead_pt/(Z_pt*TMath::Cos(pi-smallAngleDiff)));
                 }
             }
         }
@@ -526,6 +556,7 @@ void electronOfflineAnalysis (int rn, int trig, char dataStream) {
     save_invariantMass_etabinned ();
     save_eta_phi (true);
     save_eta_phi (false);
+    save_j_over_Z ();
 
     outputFile->Close();
 

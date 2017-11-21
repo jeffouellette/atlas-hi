@@ -8,7 +8,7 @@
 void plot_electron_ptspectrum () {
 
     canvasName = "electron_ptspectrum_" + triggers[useTrigger];
-    initialize_new_canvas (true, 0.1, 0.03, 0.1, 0.05);
+    initialize_new_canvas(true);
 
     thishist = electron_ptspectrum;
     float new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
@@ -17,15 +17,17 @@ void plot_electron_ptspectrum () {
     thishist->SetLineColor(mkcolors[0]);
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);
+    cout << "Electron pt spectrum integral = " << thishist->Integral() << endl;
+
     thishist->Draw("e1");
 
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
-    myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
-   // myMarkerText(0.65, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
-   // myMarkerText(0.65, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.66, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.66, 0.49, kBlack, "1.52 < #left|#eta#right| < 2.47");
+   // myMarkerText(0.66, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
+   // myMarkerText(0.66, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
     
 //    draw_title (0.5, 0.973, "Tight electron inclusive #it{p}_{T} spectrum");    
 //    draw_information (0.38, 0.34);
@@ -43,7 +45,7 @@ void plot_electron_ptspectrum () {
 void plot_invariantMass () {
 
     canvasName = "electron_invariantMass_" + triggers[useTrigger];
-    initialize_new_canvas (true, 0.1, 0.03, 0.1, 0.05);
+    initialize_new_canvas(true);
 
 //    TLegend* invariantMass_legend = new TLegend (0.75, 0.7, 0.97, 0.95);
 //    invariantMass_legend->SetTextSize(0.028);
@@ -54,6 +56,7 @@ void plot_invariantMass () {
         new_ymax = invariantMass_samesign->GetBinContent(invariantMass_samesign->GetMaximumBin());
     }
     thishist = invariantMass;
+    cout << "Invariant mass integral = " << thishist->Integral() << endl;
 //    invariantMass_legend->AddEntry (thishist, "#sum #it{q}_{i} = 0");
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
@@ -71,11 +74,11 @@ void plot_invariantMass () {
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("same e1");
    
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
-    myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.66, 0.60, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.66, 0.51, kBlack, "1.52 < #left|#eta#right| < 2.47");
     
     myMarkerText(0.24, 0.86, mkcolors[0], mkstyles[0], "Opposite charges");
     myMarkerText(0.24, 0.77, mkcolors[1], mkstyles[0], "Same charges");
@@ -98,7 +101,7 @@ void plot_invariantMass () {
 void plot_Z_ptspectrum () {
 
     canvasName = "Z_ptspectrum_" + triggers[useTrigger];
-    initialize_new_canvas (true, 0.1, 0.03, 0.1, 0.05); 
+    initialize_new_canvas(true);
 
     // Add each histogram to the legend, then scale each histogram by bin width and draw    
     float new_ymax = Z_ptspectrum->GetBinContent(Z_ptspectrum->GetMaximumBin());
@@ -116,6 +119,7 @@ void plot_Z_ptspectrum () {
     thishist->SetLineColor(mkcolors[0]);
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
+    cout << "Z pt spectrum integral = " << thishist->Integral() << endl;
     thishist->Draw("e1");
 
     thishist = Z_ptspectrum_samesign;
@@ -127,11 +131,11 @@ void plot_Z_ptspectrum () {
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("same e1");
     
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
-    myText (0.65, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.65, 0.49, kBlack, "1.56 < #left|#eta#right| < 2.37");
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.66, 0.60, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.66, 0.51, kBlack, "1.52 < #left|#eta#right| < 2.47");
     
     myMarkerText(0.24, 0.86, mkcolors[0], mkstyles[0], "Opposite charges");
     myMarkerText(0.24, 0.77, mkcolors[1], mkstyles[0], "Same charges");
@@ -154,7 +158,7 @@ void plot_Z_ptspectrum () {
 void plot_electron_ptspectrum_etabinned () { 
  
     canvasName = "electron_ptspectrum_etabinned_" + triggers[useTrigger];
-    initialize_new_canvas (true, 0.1, 0.03, 0.1, 0.05);
+    initialize_new_canvas(true);
 
     // Create the legend
 //    TLegend* electron_ptspectrum_etabinned_legend = new TLegend(0.7, 0.7, 0.97, 0.95);
@@ -166,6 +170,7 @@ void plot_electron_ptspectrum_etabinned () {
         thishist = electron_ptspectrum_etabinned[etabin];
         if (thishist->GetBinContent(thishist->GetMaximumBin()) > new_ymax) new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
     }
+    float ylabel = 0.48;
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
         thishist = electron_ptspectrum_etabinned[etabin];
@@ -177,11 +182,13 @@ void plot_electron_ptspectrum_etabinned () {
         thishist->SetMaximum(2 * new_ymax);
         if (etabin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
+        myMarkerText(0.24, ylabel, mkcolors[(147*etabin)%10], mkstyles[0], Form("%g < #eta < %g", etabins[etabin], etabins[etabin+1]));
+        ylabel -= 0.08;
     }
 
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");    
 //    draw_information (0.38, 0.34);
@@ -198,7 +205,7 @@ void plot_electron_ptspectrum_etabinned () {
 void plot_electron_ptspectrum_phibinned () {
 
     canvasName = "electron_ptspectrum_phibinned_" + triggers[useTrigger];
-    initialize_new_canvas(true, 0.1, 0.03, 0.1, 0.05);
+    initialize_new_canvas(true);
 
     // Create the legend
 //    TLegend* electron_ptspectrum_phibinned_legend = new TLegend(0.7, 0.55, 0.97, 0.95);
@@ -209,6 +216,7 @@ void plot_electron_ptspectrum_phibinned () {
         thishist = electron_ptspectrum_phibinned[phibin];
         if (thishist->GetBinContent(thishist->GetMaximumBin()) > new_ymax) new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
     }
+    float ylabel = 0.48;
     for (int phibin = 0; phibin < numphibins; phibin++) {
         thishist = electron_ptspectrum_phibinned[phibin];
 //        electron_ptspectrum_phibinned_legend->AddEntry(thishist, Form("%g#pi < #phi < %g#pi", phibins[phibin]/pi, phibins[phibin+1]/pi));
@@ -219,11 +227,13 @@ void plot_electron_ptspectrum_phibinned () {
         thishist->SetMaximum(2 * new_ymax);    
         if (phibin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
+        myMarkerText(0.24, ylabel, mkcolors[(147*phibin)%10], mkstyles[0], Form("%g#pi < #phi < %g#pi", phibins[phibin]/pi, phibins[phibin+1]/pi));
+        ylabel -= 0.08;
     }
 
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    electron_ptspectrum_phibinned_legend->Draw();
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");
@@ -240,7 +250,7 @@ void plot_electron_ptspectrum_phibinned () {
 void plot_invariantMass_etabinned () {
 
     canvasName = "electron_invariantMass_etabinned_" + triggers[useTrigger];
-    initialize_new_canvas (true, 0.1, 0.03, 0.1, 0.05);
+    initialize_new_canvas (true);
 
     // Create the legend
 //    TLegend* invariantMass_legend = new TLegend(0.75, 0.7, 0.97, 0.95);
@@ -252,7 +262,7 @@ void plot_invariantMass_etabinned () {
         thishist = invariantMass_etabinned[etabin];
         if (thishist->GetBinContent(thishist->GetMaximumBin()) > new_ymax) new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
     }
-    float ylabel = 0.86;
+    float ylabel = 0.88;
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
         thishist = invariantMass_etabinned[etabin];
@@ -262,15 +272,15 @@ void plot_invariantMass_etabinned () {
         thishist->SetMarkerColor(mkcolors[(147*etabin)%10]);
         thishist->SetLineColor(mkcolors[(147*etabin)%10]);
         thishist->SetMaximum(2 * new_ymax);
-        myMarkerText(0.24, ylabel, mkcolors[(147*etabin)%10], mkstyles[0], Form("%g < #eta < %g", etabins[etabin], etabins[etabin+1]));
-        ylabel -= 0.09;
         if (etabin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
+        myMarkerText(0.24, ylabel, mkcolors[(147*etabin)%10], mkstyles[0], Form("%g < #eta < %g", etabins[etabin], etabins[etabin+1]));
+        ylabel -= 0.08;
     }
 
-    ATLASLabel(0.65, 0.87, "Internal", kBlack);
-    myText (0.65, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.65, 0.69, kBlack, Form("#int#it{L}dt = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    invariantMass_legend->Draw();
 //    draw_title (0.5, 0.975, "Tight dielectrons invariant mass");
@@ -297,22 +307,50 @@ void plot_eta_phi (bool cutonpt) {
         thishist = eta_phi_int_hist_no_pt_cut;
         canvasName += "_no_ptcut";
     }
+    initialize_new_canvas (false);
 
-    initialize_new_canvas (false, 0.08, 0.12, 0.08, 0.05);
     this2hist->Scale(1., "width"); 
     this2hist->Draw("colz");
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 
     canvasName = "electron_eta_phi_int_" + triggers[useTrigger];
     if (!cutonpt) canvasName += "_no_ptcut";
+    initialize_new_canvas (false);
     thishist->Scale(1., "width");
     thishist->SetMinimum(0);
+    cout << "Eta integral = " << thishist->Integral() << endl;
 
     thishist->Draw("hist e1");
+    ATLASLabel(0.66, 0.47, "Internal", kBlack);
+    myText (0.66, 0.38, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.29, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    if (cutonpt) myText (0.66, 0.20, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
+    else myText (0.66, 0.20, kBlack, Form("No #it{p}_{T} cut"));
     
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 
     return;
+}
+
+
+void plot_j_over_Z () {
+    canvasName = "j_over_Z_" + triggers[useTrigger];
+    initialize_new_canvas (false);
+
+    thishist = j_over_Z_hist;
+    thishist->Scale(1., "width");
+    thishist->SetMinimum(0);
+    cout << "j/Z integral = " << thishist->Integral() << endl;
+    thishist->Draw("hist e1");
+ 
+    ATLASLabel(0.66, 0.87, "Internal", kBlack);
+    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
+    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.66, 0.60, kBlack, Form("#it{p}_{T}^{Z} > %i GeV/#it{c}", Z_ptcut));
+    myText (0.66, 0.51, kBlack, Form("#it{p}_{T}^{jet} > %i GeV/#it{c}", j_ptcut));
+    myText (0.66, 0.42, kBlack, Form("#Delta#phi > %g#pi", (delta_phi_cut)/pi));
+
+    thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 }
 
 /**
@@ -378,6 +416,7 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
         invariantMass_samesign->Add((TH1F*)thisfile->Get(Form("run_%i_invariantMass_samesign_hist", rn)));
         Z_ptspectrum->Add((TH1F*)thisfile->Get(Form("run_%i_Z_ptspectrum_hist", rn)));
         Z_ptspectrum_samesign->Add((TH1F*)thisfile->Get(Form("run_%i_Z_ptspectrum_samesign_hist", rn)));
+        j_over_Z_hist->Add((TH1F*)thisfile->Get(Form("run_%i_j_over_Z_hist", rn)));
         eta_phi_hist->Add((TH2F*)thisfile->Get(Form("run_%i_eta_phi_hist", rn)));
         eta_phi_hist_no_pt_cut->Add((TH2F*)thisfile->Get(Form("run_%i_eta_phi_hist_no_pt_cut", rn)));
         eta_phi_int_hist->Add((TH1F*)thisfile->Get(Form("run_%i_eta_phi_int_hist", rn)));
@@ -387,6 +426,7 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
     plot_electron_ptspectrum ();
     plot_invariantMass ();
     plot_Z_ptspectrum (); 
+    plot_j_over_Z ();
     plot_electron_ptspectrum_etabinned ();
     plot_electron_ptspectrum_phibinned ();
     plot_invariantMass_etabinned ();
