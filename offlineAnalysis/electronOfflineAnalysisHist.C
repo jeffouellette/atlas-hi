@@ -29,13 +29,7 @@ void plot_electron_ptspectrum () {
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
     myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
-   // myMarkerText(0.64, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
-   // myMarkerText(0.64, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
     
-//    draw_title (0.5, 0.973, "Tight electron inclusive #it{p}_{T} spectrum");    
-//    draw_information (0.38, 0.34);
-//    draw_text (0.38, 0.34, "0 < |#eta| < 1.37 or 1.57 < #eta < 2.37");
-
     if(printStatementChecks) cout << "\nPlotting electron Pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
@@ -50,7 +44,6 @@ void plot_invariantMass () {
     canvasName = "electron_invariantMass_" + triggers[useTrigger];
     initialize_new_canvas(true);
 
-    // Add each histogram to the legend, then scale each histogram by bin width and draw
     thishist = invariantMass;
     float new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
     TH1F* background_hist = invariantMass_samesign;
@@ -129,18 +122,14 @@ void plot_Z_ptspectrum () {
     canvasName = "Z_ptspectrum_" + triggers[useTrigger];
     initialize_new_canvas(true);
 
-    // Add each histogram to the legend, then scale each histogram by bin width and draw    
     float new_ymax = Z_ptspectrum->GetBinContent(Z_ptspectrum->GetMaximumBin());
     if (new_ymax < Z_ptspectrum_samesign->GetBinContent(Z_ptspectrum_samesign->GetMaximumBin())) {
         new_ymax = Z_ptspectrum_samesign->GetBinContent(Z_ptspectrum_samesign->GetMaximumBin());
     }
 
-//    TLegend* Z_ptspectrum_legend = new TLegend (0.75, 0.7, 0.97, 0.95);
-//    Z_ptspectrum_legend->SetTextSize(0.028);
     
     thishist = Z_ptspectrum;
     int counts = (int)thishist->Integral();
-//    Z_ptspectrum_legend->AddEntry (thishist, "#sum q_{i} = 0");
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
     thishist->SetLineColor(mkcolors[0]);
@@ -152,7 +141,6 @@ void plot_Z_ptspectrum () {
 
     thishist = Z_ptspectrum_samesign;
     counts = (int)thishist->Integral();
-//    Z_ptspectrum_legend->AddEntry (thishist, "No charge cond.");
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[5]);
     thishist->SetLineColor(mkcolors[5]);
@@ -167,13 +155,6 @@ void plot_Z_ptspectrum () {
     myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
     myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
     
-
-//    Z_ptspectrum_legend->Draw();
-
-//    draw_title (0.5, 0.973, "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-} inclusive #it{p}_{T} spectrum");    
-//    draw_information(0.5, 0.855);
-//    draw_text (0.5, 0.78, Form("#it{p}_{T} #geq %i GeV/#it{c} and |#eta| < 1.37 or 1.57 < #eta < 2.37", ptcut));
-
     if(printStatementChecks) cout << "\nPlotting Z pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
@@ -188,10 +169,6 @@ void plot_electron_ptspectrum_etabinned () {
     canvasName = "electron_ptspectrum_etabinned_" + triggers[useTrigger];
     initialize_new_canvas(true);
 
-    // Create the legend
-//    TLegend* electron_ptspectrum_etabinned_legend = new TLegend(0.7, 0.7, 0.97, 0.95);
-//    electron_ptspectrum_etabinned_legend->SetTextSize(0.028);
-    // Add each histogram to the legend, then scale each histogram by bin width and draw    
     float new_ymax = 0;
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
@@ -202,7 +179,6 @@ void plot_electron_ptspectrum_etabinned () {
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
         thishist = electron_ptspectrum_etabinned[etabin];
-//        electron_ptspectrum_etabinned_legend->AddEntry(thishist, Form("%g < #eta_{lab} < %g", etabins[etabin], etabins[etabin+1]));
         thishist->SetMarkerStyle(mkstyles[0]);
         thishist->SetMarkerColor(mkcolors[(147*etabin)%10]);
         thishist->SetLineColor(mkcolors[(147*etabin)%10]);
@@ -218,9 +194,6 @@ void plot_electron_ptspectrum_etabinned () {
     myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
-//    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");    
-//    draw_information (0.38, 0.34);
-//    electron_ptspectrum_etabinned_legend->Draw();
     if(printStatementChecks) cout << "\nPlotting etabinned electrons inclusive Pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
@@ -235,10 +208,6 @@ void plot_electron_ptspectrum_phibinned () {
     canvasName = "electron_ptspectrum_phibinned_" + triggers[useTrigger];
     initialize_new_canvas(true);
 
-    // Create the legend
-//    TLegend* electron_ptspectrum_phibinned_legend = new TLegend(0.7, 0.55, 0.97, 0.95);
-//    electron_ptspectrum_phibinned_legend->SetTextSize(0.028);
-    // Add each histogram to the legend, then scale each histogram by bin width and draw    
     float new_ymax = 0;
     for (int phibin = 0; phibin < numphibins; phibin++) {
         thishist = electron_ptspectrum_phibinned[phibin];
@@ -247,7 +216,6 @@ void plot_electron_ptspectrum_phibinned () {
     float ylabel = 0.48;
     for (int phibin = 0; phibin < numphibins; phibin++) {
         thishist = electron_ptspectrum_phibinned[phibin];
-//        electron_ptspectrum_phibinned_legend->AddEntry(thishist, Form("%g#pi < #phi < %g#pi", phibins[phibin]/pi, phibins[phibin+1]/pi));
         thishist->SetMarkerStyle(mkstyles[0]);
         thishist->SetMarkerColor(mkcolors[(147*phibin)%10]);
         thishist->SetLineColor(mkcolors[(147*phibin)%10]);
@@ -263,9 +231,6 @@ void plot_electron_ptspectrum_phibinned () {
     myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
-//    electron_ptspectrum_phibinned_legend->Draw();
-//    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");
-//    draw_information (0.38, 0.34);
     if(printStatementChecks) cout << "\nPlotting phi binned electrons inclusive Pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
@@ -280,10 +245,6 @@ void plot_invariantMass_etabinned () {
     canvasName = "electron_invariantMass_etabinned_" + triggers[useTrigger];
     initialize_new_canvas (true);
 
-    // Create the legend
-//    TLegend* invariantMass_legend = new TLegend(0.75, 0.7, 0.97, 0.95);
-//    invariantMass_legend->SetTextSize(0.028);
-    // Add each histogram to the legend, then scale each histogram by bin width and draw
     float new_ymax = 0;
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
@@ -294,7 +255,6 @@ void plot_invariantMass_etabinned () {
     for (int etabin = 0; etabin < numetabins; etabin++) {
         if (etabin == 1 || etabin == 4) continue;
         thishist = invariantMass_etabinned[etabin];
-//        invariantMass_legend->AddEntry(thishist, Form("%g < #eta_{lab} < %g", etabins[etabin], etabins[etabin+1]));
         thishist->Scale(1./(etabins[etabin+1]-etabins[etabin]), "width");
         thishist->SetMarkerStyle(mkstyles[0]);
         thishist->SetMarkerColor(mkcolors[(147*etabin)%10]);
@@ -310,10 +270,6 @@ void plot_invariantMass_etabinned () {
     myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
-//    invariantMass_legend->Draw();
-//    draw_title (0.5, 0.975, "Tight dielectrons invariant mass");
-//    draw_information (0.43, 0.87);
-//    draw_text (0.43, 0.795, Form("#it{p}_{T} #geq %i GeV/#it{c} and |#eta| < 1.37 or 1.57 < #eta < 2.37", ptcut));
     if(printStatementChecks) cout << "\nPlotting tight dielectrons invariant mass on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
