@@ -1,0 +1,251 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>ATLAS Luminosity Calculator</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"></meta>
+<meta name="ATLAS_Luminosity_Calculator" content="ATLAS Luminosity Calculator"></meta>
+<link rel="stylesheet" type="text/css" href="/css/atlas-datasummary.css" media="screen"></link>
+<link rel="stylesheet" type="text/css" href="/css/atlas-datasummary-print.css" media="print"></link>
+<link rel="shortcut icon" href="/images/favicon.ico"></link>
+</head>
+<body>
+<table class="toptable">
+      <tr style="height:45px; vertical-align:top;">
+        <td><font size="+1"><b><a href="https://atlas-lumicalc.cern.ch/">ATLAS Luminosity Calculator</a></b></font> </td>
+        <td style="padding-right: 0px;">
+          <table style="border-spacing:6px; margin-left:auto; margin-right:12px">
+            <tr>
+              <td class="dontPrint" style="border: 1px white solid; padding: 0.3em; width: 56px; text-align:center; font-size: 100%; vertical-align: middle;">
+                <a href="mailto:atlas-data-preparation-help@cern.ch" title="Contact and support">
+                  Contact
+                </a>
+              </td>
+              <td class="dontPrint" style="border: 1px white solid; padding: 0.3em; width: 35px; text-align:center; font-size: 100%">
+                <a href="https://twiki.cern.ch/twiki/bin/view/AtlasComputing/CoolLumiCalcTutorial" title="Help on iLumiCalc.exe">
+                  Help
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr style="height:20px">
+        <td colspan="2">
+          <table class="toptableLinks">
+            <tr>
+	    <td><a href="https://atlasdqm.cern.ch/grl/">GRL Calculator</a></td>
+	    <td><a href="https://atlas-datasummary.cern.ch/">Data Summary</a></td>
+              <td><a href="http://atlas-runquery.cern.ch/">Run Query</a></td>
+	      <td><a href="http://atlas-service-runinformation.web.cern.ch/atlas-service-runinformation/">Run Summary</a></td>
+              <td><a href="https://twiki.cern.ch/twiki/bin/view/Atlas/DataPreparation">Data Preparation</a></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+</table>
+<div id="content">
+<h3>Checking inputs</h3>
+<ul>
+<li>Luminosity DB tag: --online</li>
+<li>Live fraction trigger: L1_EM12</li>
+<li>Physics trigger: None</li>
+<li>LAr EventVeto Tag: LARBadChannelsOflEventVeto-RUN2-UPD4-04</li>
+<li>GRL file: LB_collection_pp2017.xml was uploaded successfully to /tmp/lumifiles/815ffa</li>
+</ul>
+<p>Specification complete!</p>
+<h3>Environment</h3>
+LumiCalc-00-04-26
+<h3>Command Details</h3>
+<p>iLumiCalc.exe  --online --livetrigger=L1_EM12 --trigger=None --xml=/tmp/lumifiles/815ffa/LB_collection_pp2017.xml --lar --lartag=LARBadChannelsOflEventVeto-RUN2-UPD4-04</p>
+<p>Command complete - CPU time: 0.0 s, Clock time: 27.9 s</p>
+<h3>Total Luminosity: 259.229 pb<sup>-1</sup></h3>
+<table class="lumitable"><tbody>
+<tr><th>Run<br />Number</th><th>Number of<br />Good LBs</th><th>Number of<br />Bad LBs</th><th>Luminosity<br />Delivered (pb<sup>-1</sup>)</th><th>Luminosity<br />Livefraction Corrected (pb<sup>-1</sup>)</th><th>Luminosity<br />LAr Veto Corrected (pb<sup>-1</sup>)</th><th>Luminosity<br />Prescale Corrected (pb<sup>-1</sup>)</th><th>Lumi-Weighted<br />Live Fraction (percent)</th><th>Lumi-Weighted<br />LAr Fraction (percent)</th><th>Lumi-Weighted<br />Prescale</th></tr>
+<tr>
+<td>340634 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340634+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340634/">Prescales</a>)</td>
+<td>357</td><td>248</td>
+<td>0.0691056</td>
+<td>0.0689693</td>
+<td>0.0689693</td>
+<td>0.0689693</td>
+<td>99.8</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340644 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340644+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340644/">Prescales</a>)</td>
+<td>223</td><td>70</td>
+<td>3.33096</td>
+<td>3.25299</td>
+<td>3.25299</td>
+<td>3.25299</td>
+<td>97.66</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340683 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340683+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340683/">Prescales</a>)</td>
+<td>53</td><td>0</td>
+<td>2.4654</td>
+<td>2.4448</td>
+<td>2.4448</td>
+<td>2.4448</td>
+<td>99.16</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340697 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340697+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340697/">Prescales</a>)</td>
+<td>638</td><td>0</td>
+<td>21.5258</td>
+<td>21.3687</td>
+<td>21.3687</td>
+<td>21.3687</td>
+<td>99.27</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340718 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340718+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340718/">Prescales</a>)</td>
+<td>1550</td><td>0</td>
+<td>54.4831</td>
+<td>54.065</td>
+<td>54.065</td>
+<td>54.065</td>
+<td>99.23</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340814 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340814+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340814/">Prescales</a>)</td>
+<td>699</td><td>0</td>
+<td>34.6617</td>
+<td>33.9036</td>
+<td>33.9036</td>
+<td>33.9036</td>
+<td>97.81</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340849 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340849+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340849/">Prescales</a>)</td>
+<td>13</td><td>0</td>
+<td>0.877817</td>
+<td>0.854563</td>
+<td>0.854563</td>
+<td>0.854563</td>
+<td>97.35</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340850 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340850+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340850/">Prescales</a>)</td>
+<td>432</td><td>0</td>
+<td>15.4335</td>
+<td>15.3265</td>
+<td>15.3265</td>
+<td>15.3265</td>
+<td>99.31</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340910 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340910+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340910/">Prescales</a>)</td>
+<td>499</td><td>0</td>
+<td>17.2806</td>
+<td>17.1496</td>
+<td>17.1496</td>
+<td>17.1496</td>
+<td>99.24</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340925 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340925+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340925/">Prescales</a>)</td>
+<td>192</td><td>0</td>
+<td>6.78986</td>
+<td>6.65624</td>
+<td>6.65624</td>
+<td>6.65624</td>
+<td>98.03</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>340973 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+340973+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/340973/">Prescales</a>)</td>
+<td>2232</td><td>0</td>
+<td>14.4649</td>
+<td>14.2097</td>
+<td>14.2097</td>
+<td>14.2097</td>
+<td>98.24</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>341027 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+341027+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/341027/">Prescales</a>)</td>
+<td>1905</td><td>0</td>
+<td>41.1503</td>
+<td>40.6011</td>
+<td>40.6011</td>
+<td>40.6011</td>
+<td>98.67</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>341123 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+341123+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/341123/">Prescales</a>)</td>
+<td>768</td><td>0</td>
+<td>21.8963</td>
+<td>21.6396</td>
+<td>21.6396</td>
+<td>21.6396</td>
+<td>98.83</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>341184 (<a href="http://atlas-runquery.cern.ch/query.py?q=find+run+341184+%2F+show+all+and+lhc">ARQ</a>, <a href="http://atlas-trigconf.cern.ch/psevo/341184/">Prescales</a>)</td>
+<td>1075</td><td>0</td>
+<td>28.02</td>
+<td>27.6878</td>
+<td>27.6878</td>
+<td>27.6878</td>
+<td>98.81</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+<tr class="highlight">
+<td>Total</td>
+<td>10636</td><td>318</td>
+<td>262.449</td>
+<td>259.229</td>
+<td>259.229</td>
+<td>259.229</td>
+<td>98.77</td>
+<td>100.0</td>
+<td>1.0</td>
+</tr>
+</tbody></table>
+<p>[<a href="/results/815ffa/lumitable.csv">Luminosity table as CSV file</a>]</p>
+<h3>Warnings/Errors</h3>
+<pre style="color: red">[1;31m--- &lsaquo;WARNING&rsaquo; iLumiCalc           : Lumitag: OflLumi-8TeV-002 ignored due to --online [0m
+[1;31m--- &lsaquo;WARNING&rsaquo; LumiCalculator      : Luminosity info not found for Run 340634 LB [161-341] ![0m
+[1;31m--- &lsaquo;WARNING&rsaquo; LumiCalculator      : Luminosity info not found for Run 340634 LB [450-516] ![0m
+[1;31m--- &lsaquo;WARNING&rsaquo; LumiCalculator      : Luminosity info not found for Run 340644 LB [117-186] ![0m
+</pre>
+<p>Check the <a href="/results/815ffa/output.txt">Raw iLumiCalc.exe output</a> for more information.</p>
+<h3>Links</h3>
+<p>The following links provide access to the iLumiCalc output files.  These will likely remain for several weeks, but please copy any critical files to a more permanent location.</p>
+<p><a href="/results/815ffa/">iLumiCalc.exe working directory</a> - location for all output files</p>
+<p><a href="/results/815ffa/result.html">Output HTML</a> - this page</p>
+<p><a href="/results/815ffa/output.txt">Raw iLumiCalc.exe output</a></p>
+<p><a href="/results/815ffa/LB_collection_pp2017.xml">Original GRL XML file</a></p>
+</div>
+<table class="bottomtable">
+<tr style="height:45px; vertical-align: top;">
+<td><a href="http://validator.w3.org/check?uri=referer">
+<img src="/images/xhtml10.gif" alt="Valid XHTML 1.0 Transitional" /></a><br />
+<a href="http://jigsaw.w3.org/css-validator/check/referer">
+<img src="/images/css.gif" alt="Valid CSS!" /></a>
+</td><td style="text-align:right"></td></tr></table>
+</body></html>

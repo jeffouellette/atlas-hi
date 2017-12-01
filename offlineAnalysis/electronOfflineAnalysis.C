@@ -1,3 +1,4 @@
+#include "Utils.C"
 /**
  * Macros for offline electron analyses during the Nov. 2017 5TeV p-p run.
  * @author Jeff Ouellette
@@ -20,24 +21,34 @@ std::vector<int> fileRunNumbers = {
     340644,
     340683,
     340697,
+    340718,
     340814,
     340849,
     340850,
-//    340910,
+    340910,
 //    340918,
-//    340925,
+    340925,
+    340973,
+    341027,
+    341123,
+    341184,
 };
 std::vector<float> fileLumis = {
-    0.07,
-    3.50,
-    2.66,
-    21.7,
-    35.0,
-    1.11,
-    15.7,
-//    17.7,
+    0.0689693,
+    3.25299,
+    2.4448,
+    21.3687,
+    54.065,
+    33.9036,
+    0.854563,
+    15.3265,
+    17.1496,
 //    13.1,
-//    6.95,
+    6.65624,
+    14.2097,
+    40.6011,
+    21.6396,
+    27.6878,
 };
 float total_lumi = 0;
 
@@ -46,7 +57,7 @@ const bool printStatementChecks = false; // for debugging
 const int ptcut = 20;
 const int Z_ptcut = 40;
 const int j_ptcut = 30;
-const float delta_phi_cut = 7./8. * pi;
+const float delta_phi_cut = 7./8.;
 const int invM_lower_cut = 80;
 const int invM_upper_cut = 100;
 int useTrigger = 5;
@@ -74,6 +85,7 @@ TH1F* electron_ptspectrum_etabinned[numetabins];
 TH1F* electron_ptspectrum_phibinned[numphibins];
 TH1F* invariantMass;
 TH1F* invariantMass_samesign;
+TH1F* invariantMass_allsigns;
 TH1F* invariantMass_etabinned[numetabins];
 TH1F* Z_ptspectrum;
 TH1F* Z_ptspectrum_samesign;
@@ -86,11 +98,7 @@ TH1F* j_over_Z_hist;
 // Plotting variables
 TCanvas* thiscanvas;
 TH1F* thishist; // placeholder
-TLatex* latex = new TLatex();
 string canvasName;
-string run_string;
-const Style_t mkstyles[7] = {kFullCircle, kFullDiamond, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
-const Color_t mkcolors[10] = {kRed, kAzure+5, kMagenta, kGreen+2, kBlue, kOrange+8, kTeal+4, kSpring+5, kCyan+2, kPink+4};
 
 // Tree for the current data set being analyzed
 TFile* currFile;
@@ -113,13 +121,7 @@ bool etaIsOutsideDetectableRange(float eta) {
  * Initializes text settings.
  */
 void initialize_text () {
-    run_string = Form("Using run %i", runNumber);
-    if (isMain) run_string += " main stream";
-    else if (isMinBias) run_string += " min bias";
-    else if (isExpress) run_string += " express stream";
-   
     for (float lumi : fileLumis) total_lumi += lumi; 
-
     return;
 }
 
@@ -136,43 +138,6 @@ void initialize_new_canvas (bool logy) {
     if (logy) gPad->SetLogy();
     gPad->SetTicks();
     thiscanvas->Draw();
-    return;
-}
-
-
-/**
- * Draws run information and trigger selection on the plot.
- */
-void draw_information (float ndc_x, float ndc_y) {
-    latex->SetTextAlign(22);
-    latex->SetTextFont(42);
-    latex->SetTextSize(0.028);
-    latex->DrawLatexNDC (ndc_x, ndc_y-0.025, Form("Tight electrons, filling on %s", triggers[useTrigger].c_str()));
-    latex->DrawLatexNDC (ndc_x, ndc_y+0.025, run_string.c_str());
-    return;
-}
-
-
-/**
- * Draws a plot title.
- */
-void draw_title (float ndc_x, float ndc_y, string title) {
-    latex->SetTextAlign(22);
-    latex->SetTextFont(42);
-    latex->SetTextSize(0.036);
-    latex->DrawLatexNDC (ndc_x, ndc_y, title.c_str());
-    return;
-}
-
-
-/**
- * Draws additional text.
- */
-void draw_text (float ndc_x, float ndc_y, string text) {
-    latex->SetTextAlign(22);
-    latex->SetTextFont(42);
-    latex->SetTextSize(0.028);
-    latex->DrawLatexNDC (ndc_x, ndc_y, text.c_str());
     return;
 }
 
@@ -203,6 +168,8 @@ void initialize_histograms() {
     invariantMass->Sumw2();
     invariantMass_samesign = new TH1F (Form("run_%i_invariantMass_samesign_hist", runNumber), ";#it{M}_{ee} #left[GeV/#it{c}^{2}#right];dN/d#it{M}_{ee} #left[(GeV/#it{c}^{2})^{-1}#right]", 50, 50, 140);
     invariantMass_samesign->Sumw2();
+    invariantMass_allsigns = new TH1F (Form("run_%i_invariantMass_allsigns_hist", runNumber), ";#it{M}_{ee} #left[GeV/#it{c}^{2}#right];dN/d#it{M}_{ee} #left[(GeV/#it{c}^{2})^{-1}#right]", 50, 50, 140);
+    invariantMass_allsigns->Sumw2();
 
     Z_ptspectrum = new TH1F(Form("run_%i_Z_ptspectrum_hist", runNumber), ";#it{p}_{T}^{Z} #left[GeV/#it{c}#right];dN/d#it{p}_{T} #left[(GeV/#it{c})^{-1}#right]", 50, 0, 250);
     Z_ptspectrum->Sumw2();
@@ -243,8 +210,10 @@ void save_electron_ptspectrum () {
 void save_invariantMass () {
     thishist = invariantMass;
     thishist->Write();
-    thishist = invariantMass_samesign;
     if (printStatementChecks) cout << "Invariant mass integral = " << thishist->Integral() << endl;
+    thishist = invariantMass_samesign;
+    thishist->Write();
+    thishist = invariantMass_allsigns;
     thishist->Write();
     return;
 }
@@ -354,6 +323,7 @@ void treeLoop () {
     const int numentries = tree->GetEntries();
 
     // Branch dependent variables
+    unsigned int eventNumber = 0;
     float electron_pt[100] = {};
     float electron_eta[100] = {};
     float electron_phi[100] = {};
@@ -379,6 +349,7 @@ void treeLoop () {
     tree->SetBranchAddress("electron_eta", electron_eta);
     tree->SetBranchAddress("electron_etcone40", electron_etcone40);
     tree->SetBranchAddress("electron_charge", electron_charge);
+    tree->SetBranchAddress("event_number", &eventNumber);
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_phi", j_phi);
     tree->SetBranchAddress("j_eta", j_eta);
@@ -396,6 +367,21 @@ void treeLoop () {
     bool useJets = false;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i);
+
+        // Event specific analysis.
+        if (runNumber == 340910 && eventNumber == 197131220) {
+          TLorentzVector invVec;
+          TLorentzVector thisComponent;
+          for (int e1 = 0; e1 < electron_n; e1++) {
+            if (electron_pt[e1] < 20) continue;
+            cout << Form ("electron %i pt = %g GeV, eta = %g, phi = %g, charge = %i", e1, electron_pt[e1], electron_eta[e1], electron_phi[e1], electron_charge[e1]) << endl;
+            thisComponent.SetPtEtaPhiM (electron_pt[e1], electron_eta[e1], electron_phi[e1], 0.511e-3);
+            invVec = invVec + thisComponent;
+          }
+          cout << "Invariant 4 electron mass = " << invVec.M() << endl; 
+
+        }
+
         if (trig_bool[useTrigger]) { // Require some trigger to be satisfied. Generally, this is a dielectron or lhloose trigger.
             for (int e1 = 0; e1 < electron_n; e1++) {
                 
@@ -438,14 +424,16 @@ void treeLoop () {
                     else while (etabins[etabin] < electron_eta[e2]) etabin++;
                     etabin--;
 
+                    invariantMass_allsigns->Fill(zvec.M());
                     if (electron_charge[e1] * electron_charge[e2] < 0) { // Z bosons are neutral so the electrons must have opposite charge
                         invariantMass->Fill(zvec.M());
                         invariantMass_etabinned[etabin]->Fill(zvec.M()); // Fill invariant mass (length of invariant vector)
                         Z_ptspectrum->Fill(Z_pt); // Fill Z Pt spectrum (Pt of invariant vector)
                     }
-                    if (electron_charge[e1] * electron_charge[e2] > 0) {
+                    else if (electron_charge[e1] * electron_charge[e2] > 0) {
                         Z_ptspectrum_samesign->Fill(Z_pt);
                         invariantMass_samesign->Fill(zvec.M());
+                        continue;
                     }
                     if (invM_lower_cut > zvec.M() || zvec.M() > invM_upper_cut) continue;
                     float j_sublead_pt = 0;
@@ -469,11 +457,11 @@ void treeLoop () {
                         if (j_pt[j] != j_lead_pt) continue;
                         smallAngleDiff = TMath::Abs(j_phi[j] - zvec.Phi());
                         while (smallAngleDiff > pi) smallAngleDiff = TMath::Abs(smallAngleDiff - 2*pi);
-                        if (useJets && electron_charge[e1] * electron_charge[e2] < 0 && Z_pt > 120 && (j_pt[j]-Z_pt)/(j_pt[j]+Z_pt) < 0.2 && smallAngleDiff > 7.*pi/8./* && zvec.Eta() * j_eta[j] < 0*/) {
-                            cout << Form("Found back-to-back Z + jet in run %i, branch number %i! j_pt = %.1f GeV, Z_pt = %.1f GeV, j_phi-Z_phi = %.1f pi, j_eta = %.1f, Z_eta = %.1f", runNumber, i, j_pt[j], zvec.Pt(), smallAngleDiff/pi, j_eta[j], zvec.Eta()) << endl;
+                        if (useJets && Z_pt > 120 && (j_pt[j]-Z_pt)/(j_pt[j]+Z_pt) < 0.2 && smallAngleDiff > 7.*pi/8./* && zvec.Eta() * j_eta[j] < 0*/) {
+                            cout << Form("Found back-to-back Z + jet in run %i, event number %i! j_pt = %.1f GeV, Z_pt = %.1f GeV, j_phi-Z_phi = %.1f pi, j_eta = %.1f, Z_eta = %.1f", runNumber, eventNumber, j_pt[j], zvec.Pt(), smallAngleDiff/pi, j_eta[j], zvec.Eta()) << endl;
                         }
                     }
-                    if (smallAngleDiff > delta_phi_cut && Z_pt > Z_ptcut && j_lead_pt > j_ptcut) j_over_Z_hist->Fill(j_lead_pt/(Z_pt*TMath::Cos(pi-smallAngleDiff)));
+                    if (smallAngleDiff > delta_phi_cut*pi && Z_pt > Z_ptcut && j_lead_pt > j_ptcut) j_over_Z_hist->Fill(j_lead_pt/(Z_pt*TMath::Cos(pi-smallAngleDiff)));
                 }
             }
         }
@@ -525,16 +513,21 @@ void electronOfflineAnalysis (int rn, int trig, char dataStream) {
     plotPath = Form("./Plots/%i/", runNumber);
 
     const std::vector<char*> filesToProcess = {
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340634.f895_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v3.main.00340644.f895_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340683.f896_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340697.f896_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340814.f897_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340849.f897_m1907.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340850.f897_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340910.f898_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340918.f898_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340925.x540_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340634.f895_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340644.f895_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340683.f896_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340697.f896_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340718.f896_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340814.f897_m1902.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340849.f897_m1907.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340850.f897_m1907.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340910.f898_m1907.root", dataPath.c_str()),
+//        Form("%suser.jeouelle.pp_5TeV.006.main.00340918.f898_m1907.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340925.f898_m1907.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00340973.f899_m1912.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00341027.f902_m1912.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00341123.f902_m1912.root", dataPath.c_str()),
+        Form("%suser.jeouelle.pp_5TeV.006.main.00341184.f903_m1912.root", dataPath.c_str()),
     };
 
     initialize_text ();

@@ -2,6 +2,9 @@
 #include "/Users/jeffouellette/RootUtils/AtlasLabels.C"
 #include "/Users/jeffouellette/RootUtils/AtlasUtils.C"
 
+const Style_t mkstyles[7] = {kFullCircle, kFullDiamond, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
+const Color_t mkcolors[10] = {kRed, kOrange+8, kBlue, kGreen+2, kTeal+4, kAzure+5, kMagenta, kSpring+5, kCyan+2, kPink+4};
+
 /**
  * Plotting routine for the electron ptspectrum.
  */
@@ -21,13 +24,13 @@ void plot_electron_ptspectrum () {
 
     thishist->Draw("e1");
 
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.66, 0.58, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.66, 0.49, kBlack, "1.52 < #left|#eta#right| < 2.47");
-   // myMarkerText(0.66, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
-   // myMarkerText(0.66, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
+   // myMarkerText(0.64, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
+   // myMarkerText(0.64, 0.71, mkcolors[0], mkstyles[0], "e15_lhloose");
     
 //    draw_title (0.5, 0.973, "Tight electron inclusive #it{p}_{T} spectrum");    
 //    draw_information (0.38, 0.34);
@@ -47,49 +50,72 @@ void plot_invariantMass () {
     canvasName = "electron_invariantMass_" + triggers[useTrigger];
     initialize_new_canvas(true);
 
-//    TLegend* invariantMass_legend = new TLegend (0.75, 0.7, 0.97, 0.95);
-//    invariantMass_legend->SetTextSize(0.028);
     // Add each histogram to the legend, then scale each histogram by bin width and draw
     thishist = invariantMass;
     float new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
-    if (new_ymax < invariantMass_samesign->GetBinContent(invariantMass_samesign->GetMaximumBin())) {
-        new_ymax = invariantMass_samesign->GetBinContent(invariantMass_samesign->GetMaximumBin());
+    TH1F* background_hist = invariantMass_samesign;
+    if (new_ymax < background_hist->GetBinContent(background_hist->GetMaximumBin())) {
+        new_ymax = background_hist->GetBinContent(background_hist->GetMaximumBin());
+    }
+    background_hist = invariantMass_allsigns;
+    if (new_ymax < background_hist->GetBinContent(background_hist->GetMaximumBin())) {
+        new_ymax = background_hist->GetBinContent(background_hist->GetMaximumBin());
     }
     thishist = invariantMass;
+    int counts = (int)thishist->Integral();
     cout << "Invariant mass integral = " << thishist->Integral() << endl;
-//    invariantMass_legend->AddEntry (thishist, "#sum #it{q}_{i} = 0");
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
     thishist->SetLineColor(mkcolors[0]);
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMinimum(2e-1);
     thishist->Draw("e1");
+    myMarkerText(0.22, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
 
     thishist = invariantMass_samesign;
-//    invariantMass_legend->AddEntry (thishist, "No charge cond.");
+    counts = (int)thishist->Integral();
     thishist->SetMarkerStyle(mkstyles[0]);
-    thishist->SetMarkerColor(mkcolors[1]);
-    thishist->SetLineColor(mkcolors[1]);
+    thishist->SetMarkerColor(mkcolors[5]);
+    thishist->SetLineColor(mkcolors[5]);
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMinimum(2e-1);
     thishist->Draw("same e1");
-   
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.66, 0.60, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.66, 0.51, kBlack, "1.52 < #left|#eta#right| < 2.47");
+    myMarkerText(0.22, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts)); 
+  
+ 
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
     
-    myMarkerText(0.24, 0.86, mkcolors[0], mkstyles[0], "Opposite charges");
-    myMarkerText(0.24, 0.77, mkcolors[1], mkstyles[0], "Same charges");
-
-//    invariantMass_legend->Draw();
-
-//    draw_title (0.5, 0.975, "Tight dielectrons invariant mass");
-//    draw_information (0.43, 0.87);
-//    draw_text (0.43, 0.795, Form("#it{p}_{T} #geq %i GeV/#it{c} and |#eta| < 1.37 or 1.57 < #eta < 2.37", ptcut));
-
     if(printStatementChecks) cout << "\nPlotting tight dielectrons invariant mass on canvas " << thiscanvas->GetName() << endl;
+    thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
+
+    thishist = invariantMass_allsigns;
+    canvasName = "electron_invariantMass_allsigns_" + triggers[useTrigger];
+    initialize_new_canvas(true);
+     
+    thishist = invariantMass_allsigns;
+    counts = (int)thishist->Integral();
+    thishist->SetMarkerStyle(mkstyles[0]);
+    thishist->SetMarkerColor(kBlack);
+    thishist->SetLineColor(kBlack);
+    thishist->Scale(1., "width");
+    thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMinimum(2e-1);
+    thishist->Draw("e1");
+    myMarkerText(0.22, 0.87, kBlack, mkstyles[0], Form("AS (%i counts)", counts));
+
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
+
+    if(printStatementChecks) cout << "\nPlotting tight dielectrons (all signs) invariant mass on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
     return;
 }
@@ -113,32 +139,34 @@ void plot_Z_ptspectrum () {
 //    Z_ptspectrum_legend->SetTextSize(0.028);
     
     thishist = Z_ptspectrum;
+    int counts = (int)thishist->Integral();
 //    Z_ptspectrum_legend->AddEntry (thishist, "#sum q_{i} = 0");
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
     thishist->SetLineColor(mkcolors[0]);
+    cout << "Z pt spectrum integral = " << thishist->Integral() << endl;
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
-    cout << "Z pt spectrum integral = " << thishist->Integral() << endl;
     thishist->Draw("e1");
+    myMarkerText(0.25, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
 
     thishist = Z_ptspectrum_samesign;
+    counts = (int)thishist->Integral();
 //    Z_ptspectrum_legend->AddEntry (thishist, "No charge cond.");
     thishist->SetMarkerStyle(mkstyles[0]);
-    thishist->SetMarkerColor(mkcolors[1]);
-    thishist->SetLineColor(mkcolors[1]);
+    thishist->SetMarkerColor(mkcolors[5]);
+    thishist->SetLineColor(mkcolors[5]);
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("same e1");
+    myMarkerText(0.25, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts));
     
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.66, 0.60, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.66, 0.51, kBlack, "1.52 < #left|#eta#right| < 2.47");
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
+    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
     
-    myMarkerText(0.24, 0.86, mkcolors[0], mkstyles[0], "Opposite charges");
-    myMarkerText(0.24, 0.77, mkcolors[1], mkstyles[0], "Same charges");
 
 //    Z_ptspectrum_legend->Draw();
 
@@ -186,9 +214,9 @@ void plot_electron_ptspectrum_etabinned () {
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");    
 //    draw_information (0.38, 0.34);
@@ -227,13 +255,13 @@ void plot_electron_ptspectrum_phibinned () {
         thishist->SetMaximum(2 * new_ymax);    
         if (phibin == 0) thishist->Draw("e1");
         else thishist->Draw("same e1");
-        myMarkerText(0.24, ylabel, mkcolors[(147*phibin)%10], mkstyles[0], Form("%g#pi < #phi < %g#pi", phibins[phibin]/pi, phibins[phibin+1]/pi));
+        myMarkerText(0.24, ylabel, mkcolors[(147*phibin)%10], mkstyles[0], Form("%s < #phi < %s", DoubleRadiansToRationalRadians(phibins[phibin]).c_str(), DoubleRadiansToRationalRadians(phibins[phibin+1]).c_str()));
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    electron_ptspectrum_phibinned_legend->Draw();
 //    draw_title (0.5, 0.973, "Tight electrons inclusive #it{p}_{T} spectrum");
@@ -278,9 +306,9 @@ void plot_invariantMass_etabinned () {
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
 //    invariantMass_legend->Draw();
 //    draw_title (0.5, 0.975, "Tight dielectrons invariant mass");
@@ -311,6 +339,12 @@ void plot_eta_phi (bool cutonpt) {
 
     this2hist->Scale(1., "width"); 
     this2hist->Draw("colz");
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    if (cutonpt) myText (0.64, 0.67, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
+    else myText (0.64, 0.67, kBlack, Form("No #it{p}_{T} cut"));
+    
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 
     canvasName = "electron_eta_phi_int_" + triggers[useTrigger];
@@ -321,11 +355,11 @@ void plot_eta_phi (bool cutonpt) {
     cout << "Eta integral = " << thishist->Integral() << endl;
 
     thishist->Draw("hist e1");
-    ATLASLabel(0.66, 0.47, "Internal", kBlack);
-    myText (0.66, 0.38, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.29, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    if (cutonpt) myText (0.66, 0.20, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
-    else myText (0.66, 0.20, kBlack, Form("No #it{p}_{T} cut"));
+    ATLASLabel(0.62, 0.42, "Internal", kBlack);
+    myText (0.62, 0.36, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.62, 0.3, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    if (cutonpt) myText (0.62, 0.22, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
+    else myText (0.62, 0.22, kBlack, Form("No #it{p}_{T} cut"));
     
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 
@@ -338,17 +372,19 @@ void plot_j_over_Z () {
     initialize_new_canvas (false);
 
     thishist = j_over_Z_hist;
+    int counts = (int)thishist->Integral();
+    cout << "j/Z integral = " << counts << endl;
     thishist->Scale(1., "width");
     thishist->SetMinimum(0);
-    cout << "j/Z integral = " << thishist->Integral() << endl;
     thishist->Draw("hist e1");
+    myText (0.64, 0.49, kBlack, Form("(%i counts)", counts));
  
-    ATLASLabel(0.66, 0.87, "Internal", kBlack);
-    myText (0.66, 0.78, kBlack, "pp #sqrt{s} = 5.02 TeV");
-    myText (0.66, 0.69, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.66, 0.60, kBlack, Form("#it{p}_{T}^{Z} > %i GeV/#it{c}", Z_ptcut));
-    myText (0.66, 0.51, kBlack, Form("#it{p}_{T}^{jet} > %i GeV/#it{c}", j_ptcut));
-    myText (0.66, 0.42, kBlack, Form("#Delta#phi > %g#pi", (delta_phi_cut)/pi));
+    ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.67, kBlack, Form("#it{p}_{T}^{Z} > %i GeV/#it{c}", Z_ptcut));
+    myText (0.64, 0.61, kBlack, Form("#it{p}_{T}^{jet} > %i GeV/#it{c}", j_ptcut));
+    myText (0.64, 0.55, kBlack, Form("#Delta#phi > %s", DoubleRadiansToRationalRadians(delta_phi_cut, false).c_str()));
 
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 }
@@ -384,19 +420,6 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
     runNumber = 0;
     plotPath = "./Plots/";
 
-    const std::vector<char*> filesToProcess = {
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340634.f895_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v3.main.00340644.f895_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340683.f896_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340697.f896_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340814.f897_m1902.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340849.f897_m1907.root", dataPath.c_str()),
-        Form("%suser.jeouelle.pp_5TeV.v2.main.00340850.f897_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340910.f898_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340918.f898_m1907.root", dataPath.c_str()),
-    //    Form("%suser.jeouelle.pp_5TeV.v2.express.00340925.x540_m1902.root", dataPath.c_str()),
-    };
-
     initialize_text();
     initialize_histograms ();
 
@@ -414,6 +437,7 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
         }
         invariantMass->Add((TH1F*)thisfile->Get(Form("run_%i_invariantMass_hist", rn)));
         invariantMass_samesign->Add((TH1F*)thisfile->Get(Form("run_%i_invariantMass_samesign_hist", rn)));
+        invariantMass_allsigns->Add((TH1F*)thisfile->Get(Form("run_%i_invariantMass_allsigns_hist", rn)));
         Z_ptspectrum->Add((TH1F*)thisfile->Get(Form("run_%i_Z_ptspectrum_hist", rn)));
         Z_ptspectrum_samesign->Add((TH1F*)thisfile->Get(Form("run_%i_Z_ptspectrum_samesign_hist", rn)));
         j_over_Z_hist->Add((TH1F*)thisfile->Get(Form("run_%i_j_over_Z_hist", rn)));
@@ -432,7 +456,6 @@ void electronOfflineAnalysisHist (int trig, char dataStream) {
     plot_invariantMass_etabinned ();
     plot_eta_phi (true);
     plot_eta_phi (false);
-    
 
     return;
 }
