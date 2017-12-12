@@ -31,13 +31,13 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }
 
-    TH1D* harr[numhists];
+    TH1F* harr[numhists];
     int pbin, ebin, index;
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {
             TString histname = Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin);
-            harr[index + ebin*numtrigs] = new TH1D(histname, ";#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
+            harr[index + ebin*numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
             harr[index + ebin*numtrigs]->Sumw2(); // instruct each histogram to propagate errors
         }
     }
@@ -52,7 +52,6 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
         numtrigfirings[n] = 0;
     }
 
-    const bool flip_etas = runPeriodA && runPeriodB && periodA; 
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -66,8 +65,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                     for (int j = 0; j < njet; j++) {
                         jpt = (double)j_pt[j];
                         jeta = (double)j_eta[j];
-                        if (flip_etas) jeta *= -1;
-                        if (etabins[ebin] <= jeta && jeta < etabins[ebin+1] && pbins[pbin] <= jpt && jpt < pbins[pbin+1] && trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= jpt) {
+                        if (etabins[ebin] <= jeta && jeta < etabins[ebin+1] && pbins[pbin] <= jpt && jpt < pbins[pbin+1] && trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt[ebin] <= jpt) {
                             numtrigfirings[index + (pbin + ebin*numpbins)*numtrigs]++;
                             break;
                         }
@@ -79,14 +77,12 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
                 jpt = (double)j_pt[j];
                 jeta = (double)j_eta[j];
 
-                if (flip_etas) jeta *= -1;
-
                 ebin = 0;
                 while (etabins[ebin] <= jeta) ebin++;
                 ebin--;
                 if (ebin == -1 || ebin >= numetabins) continue;
 
-                if (trig->min_pt <= jpt && trig->lower_eta <= jeta && jeta < trig->upper_eta) {
+                if (trig->min_pt[ebin] <= jpt && trig->lower_eta <= jeta && jeta < trig->upper_eta) {
                     harr[index + ebin*numtrigs]->Fill(jpt, m_trig_prescale[index]);
                 }
             } 
@@ -94,7 +90,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     }
 
     // Write histograms to a root file
-    TFile* output = new TFile(Form("%srun_%i.root", trigPath.c_str(), thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%srun_%i.root", ptPath.c_str(), thisRunNumber), "RECREATE");
     for (Trigger* trig : trigger_vec) {
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {

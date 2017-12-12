@@ -37,4 +37,4 @@ root -l -b -q '../jet_analyses/jets_xa_xp.C (314170, 4.594566)'&
 
 wait
 
-root -b -q '../jet_analyses/jets_xa_xp_hist.C ()'
+root -l -b -q '../jet_analyses/jets_xa_xp_hist.C ()'

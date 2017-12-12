@@ -27,7 +27,9 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
     }
     TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_run%i", thisRunNumber), ";#it{x}_{a};#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#it{x}_{a}", numbins, xbins, numbins, xbins);
 
-    TH2D* fcalhist = new TH2D(Form("fcalhist_run%i", thisRunNumber), ";#it{x}_{p};FCAL energy deposited;", numbins, xbins, numpbins, pbins);
+    const int numfcalbins = 60;
+    const double* fcalbins = logspace(10, 500, numfcalbins);
+    TH2D* fcalhist = new TH2D(Form("fcalhist_run%i", thisRunNumber), ";#it{x}_{p};FCAL energy deposited;", numbins, xbins, numfcalbins, fcalbins);
 //    cout << numtrigs << endl;
 
     // Create arrays to store trigger values for each event
@@ -70,10 +72,13 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
 
         leadingj = 0;
         subleadingj = 1;
-        for (int j = 0; j < njet; j++) {
+        for (int j = 1; j < njet; j++) {
             if (j_pt[j] > (double)j_pt[leadingj]) {
                 subleadingj = leadingj;
                 leadingj = j;
+            }
+            else if (j_pt[j] > (double)j_pt[subleadingj]) {
+                subleadingj = j;
             }
         }
         
@@ -108,21 +113,32 @@ void jets_xa_xp(int thisRunNumber, // Run number identifier.
             xa = get_xa(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, periodA);
             double lumi = kinematic_lumi_vec[pbin + ebin*numpbins];
 
-            if (periodA) {
+/*            if (periodA) {
                 leadingjeta *= -1;
                 ebin = 0;
                 while (etabins[ebin] < leadingjeta) ebin++;
                 ebin--;
-            }
+            }*/
+
+//            int act_ebin = ebin;
+//            if (thisRunNumber < 313500) act_ebin = numetabins - ebin - 1;
  
             harr[ebin]->Fill(xp, m_trig_prescale[index]/lumi);
             harr[ebin+numetabins]->Fill(xa, m_trig_prescale[index]/lumi);
             xaxpcorr->Fill(xa, xp, m_trig_prescale[index]/lumi);
+//            xaxpcorr->Fill(xa, xp);
             fcalhist->Fill(xp, fcal_et, m_trig_prescale[index]/lumi);
+//            fcalhist->Fill(xp, fcal_et);
         }
     }
     // Save to root file
-    TFile* output = new TFile(Form("%sxdata/run_%i.root", rootPath.c_str(), thisRunNumber), "RECREATE");
+    string output_name = Form("%sxdata/", rootPath.c_str());
+    if (runPeriodA && !runPeriodB) output_name = output_name + "periodA/";
+    else if (!runPeriodA && runPeriodB) output_name = output_name + "periodB/";
+    else output_name = output_name + "periodAB/";
+    output_name = Form("%srun_%i.root", output_name.c_str(), thisRunNumber);
+
+    TFile* output = new TFile(output_name.c_str(), "RECREATE");
     for (int i = 0; i < numhists; i++) {
         harr[i]->Scale(harr_scales[i%(numetabins)]/(etabins[(i%numetabins)+1] - etabins[(i%numetabins)]), "width"); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         harr[i]->Write();

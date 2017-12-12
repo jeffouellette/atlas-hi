@@ -1,9 +1,10 @@
 #include "electronOfflineAnalysis.C"
 #include "/Users/jeffouellette/RootUtils/AtlasLabels.C"
-#include "/Users/jeffouellette/RootUtils/AtlasUtils.C"
 
 const Style_t mkstyles[7] = {kFullCircle, kFullDiamond, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCrossX, kFullFourTrianglesPlus};
 const Color_t mkcolors[10] = {kRed, kOrange+8, kBlue, kGreen+2, kTeal+4, kAzure+5, kMagenta, kSpring+5, kCyan+2, kPink+4};
+
+bool display_counts = true;
 
 /**
  * Plotting routine for the electron ptspectrum.
@@ -18,17 +19,17 @@ void plot_electron_ptspectrum () {
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
     thishist->SetLineColor(mkcolors[0]);
-    thishist->Scale(1., "width");
+//    thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);
     cout << "Electron pt spectrum integral = " << thishist->Integral() << endl;
 
     thishist->Draw("e1");
 
     ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
-    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
+    myText (0.64, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
+    myText (0.64, 0.75, kBlack, Form("#sqrt{s} = 5.02 TeV"));
+//    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.64, 0.68, kBlack, Form("#||{#it{#eta}^{e}} < 2.47"));
     
     if(printStatementChecks) cout << "\nPlotting electron Pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
@@ -42,7 +43,20 @@ void plot_electron_ptspectrum () {
 void plot_invariantMass () {
 
     canvasName = "electron_invariantMass_" + triggers[useTrigger];
-    initialize_new_canvas(true);
+    initialize_new_canvas(false);
+
+    thishist = invariantMass;
+    int counts = (int)thishist->Integral();
+    cout << "Invariant mass integral = " << thishist->Integral() << endl;
+//    thishist->Scale(1., "width");
+
+    thishist = invariantMass_samesign;
+    int counts_ss = (int)thishist->Integral();
+//    thishist->Scale(1., "width");
+
+    thishist = invariantMass_allsigns;
+    int counts_as = (int)thishist->Integral();
+//    thishist->Scale(1., "width");
 
     thishist = invariantMass;
     float new_ymax = thishist->GetBinContent(thishist->GetMaximumBin());
@@ -54,59 +68,57 @@ void plot_invariantMass () {
     if (new_ymax < background_hist->GetBinContent(background_hist->GetMaximumBin())) {
         new_ymax = background_hist->GetBinContent(background_hist->GetMaximumBin());
     }
+
     thishist = invariantMass;
-    int counts = (int)thishist->Integral();
-    cout << "Invariant mass integral = " << thishist->Integral() << endl;
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[0]);
     thishist->SetLineColor(mkcolors[0]);
-    thishist->Scale(1., "width");
-    thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMaximum(1.08 * new_ymax);    
     thishist->SetMinimum(2e-1);
     thishist->Draw("e1");
-    myMarkerText(0.22, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
+    if (display_counts) myMarkerText(0.22, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
 
     thishist = invariantMass_samesign;
-    counts = (int)thishist->Integral();
     thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(mkcolors[5]);
     thishist->SetLineColor(mkcolors[5]);
-    thishist->Scale(1., "width");
-    thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMaximum(1.08 * new_ymax);    
     thishist->SetMinimum(2e-1);
     thishist->Draw("same e1");
-    myMarkerText(0.22, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts)); 
+    if (display_counts) myMarkerText(0.22, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts_ss)); 
   
  
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
-    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
-    
+    ATLASLabel(0.595, 0.87, "Internal", kBlack);
+    myText (0.595, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.595, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.595, 0.68, kBlack, Form("#||{#it{#eta}} < 2.47, #it{p}_{T} > %i GeV", ptcut));
+    myText (0.595, 0.61, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
+    myText (0.595, 0.54, kBlack, "Likelihood tight electrons");
+   
     if(printStatementChecks) cout << "\nPlotting tight dielectrons invariant mass on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
 
     thishist = invariantMass_allsigns;
     canvasName = "electron_invariantMass_allsigns_" + triggers[useTrigger];
-    initialize_new_canvas(true);
+    initialize_new_canvas(false);
      
     thishist = invariantMass_allsigns;
-    counts = (int)thishist->Integral();
-    thishist->SetMarkerStyle(mkstyles[0]);
+    thishist->SetMarkerStyle(kDot);
+//    thishist->SetMarkerStyle(mkstyles[0]);
     thishist->SetMarkerColor(kBlack);
     thishist->SetLineColor(kBlack);
-    thishist->Scale(1., "width");
-    thishist->SetMaximum(2 * new_ymax);    
+    thishist->SetMaximum(1.08 * new_ymax);    
     thishist->SetMinimum(2e-1);
-    thishist->Draw("e1");
-    myMarkerText(0.22, 0.87, kBlack, mkstyles[0], Form("AS (%i counts)", counts));
+    thishist->Draw("hist");
+//    myMarkerText(0.22, 0.87, kBlack, mkstyles[0], Form("AS (%i counts)", counts));
 
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
-    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
+    ATLASLabel(0.2, 0.87, "Internal", kBlack);
+    myText (0.2, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
+    myText (0.2, 0.75, kBlack, "#sqrt{s} = 5.02 TeV");
+//    myText (0.2, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.2, 0.69, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
+    myText (0.2, 0.63, kBlack, "Likelihood tight electrons");
+    myText (0.2, 0.57, kBlack, Form("#||{#it{#eta}^{e}} < 2.47, #it{p}_{T}^{e} > %i GeV", ptcut));
 
     if(printStatementChecks) cout << "\nPlotting tight dielectrons (all signs) invariant mass on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
@@ -137,7 +149,7 @@ void plot_Z_ptspectrum () {
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("e1");
-    myMarkerText(0.25, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
+    if (display_counts) myMarkerText(0.25, 0.87, mkcolors[0], mkstyles[0], Form("OS (%i counts)", counts));
 
     thishist = Z_ptspectrum_samesign;
     counts = (int)thishist->Integral();
@@ -147,13 +159,15 @@ void plot_Z_ptspectrum () {
     thishist->Scale(1., "width");
     thishist->SetMaximum(2 * new_ymax);    
     thishist->Draw("same e1");
-    myMarkerText(0.25, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts));
+    if (display_counts) myMarkerText(0.25, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts));
     
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
-    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.64, 0.67, kBlack, "#left|#eta#right| < 1.37 or");
-    myText (0.64, 0.61, kBlack, "1.52 < #left|#eta#right| < 2.47");
+    ATLASLabel(0.6, 0.87, "Internal", kBlack);
+    myText (0.6, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
+    myText (0.6, 0.75, kBlack, "#sqrt{s} = 5.02 TeV");
+//    myText (0.6, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.6, 0.69, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
+    myText (0.6, 0.63, kBlack, "Likelihood tight electrons");
+    myText (0.6, 0.57, kBlack, Form("#||{#it{#eta}^{e}} < 2.47, #it{p}_{T}^{e} > %i GeV", ptcut));
     
     if(printStatementChecks) cout << "\nPlotting Z pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
@@ -333,7 +347,7 @@ void plot_j_over_Z () {
     thishist->Scale(1., "width");
     thishist->SetMinimum(0);
     thishist->Draw("hist e1");
-    myText (0.64, 0.49, kBlack, Form("(%i counts)", counts));
+    if (display_counts) myText (0.64, 0.49, kBlack, Form("(%i counts)", counts));
  
     ATLASLabel(0.64, 0.87, "Internal", kBlack);
     myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
@@ -348,9 +362,10 @@ void plot_j_over_Z () {
 /**
  * Main electron offline analysis histogram macro.
  */
-void electronOfflineAnalysisHist (int trig, char dataStream) {
+void electronOfflineAnalysisHist (int trig, char dataStream, bool dispcnts) {
 
     useTrigger = trig;
+    display_counts = dispcnts;
 
     isExpress = false;
     isMain = false;

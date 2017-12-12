@@ -37,4 +37,4 @@ root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (314170, 4.594566)'&
 
 wait
 
-root -b -q '../triggerAnalyses/triggers_pt_counts_hist.C ()'
+root -l -b -q '../triggerAnalyses/triggers_pt_counts_hist.C ()'
