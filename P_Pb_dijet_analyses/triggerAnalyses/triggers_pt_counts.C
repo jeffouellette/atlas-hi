@@ -6,6 +6,11 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     if (skipRun(thisRunNumber)) return;
 
     initialize(thisRunNumber, false);
+    vector<Trigger*> triggerSubList(0);
+    for (Trigger* trig : trigger_vec) {
+        if (useIonTrigs != trig->iontrigger) continue;
+        triggerSubList.push_back(trig);
+    }
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
     const int numhists = numtrigs * numetabins;
@@ -25,8 +30,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
-    for (Trigger* trig : trigger_vec) {
-        if (periodA != trig->iontrigger) continue;
+    for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }
@@ -37,7 +41,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
         index = trig->index;
         for (ebin = 0; ebin < numetabins; ebin++) {
             TString histname = Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, index, ebin);
-            harr[index + ebin*numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV/#it{c}#right];d^{2}#sigma/d#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
+            harr[index + ebin*numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
             harr[index + ebin*numtrigs]->Sumw2(); // instruct each histogram to propagate errors
         }
     }
@@ -55,8 +59,8 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
-        for (Trigger* trig : trigger_vec) {
-            if (periodA == !trig->iontrigger) continue; // Only consider ion triggers in p. A and non-ion triggers in p. B
+        for (Trigger* trig : triggerSubList) {
+//            if (useIonTrigs != trig->iontrigger) continue; // Only consider ion triggers in p. A and non-ion triggers in p. B
             index = trig->index;
             if (!m_trig_bool[index] || m_trig_prescale[index] <= 0) continue; // if the trigger wasn't fired (or was disabled in some way) just continue.
         

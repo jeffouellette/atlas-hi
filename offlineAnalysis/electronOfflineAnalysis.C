@@ -161,14 +161,14 @@ void initialize_histograms() {
     eta_phi_int_hist_no_pt_cut = new TH1F(Form("run_%i_eta_phi_int_hist_no_pt_cut", runNumber), ";#eta_{lab};dN/d#eta", 34, etabinshist);
     eta_phi_int_hist_no_pt_cut->Sumw2();
 
-    electron_ptspectrum = new TH1F (Form("run_%i_electron_ptspectrum_hist", runNumber), ";#it{p}_{T}^{electron} #left[GeV#right];Counts / GeV", 121, 19.5, 140.5);
+    electron_ptspectrum = new TH1F (Form("run_%i_electron_ptspectrum_hist", runNumber), ";#it{p}_{T}^{e} #left[GeV#right];Counts / GeV", 121, 19.5, 140.5);
     electron_ptspectrum->Sumw2();
 
-    invariantMass = new TH1F (Form("run_%i_invariantMass_hist", runNumber), ";#it{m}_{e^{+}e^{-}} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
+    invariantMass = new TH1F (Form("run_%i_invariantMass_hist", runNumber), ";#it{m}_{ee} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
     invariantMass->Sumw2();
-    invariantMass_samesign = new TH1F (Form("run_%i_invariantMass_samesign_hist", runNumber), ";#it{m}_{e^{+}e^{-}} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
+    invariantMass_samesign = new TH1F (Form("run_%i_invariantMass_samesign_hist", runNumber), ";#it{m}_{ee} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
     invariantMass_samesign->Sumw2();
-    invariantMass_allsigns = new TH1F (Form("run_%i_invariantMass_allsigns_hist", runNumber), ";#it{m}_{e^{+}e^{-}} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
+    invariantMass_allsigns = new TH1F (Form("run_%i_invariantMass_allsigns_hist", runNumber), ";#it{m}_{ee} #left[GeV#right];Counts / GeV", 81, 49.5, 130.5);
     invariantMass_allsigns->Sumw2();
 
     Z_ptspectrum = new TH1F(Form("run_%i_Z_ptspectrum_hist", runNumber), ";#it{p}_{T}^{Z} #left[GeV#right];Counts / GeV", 50, 0, 250);
@@ -182,7 +182,7 @@ void initialize_histograms() {
     for (int etabin = 0; etabin < numetabins; etabin++) {
         electron_ptspectrum_etabinned[etabin] = new TH1F (Form("run_%i_electron_ptspectrum_hist_etabin%i", runNumber, etabin), ";#it{p}_{T}^{electron} #left[GeV#right];d^{2}N/d#it{p}_{T}dy #left[(GeV)^{-1}#right]", 50, 20, 70);
         electron_ptspectrum_etabinned[etabin]->Sumw2();
-        invariantMass_etabinned[etabin] = new TH1F (Form("run_%i_invariantMass_hist_etabin%i", runNumber, etabin), ";#it{m}_{e^{+}e^{-}} #left[GeV#right];d^{2}N/d#it{M}_{ee}dy #left[(GeV)^{-1}#right]", 50, 50, 140);
+        invariantMass_etabinned[etabin] = new TH1F (Form("run_%i_invariantMass_hist_etabin%i", runNumber, etabin), ";#it{m}_{ee} #left[GeV#right];d^{2}N/d#it{M}_{ee}dy #left[(GeV)^{-1}#right]", 50, 50, 140);
         invariantMass_etabinned[etabin]->Sumw2();
     }
     for (int phibin = 0; phibin < numphibins; phibin++) {

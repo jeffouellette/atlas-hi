@@ -103,7 +103,7 @@ void triggers_pt_counts_hist() {
         for (int ebin = 0; ebin < numetabins; ebin++) {
             thishist = bestharr[ebin];
             int act_ebin = ebin;
-            if (thisRunNumber < 313500) act_ebin = numetabins-ebin-1; // Correct for period A kinematics (so bin 7 --> bin 0 if there are 8 bins, e.g.)
+            if (thisRunNumber < 313603) act_ebin = numetabins-ebin-1; // Correct for period A kinematics (so bin 7 --> bin 0 if there are 8 bins, e.g.)
             for (int pbin = 0; pbin < numpbins; pbin++) {
 
                 int best_hist_index = rnIndex + (best_bins[rnIndex + (pbin + act_ebin*numpbins)*numruns] + act_ebin*numtrigs)*numruns;
@@ -185,7 +185,7 @@ void triggers_pt_counts_hist() {
     }
 
     myText (0.19, 0.27, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}", total_luminosity*1000));
-    myText (0.19, 0.21, kBlack, Form("#sqrt{s_{NN}^{avg}} = 8.16 TeV"));
+    myText (0.19, 0.21, kBlack, Form("#sqrt{#it{s}} = 8.16 TeV"));
 
     string hname;
     if (numetabins > 1) {
@@ -267,7 +267,7 @@ void triggers_pt_counts_hist() {
         }
         myText (0.19, 0.33, kBlack, Form("%.1f < #it{#eta} < %.1f", etabins[ebin], etabins[ebin+1]));
         myText (0.19, 0.27, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}", total_luminosity*1000));
-        myText (0.19, 0.21, kBlack, Form("#sqrt{s_{NN}^{avg}} = 8.16 TeV"));
+        myText (0.19, 0.21, kBlack, Form("#sqrt{#it{s}} = 8.16 TeV"));
 
         if (etabins[ebin] < 0)  hname = Form("ptSpectra_combinedTriggers_n%ieta%i", (int)(-etabins[ebin]*100), (int)(TMath::Abs(etabins[ebin+1])*100));
         else hname = Form("ptSpectra_combinedTriggers_p%ieta%i", (int)(etabins[ebin]*100), (int)(etabins[ebin+1]*100));

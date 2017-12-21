@@ -25,11 +25,12 @@ void plot_electron_ptspectrum () {
 
     thishist->Draw("e1");
 
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
-    myText (0.64, 0.75, kBlack, Form("#sqrt{s} = 5.02 TeV"));
+//    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    ATLASLabel(0.6, 0.87, "Preliminary", kBlack);
+    myText (0.6, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
+    myText (0.6, 0.75, kBlack, Form("#sqrt{#it{s}} = 5.02 TeV"));
 //    myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.64, 0.68, kBlack, Form("#||{#it{#eta}^{e}} < 2.47"));
+    myText (0.6, 0.68, kBlack, Form("#||{#it{#eta}^{e}} < 2.47"));
     
     if(printStatementChecks) cout << "\nPlotting electron Pt spectrum on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
@@ -88,12 +89,13 @@ void plot_invariantMass () {
     if (display_counts) myMarkerText(0.22, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts_ss)); 
   
  
-    ATLASLabel(0.595, 0.87, "Internal", kBlack);
-    myText (0.595, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
-    myText (0.595, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
-    myText (0.595, 0.68, kBlack, Form("#||{#it{#eta}} < 2.47, #it{p}_{T} > %i GeV", ptcut));
-    myText (0.595, 0.61, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
-    myText (0.595, 0.54, kBlack, "Likelihood tight electrons");
+    myText (0.6, 0.89, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.595, 0.87, "Internal", kBlack);
+    myText (0.6, 0.82, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
+    myText (0.6, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
+    myText (0.6, 0.68, kBlack, Form("#||{#it{#eta}} < 2.47, #it{p}_{T} > %i GeV", ptcut));
+    myText (0.6, 0.61, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
+    myText (0.6, 0.54, kBlack, "Likelihood tight electrons");
    
     if(printStatementChecks) cout << "\nPlotting tight dielectrons invariant mass on canvas " << thiscanvas->GetName() << endl;
     thiscanvas->SaveAs((plotPath + canvasName + ".pdf").c_str());
@@ -112,9 +114,10 @@ void plot_invariantMass () {
     thishist->Draw("hist");
 //    myMarkerText(0.22, 0.87, kBlack, mkstyles[0], Form("AS (%i counts)", counts));
 
-    ATLASLabel(0.2, 0.87, "Internal", kBlack);
+//    myText (0.2, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    ATLASLabel(0.2, 0.87, "Preliminary", kBlack);
     myText (0.2, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
-    myText (0.2, 0.75, kBlack, "#sqrt{s} = 5.02 TeV");
+    myText (0.2, 0.75, kBlack, "#sqrt{#it{s}} = 5.02 TeV");
 //    myText (0.2, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     myText (0.2, 0.69, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
     myText (0.2, 0.63, kBlack, "Likelihood tight electrons");
@@ -161,9 +164,10 @@ void plot_Z_ptspectrum () {
     thishist->Draw("same e1");
     if (display_counts) myMarkerText(0.25, 0.78, mkcolors[5], mkstyles[0], Form("SS (%i counts)", counts));
     
-    ATLASLabel(0.6, 0.87, "Internal", kBlack);
+    myText (0.6, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.6, 0.87, "Internal", kBlack);
     myText (0.6, 0.81, kBlack, Form("2017 #it{pp}, %.2f fb^{-1}", total_lumi/1000));
-    myText (0.6, 0.75, kBlack, "#sqrt{s} = 5.02 TeV");
+    myText (0.6, 0.75, kBlack, "#sqrt{#it{s}} = 5.02 TeV");
 //    myText (0.6, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     myText (0.6, 0.69, kBlack, Form("HLT_%s", triggers[useTrigger].substr(8).c_str()));
     myText (0.6, 0.63, kBlack, "Likelihood tight electrons");
@@ -204,8 +208,9 @@ void plot_electron_ptspectrum_etabinned () {
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
     if(printStatementChecks) cout << "\nPlotting etabinned electrons inclusive Pt spectrum on canvas " << thiscanvas->GetName() << endl;
@@ -241,8 +246,9 @@ void plot_electron_ptspectrum_phibinned () {
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
     if(printStatementChecks) cout << "\nPlotting phi binned electrons inclusive Pt spectrum on canvas " << thiscanvas->GetName() << endl;
@@ -280,8 +286,9 @@ void plot_invariantMass_etabinned () {
         ylabel -= 0.08;
     }
 
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
 
     if(printStatementChecks) cout << "\nPlotting tight dielectrons invariant mass on canvas " << thiscanvas->GetName() << endl;
@@ -309,8 +316,9 @@ void plot_eta_phi (bool cutonpt) {
 
     this2hist->Scale(1., "width"); 
     this2hist->Draw("colz");
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     if (cutonpt) myText (0.64, 0.67, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
     else myText (0.64, 0.67, kBlack, Form("No #it{p}_{T} cut"));
@@ -325,8 +333,9 @@ void plot_eta_phi (bool cutonpt) {
     cout << "Eta integral = " << thishist->Integral() << endl;
 
     thishist->Draw("hist e1");
-    ATLASLabel(0.62, 0.42, "Internal", kBlack);
-    myText (0.62, 0.36, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.62, 0.42, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.62, 0.42, "Internal", kBlack);
+    myText (0.62, 0.36, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.62, 0.3, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     if (cutonpt) myText (0.62, 0.22, kBlack, Form("#it{p}_{T} > %i GeV", ptcut));
     else myText (0.62, 0.22, kBlack, Form("No #it{p}_{T} cut"));
@@ -349,8 +358,9 @@ void plot_j_over_Z () {
     thishist->Draw("hist e1");
     if (display_counts) myText (0.64, 0.49, kBlack, Form("(%i counts)", counts));
  
-    ATLASLabel(0.64, 0.87, "Internal", kBlack);
-    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV");
+    myText (0.64, 0.87, kBlack, Form("#it{#bf{ATLAS}} Preliminary"));
+    //ATLASLabel(0.64, 0.87, "Internal", kBlack);
+    myText (0.64, 0.81, kBlack, "2017 #it{pp}, #sqrt{#it{s}} = 5.02 TeV");
     myText (0.64, 0.75, kBlack, Form("#it{L}_{int} = %.1f pb^{-1}", total_lumi));
     myText (0.64, 0.67, kBlack, Form("#it{p}_{T}^{Z} > %i GeV/#it{c}", Z_ptcut));
     myText (0.64, 0.61, kBlack, Form("#it{p}_{T}^{jet} > %i GeV/#it{c}", j_ptcut));

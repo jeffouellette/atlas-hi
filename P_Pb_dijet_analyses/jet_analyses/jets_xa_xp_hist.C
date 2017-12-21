@@ -111,12 +111,13 @@ void jets_xa_xp_hist() {
     gPad->SetLogx();
     gPad->SetLogy();
     gPad->SetLogz();
-    xaxpcorr->Draw("colz");
+    xaxpcorr->Draw("col");
 
     xaxpcorr->GetXaxis()->SetTickLength(0.02);
     xaxpcorr->GetYaxis()->SetTickLength(0.02);
     xaxpcorr->GetZaxis()->SetTickLength(0.01);
 
+    myText (0.19, 0.31, kBlack, Form("z = d^{2}N/#it{L}_{int}d#it{x}_{a}d#it{x}_{p}"));
     myText (0.19, 0.25, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s_{NN}^{avg}} = 8.16 TeV", integrated_luminosity*1000));
     //myText (0.19, 0.47, kBlack, Form("#it{L}_{int} = %.1f nb^{-1}", integrated_luminosity*1000));
     
@@ -134,7 +135,7 @@ void jets_xa_xp_hist() {
     gPad->SetLogx();
     gPad->SetLogy();
     gPad->SetLogz();
-    fcalhist->Draw("colz");
+    fcalhist->Draw("col");
     fcalhist->GetXaxis()->SetTickLength(0.02);
     fcalhist->GetYaxis()->SetTickLength(0.02);
     fcalhist->GetZaxis()->SetTickLength(0.01);

@@ -54,7 +54,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
     for (Trigger* trig : trigger_vec) {
-        if (periodA != trig->iontrigger) continue;
+        if (useIonTrigs != trig->iontrigger) continue;
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
     }
@@ -64,7 +64,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
     Trigger* trig;
     bool takeEvent;
     int numticks = 0;
-    int index, pbin, etabin;
+    int index, pbin, ebin;
     double jpt, jeta;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
@@ -84,15 +84,15 @@ void triggers(const int thisRunNumber, // Run number identifier.
                 pbin = 0;
                 while (pbins[pbin] <= jpt) pbin++;
                 pbin--;
-                etabin = 0;
-                while (etabins[etabin] <= jeta) etabin++;
-                etabin--;
+                ebin = 0;
+                while (etabins[ebin] <= jeta) ebin++;
+                ebin--;
 
-                if (pbin == -1 || pbin >= numpbins || etabin == -1 || etabin >= numetabins) continue;
+                if (pbin == -1 || pbin >= numpbins || ebin == -1 || ebin >= numetabins) continue;
 
-                if (trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= pbins[pbin]) {
+                if (trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt[ebin] <= pbins[pbin]) {
                     hist_pt->Fill(((double)index)+0.5, ((double)pbin)+0.5);
-                    hist_eta->Fill(((double)index)+0.5, ((double)etabin)+0.5);
+                    hist_eta->Fill(((double)index)+0.5, ((double)ebin)+0.5);
                 }
             }
         }

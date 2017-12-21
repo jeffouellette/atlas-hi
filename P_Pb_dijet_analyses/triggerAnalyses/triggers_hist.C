@@ -1,6 +1,8 @@
 #include "../triggerUtil.C"
 void triggers_hist(int thisRunNumber) {
 
+    if (skipRun(thisRunNumber)) return;
+
     initialize(thisRunNumber, false, true);
     const double* trigbins = linspace(0, numtrigs+1, numtrigs+1);
     const double* ybins_pt = linspace(0, numpbins+1, numpbins+1);
@@ -8,7 +10,7 @@ void triggers_hist(int thisRunNumber) {
 
     double minval = 1e0;
     double maxval;
-    const double textangle = 36.;
+    const double textangle = 30.;
 
     TFile* thisfile = new TFile(Form("%srun_%i.root", trigPath.c_str(), thisRunNumber), "READ");
     TVectorD* lum_vec = (TVectorD*)thisfile->Get("lum_vec");
@@ -71,18 +73,18 @@ void triggers_hist(int thisRunNumber) {
 //    description->SetTextSize(0.036);
 //    description->DrawLatexNDC(0.48, 0.85, "#bf{#it{ATLAS}} #it{p-Pb}");
 //    description->SetTextSize(0.029);
-//    description->DrawLatexNDC(0.78, 0.84, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+//    description->DrawLatexNDC(0.78, 0.84, "#sqrt{#it{s}} = 8.16 TeV");
 //    description->DrawLatexNDC(0.78, 0.775, Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*luminosity)); 
 //    description->DrawLatexNDC(0.78, 0.72, Form("N^{total}_{counts} = %i", numticks)); 
-    myText (0.46, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s_{NN}^{avg}} = 8.16 TeV", 1000.*luminosity));
-//    myText (0.7, 0.9, kBlack, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+    myText (0.46, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{#it{s}} = 8.16 TeV", 1000.*luminosity));
+//    myText (0.7, 0.9, kBlack, "#sqrt{#it{s}} = 8.16 TeV");
 //    myText (0.7, 0.84, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}", 1000.*luminosity)); 
     myText (0.7, 0.84, kBlack, Form("N^{total}_{counts} = %i", numticks)); 
 
     c1->SaveAs(Form("%scounts/run_trig_%i.pdf", plotPath.c_str(), thisRunNumber));
     cout << Form("Triggers for run number %i finished", thisRunNumber) << endl;
 
-    TCanvas* c2 = new TCanvas("c2", "", 1000, 800);
+    TCanvas* c2 = new TCanvas("c2", "", 800, 600);
 
     maxbincontent = 0;
     for (Trigger* trig : trigger_vec) {
@@ -111,23 +113,24 @@ void triggers_hist(int thisRunNumber) {
     h2d->GetYaxis()->SetTickLength(0);
     h2d->GetYaxis()->SetTitleOffset(1.2);
     
-    h2d->GetZaxis()->SetLabelSize(0.02);
-    h2d->GetZaxis()->SetTickLength(0.01);
-    h2d->GetZaxis()->SetTitleOffset(0.6);
-    h2d->Draw("COLZ");
+//    h2d->GetZaxis()->SetLabelSize(0.02);
+//    h2d->GetZaxis()->SetTickLength(0.01);
+//    h2d->GetZaxis()->SetTitleOffset(0.6);
+    h2d->Draw("COL");
     TLine* lineDrawer = new TLine(); 
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
-        TLatex* text = description->DrawLatex(i+0.30, -0.2, trig->name.c_str());
-        text->SetTextAngle(30);
+        TLatex* text = description->DrawLatex(i, -0.1*((float)(numpbins)/(float)(numetabins)), trig->name.c_str());
+        text->SetTextAngle(textangle);
         text->Draw();
-        lineDrawer->DrawLine(i - (0.16*numtrigs)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.16*numtrigs)*((double)(numpbins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
+        lineDrawer->DrawLine(i - (0.01*600)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.01*800)*((double)(numpbins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
+//        lineDrawer->DrawLine(i - (0.16*numtrigs)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.16*numtrigs)*((double)(numpbins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
     }
-    description->SetTextSize(0.022);
+    description->SetTextSize(0.016);
     for (int pbin = 0; pbin < numpbins; pbin++) {
-        description->DrawLatex(-0.05, ybins_pt[pbin], Form("%i", (int)pbins[pbin]));
+        description->DrawLatex(-0.2, ybins_pt[pbin], Form("%i", (int)pbins[pbin]));
     }
-    description->DrawLatex(-0.05, ybins_pt[numpbins], Form("%i", (int)pbins[numpbins]));
+    description->DrawLatex(-0.2, ybins_pt[numpbins], Form("%i", (int)pbins[numpbins]));
     h2d->GetXaxis()->SetNdivisions(numtrigs+1);
     h2d->GetYaxis()->SetNdivisions(numpbins+1);
     c2->SetGrid();
@@ -145,11 +148,12 @@ void triggers_hist(int thisRunNumber) {
 //    box3.Draw();
 //    description->SetTextSize(0.029);
 //    description->SetTextAlign(22);
-//    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.76*(box3.GetY2()+box3.GetY1()), "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+//    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.76*(box3.GetY2()+box3.GetY1()), "#sqrt{#it{s}} = 8.16 TeV");
 //    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.5*(box3.GetY2()+box3.GetY1()), Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*luminosity)); 
 //    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.24*(box3.GetY2()+box3.GetY1()), Form("N^{total}_{counts} = %i", numticks)); 
-    myText (0.72, 0.32, kBlack, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    myText (0.72, 0.26, kBlack, Form("2016 #it{p-Pb}, %.0f nb^{-1}", 1000.*luminosity)); 
+    myText (0.72, 0.38, kBlack, Form("Run %i", thisRunNumber));
+    myText (0.72, 0.32, kBlack, Form("2016 #it{p-Pb}, %.0f nb^{-1}", 1000.*luminosity)); 
+    myText (0.72, 0.26, kBlack, "#sqrt{#it{s}} = 8.16 TeV");
     myText (0.72, 0.20, kBlack, Form("N^{total}_{counts} = %i", numticks)); 
 
     c2->SaveAs(Form("%scounts_binned_pt/run_trigpt_%i.pdf", plotPath.c_str(), thisRunNumber));
@@ -166,25 +170,26 @@ void triggers_hist(int thisRunNumber) {
     h2d->GetYaxis()->SetTickLength(0);
     h2d->GetYaxis()->SetTitleOffset(1.2);
     
-    h2d->GetZaxis()->SetLabelSize(0.02);
-    h2d->GetZaxis()->SetTickLength(0.01);
-    h2d->GetZaxis()->SetTitleOffset(0.6);
-    h2d->Draw("COLZ");
+//    h2d->GetZaxis()->SetLabelSize(0.02);
+//    h2d->GetZaxis()->SetTickLength(0.01);
+//    h2d->GetZaxis()->SetTitleOffset(0.6);
+    h2d->Draw("COL");
 //    TLine* lineDrawer = new TLine(); 
 
     description->SetTextSize(0.012);
     for (Trigger* trig : trigger_vec) {
         int i = trig->index;
         TLatex* text = description->DrawLatex(i, -0.1, trig->name.c_str());
-        text->SetTextAngle(30);
+        text->SetTextAngle(textangle);
         text->Draw();
-        lineDrawer->DrawLine(i - (0.16*numtrigs)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.16*numtrigs)*((double)(numetabins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
+        lineDrawer->DrawLine(i - (0.01*600)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.01*800)*((double)(numetabins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
+//        lineDrawer->DrawLine(i - (0.16*numtrigs)*TMath::Cos(textangle*TMath::Pi()/180.), 0 - (0.16*numtrigs)*((double)(numetabins)/(double)(numtrigs))*TMath::Sin(textangle*TMath::Pi()/180.), i, 0);
     }
     description->SetTextSize(0.028);
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        description->DrawLatex(-0.05, ybins_eta[etabin], Form("%.1f", etabins[etabin]));
+        description->DrawLatex(-0.2, ybins_eta[etabin], Form("%.1f", etabins[etabin]));
     }
-    description->DrawLatex(-0.05, ybins_eta[numetabins], Form("%.1f", etabins[numetabins]));
+    description->DrawLatex(-0.2, ybins_eta[numetabins], Form("%.1f", etabins[numetabins]));
     h2d->GetXaxis()->SetNdivisions(numtrigs+1);
     h2d->GetYaxis()->SetNdivisions(numetabins+1);
     c2->SetGrid();
@@ -202,11 +207,12 @@ void triggers_hist(int thisRunNumber) {
 //    box3.Draw();
 //    description->SetTextSize(0.029);
 //    description->SetTextAlign(22);
-//    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.76*(box3.GetY2()+box3.GetY1()), "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
+//    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.76*(box3.GetY2()+box3.GetY1()), "#sqrt{#it{s}} = 8.16 TeV");
 //    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.5*(box3.GetY2()+box3.GetY1()), Form("#int#it{L}d#it{t} = %.3f nb^{-1}", 1000.*luminosity)); 
 //    description->DrawLatex(0.5*(box3.GetX1()+box3.GetX2()), 0.24*(box3.GetY2()+box3.GetY1()), Form("N^{total}_{counts} = %i", numticks)); 
-    myText (0.72, 0.32, kBlack, "#sqrt{s_{NN}^{avg}} = 8.16 TeV");
-    myText (0.72, 0.26, kBlack, Form("2016 #it{p-Pb}, %.0f nb^{-1}", 1000.*luminosity)); 
+    myText (0.72, 0.38, kBlack, Form("Run %i", thisRunNumber));
+    myText (0.72, 0.32, kBlack, Form("2016 #it{p-Pb}, %.0f nb^{-1}", 1000.*luminosity)); 
+    myText (0.72, 0.26, kBlack, "#sqrt{#it{s}} = 8.16 TeV");
     myText (0.72, 0.20, kBlack, Form("N^{total}_{counts} = %i", numticks)); 
 
     c2->SaveAs(Form("%scounts_binned_eta/run_trigeta_%i.pdf", plotPath.c_str(), thisRunNumber));
