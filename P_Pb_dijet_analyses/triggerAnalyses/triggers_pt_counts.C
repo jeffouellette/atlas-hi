@@ -7,9 +7,10 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
 
     initialize(thisRunNumber, false);
     vector<Trigger*> triggerSubList(0);
+    vector<Trigger*> excludedTriggerSubList(0);
     for (Trigger* trig : trigger_vec) {
-        if (useIonTrigs != trig->iontrigger) continue;
-        triggerSubList.push_back(trig);
+        if (useIonTrigs != trig->iontrigger) excludedTriggerSubList.push_back(trig);
+        else triggerSubList.push_back(trig);
     }
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
@@ -33,6 +34,9 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &m_trig_prescale[trig->index]);
+    }
+    for (Trigger* trig : excludedTriggerSubList) {
+        tree->SetBranchStatus(0);
     }
 
     TH1F* harr[numhists];

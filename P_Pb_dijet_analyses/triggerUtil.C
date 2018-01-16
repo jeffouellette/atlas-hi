@@ -217,23 +217,23 @@ static bool skipRun (int rn) {
                 contains_rn = run_list_v3[i] == rn;
                 i++;
             }
-            return !contains_rn;
+            break;
         }
         case 2: {
             while (i < sizeof(run_list_v2)/sizeof(int) && !contains_rn) {
                 contains_rn = run_list_v2[i] == rn;
                 i++;
             }
-            return !contains_rn;
+            break;
         }
         default: {
             while (i < sizeof(run_list_v1)/sizeof(int) && !contains_rn) {
                 contains_rn = run_list_v1[i] == rn;
                 i++;
             }
-            return !contains_rn;
         } 
     }
+    return !contains_rn;
 }
 
 /**
@@ -377,7 +377,7 @@ void add_period_B_triggers() {
  */
 void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_triggers=false) {
 
-    if (debugStatements) cout << Form("Initializing trigger system for run %i...", rn);
+    if (debugStatements) cout << Form("Initializing trigger system for run %i...", rn) << endl;
 
     /** Store run number as a global variable **/
     runNumber = rn;
@@ -399,14 +399,15 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
         }
 
         string currLine;
-        int trigBlockLowerRunNumber = 313063;
-        int trigBlockUpperRunNumber = 313063;
+        int trigBlockLowerRunNumber, trigBlockUpperRunNumber = 0;
         while (getline(triggerListFile, currLine)) { // get each consecutive line
             //parse currline
             if (currLine[0] == 'R') {
                 trigBlockLowerRunNumber = trigBlockUpperRunNumber;
-                stringstream trigBlockToInt (currLine.substr(4));
-                trigBlockToInt >> trigBlockUpperRunNumber;
+                stringstream lowerTrigBlockToInt (currLine.substr(4, 6));
+                stringstream upperTrigBlockToInt (currLine.substr(11, 6));
+                lowerTrigBlockToInt >> trigBlockLowerRunNumber;
+                upperTrigBlockToInt >> trigBlockUpperRunNumber;
                 if (debugStatements) cout << "trigBlockLowerRunNumber = " << trigBlockLowerRunNumber << ", trigBlockUpperRunNumber = " << trigBlockUpperRunNumber << endl;
                 continue;
             }
@@ -436,7 +437,7 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
         triggerListFile.close();
     } // end v4+ trigger generation
 
-    cout << Form("\rTriggers initialized for run %i          ", rn) << endl;
+    cout << Form("Triggers initialized for run %i", rn) << endl;
     numtrigs = trigger_vec.size();
 
     if (debugStatements) cout << "Num trigs = " << numtrigs << endl;
