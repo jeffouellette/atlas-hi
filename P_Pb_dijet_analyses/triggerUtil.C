@@ -11,7 +11,7 @@ using namespace std;
 
 // ANALYSIS DATA SELECTION - SET THESE VARIABLES FOR DESIRED DATA SELECTION CHOICE
 const int useDataVersion = 4;
-const bool runPeriodA = false;
+const bool runPeriodA = true;
 const bool runPeriodB = true;
 const bool debugStatements = false;
 const bool considerDisabledTriggers = false;
@@ -39,7 +39,7 @@ const int trigthres[numetabins] = {10, 10, 10, 10, 10, 10, 10, 10};
 // Directory information
 const string workPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/";
 string rootPath = workPath + "rootFiles/";
-string dataPath = workPath + "rundata/";
+string dataPath = workPath + "data/";
 string plotPath = workPath + "Plots/";
 string ptPath = workPath + "rootFiles/pt_data/";
 string trigPath = workPath + "rootFiles/trig_data/";
@@ -272,6 +272,19 @@ double kinematic_lumi_vec[numpbins*numetabins];
 
 
 /**
+ * Returns true iff trigName is already a trigger in trigger_vec.
+ */
+bool in_trigger_vec(string trigName) {
+    for (Trigger trig : trigger_vec) {
+        if (trig.name == trigName) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
  * Adds triggers relevant to period A analysis.
  */
 void add_period_A_triggers() {
@@ -386,14 +399,15 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
         }
 
         string currLine;
-        int trigBlockLowerRunNumber = 0;
-        int trigBlockUpperRunNumber = 0;
+        int trigBlockLowerRunNumber = 313063;
+        int trigBlockUpperRunNumber = 313063;
         while (getline(triggerListFile, currLine)) { // get each consecutive line
             //parse currline
             if (currLine[0] == 'R') {
                 trigBlockLowerRunNumber = trigBlockUpperRunNumber;
                 stringstream trigBlockToInt (currLine.substr(4));
                 trigBlockToInt >> trigBlockUpperRunNumber;
+                if (debugStatements) cout << "trigBlockLowerRunNumber = " << trigBlockLowerRunNumber << ", trigBlockUpperRunNumber = " << trigBlockUpperRunNumber << endl;
                 continue;
             }
             int space1 = currLine.find(" ", 0);
@@ -414,8 +428,8 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
             float trigUetaFloat;
             trigUetaToFloat >> trigUetaFloat;
 
-            bool useThisTrigger = (trigBlockLowerRunNumber <= runNumber && runNumber < trigBlockUpperRunNumber) || (runNumber == 0);
-            if (!skip_irrelevant_triggers || useThisTrigger) {
+            bool useThisTrigger = (trigBlockLowerRunNumber <= runNumber && runNumber < trigBlockUpperRunNumber) || (runNumber == 0) || !skip_irrelevant_triggers;
+            if (useThisTrigger && !in_trigger_vec(trigName)) {
                 trigger_vec.push_back(new Trigger(trigName, trigPtFloat, trigLetaFloat, trigUetaFloat, trigName.find("ion")!=string::npos, useThisTrigger));
             }
         }
@@ -546,25 +560,6 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
         delete [] total_lumi_vec;
         delete [] best_bin_allruns_vec;
         delete [] numtrigfires;
-/*        rnIndex = 0;
-        for (TString filename : filenames) {
-            TFile* thisfile = new TFile(Form("%s%s", trigPath.c_str(), filename.Data()), "READ");
-    
-            int thisRunNumber = (int)(*((TVectorD*)thisfile->Get("run_vec")))[0];
-            if (skipRun(thisRunNumber)) { // Only allow desired runs to be considered
-                thisfile->Close();
-                continue;
-            }
-            for (int ebin = 0; ebin < numetabins; ebin++) {
-                int act_ebin = ebin;
-                if (thisRunNumber < 313500) act_ebin = numetabins - ebin - 1;
-                for (int pbin = 0; pbin < numpbins; pbin++) {
-                    int best_bin_allruns = best_bin_allruns_vec[rnIndex + (pbin + act_ebin*numpbins)*numruns];
-                    kinematic_lumi_vec[pbin + ebin*numpbins] += total_lumi_vec[best_bin_allruns + (pbin + act_ebin*numpbins)*numruns];
-                }
-            }
-            rnIndex++; 
-        }*/
         if (debugStatements) cout << Form("\rInitialization complete for run number %i", runNumber) << endl;  
 
         if (runNumber == 313063 && debugStatements) {
