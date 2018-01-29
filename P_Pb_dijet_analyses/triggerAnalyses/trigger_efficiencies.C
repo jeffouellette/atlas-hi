@@ -80,7 +80,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
         }
         if (!interestingBranch) {
             for (Trigger* trig : triggerSubList) {
-                if (branchName == trig->name || branchName == trig->name + "_prescale") {
+                if (branchName == trig->name) {
                     interestingBranch = true;
                     break;
                 }
@@ -93,13 +93,11 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
 
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
-    //bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
-    //float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
+    bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
     // Create arrays to store jet data for each event
     float j_pt[60] = {};
     float j_eta[60] = {};
     int njet = 0;
-
     float hlt_j_pt[60] = {};
     float hlt_j_eta[60] = {};
     int hlt_njet = 0;
@@ -108,20 +106,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
-    string hlt_j_pt_name, hlt_j_eta_name, hlt_njet_name;
     if (thisRunNumber <= 313603) {
-/*        hlt_j_pt_name = "hlt_ion_j_pt";
-        hlt_j_eta_name = "hlt_ion_j_eta";
-        hlt_njet_name = "hlt_ion_njet";
-    } else {
-        hlt_j_pt_name = "hlt_j_pt";
-        hlt_j_eta_name = "hlt_j_eta";
-        hlt_njet_name = "hlt_njet";
-    }
-    tree->SetBranchAddress(hlt_j_pt_name.c_str(), hlt_j_pt);
-    tree->SetBranchAddress(hlt_j_eta_name.c_str(), hlt_j_eta);
-    tree->SetBranchAddress(hlt_njet_name.c_str(), &hlt_njet);*/
-
         tree->SetBranchAddress("hlt_ion_j_pt", hlt_j_pt);
         tree->SetBranchAddress("hlt_ion_j_eta", hlt_j_eta);
         tree->SetBranchAddress("hlt_ion_njet", &hlt_njet);
@@ -131,8 +116,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
         tree->SetBranchAddress("hlt_njet", &hlt_njet);
     }
     for (Trigger* trig : triggerSubList) {
-        tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
-        tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
+        tree->SetBranchAddress(Form("%s", trig->name.c_str()), &m_trig_bool[trig->index]);
     }
 
     int pbin, ebin, index, referenceIndex;
@@ -141,11 +125,11 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
         index = trig->index;
         // standard trigger firings
         TString histname = Form("%s_efficiency_run%i", trig->name.c_str(), thisRunNumber);
-        harr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];#epsilon", numpbins, pbins);
+        harr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
         harr[index]->Sumw2(); // instruct each histogram to propagate errors
         // reference trigger firings
         histname = Form("%s_reference_run%i", trig->name.c_str(), thisRunNumber);
-        harr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];#epsilon", numpbins, pbins);
+        harr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
         harr[index+numtrigs]->Sumw2();
     }
 
@@ -179,29 +163,10 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
                     max_hlt_j_pt = (double)hlt_j_pt[j];
                 }
             }
-            if (trig->referenceTrigger->m_trig_bool) { // only consider events where the reference trigger fired
-                //p1 = (double)(m_trig_prescale[index]);
-                //p2 = (double)(m_trig_prescale[referenceIndex]);
-                //p_adj = 1./(1./p1 + 1./p2 - 1./(p1*p2));
+            if (m_trig_bool[referenceIndex]) { // only consider events where the reference trigger fired
                 harr[index+numtrigs]->Fill(max_j_pt); // fill everytime that the reference trigger fired
-     //           if (m_trig_bool[index]) harr[index]->Fill(max_j_pt); // fill if the trigger DID fire
                 if (max_hlt_j_pt >= trig->min_pt[0]) harr[index]->Fill(max_j_pt); // fill if the trigger fired too
             }
-
-            /*if (!m_trig_bool[referenceIndex]) continue;
-            //p2 = (double)(m_trig_prescale[referenceIndex]);
-            p2 = 1.;
-            if (!m_trig_bool[index]) {
-                harr[index+numtrigs]->Fill(jpt, p2);
-            }
-            else {
-                p1 = (double)(m_trig_prescale[index]);
-                p_adj = 1./(1./p1 + 1./p2 - 1./(p1*p2));
-                p1 = p_adj;
-                p2 = p_adj;
-                harr[index]->Fill(jpt, p1);
-                harr[index+numtrigs]->Fill(jpt, p2);
-            }*/
         }       
     }
     if (debugStatements) cout << "Finished event loop for run " << thisRunNumber << endl;

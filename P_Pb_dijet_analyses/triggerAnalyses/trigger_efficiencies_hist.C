@@ -13,11 +13,11 @@ void trigger_efficiencies_hist() {
         index = trig->index;
         // standard trigger firings
         TString histname = Form("%s_efficiency", trig->name.c_str());
-        harr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];#epsilon", numpbins, pbins);
+        harr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
         harr[index]->Sumw2(); // instruct each histogram to propagate errors
         // reference trigger firings
         histname = Form("%s_reference", trig->name.c_str());
-        harr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];#epsilon", numpbins, pbins);
+        harr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
         harr[index+numtrigs]->Sumw2();
     }
 

@@ -48,6 +48,7 @@ const int run_list_v1[27] = {313063, 313067, 313100, 313107, 313136, 313187, 313
 const int run_list_v2[14] = {313063, 313107, 313136, 313259, 313603, 313630, 313688, 313695, 313878, 313929, 314014, 314105, 314157, 314170};
 const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
 const int run_list_v5[23]= {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014/*, 314077, 314112*/, 314157, 314170};
+const int run_list_v6[13] = {313063, 313067, 313107, 313187, 313259, 313285, 313295, 313435, 313574, 313630, 313695, 313984, 313170};
 
 // Useful constants
 const float Z = 82;   // value of Z for Pb
@@ -151,9 +152,6 @@ class Trigger {
     bool isBootstrapped;
     Trigger* referenceTrigger;
 
-    bool m_trig_bool;
-    float m_trig_prescale;
-
     Trigger(string, int, double, double, bool, int, int);
     Trigger(string, int, double, double, bool, bool, int, int);
     Trigger(const Trigger* t);
@@ -236,7 +234,11 @@ static bool skipRun (int rn) {
     int i = 0;
     switch (useDataVersion) {
         case 6: {
-            return !(rn == 313063 || rn == 313067 || rn == 313187 || rn == 313259 || rn == 313285 || rn == 313695 || rn == 313984 || rn == 314170);
+            while (i < sizeof(run_list_v6)/sizeof(int) && !contains_rn) {
+                contains_rn = run_list_v6[i] == rn;
+                i++;
+            }
+            break;
         }
         case 5: {
             while (i < sizeof(run_list_v5)/sizeof(int) && !contains_rn) {
@@ -275,7 +277,13 @@ static bool skipRun (int rn) {
 static std::vector<int>* getRunNumbers() {
     std::vector<int>* rns = new std::vector<int>(0);
     switch (useDataVersion) {
-        case 6: case 5: {
+        case 6: {
+            for (int i = 0; i < sizeof(run_list_v6)/sizeof(int); i++) {
+                rns->push_back(run_list_v6[i]);
+            }
+            break;
+        }
+        case 5: {
             for (int i = 0; i < sizeof(run_list_v5)/sizeof(int); i++) {
                 rns->push_back(run_list_v5[i]);
             }
@@ -412,20 +420,24 @@ void add_period_B_triggers() {
 
 /**
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
- * To add new triggers, simply create a line like the one below with the trigger name, the momentum threshold, and its pseudorapidity interval.
+ * Also (optionally) initializes a trigger selection scheme for each kinematic bin in a given run.
+ * This includes calculating the relevant luminosity based on the selection method:
+ *    Lumi (run #, pt, eta) = Lumi (Trigger (pt, eta), run #)
+ * where Trigger (pt, eta) is a function defining the selection scheme.
  */
 void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTriggers=false) {
 
     if (debugStatements) cout << Form("Initializing trigger system for run %i...", rn) << endl;
 
-    /** Store run number as a global variable **/
+    /**** Store run number as a global variable ****/
     runNumber = rn;
     if (rn < 313500) periodA = true;
     else periodA = false;
     if (rn < 313629) useIonTrigs = true;
     else useIonTrigs = false;
 
-    /** Create an array of triggers **/
+    /**** Create an array of triggers ****/
+
     if (useDataVersion <= 3) {
         if (!skipIrrelevantTriggers || periodA) add_period_A_triggers();
         if (!skipIrrelevantTriggers || !periodA) add_period_B_triggers();
@@ -453,16 +465,6 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
         while (triggerListFile) {
 
             triggerListFile >> trigName;
-
-            /*if (trigName == "Run") {
-                triggerListFile >> trigBlockLowerRunNumber;
-                triggerListFile >> trigBlockUpperRunNumber;
-                if (debugStatements) cout << "trigBlockLowerRunNumber = " << trigBlockLowerRunNumber << ", trigBlockUpperRunNumber = " << trigBlockUpperRunNumber << endl;
-                continue;
-            }
-            bool isPhysicsTrigger = (trigBlockLowerRunNumber <= runNumber && runNumber < trigBlockUpperRunNumber) || (runNumber == 0);
-            bool useThisTrigger = isPhysicsTrigger || !skipIrrelevantTriggers;*/
-
             triggerListFile >> trigPtFloat;
             triggerListFile >> trigLetaFloat;
             triggerListFile >> trigUetaFloat;
@@ -504,58 +506,67 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
         triggerListFile.close();
     } // end v4+ trigger generation
 
-    cout << Form("Triggers initialized for run %i", rn) << endl;
-    numtrigs = trigger_vec.size();
-
-    if (debugStatements) cout << "Num trigs = " << numtrigs << endl;
+   
+    /**** Reset directory information for correct versioning ****/ 
+    {
+        string versionString;
+        versionString = "v" + to_string(useDataVersion) + "/";
+        rootPath = rootPath + versionString;
+        dataPath = dataPath + versionString;
+        plotPath = plotPath + versionString;
+        ptPath = rootPath + "pt_data/";
+        trigPath = rootPath + "trig_data/";
+        effPath = rootPath + "eff_data/";
+    }
     
-    string versionString;
-    versionString = "v" + to_string(useDataVersion) + "/";
-    rootPath = rootPath + versionString;
-    dataPath = dataPath + versionString;
-    plotPath = plotPath + versionString;
-    ptPath = rootPath + "pt_data/";
-    trigPath = rootPath + "trig_data/";
-    effPath = rootPath + "eff_data/";
+    numtrigs = trigger_vec.size();
+    
+    /**** Debugging statements ****/
+    if (debugStatements) {
+        cout << "Triggers initialized for run " << rn << endl;
+        cout << "Num trigs = " << numtrigs << endl;
+        cout << "Trigger pt bin path is " << trigPath << endl;    
+        cout << "Saving plots to " << plotPath << endl;
+    }
 
-    if (debugStatements) cout << "Trigger pt bin path is " << trigPath << endl;    
-    if (debugStatements) cout << "Saving plots to " << plotPath << endl;
-
-    /** Assign indices for tree branching. **/
-
+    /**** Assign indices for tree branching. ****/
     for (int i = 0; i < numtrigs; i++) {
         trigger_vec[i]->index = i;
     }
 
 
-    /** Instantiate the pseudorapidity interval trigger vectors if required. **/
-    
+    /**** Instantiate the pseudorapidity interval trigger vectors if required. ****/
     if (initTriggerMaps) {
 
-        if (debugStatements) cout << "Starting loop over triggers...";
-    
-        // Find all trigger analysis files.
-        TSystemDirectory dir(trigPath.c_str(), trigPath.c_str());
-        TList* files = dir.GetListOfFiles();
+        if (debugStatements) cout << "Generating triggering scheme..." << endl;
+
+        /**** Find all trigger analysis files ****/
         std::vector<TString> filenames;
-        if (files) {
-            TSystemFile *file;
-            TString fname;
-            TIter next(files);
-            while ((file=(TSystemFile*)next())) {
-                fname = file->GetName();
-                if (!file->IsDirectory() && fname.EndsWith(".root")) {
-                    filenames.push_back(fname);
-                    if (debugStatements && rn == 313063) cout << "Found " << fname.Data() << endl;
+        {
+            TSystemDirectory dir(trigPath.c_str(), trigPath.c_str());
+            TList* files = dir.GetListOfFiles();
+            std::vector<TString> filenames;
+            if (files) {
+                TSystemFile *file;
+                TString fname;
+                TIter next(files);
+                while ((file=(TSystemFile*)next())) {
+                    fname = file->GetName();
+                    if (!file->IsDirectory() && fname.EndsWith(".root")) {
+                        filenames.push_back(fname);
+                        if (debugStatements && rn == 313063) cout << "Found " << fname.Data() << endl;
+                    }
                 }
             }
         }
+        /**** End find all trigger analysis files ****/
 
-        // First combine trigger data from all runs into one histogram for each trigger. If the trigger never fired in a run, assume it wasn't on so don't add its luminosity.
+
+        /**** Local variable declarations ****/
         TH1D* thishist;
         int rnIndex = 0;
         const int numruns = filenames.size();
-        double* total_lumi_vec = new double[numtrigs*numpbins*numetabins];
+        double* total_lumi_vec = new double[numtrigs*numpbins*numetabins]; // luminosity a particular trigger sees at a given pbin, etabin
         int* numtrigfires = new int[numpbins * numetabins];
         int* best_bin_allruns_vec = new int[numtrigs * numpbins * numetabins];
         TVectorD* numTrigFirings;
@@ -565,7 +576,55 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
             if (n < numpbins*numetabins) numtrigfires[n] = 0;
             if (n < numtrigs*numpbins*numetabins) best_bin_allruns_vec[n] = 0;
         }
+        /**** End local variable declarations ****/
 
+
+        /**** Load trigger prescale corrected luminosity information ****/
+        {
+            string luminositiesTxtName = workPath + "luminosities.txt";
+            ifstream luminositiesTxt (luminositiesTxtName.c_str());
+
+            string thisTriggerName, thisLumiUnits;
+            int thisRN;
+            double thisLumi, thisConversionFactor;
+            Trigger* thisTrigger = NULL;
+            getline(luminositiesTxt, thisTriggerName); // skip the first line (layout of table)
+            while (luminositiesTxt) {
+                luminositiesTxt >> thisTriggerName;
+                luminositiesTxt >> thisLumiUnits;
+                for (Trigger* t : trigger_vec) {
+                    if (t->name == thisTriggerName) {
+                        thisTrigger = t;
+                        break;
+                    }
+                }
+                if (thisTrigger == NULL) {
+                    if (debugStatements) cout << "Warning: " << thisTriggerName << " is not a registered trigger! Ignoring." << endl;
+                    continue;
+                }
+                if (thisLumiUnits == "ub") thisConversionFactor = 0.001; // ub^-1 to nb^-1
+                else if (thisLumiUnits == "mb") thisConversionFactor = 0.000001; // mb^-1 to nb^-1
+                else thisConversionFactor = 1; // else assume nb^-1 to nb^-1
+                for (int rn_itr = 0; rn_itr < 30; rn_itr++) {
+                    luminositiesTxt >> thisRN;
+                    luminositiesTxt >> thisLumi;
+                    if (!skipRun(thisRN)) {
+                        for (int pbin = 0; pbin < numpbins; pbin++) {
+                            for (int etabin = 0; etabin < numetabins; etabin++) {
+                                if (thisTrigger->lower_eta <= etabins[etabin] && etabins[etabin+1] <= thisTrigger->upper_eta) {
+                                    total_lumi_vec[(thisTrigger->index) + (pbin + etabin*numpbins)*numtrigs] += thisLumi * thisConversionFactor;
+                                }
+                            }
+                        }
+                    }
+                }
+                thisTrigger = NULL;
+            }
+        }
+        /**** End load trigger prescale corrected luminosity information ****/
+
+
+        // Combine trigger data from all runs into one histogram for each trigger. If the trigger never fired in a run, assume it wasn't on so don't add its luminosity.
         for (TString filename : filenames) {
             TFile* thisfile = new TFile(Form("%s%s", trigPath.c_str(), filename.Data()), "READ");
     
@@ -630,10 +689,10 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
         delete [] total_lumi_vec;
         delete [] best_bin_allruns_vec;
         delete [] numtrigfires;
-        if (debugStatements) cout << Form("\rInitialization complete for run number %i", runNumber) << endl;  
+        if (debugStatements) cout << "Triggering scheme completed for run number " << runNumber << endl;  
 
         if (runNumber == 313063 && debugStatements) {
-            cout << Form("Example trigger assignment (run %i):", runNumber) << endl << endl;
+            cout << "Example trigger assignment (run " << runNumber << "):" << endl << endl;
             for (int ebin = 0; ebin < numetabins; ebin++) {
                 for (int pbin = 0; pbin < numpbins; pbin++) {
                     cout << Form("ebin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%i,\tcounts=%i", ebin, pbin, etabins[ebin], etabins[ebin+1], (int)pbins[pbin], (int)pbins[pbin+1], best_bins[pbin + ebin*numpbins], numtrigfires[pbin + ebin*numpbins]) << endl;
