@@ -12,7 +12,36 @@ void triggers(const int thisRunNumber, // Run number identifier.
 
     initialize(thisRunNumber, false, true);
 
-    TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
+    //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
+    TTree* tree = NULL;
+    TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
+    TList* files = dir.GetListOfFiles();
+    if (files) {
+        TSystemFile *file;
+        TString fname;
+        TIter next(files);
+        
+        while ((file=(TSystemFile*)next())) {
+            fname = file->GetName();
+            if (!file->IsDirectory() && fname.EndsWith(".root")) {
+                TFile* thisfile = new TFile(dataPath+fname, "READ");
+                TTree* thistree = (TTree*)thisfile->Get("tree");
+                int rn;
+                thistree->SetBranchAddress("runNumber", &rn);
+                thistree->GetEvent(0);
+                if (rn == thisRunNumber) {
+                    tree = thistree;
+                    break;
+                }
+                thisfile->Close();
+                thisfile->Delete();
+            }
+        }
+    }
+    if (tree == NULL) {
+        cout << "TTree not obtained for given run number. Quitting." << endl;
+        return;
+    }
 
     const double* trigbins = linspace(0, numtrigs+1, numtrigs+1);
     const double* ybins_pt = linspace(0, numpbins+1, numpbins+1);
@@ -66,7 +95,7 @@ void triggers(const int thisRunNumber, // Run number identifier.
     int numticks = 0;
     int index, pbin, ebin;
     double jpt, jeta;
-    for (int i = 0; i < numentries; i++) {
+    for (long long i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
         for (Trigger* trig : trigger_vec) { // Just find if the trigger was fired

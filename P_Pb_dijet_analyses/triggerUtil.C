@@ -10,7 +10,7 @@ using namespace std;
 /** Variable declarations **/
 
 // ANALYSIS DATA SELECTION - SET THESE VARIABLES FOR DESIRED DATA SELECTION CHOICE
-const int useDataVersion = 4;
+const int useDataVersion = 6;
 const bool runPeriodA = true;
 const bool runPeriodB = true;
 const bool debugStatements = false;
@@ -43,9 +43,11 @@ string dataPath = workPath + "data/";
 string plotPath = workPath + "Plots/";
 string ptPath = workPath + "rootFiles/pt_data/";
 string trigPath = workPath + "rootFiles/trig_data/";
+string effPath = workPath + "rootFiles/eff_data/";
 const int run_list_v1[27] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314112, 314157, 314170};
 const int run_list_v2[14] = {313063, 313107, 313136, 313259, 313603, 313630, 313688, 313695, 313878, 313929, 314014, 314105, 314157, 314170};
 const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
+const int run_list_v5[23]= {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014/*, 314077, 314112*/, 314157, 314170};
 
 // Useful constants
 const float Z = 82;   // value of Z for Pb
@@ -137,17 +139,23 @@ class Trigger {
     string name;
 
     int* min_pt;
-    //int min_pt;
     int max_pt;
     double lower_eta;    
     double upper_eta;
+    int lowerRunNumber;
+    int upperRunNumber;
     int index;
     bool enabled;
     bool iontrigger;
     bool disabled;
+    bool isBootstrapped;
+    Trigger* referenceTrigger;
 
-    Trigger(string, int, double, double, bool);
-    Trigger(string, int, double, double, bool, bool);
+    bool m_trig_bool;
+    float m_trig_prescale;
+
+    Trigger(string, int, double, double, bool, int, int);
+    Trigger(string, int, double, double, bool, bool, int, int);
     Trigger(const Trigger* t);
 
 };
@@ -156,38 +164,48 @@ class Trigger {
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool thisiontrigger) {
+Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool thisiontrigger, int lRN=0, int uRN=INT_MAX) {
     name = thisname;
     //min_pt = thismin_pt + trigthres;
     min_pt = new int[numetabins];
     for (int ebin = 0; ebin < numetabins; ebin++) {
-        min_pt[ebin] = thismin_pt + trigthres[ebin];
+        if (useDataVersion >= 5) min_pt[ebin] = thismin_pt;
+        else min_pt[ebin] = thismin_pt + trigthres[ebin];
     }
     lower_eta = etal;
     upper_eta = etau;
+    lowerRunNumber = lRN;
+    upperRunNumber = uRN;
     max_pt = 0;
     index = 0;
     iontrigger = thisiontrigger;
     disabled = false;
+    isBootstrapped = false;
+    referenceTrigger = NULL;
 }
 
 /**
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool thisiontrigger, bool thisdisabled) {
+Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool thisiontrigger, bool thisdisabled, int lRN=0, int uRN=INT_MAX) {
     name = thisname;
     //min_pt = thismin_pt + trigthres;
     min_pt = new int[numetabins];
     for (int ebin = 0; ebin < numetabins; ebin++) {
-        min_pt[ebin] = thismin_pt + trigthres[ebin];
+        if (useDataVersion >= 5) min_pt[ebin] = thismin_pt;
+        else min_pt[ebin] = thismin_pt + trigthres[ebin];
     }
     lower_eta = etal;
     upper_eta = etau;
+    lowerRunNumber = lRN;
+    upperRunNumber = uRN;
     max_pt = 0;
     index = 0;
     iontrigger = thisiontrigger;
     disabled = thisdisabled && !considerDisabledTriggers;
+    isBootstrapped = false;
+    referenceTrigger = NULL;
 }
 
 /**
@@ -199,8 +217,13 @@ Trigger::Trigger(const Trigger* t) {
     max_pt = t->max_pt;
     lower_eta = t->lower_eta;
     upper_eta = t->upper_eta;
+    lowerRunNumber = t->lowerRunNumber;
+    upperRunNumber = t->upperRunNumber;
     index = t->index;
     iontrigger = t->iontrigger;
+    disabled = t->disabled;
+    isBootstrapped = t->isBootstrapped;
+    referenceTrigger = t->referenceTrigger;
 }
 
 /**
@@ -212,7 +235,17 @@ static bool skipRun (int rn) {
     bool contains_rn = false;
     int i = 0;
     switch (useDataVersion) {
-        case 3: {
+        case 6: {
+            return !(rn == 313063 || rn == 313067 || rn == 313187 || rn == 313259 || rn == 313285 || rn == 313695 || rn == 313984 || rn == 314170);
+        }
+        case 5: {
+            while (i < sizeof(run_list_v5)/sizeof(int) && !contains_rn) {
+                contains_rn = run_list_v5[i] == rn;
+                i++;
+            }
+            break;
+        }
+        case 4: case 3: {
             while (i < sizeof(run_list_v3)/sizeof(int) && !contains_rn) {
                 contains_rn = run_list_v3[i] == rn;
                 i++;
@@ -242,7 +275,13 @@ static bool skipRun (int rn) {
 static std::vector<int>* getRunNumbers() {
     std::vector<int>* rns = new std::vector<int>(0);
     switch (useDataVersion) {
-        case 3: {
+        case 6: case 5: {
+            for (int i = 0; i < sizeof(run_list_v5)/sizeof(int); i++) {
+                rns->push_back(run_list_v5[i]);
+            }
+            break;
+        }
+        case 4: case 3: {
             for (int i = 0; i < sizeof(run_list_v3)/sizeof(int); i++) {
                 rns->push_back(run_list_v3[i]);
             }
@@ -375,7 +414,7 @@ void add_period_B_triggers() {
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * To add new triggers, simply create a line like the one below with the trigger name, the momentum threshold, and its pseudorapidity interval.
  */
-void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_triggers=false) {
+void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTriggers=false) {
 
     if (debugStatements) cout << Form("Initializing trigger system for run %i...", rn) << endl;
 
@@ -388,52 +427,80 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
 
     /** Create an array of triggers **/
     if (useDataVersion <= 3) {
-        if (!skip_irrelevant_triggers || periodA) add_period_A_triggers();
-        if (!skip_irrelevant_triggers || !periodA) add_period_B_triggers();
+        if (!skipIrrelevantTriggers || periodA) add_period_A_triggers();
+        if (!skipIrrelevantTriggers || !periodA) add_period_B_triggers();
     } // end v1, v2, v3 trigger generation
     else {
-        ifstream triggerListFile ((workPath + "triggerList.txt").c_str());
+        string triggerListTxt;
+        if (useDataVersion == 4) triggerListTxt = workPath + "triggerList.txt";
+        else triggerListTxt = workPath + "fullTriggerList.txt";
+
+        ifstream triggerListFile (triggerListTxt.c_str());
         if (!triggerListFile.is_open()) {
             cout << "\rtriggerUtil::initialize: Cannot find triggerList.txt!" << endl;
             throw runtime_error("ifstream file not found");
         }
 
-        string currLine;
-        int trigBlockLowerRunNumber, trigBlockUpperRunNumber = 0;
-        while (getline(triggerListFile, currLine)) { // get each consecutive line
-            //parse currline
-            if (currLine[0] == 'R') {
-                trigBlockLowerRunNumber = trigBlockUpperRunNumber;
-                stringstream lowerTrigBlockToInt (currLine.substr(4, 6));
-                stringstream upperTrigBlockToInt (currLine.substr(11, 6));
-                lowerTrigBlockToInt >> trigBlockLowerRunNumber;
-                upperTrigBlockToInt >> trigBlockUpperRunNumber;
+        string trigName, referenceTriggerName;
+        float trigPtFloat, trigLetaFloat, trigUetaFloat; 
+        int trigLowerRunNumber, trigUpperRunNumber = 0;
+
+        Trigger* minbiasTrigger = new Trigger("HLT_mb_mbts_L1MBTS_1", 0, -4.9, 4.9, false, 0, INT_MAX);
+        minbiasTrigger->referenceTrigger = minbiasTrigger;
+        minbiasTrigger->disabled = false;
+        trigger_vec.push_back(minbiasTrigger);
+
+        while (triggerListFile) {
+
+            triggerListFile >> trigName;
+
+            /*if (trigName == "Run") {
+                triggerListFile >> trigBlockLowerRunNumber;
+                triggerListFile >> trigBlockUpperRunNumber;
                 if (debugStatements) cout << "trigBlockLowerRunNumber = " << trigBlockLowerRunNumber << ", trigBlockUpperRunNumber = " << trigBlockUpperRunNumber << endl;
                 continue;
             }
-            int space1 = currLine.find(" ", 0);
-            int space2 = currLine.find(" ", space1 + 1);
-            int space3 = currLine.find(" ", space2 + 1);
+            bool isPhysicsTrigger = (trigBlockLowerRunNumber <= runNumber && runNumber < trigBlockUpperRunNumber) || (runNumber == 0);
+            bool useThisTrigger = isPhysicsTrigger || !skipIrrelevantTriggers;*/
 
-            string trigName = currLine.substr(0, space1);
+            triggerListFile >> trigPtFloat;
+            triggerListFile >> trigLetaFloat;
+            triggerListFile >> trigUetaFloat;
+            triggerListFile >> referenceTriggerName;
+            triggerListFile >> trigLowerRunNumber;
+            triggerListFile >> trigUpperRunNumber;
+            
+            bool isPhysicsTrigger = (trigLowerRunNumber <= runNumber && runNumber < trigUpperRunNumber) || (runNumber == 0);
+            bool useThisTrigger = isPhysicsTrigger || !skipIrrelevantTriggers;
 
-            stringstream trigPtToFloat (currLine.substr(space1 + 1, space2-space1-1));
-            float trigPtFloat;
-            trigPtToFloat >> trigPtFloat;
+            if (!useThisTrigger) continue;
 
-            stringstream trigLetaToFloat (currLine.substr(space2 + 1, space3-space2-1));
-            float trigLetaFloat;
-            trigLetaToFloat >> trigLetaFloat;
+            // If we want to use the trigger for this run, then
+            // iontrigger = (whether ion is in the name of the trigger)
+            // disabled = (if this trigger is not an active physics trigger for the run)
+            if (!in_trigger_vec(trigName)) {
+                Trigger* newTrig = new Trigger(trigName, trigPtFloat, trigLetaFloat, trigUetaFloat, trigName.find("ion")!=string::npos, !isPhysicsTrigger, trigLowerRunNumber, trigUpperRunNumber);
+                trigger_vec.push_back(newTrig);
 
-            stringstream trigUetaToFloat (currLine.substr(space3 + 1, currLine.length()-space3-1));
-            float trigUetaFloat;
-            trigUetaToFloat >> trigUetaFloat;
-
-            bool useThisTrigger = (trigBlockLowerRunNumber <= runNumber && runNumber < trigBlockUpperRunNumber) || (runNumber == 0) || !skip_irrelevant_triggers;
-            if (useThisTrigger && !in_trigger_vec(trigName)) {
-                trigger_vec.push_back(new Trigger(trigName, trigPtFloat, trigLetaFloat, trigUetaFloat, trigName.find("ion")!=string::npos, useThisTrigger));
+                if (referenceTriggerName == "MINBIAS") {
+                    newTrig->referenceTrigger = minbiasTrigger;
+                }
+                else {
+                    for (Trigger* trig : trigger_vec) {
+                        if (trig->name == referenceTriggerName) {
+                            newTrig->referenceTrigger = trig;
+                            break;
+                        }
+                    }
+                }
             }
         }
+        if (debugStatements) {
+            for (Trigger* trig : trigger_vec) {
+                cout << "Trig name:\t" << trig->name << "\tReference trig:\t" << trig->referenceTrigger->name << endl;
+            }
+        }
+
         triggerListFile.close();
     } // end v4+ trigger generation
 
@@ -442,12 +509,14 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
 
     if (debugStatements) cout << "Num trigs = " << numtrigs << endl;
     
-    string versionString = "v" + to_string(useDataVersion) + "/";
+    string versionString;
+    versionString = "v" + to_string(useDataVersion) + "/";
     rootPath = rootPath + versionString;
     dataPath = dataPath + versionString;
     plotPath = plotPath + versionString;
     ptPath = rootPath + "pt_data/";
     trigPath = rootPath + "trig_data/";
+    effPath = rootPath + "eff_data/";
 
     if (debugStatements) cout << "Trigger pt bin path is " << trigPath << endl;    
     if (debugStatements) cout << "Saving plots to " << plotPath << endl;
@@ -477,7 +546,7 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
                 fname = file->GetName();
                 if (!file->IsDirectory() && fname.EndsWith(".root")) {
                     filenames.push_back(fname);
-                    if (rn == 313063) cout << "Found " << fname.Data() << endl;
+                    if (debugStatements && rn == 313063) cout << "Found " << fname.Data() << endl;
                 }
             }
         }
@@ -550,7 +619,7 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skip_irrelevant_trigg
                         }
                     }
                     if (rn == thisRunNumber) numtrigfires[pbin + ebin*numpbins] = maxtrigfirings; 
-//                    best_bin_allruns_vec[rnIndex + (pbin + ebin*numpbins)*numruns] = last_best_bin;
+//                    best_bin_allruns_vec[rnIndex + (pbin + ebin*numpbins)*numruns] = last_best_bin; // for using the 2nd best trigger
 //                    kinematic_lumi_vec[pbin + ebin*numpbins] += total_lumi_vec[last_best_bin + (pbin + ebin*numpbins)*numtrigs];
                     best_bin_allruns_vec[rnIndex + (pbin + ebin*numpbins)*numruns] = best_bin_allruns;
                     kinematic_lumi_vec[pbin + ebin*numpbins] += total_lumi_vec[best_bin_allruns + (pbin + ebin*numpbins)*numtrigs];

@@ -81,13 +81,13 @@ void triggers_pt_counts_hist() {
         for (int pbin = 0; pbin < numpbins; pbin++) {
             for (int ebin = 0; ebin < numetabins; ebin++) {
                 double maxtrigfirings = 0;
-                int lastbestbin = 0;
+//                int lastbestbin = 0;
                 for (Trigger* trig : trigger_vec) {
                     if (pbins[pbin] < trig->min_pt[ebin] || etabins[ebin] < trig->lower_eta || trig->upper_eta < etabins[ebin+1] || trig->disabled) continue;
                     int index = trig->index;
                     if ((*thisnumtrigfirings)[index + (pbin + ebin*numpbins)*numtrigs] >= maxtrigfirings) {
                         maxtrigfirings = (*thisnumtrigfirings)[index + (pbin + ebin*numpbins)*numtrigs];
-                        lastbestbin = best_bins[rnIndex + (pbin + ebin*numpbins)*numruns];
+//                        lastbestbin = best_bins[rnIndex + (pbin + ebin*numpbins)*numruns];
                         best_bins[rnIndex + (pbin + ebin*numpbins)*numruns] = index;
                     }
                 }
@@ -106,7 +106,7 @@ void triggers_pt_counts_hist() {
             if (thisRunNumber < 313603) act_ebin = numetabins-ebin-1; // Correct for period A kinematics (so bin 7 --> bin 0 if there are 8 bins, e.g.)
             for (int pbin = 0; pbin < numpbins; pbin++) {
 
-                int best_hist_index = rnIndex + (best_bins[rnIndex + (pbin + act_ebin*numpbins)*numruns] + act_ebin*numtrigs)*numruns;
+                //int best_hist_index = rnIndex + (best_bins[rnIndex + (pbin + act_ebin*numpbins)*numruns] + act_ebin*numtrigs)*numruns;
                 TH1F* hist_index = (TH1F*)thisfile->Get(Form("trig_pt_counts_run%i_trig%i_ebin%i", thisRunNumber, best_bins[rnIndex + (pbin + act_ebin*numpbins)*numruns], act_ebin));
                 thishist->SetBinContent(pbin+1, thishist->GetBinContent(pbin+1) + hist_index->GetBinContent(pbin+1));
                 thishist->SetBinError(pbin+1, TMath::Sqrt(TMath::Power(thishist->GetBinError(pbin+1), 2) + TMath::Power(hist_index->GetBinError(pbin+1), 2)));
@@ -114,6 +114,8 @@ void triggers_pt_counts_hist() {
                  
             }
         }
+        thisfile->Close();
+        delete thisfile;
     }
 
     if (debugStatements) {
