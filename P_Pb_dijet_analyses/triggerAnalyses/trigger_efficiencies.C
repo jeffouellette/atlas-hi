@@ -1,10 +1,10 @@
 #include "../triggerUtil.C"
 
-void bootstrap(Trigger* trig, TH1F** harr) {
+void bootstrap(Trigger* trig, TH1F** histArr) {
     if (trig->referenceTrigger->index == trig->index) {
         for (int pbin = 0; pbin < numpbins; pbin++) {
-            harr[trig->referenceTrigger->index]->SetBinContent(pbin+1, 1);
-            harr[trig->referenceTrigger->index]->SetBinError(pbin+1, 0);
+            histArr[trig->referenceTrigger->index]->SetBinContent(pbin+1, 1);
+            histArr[trig->referenceTrigger->index]->SetBinError(pbin+1, 0);
         }
         trig->isBootstrapped = true;
     }
@@ -13,10 +13,10 @@ void bootstrap(Trigger* trig, TH1F** harr) {
     int index = trig->index;
     int referenceIndex = trig->referenceTrigger->index;
     if (!(trig->referenceTrigger->isBootstrapped)) {
-        if (debugStatements) cout << "Bootstrapping trigger " << trig->referenceTrigger->name << " for " << trig->name << endl;
-        bootstrap(trig->referenceTrigger, harr);
+        if (debugStatements) cout << "Status: In trigger_efficiencies.C (16): Bootstrapping trigger " << trig->referenceTrigger->name << " for " << trig->name << endl;
+        bootstrap(trig->referenceTrigger, histArr);
     }
-    harr[index]->Multiply(harr[referenceIndex]);
+    histArr[index]->Multiply(histArr[referenceIndex]);
     trig->isBootstrapped = true;
     return;
 }
@@ -27,44 +27,45 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
 {
     if (skipRun(thisRunNumber)) return;
 
-    initialize(thisRunNumber, false, false);
+    initialize(thisRunNumber, false, false, false);
 
     vector<Trigger*> triggerSubList(0);
-    for (Trigger* trig : trigger_vec) {
+    for (Trigger* trig : triggerVec) {
         if (!trig->disabled) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Processing run " << thisRunNumber << " with triggers:" << endl;
-        for (Trigger* trig : trigger_vec) {
-            cout << trig->name << endl;
+        cout << "Status: In trigger_efficiencies.C (37): Processing run " << thisRunNumber << " with triggers:" << endl;
+        for (Trigger* trig : triggerVec) {
+            cout << "\t" << trig->name << endl;
         }
     }
 
-    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
+    luminosity *= 1e-3; // convert from nb^(-1) to pb^(-1)
     const int numhists = numtrigs;
 
     TTree* tree = NULL;
-    TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
-    TList* sysfiles = dir.GetListOfFiles();
-    if (sysfiles) {
-        TSystemFile *sysfile;
-        TString fname;
-        TIter next(sysfiles);
+    {
+        TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
+        TList* sysfiles = dir.GetListOfFiles();
+        if (sysfiles) {
+            TSystemFile *sysfile;
+            TString fname;
+            TIter next(sysfiles);
 
-        int* rn;
-        while ((sysfile=(TSystemFile*)next())) {
-            fname = sysfile->GetName();
-            if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                if (debugStatements) cout << "Found " << fname.Data() << endl; 
-                if (fname.Contains(to_string(thisRunNumber))) {
-                    tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
-                    break;
+            while ((sysfile=(TSystemFile*)next())) {
+                fname = sysfile->GetName();
+                if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
+                    if (debugStatements) cout << "Status: In trigger_efficiencies.C (59): Found " << fname.Data() << endl; 
+                    if (fname.Contains(to_string(thisRunNumber))) {
+                        tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
+                        break;
+                    }
                 }
             }
         }
     }
     if (tree == NULL) {
-        cout << "TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In trigger_efficiencies.C (69): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
 
@@ -73,7 +74,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
     for (TObject* obj : *branches) {
         TString branchName = (TString)obj->GetName();
-        if (debugStatements) cout << "Tree contains branch \"" << branchName.Data() << "\"" << endl;
+        if (debugStatements) cout << "Status: In trigger_efficiencies.C (78): Tree contains branch \"" << branchName.Data() << "\"" << endl;
         bool interestingBranch;
         for (string s : interestingBranchNames) {
             interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -120,23 +121,23 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     }
 
     int pbin, ebin, index, referenceIndex;
-    TH1F* harr[2*numtrigs];
+    TH1F* histArr[2*numtrigs];
     for (Trigger* trig : triggerSubList) {
         index = trig->index;
         // standard trigger firings
         TString histname = Form("%s_efficiency_run%i", trig->name.c_str(), thisRunNumber);
-        harr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
-        harr[index]->Sumw2(); // instruct each histogram to propagate errors
+        histArr[index] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
+        histArr[index]->Sumw2(); // instruct each histogram to propagate errors
         // reference trigger firings
         histname = Form("%s_reference_run%i", trig->name.c_str(), thisRunNumber);
-        harr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
-        harr[index+numtrigs]->Sumw2();
+        histArr[index+numtrigs] = new TH1F(histname, ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #epsilon", numpbins, pbins);
+        histArr[index+numtrigs]->Sumw2();
     }
 
     // Iterate over each event
     const int numentries = tree->GetEntries();
     double max_j_pt, max_hlt_j_pt, p1, p2, p_adj;
-    if (debugStatements) cout << "Looping over " << numentries << " events in run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In trigger_efficiencies.C (141): Looping over " << numentries << " events in run " << thisRunNumber << endl;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -164,19 +165,19 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
                 }
             }
             if (m_trig_bool[referenceIndex]) { // only consider events where the reference trigger fired
-                harr[index+numtrigs]->Fill(max_j_pt); // fill everytime that the reference trigger fired
-                if (max_hlt_j_pt >= trig->min_pt[0]) harr[index]->Fill(max_j_pt); // fill if the trigger fired too
+                histArr[index+numtrigs]->Fill(max_j_pt); // fill everytime that the reference trigger fired
+                if (max_hlt_j_pt >= trig->min_pt) histArr[index]->Fill(max_j_pt); // fill if the trigger fired too
             }
         }       
     }
-    if (debugStatements) cout << "Finished event loop for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In triggerEfficiencies.C (174):Finished event loop for run " << thisRunNumber << endl;
 
     // Write histograms to a root file
     TFile* output = new TFile(Form("%srun_%i.root", effPath.c_str(), thisRunNumber), "RECREATE");
     for (Trigger* trig : triggerSubList) {
         index = trig->index;
-        harr[index]->Write();
-        harr[index+numtrigs]->Write();
+        histArr[index]->Write();
+        histArr[index+numtrigs]->Write();
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;

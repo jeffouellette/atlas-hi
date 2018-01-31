@@ -1,4 +1,4 @@
-root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (313063, 0.02158528)'& 
+root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (313063, 0.02158528)'&
 root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (313067, 0.92944862)'&
 root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (313100, 8.6607035)'&
 root -l -b -q '../triggerAnalyses/triggers_pt_counts.C (313107, 10.842987)'& 
