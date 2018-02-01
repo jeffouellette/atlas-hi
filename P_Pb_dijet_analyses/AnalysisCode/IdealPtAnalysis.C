@@ -116,21 +116,17 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
     double jpt, jeta, eff;
     Trigger* bestTrigger = NULL;
-    for (long long i = 0; i < numentries; i++) {
-        tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
+    for (long long entry = 0; entry < numentries; entry++) {
+        tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
 
         for (int j = 0; j < njet; j++) {
             jpt = (double)j_pt[j];
             jeta = (double)j_eta[j];
-            etabin = 0;
-            while (etabins[etabin] <= jeta) etabin++;
-            etabin--;
 
-            pbin = 0;
-            while (pbins[pbin] <= jpt) pbin++;
-            pbin--;
+            etabin = getEtabin(jeta);
+            pbin = getPbin(jpt);
 
-            if (pbin < 0 || etabin < 0) continue; // this checks that the jets fall within the pt, eta bins
+            if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
             eff = kinematicEfficiencyVec[pbin + etabin*numpbins]; 

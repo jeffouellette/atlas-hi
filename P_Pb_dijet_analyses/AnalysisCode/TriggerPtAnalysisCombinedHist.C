@@ -45,6 +45,7 @@ void TriggerPtAnalysisCombinedHist() {
 
         /**** Add histograms from all physics triggers ****/
         for (Trigger* trig : triggerSubList) {
+            if (trig->name == minbiasTriggerName) continue;
             int actetabin;
             for (int etabin = 0; etabin < numetabins; etabin++) {
                 if (thisRunNumber < 313500) actetabin = numetabins - etabin - 1;
@@ -62,18 +63,20 @@ void TriggerPtAnalysisCombinedHist() {
     /**** Calculate trigger luminosity rescaling factors ****/
     TH1D* thisHist;
     for (Trigger* trig : triggerVec) {
-        for (int etabin = 0; etabin < numetabins; etabin++) {
-            thisHist = histArr[trig->index + etabin*numtrigs];
+        if (trig->name == minbiasTriggerName) continue;
+        double thisLumi = 0;
+        for (int rn_itr = 0; rn_itr < numruns; rn_itr++) {
+            thisLumi += triggerLuminosities[rn_itr + (trig->index)*numruns];
+        }
+        if (thisLumi == 0.) continue;
+        for (int etabin = 0; etabin < numetabins; etabin++) histArr[trig->index + etabin*numtrigs]->Scale(1/thisLumi);
+ /*           thisHist = histArr[trig->index + etabin*numtrigs];
             for (int pbin = 0; pbin < numpbins; pbin++) {
-                double thisLumi = 0;
-                for (int rn_itr = 0; rn_itr < numruns; rn_itr++) {
-                    thisLumi += triggerLuminosities[rn_itr + (trig->index + (pbin + etabin*numpbins)*numtrigs)*numruns];
-                }
                 if (thisLumi == 0.) continue;
                 thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1)/thisLumi);
                 thisHist->SetBinError(pbin+1, thisHist->GetBinError(pbin+1)/thisLumi);
             }
-        }
+        }*/
     }
     /**** End calculate trigger luminosities ****/
 
@@ -85,6 +88,7 @@ void TriggerPtAnalysisCombinedHist() {
 
     TCanvas* canvas;
     for (Trigger* trig : triggerVec) {
+        if (trig->name == minbiasTriggerName) continue;
         canvas = new TCanvas((trig->name + "_canvas").c_str(), "", 800, 600);
         gPad->SetLogx();
         gPad->SetLogy();
@@ -92,7 +96,8 @@ void TriggerPtAnalysisCombinedHist() {
         int index = trig->index;
         for (int etabin = 0; etabin < numetabins; etabin++) {
             thisHist = histArr[index + etabin*numtrigs];
-            thisHist->Scale(TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/((double)(A)), "width"); // separate different etabins
+            deta = etabins[etabin+1] - etabins[etabin];
+            thisHist->Scale(1e3*TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/((double)(A)*deta), "width"); // separate different etabins
 
             thisHist->SetMarkerStyle(mkstyles[etabin < (numetabins/2)]);
 //            thisHist->SetMarkerStyle(kDot);
@@ -105,13 +110,12 @@ void TriggerPtAnalysisCombinedHist() {
             thisHist->GetXaxis()->SetTickLength(0.02);
             thisHist->GetYaxis()->SetTickLength(0.02);
 
+            if (etabin == 0) thisHist->Draw("e1");
+            else thisHist->Draw("same e1");
             const float textx = 0.46 + (etabin>=(numetabins/2))*0.26;
             const float texty = 0.91 - (etabin%(numetabins/2))*0.05*(etabin>=(numetabins/2)) - (numetabins/2 - etabin - 1)*0.05*(etabin<(numetabins/2));
             const char* text = Form("%g < #it{#eta}_{B} < %g (#times10^{%g})", etabins[etabin], etabins[etabin+1], histArrScales[(int)((0.5*(numetabins-1))-TMath::Abs(etabin-(0.5*(numetabins-1))))]);
             myMarkerText (textx, texty, kColor, mkstyles[etabin < (numetabins/2)], text);
-
-            if (etabin == 0) thisHist->Draw("e1");
-            else thisHist->Draw("same e1");
         }
 
         canvas->Draw();
@@ -123,7 +127,8 @@ void TriggerPtAnalysisCombinedHist() {
 
         /**** Memory cleanup ****/
         delete canvas;
-        for (int etabin = 0; etabin < numetabins; etabin++) delete histArr[index + etabin*numtrigs];
+        cout << "127" << endl;
+        //for (int etabin = 0; etabin < numetabins; etabin++) delete histArr[index + etabin*numtrigs];
         /**** End memory cleanup ****/
     }
     /**** End plotting routines ****/

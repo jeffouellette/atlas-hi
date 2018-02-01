@@ -2,9 +2,8 @@
 
 const int useDataVersion = 6; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. Currently accepted values: 5, 6.
 const bool runPeriodA = true; // Analyze period A data
-const bool runPeriodB = false; // Analyze period B data
+const bool runPeriodB = true; // Analyze period B data
 const bool debugStatements = false; // Print out periodic statements to monitor code flow
-const bool considerDisabledTriggers = false; // True allows analysis to consider triggers in rerun mode. False recommended.
 const double dijet_pt_ratio_cutoff = 0.7; // Minimum subleading-to-leading jet ratio for the event to be considered a dijet
 const int trigthres = 0; // Additional threshold requirement for triggers
 const string workPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/"; // Home analysis directory

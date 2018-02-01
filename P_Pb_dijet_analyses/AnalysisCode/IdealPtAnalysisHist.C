@@ -55,7 +55,7 @@ void IdealPtAnalysisHist() {
                         if (skipRun(thisRunNumber)) continue;
                         if (fname.Contains(to_string(thisRunNumber))) {
                             TFile* thisFile = new TFile(ptPath + fname, "READ");
-                            totalLuminosity += (double)((TVectorD*)thisFile->Get(Form("lum_vec_%i", thisRunNumber)))[0];
+                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", thisRunNumber))[0];
 
                             // quickly check the parameters stored in this root file
                             run_vec = (TVectorD*)thisFile->Get(Form("run_vec_%i", thisRunNumber));
@@ -102,7 +102,8 @@ void IdealPtAnalysisHist() {
             }
             else if (debugStatements) cout << "Warning: In triggers_pt_counts_hist.C (103): No exposed luminosity between pt= " << pbins[pbin] << ", " << pbins[pbin+1] << " and eta= " << etabins[etabin] << ", " << etabins[etabin+1] << endl;
         }
-        thisHist->Scale(TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))]), "width"); // separate different etabins
+        deta = etabins[etabin+1] - etabins[etabin];
+        thisHist->Scale(1e3*TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/deta, "width"); // separate different etabins
         thisHist->SetMarkerStyle(mkstyles[etabin < (numetabins/2)]);
 //        thisHist->SetMarkerStyle(kDot);
         Color_t kColor = mkcolors[(147*etabin)%20];
@@ -151,6 +152,6 @@ void IdealPtAnalysisHist() {
     delete[] histArrScales;
     delete runNumbers;
 
-    if (debugStatements) cout << "Status: In triggers_pt_counts_hist.C (140): Finished plotting pt spectrum" << endl;
+    if (debugStatements) cout << "Status: In triggers_pt_counts_hist.C (154): Finished plotting pt spectrum" << endl;
     return;
 }

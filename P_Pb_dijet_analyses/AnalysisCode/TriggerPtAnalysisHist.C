@@ -50,7 +50,7 @@ void TriggerPtAnalysisHist(int thisRunNumber) {
                 thisLumi = triggerLuminosities[rnIndex + (trig->index + (pbin + etabin*numpbins)*numtrigs)*numruns];
             }
         }
-        if (thisLumi != 0.) histArr[t]->SetBinContent(t+1, histArr[t]->GetBinContent(t+1)/thisLumi);
+        if (thisLumi != 0.) histArr[t]->SetBinContent(t+1, 1e3*histArr[t]->GetBinContent(t+1)/thisLumi);
     }
     
     TCanvas* canvas = new TCanvas(Form("canvas_%i", thisRunNumber), "", 800, 600);

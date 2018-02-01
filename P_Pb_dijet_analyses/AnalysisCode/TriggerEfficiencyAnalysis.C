@@ -23,7 +23,7 @@ void bootstrap(Trigger* trig, TH1F** histArr) {
 
 
 void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier.
-                       double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+                               double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     if (skipRun(thisRunNumber)) return;
 
@@ -138,8 +138,8 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
     const int numentries = tree->GetEntries();
     double max_j_pt, max_hlt_j_pt, p1, p2, p_adj;
     if (debugStatements) cout << "Status: In trigger_efficiencies.C (140): Looping over " << numentries << " events in run " << thisRunNumber << endl;
-    for (int i = 0; i < numentries; i++) {
-        tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
+    for (int entry = 0; entry < numentries; entry++) {
+        tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
 
         /**          BOOTSTRAPPING METHOD          **/
         /** Method works by calculating lowest pt  **/

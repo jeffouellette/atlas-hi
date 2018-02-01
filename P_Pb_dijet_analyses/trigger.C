@@ -11,7 +11,6 @@ class Trigger {
     string name;
 
     int min_pt;
-    int max_pt;
     double lower_eta;    
     double upper_eta;
     int lowerRunNumber;
@@ -41,7 +40,6 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, int 
     upper_eta = etau;
     lowerRunNumber = lRN;
     upperRunNumber = uRN;
-    max_pt = 0;
     index = 0;
     disabled = false;
     isBootstrapped = false;
@@ -59,9 +57,8 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool
     upper_eta = etau;
     lowerRunNumber = lRN;
     upperRunNumber = uRN;
-    max_pt = 0;
     index = 0;
-    disabled = thisdisabled && !considerDisabledTriggers;
+    disabled = thisdisabled;
     isBootstrapped = false;
     referenceTrigger = NULL;
 }
@@ -72,7 +69,6 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool
 Trigger::Trigger(const Trigger* t) {
     name = t->name;
     min_pt = t->min_pt;
-    max_pt = t->max_pt;
     lower_eta = t->lower_eta;
     upper_eta = t->upper_eta;
     lowerRunNumber = t->lowerRunNumber;
