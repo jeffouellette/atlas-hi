@@ -1,6 +1,6 @@
 #include "../triggerUtil.C"
 
-void triggers_hist(int thisRunNumber) {
+void TriggerPtAnalysisHist(int thisRunNumber) {
 
     if (skipRun(thisRunNumber)) return;
 

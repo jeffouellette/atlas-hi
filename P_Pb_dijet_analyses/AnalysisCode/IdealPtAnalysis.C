@@ -1,6 +1,6 @@
 #include "../triggerUtil.C"
 
-void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
+void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
                        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     if (skipRun(thisRunNumber)) return;

@@ -1,6 +1,6 @@
-#include "trigger_efficiencies.C"
+#include "TriggerEfficiencyAnalysis.C"
 
-void trigger_efficiencies_hist() {
+void TriggerEfficiencyAnalysisHist() {
 
     initialize(0, false, false);
     std::vector<int>* thisRunNumbers = getRunNumbers();

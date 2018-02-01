@@ -1,5 +1,5 @@
 #include "../triggerUtil.C"
-void triggers_comb_hist() {
+void TriggerPtAnalysisCombinedHist() {
 
     initialize(0, false, false);
 

@@ -22,7 +22,7 @@ void bootstrap(Trigger* trig, TH1F** histArr) {
 }
 
 
-void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
+void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier.
                        double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     if (skipRun(thisRunNumber)) return;

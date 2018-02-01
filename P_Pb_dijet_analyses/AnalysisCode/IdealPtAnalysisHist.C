@@ -1,6 +1,6 @@
 #include "../triggerUtil.C"
 
-void triggers_pt_counts_hist() {
+void IdealPtAnalysisHist() {
 
     initialize(0, true, false);
     std::vector<int>* thisRunNumbers = getRunNumbers();

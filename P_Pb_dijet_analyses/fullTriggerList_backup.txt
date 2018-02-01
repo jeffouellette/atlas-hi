@@ -14,7 +14,7 @@ HLT_j65_ion_n320eta490		          65		3.2		  4.9     HLT_j55_ion_n320eta490     
 HLT_j75_ion_L1J20		                75		-3.2		3.2     HLT_j60_ion_L1J20                   313063  313629
 HLT_j75_ion_n200eta320		          75		-3.2		-2.0    HLT_j65_ion_n200eta320              313063  313572
 HLT_j90_ion_L1J20		                90		-3.2		3.2     HLT_j75_ion_L1J20                   313063  313629
-HLT_j100_ion_L1J20		              100		-3.2		3.2     HLT_j90_ion_L1J20                   313063  313629
+HLT_j100_ion_L1J20		              100		-3.2		3.2     HLT_j75_ion_L1J20                   313063  313629
 HLT_j15_ion_p320eta490_L1MBTS_1_1		15		3.2		  4.9     MINBIAS                             313572  313629
 HLT_j25_ion_p320eta490_L1TE5		    25		3.2		  4.9     HLT_j15_ion_p320eta490_L1MBTS_1_1   313572  313629
 HLT_j35_ion_p320eta490_L1TE10		    35		3.2		  4.9     HLT_j25_ion_p320eta490_L1TE5        313572  313629
