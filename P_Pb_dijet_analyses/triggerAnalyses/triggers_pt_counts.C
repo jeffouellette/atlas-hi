@@ -5,16 +5,15 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
 {
     if (skipRun(thisRunNumber)) return;
 
-    initialize(thisRunNumber, true, false, true);
+    initialize(thisRunNumber, true, true);
     
-
     /**** Generate list of physics triggers ****/
     vector<Trigger*> triggerSubList(0);
     for (Trigger* trig : triggerVec) {
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In triggers_pt_counts.C (17): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In triggers_pt_counts.C (16): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
@@ -37,7 +36,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
             while ((sysfile = (TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (41): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (39): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -47,7 +46,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In triggers_pt_counts.C (51): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In triggers_pt_counts.C (49): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
     /**** End find TTree ****/
@@ -107,7 +106,7 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     int pbin, etabin, index;
     for (etabin = 0; etabin < numetabins; etabin++) {
         TString histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, etabin);
-        histArr[etabin] = new TH1F(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[pb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
+        histArr[etabin] = new TH1F(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[nb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
         histArr[etabin]->Sumw2(); // instruct each histogram to propagate errors
     }
 
@@ -150,14 +149,18 @@ void triggers_pt_counts(const int thisRunNumber, // Run number identifier.
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
-    lum_vec.Write("lum_vec");
+    lum_vec.Write(Form("lum_vec_%i", thisRunNumber));
 
-    TVectorD run_vec(3);
+    TVectorD run_vec(4);
     run_vec[0] = thisRunNumber;
     run_vec[1] = numetabins;
     run_vec[2] = numtrigs;
-    run_vec.Write("run_vec");
+    run_vec[3] = numpbins;
+    run_vec.Write(Form("run_vec_%i", thisRunNumber));
 
     output->Close();
     /**** End write output ****/
+
+    if (debugStatements) cout << "Status: In triggers_pt_counts.C (163): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    return;
 }

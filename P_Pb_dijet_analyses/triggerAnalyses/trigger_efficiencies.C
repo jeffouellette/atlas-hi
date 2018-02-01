@@ -27,7 +27,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
 {
     if (skipRun(thisRunNumber)) return;
 
-    initialize(thisRunNumber, false, false, false);
+    initialize(thisRunNumber, false, false);
 
     vector<Trigger*> triggerSubList(0);
     for (Trigger* trig : triggerVec) {
@@ -55,7 +55,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
             while ((sysfile=(TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In trigger_efficiencies.C (59): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In trigger_efficiencies.C (58): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -65,7 +65,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In trigger_efficiencies.C (69): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In trigger_efficiencies.C (68): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
 
@@ -74,7 +74,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
     for (TObject* obj : *branches) {
         TString branchName = (TString)obj->GetName();
-        if (debugStatements) cout << "Status: In trigger_efficiencies.C (78): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+        if (debugStatements) cout << "Status: In trigger_efficiencies.C (77): Tree contains branch \"" << branchName.Data() << "\"" << endl;
         bool interestingBranch;
         for (string s : interestingBranchNames) {
             interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -137,7 +137,7 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     // Iterate over each event
     const int numentries = tree->GetEntries();
     double max_j_pt, max_hlt_j_pt, p1, p2, p_adj;
-    if (debugStatements) cout << "Status: In trigger_efficiencies.C (141): Looping over " << numentries << " events in run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In trigger_efficiencies.C (140): Looping over " << numentries << " events in run " << thisRunNumber << endl;
     for (int i = 0; i < numentries; i++) {
         tree->GetEntry(i); // stores trigger values and data in the designated branch addresses
 
@@ -170,7 +170,6 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
             }
         }       
     }
-    if (debugStatements) cout << "Status: In triggerEfficiencies.C (174):Finished event loop for run " << thisRunNumber << endl;
 
     // Write histograms to a root file
     TFile* output = new TFile(Form("%srun_%i.root", effPath.c_str(), thisRunNumber), "RECREATE");
@@ -181,14 +180,15 @@ void trigger_efficiencies(const int thisRunNumber, // Run number identifier.
     }
     TVectorD lum_vec(1);
     lum_vec[0] = luminosity;
-    lum_vec.Write("lum_vec");
+    lum_vec.Write(Form("lum_vec_%i", thisRunNumber));
     TVectorD run_vec(3);
     run_vec[0] = thisRunNumber;
     run_vec[1] = numetabins;
     run_vec[2] = numtrigs;
-    run_vec.Write("run_vec");
+    run_vec.Write(Form("run_vec_%i", thisRunNumber));
 
     output->Close();
 
+    if (debugStatements) cout << "Status: In triggerEfficiencies.C (192):Finished event loop for run " << thisRunNumber << endl;
     return;
 }

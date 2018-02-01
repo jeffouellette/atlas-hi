@@ -22,7 +22,7 @@ double kinematicEfficiencyVec[numpbins*numetabins];
 // Run list information
 //const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
 const int run_list_v5[23]= {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014/*, 314077, 314112*/, 314157, 314170};
-const int run_list_v6[22] = {313063, 313067, 313100, 313107, 313187, 313259, 313285, 313295, 313435, 313574, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314112, 314157, 314170};
+const int run_list_v6[25] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
 
 
 //=========================================================================================================
@@ -163,13 +163,95 @@ bool in_triggerVec(string trigName) {
 
 
 /**
+ * Returns a list of trigger efficiencies.
+ */
+double* getTriggerEfficiencies() {
+
+    TFile* thisFile = new TFile((effPath+"allEfficiencyHistograms.root").c_str(), "READ");
+    double* triggerEfficiencies = new double[numtrigs*numpbins];
+    for (Trigger* trig : triggerVec) {
+        int index = trig->index; 
+        TH1F* thisHist = (TH1F*)thisFile->Get(Form("%s_efficiency", trig->name.c_str()));
+        for (int pbin = 0; pbin < numpbins; pbin++) {
+            if (trig->min_pt + 50 < pbins[pbin]) triggerEfficiencies[index + pbin*numtrigs] = 1.;
+            else triggerEfficiencies[index + pbin*numtrigs] = thisHist->GetBinContent(pbin+1);
+        }
+    }
+    thisFile->Close();
+    delete thisFile;
+    return triggerEfficiencies;
+}
+
+
+/**
+ * Returns a list of trigger prescale corrected luminosities.
+ * Format: lumi(trig, run #, pbin, etabin) = getTriggerLuminosities()[(run # index) + ((trigger index) + (pbin + etabin*numpbins)*numtrigs)*numruns]
+ */
+double* getTriggerLuminosities() {
+
+    vector<int>* runNumbers = getRunNumbers();
+    const int numruns = runNumbers->size();
+    double* triggerLuminosities = new double[numtrigs*numruns*numpbins*numetabins];
+    ifstream luminositiesTxt((workPath + "luminosities.txt").c_str());
+
+    string thisTriggerName, thisLumiUnits;
+    int thisRN;
+    double thisLumi, thisConversionFactor;
+    Trigger* thisTrigger;
+    getline(luminositiesTxt, thisTriggerName); // skip the first line (table layout)
+
+    while(luminositiesTxt) {
+        thisTrigger = NULL;
+        luminositiesTxt >> thisTriggerName;
+        luminositiesTxt >> thisLumiUnits;
+        for (Trigger* trig : triggerVec) {
+            if (trig->name == thisTriggerName) {
+                thisTrigger = trig;
+                break;
+            }
+        }
+        if (thisTrigger == NULL) {
+            if (debugStatements) cout << "Warning: In triggerUtil.C (347): " << thisTriggerName << " is not a registered trigger! Ignoring." << endl;
+            for (int rn_itr = 0; rn_itr < 60; rn_itr++) { luminositiesTxt >> thisLumi; } // just read through the rest of the line.
+            continue;
+        }
+
+        if (thisLumiUnits == "ub") thisConversionFactor = 1e-3;
+        else if (thisLumiUnits == "mb") thisConversionFactor = 1e-6;
+        else thisConversionFactor = 1.;
+
+        for (int rn_itr = 0; rn_itr < 30; rn_itr++) {
+            luminositiesTxt >> thisRN;
+            luminositiesTxt >> thisLumi;
+            if (debugStatements) cout << "Status: In triggerUtil.C (329): adding " << thisTriggerName << "\tRun: " << thisRN << "\tLumi: " << thisLumi*thisConversionFactor << " nb^-1" << endl;
+            if (!skipRun(thisRN)) { // ensures that thisRN is in the list of run numbers
+                int thisRNIndex = 0;
+                while ((*runNumbers)[thisRNIndex] != thisRN) thisRNIndex++; // don't need to check array bounds since we are not skipping thisRN
+                for (int pbin = 0; pbin < numpbins; pbin++) {
+                    for (int etabin = 0; etabin < numetabins; etabin++) {
+                        if (thisTrigger->lower_eta <= etabins[etabin] && etabins[etabin+1] <= thisTrigger->upper_eta && thisTrigger->min_pt <= pbins[pbin]) {
+                            triggerLuminosities[thisRNIndex + ((thisTrigger->index) + (pbin + etabin*numpbins)*numtrigs)*numruns] = thisLumi * thisConversionFactor;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    delete runNumbers;
+    return triggerLuminosities;
+}
+
+
+
+
+/**
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * Also (optionally) initializes a trigger selection scheme for each kinematic bin in a given run.
  * This includes calculating the relevant luminosity based on the selection method:
  *    Lumi (run #, pt, eta) = Lumi (Trigger (pt, eta), run #)
  * where Trigger (pt, eta) is a function defining the selection scheme.
  */
-void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTriggers=false, bool initTriggerEfficiencies=true) {
+void initialize (int rn=0, bool initTriggerMaps=true, bool initTriggerEfficiencies=true) {
 
     assert (useDataVersion == 5 || useDataVersion == 6);
     if (debugStatements) cout << Form("Status: In triggerUtil.C (176): Initializing trigger system for run %i...", rn) << endl;
@@ -225,9 +307,6 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
             triggerListFile >> trigUpperRunNumber;
             
             bool isPhysicsTrigger = (trigLowerRunNumber <= runNumber && runNumber < trigUpperRunNumber) || (runNumber == 0);
-            bool useThisTrigger = isPhysicsTrigger || !skipIrrelevantTriggers;
-
-            if (!useThisTrigger) continue;
 
             /**
             *** If we want to use the trigger for this run, then
@@ -286,64 +365,13 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
 
         /**** Local variable array declarations ****/
         const int numruns = getRunNumbers()->size();
-        double* totalLumiVec = new double[numtrigs*numpbins*numetabins*numruns]; // luminosity a particular trigger sees at a given pbin, etabin in a given run
-        for (int n = 0; n < numpbins*numetabins*numtrigs*numruns; n++) {
-            totalLumiVec[n] = 0;
-            if (n < numpbins*numetabins) {
-                kinematicLumiVec[n] = 0;
-                kinematicEfficiencyVec[n] = 0.;
-                kinematicTriggerVec[n] = NULL;
-            }
+        double* totalLumiVec = getTriggerLuminosities(); // luminosity a particular trigger sees at a given pbin, etabin in a given run
+        for (int n = 0; n < numpbins*numetabins; n++) {
+            kinematicLumiVec[n] = 0;
+            kinematicEfficiencyVec[n] = 0.;
+            kinematicTriggerVec[n] = NULL;
         }
         /**** End local variable declarations ****/
-
-
-        /**** Load trigger prescale corrected luminosity information ****/
-        {
-            string luminositiesTxtName = workPath + "luminosities.txt";
-            ifstream luminositiesTxt (luminositiesTxtName.c_str());
-
-            string thisTriggerName, thisLumiUnits;
-            int thisRN;
-            double thisLumi, thisConversionFactor;
-            Trigger* thisTrigger = NULL;
-            getline(luminositiesTxt, thisTriggerName); // skip the first line (layout of table)
-            while (luminositiesTxt) {
-                luminositiesTxt >> thisTriggerName;
-                luminositiesTxt >> thisLumiUnits;
-                for (Trigger* t : triggerVec) {
-                    if (t->name == thisTriggerName) {
-                        thisTrigger = t;
-                        break;
-                    }
-                }
-                if (thisTrigger == NULL) {
-                    if (debugStatements) cout << "Warning: In triggerUtil.C (347): " << thisTriggerName << " is not a registered trigger! Ignoring." << endl;
-                    continue;
-                }
-                if (thisLumiUnits == "ub") thisConversionFactor = 1e-3; // ub^-1 to nb^-1
-                else if (thisLumiUnits == "mb") thisConversionFactor = 1e-6; // mb^-1 to nb^-1
-                else thisConversionFactor = 1.; // else assume nb^-1 to nb^-1
-                for (int rn_itr = 0; rn_itr < 30; rn_itr++) {
-                    luminositiesTxt >> thisRN;
-                    luminositiesTxt >> thisLumi;
-                    if (debugStatements) cout << "Status: In triggerUtil.C (329): adding " << thisTriggerName << "\tRun: " << thisRN << "\tLumi: " << thisLumi*thisConversionFactor << " nb^-1" << endl;
-                    if (!skipRun(thisRN)) {
-                        int thisRNIndex = 0;
-                        while ((*getRunNumbers())[thisRNIndex] != thisRN) thisRNIndex++; // don't need to check array bounds since we are not skipping thisRN
-                        for (int pbin = 0; pbin < numpbins; pbin++) {
-                            for (int etabin = 0; etabin < numetabins; etabin++) {
-                                if (thisTrigger->lower_eta <= etabins[etabin] && etabins[etabin+1] <= thisTrigger->upper_eta && thisTrigger->min_pt <= pbins[pbin]) {
-                                    totalLumiVec[thisRNIndex + ((thisTrigger->index) + (pbin + etabin*numpbins)*numtrigs)*numruns] = thisLumi * thisConversionFactor;
-                                }
-                            }
-                        }
-                    }
-                }
-                thisTrigger = NULL;
-            }
-        }
-        /**** End load trigger prescale corrected luminosity information ****/
 
 
         /**
@@ -362,7 +390,7 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
     
             vector<Trigger*> triggerSubList(0);
             for (Trigger* trig : triggerVec) {
-                if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber <= trig->upperRunNumber && trig->name != minbiasTriggerName) {
+                if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) {
                     triggerSubList.push_back(trig);
                 }
             }
@@ -400,22 +428,15 @@ void initialize (int rn=0, bool initTriggerMaps=true, bool skipIrrelevantTrigger
            
             if (debugStatements) cout << "Status: In triggerUtil.C (269): Gathering trigger efficiency information..." << endl; 
 
-            TFile* thisFile = new TFile((effPath+"allEfficiencyHistograms.root").c_str(), "READ");
-            double eff;
+            double* triggerEfficiencies = getTriggerEfficiencies();
             for (int pbin = 0; pbin < numpbins; pbin++) {
                 for (int etabin = 0; etabin < numetabins; etabin++) {
                     Trigger* bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
                     if (bestTrigger == NULL) continue; // for some reason no trigger covered this kinematic bin, so move on
-                    if (pbins[pbin] > (bestTrigger->min_pt + 25)) eff = 1.;
-                    else {
-                        TH1F* thisHist = (TH1F*)thisFile->Get(Form("%s_efficiency", bestTrigger->name.c_str()));
-                        eff = thisHist->GetBinContent(pbin+1);
-                    }
-                    kinematicEfficiencyVec[pbin + etabin*numpbins] = eff;
+
+                    kinematicEfficiencyVec[pbin + etabin*numpbins] = triggerEfficiencies[bestTrigger->index + pbin*numtrigs];
                 }
             }
-            thisFile->Close();
-            delete thisFile;
         }
         /**** End instantiate trigger efficiency information ****/
 
