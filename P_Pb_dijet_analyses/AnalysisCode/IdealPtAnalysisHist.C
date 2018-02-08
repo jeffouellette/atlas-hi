@@ -2,17 +2,17 @@
 
 void IdealPtAnalysisHist() {
 
-    initialize(0, true, false);
+    initialize(0, true);
     std::vector<int>* thisRunNumbers = getRunNumbers();
 
     const int numruns = (*thisRunNumbers).size();
     const int numhists = numtrigs * numruns * numetabins;
     if (debugStatements) {
-        cout << "Status: In triggers_pt_counts_hist.C (11): Building trigger pt histograms with " << numruns << " runs being used" << endl;
-        cout << "Status: In triggers_pt_counts_hist.C (12): Numtrigs = " << numtrigs << endl;
-        cout << "Status: In triggers_pt_counts_hist.C (13): Numetabins = " << numetabins << endl;
-        cout << "Status: In triggers_pt_counts_hist.C (14): Numpbins = " << numpbins << endl;
-        cout << "Status: In triggers_pt_counts_hist.C (15): ptPath = " << ptPath << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (11): Building trigger pt histograms with " << numruns << " runs being used" << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (12): Numtrigs = " << numtrigs << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (13): Numetabins = " << numetabins << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (14): Numpbins = " << numpbins << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (15): ptPath = " << ptPath << endl;
     }
 
     double ymin = 5e-8;
@@ -23,14 +23,14 @@ void IdealPtAnalysisHist() {
     double hscale, deta;
     TH1F* thisHist;
 
-    if (debugStatements) cout << "Status: In triggers_pt_counts_hist.C (26): Initialized histArr histograms..." << endl;
+    if (debugStatements) cout << "Status: In IdealPtAnalysisHist.C (26): Initialized histArr histograms..." << endl;
     TH1F* histArr[numetabins];
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        histArr[etabin] = new TH1F(Form("best_statistics_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/d#it{p}_{T}dy #left[nb GeV^{-1}#right]", numpbins, pbins);
+        histArr[etabin] = new TH1F(Form("best_statistics_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[nb GeV^{-1}#right]", numpbins, pbins);
     }
     if (debugStatements) {
-        cout << "Status: In triggers_pt_counts_hist.C (32): histArr histograms initialized." << endl;
-        cout << "Status: In triggers_pt_counts_hist.C (33): Starting loop over triggers..." << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (32): histArr histograms initialized." << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (33): Starting loop over triggers..." << endl;
     }
 
     vector<int>* runNumbers = getRunNumbers();
@@ -100,7 +100,7 @@ void IdealPtAnalysisHist() {
                 thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1) / (kinematicLumiVec[pbin + etabin*numpbins]));
                 thisHist->SetBinError(pbin+1, thisHist->GetBinError(pbin+1) / (kinematicLumiVec[pbin + etabin*numpbins]));
             }
-            else if (debugStatements) cout << "Warning: In triggers_pt_counts_hist.C (103): No exposed luminosity between pt= " << pbins[pbin] << ", " << pbins[pbin+1] << " and eta= " << etabins[etabin] << ", " << etabins[etabin+1] << endl;
+            else if (debugStatements) cout << "Warning: In IdealPtAnalysisHist.C (103): No exposed luminosity between pt= " << pbins[pbin] << ", " << pbins[pbin+1] << " and eta= " << etabins[etabin] << ", " << etabins[etabin+1] << endl;
         }
         deta = etabins[etabin+1] - etabins[etabin];
         thisHist->Scale(1e3*TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/deta, "width"); // separate different etabins
@@ -152,6 +152,6 @@ void IdealPtAnalysisHist() {
     delete[] histArrScales;
     delete runNumbers;
 
-    if (debugStatements) cout << "Status: In triggers_pt_counts_hist.C (154): Finished plotting pt spectrum" << endl;
+    if (debugStatements) cout << "Status: In IdealPtAnalysisHist.C (154): Finished plotting pt spectrum" << endl;
     return;
 }

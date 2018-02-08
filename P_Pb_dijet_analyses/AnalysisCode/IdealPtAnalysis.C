@@ -5,7 +5,8 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 {
     if (skipRun(thisRunNumber)) return;
 
-    initialize(thisRunNumber, true, true);
+    initialize(thisRunNumber, true);
+    vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
     
     /**** Generate list of physics triggers ****/
     vector<Trigger*> triggerSubList(0);
@@ -13,7 +14,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In triggers_pt_counts.C (16): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In IdealPtAnalysis.C (16): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
@@ -36,7 +37,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             while ((sysfile = (TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (39): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (39): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -46,7 +47,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In triggers_pt_counts.C (49): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In IdealPtAnalysis.C (49): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
     /**** End find TTree ****/
@@ -59,7 +60,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         bool interestingBranch;
         for (TObject* obj : *branches) {
             TString branchName = (TString)obj->GetName();
-            if (debugStatements) cout << "Status: In triggers_pt_counts.C (62): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+            if (debugStatements) cout << "Status: In IdealPtAnalysis.C (62): Tree contains branch \"" << branchName.Data() << "\"" << endl;
             interestingBranch = false;
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -96,7 +97,6 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("njet", &njet);
     for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
-    //    tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
     }
     /**** End set branch addresses ****/
 
@@ -129,8 +129,10 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
-            eff = kinematicEfficiencyVec[pbin + etabin*numpbins]; 
-            if (bestTrigger == NULL || eff == 0) continue; // make sure we're not trying to look at a null trigger
+            //eff = kinematicEfficiencyVec[pbin + etabin*numpbins]; 
+            if (bestTrigger == NULL) continue; // make sure we're not trying to look at a null trigger
+            eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
+            if (eff == 0) continue; // avoid dividing by 0 
             if (bestTrigger->m_trig_bool) histArr[etabin]->Fill(jpt, 1./eff);
         }
     }
@@ -157,6 +159,6 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     output->Close();
     /**** End write output ****/
 
-    if (debugStatements) cout << "Status: In triggers_pt_counts.C (163): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (163): Finished calculating pt spectrum for run " << thisRunNumber << endl;
     return;
 }

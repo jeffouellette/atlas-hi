@@ -8,6 +8,7 @@ const double dijet_pt_ratio_cutoff = 0.7; // Minimum subleading-to-leading jet r
 const int trigthres = 0; // Additional threshold requirement for triggers
 const string workPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/"; // Home analysis directory
 const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1"; // Accepted triggers: HLT_mb_sptrk_L1MBTS_1, HLT_mb_mbts_L1MBTS_1
+const string fittedFunctionType = /*"erf";*/ "fermi_dirac"; // Function used to fit trigger efficiencies- accepted values: "fermi_dirac", "erf"
 
 /** End user defined parameters **/
 
@@ -22,6 +23,7 @@ string ptPath = rootPath + "ptData/"; // Where the pt analysis module output is 
 string trigPath = rootPath + "trigData/";  // Where the trigger fire count module output is stored.
 string effPath = rootPath + "effData/"; // Where the trigger efficiency module output is stored.
 string xPath = rootPath + "xData/"; // Where the xa/xp module output is stored.
+string RpPbPath = rootPath + "RpPbData/"; // Where the R_pPb module output is stored.
 
 // Transverse momentum and pseudorapidity binning
 const int MAX_PT = 6000; // Maximum transverse momentum

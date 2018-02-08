@@ -1,27 +1,27 @@
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313063, 0.02158528)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313067, 0.92944862)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313100, 8.6607035)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313107, 10.842987)'& 
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313136, 9.41972)'& 
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313187, 3.235229)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313259, 4.633754)'& 
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313285, 4.1909568)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313295, 9.7344818)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313333, 3.718726)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313435, 0.296768)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313572, 0.0051074)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313574, 1.1997638)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313575, 7.059486)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313603, 8.1575371)'& 
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313629, 6.2506744)'&
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313630, 6.6318257)'& 
-#root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313688, 7.3617282)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313063, 0.02158528)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313067, 0.92944862)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313100, 8.6607035)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313107, 10.842987)'& 
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313136, 9.41972)'& 
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313187, 3.235229)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313259, 4.633754)'& 
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313285, 4.1909568)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313295, 9.7344818)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313333, 3.718726)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313435, 0.296768)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313572, 0.0051074)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313574, 1.1997638)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313575, 7.059486)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313603, 8.1575371)'& 
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313629, 6.2506744)'&
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313630, 6.6318257)'& 
+root -l -b -q '../AnalysisCode/TriggerEfficiencyAnalysis.C (313688, 7.3617282)'&
 
 wait
 

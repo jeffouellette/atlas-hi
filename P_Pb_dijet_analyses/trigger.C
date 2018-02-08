@@ -11,6 +11,7 @@ class Trigger {
     string name;
 
     int min_pt;
+    int threshold_pt;
     double lower_eta;    
     double upper_eta;
     int lowerRunNumber;
@@ -23,8 +24,8 @@ class Trigger {
     bool m_trig_bool;
     float m_trig_prescale;
 
-    Trigger(string, int, double, double, int, int);
-    Trigger(string, int, double, double, bool, int, int);
+    Trigger(string, int, double, double, int, int, int);
+    Trigger(string, int, double, double, bool, int, int, int);
     Trigger(const Trigger* t);
 
 };
@@ -33,9 +34,10 @@ class Trigger {
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, int lRN=0, int uRN=INT_MAX) {
+Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, int lRN=0, int uRN=INT_MAX, int thisMinPt=0) {
     name = thisname;
-    min_pt = thismin_pt;
+    threshold_pt = thisThresholdPt;
+    min_pt = thisMinPt;
     lower_eta = etal;
     upper_eta = etau;
     lowerRunNumber = lRN;
@@ -50,9 +52,10 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, int 
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool thisdisabled, int lRN=0, int uRN=INT_MAX) {
+Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, bool thisdisabled, int lRN=0, int uRN=INT_MAX, int thisMinPt=0) {
     name = thisname;
-    min_pt = thismin_pt;
+    threshold_pt = thisThresholdPt;
+    min_pt = thisMinPt;
     lower_eta = etal;
     upper_eta = etau;
     lowerRunNumber = lRN;
@@ -68,6 +71,7 @@ Trigger::Trigger(string thisname, int thismin_pt, double etal, double etau, bool
  */
 Trigger::Trigger(const Trigger* t) {
     name = t->name;
+    threshold_pt = t->threshold_pt;
     min_pt = t->min_pt;
     lower_eta = t->lower_eta;
     upper_eta = t->upper_eta;

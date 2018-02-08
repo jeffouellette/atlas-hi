@@ -1,10 +1,10 @@
 #include "../triggerUtil.C"
 void TriggerPtAnalysisCombinedHist() {
 
-    initialize(0, false, false);
+    initialize(0, false);
 
     double ymin = 5e-8;
-    double ymax = 5e6;
+    double ymax = 1e4;
     const Style_t mkstyles[2] = {kFullTriangleUp, kFullTriangleDown};
     const Color_t mkcolors[20] = {30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49};
 
@@ -36,7 +36,7 @@ void TriggerPtAnalysisCombinedHist() {
             if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
         }
         if (debugStatements) {
-            cout << "Status: In triggers_comb_hist.C (39): Processing run " << thisRunNumber << " with triggers:" << endl;
+            cout << "Status: In TriggerPtAnalysisCombinedHist.C (39): Processing run " << thisRunNumber << " with triggers:" << endl;
             for (Trigger* trig : triggerSubList) {
                 cout << "\t" << trig->name << endl;
             }
@@ -70,13 +70,6 @@ void TriggerPtAnalysisCombinedHist() {
         }
         if (thisLumi == 0.) continue;
         for (int etabin = 0; etabin < numetabins; etabin++) histArr[trig->index + etabin*numtrigs]->Scale(1/thisLumi);
- /*           thisHist = histArr[trig->index + etabin*numtrigs];
-            for (int pbin = 0; pbin < numpbins; pbin++) {
-                if (thisLumi == 0.) continue;
-                thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1)/thisLumi);
-                thisHist->SetBinError(pbin+1, thisHist->GetBinError(pbin+1)/thisLumi);
-            }
-        }*/
     }
     /**** End calculate trigger luminosities ****/
 
@@ -112,10 +105,10 @@ void TriggerPtAnalysisCombinedHist() {
 
             if (etabin == 0) thisHist->Draw("e1");
             else thisHist->Draw("same e1");
-            const float textx = 0.46 + (etabin>=(numetabins/2))*0.26;
-            const float texty = 0.91 - (etabin%(numetabins/2))*0.05*(etabin>=(numetabins/2)) - (numetabins/2 - etabin - 1)*0.05*(etabin<(numetabins/2));
-            const char* text = Form("%g < #it{#eta}_{B} < %g (#times10^{%g})", etabins[etabin], etabins[etabin+1], histArrScales[(int)((0.5*(numetabins-1))-TMath::Abs(etabin-(0.5*(numetabins-1))))]);
-            myMarkerText (textx, texty, kColor, mkstyles[etabin < (numetabins/2)], text);
+//            const float textx = 0.46 + (etabin>=(numetabins/2))*0.26;
+//            const float texty = 0.91 - (etabin%(numetabins/2))*0.05*(etabin>=(numetabins/2)) - (numetabins/2 - etabin - 1)*0.05*(etabin<(numetabins/2));
+//            const char* text = Form("%g < #it{#eta}_{B} < %g (#times10^{%g})", etabins[etabin], etabins[etabin+1], histArrScales[(int)((0.5*(numetabins-1))-TMath::Abs(etabin-(0.5*(numetabins-1))))]);
+            //myMarkerText (textx, texty, kColor, mkstyles[etabin < (numetabins/2)], text);
         }
 
         canvas->Draw();
@@ -133,6 +126,6 @@ void TriggerPtAnalysisCombinedHist() {
     }
     /**** End plotting routines ****/
 
-    if (debugStatements) cout << "Status: In triggers_comb_hist.C (128): Finished plotting trigger pt spectra" << endl;
+    if (debugStatements) cout << "Status: In TriggerPtAnalysisCombinedHist.C (128): Finished plotting trigger pt spectra" << endl;
     return;
 }

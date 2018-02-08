@@ -10,7 +10,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
 
     luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
-    initialize(thisRunNumber, false, false);
+    initialize(thisRunNumber, false);
 
 
     /**** Generate list of physics triggers ****/
@@ -19,12 +19,12 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In triggers.C (22): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In TriggerPtAnalysis.C (22): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
     }
-    double* triggerEfficiencies = getTriggerEfficiencies();
+    vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
     const int numtrigs_sublist = triggerSubList.size();
     const double* trigbins = linspace(0, numtrigs_sublist+1, numtrigs_sublist+1);
     /**** End generate list of physics triggers ****/
@@ -98,7 +98,6 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         }
     }*/
 
-
     TH1D* integratedCountsHistArr[numtrigs_sublist];
     TH1D* countsHistArr[numtrigs_sublist*numetabins];
     for (int t = 0; t < numtrigs_sublist; t++) {
@@ -157,7 +156,8 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
                 etabin--;
 
                 if (trig->lower_eta <= jeta && jeta < trig->upper_eta && trig->min_pt <= jpt) {
-                    eff = triggerEfficiencies[index + pbin*numtrigs];
+                    eff = (*triggerEfficiencyFunctions)[index]->Eval(jpt);
+                    //eff = triggerEfficiencies[index + pbin*numtrigs];
                     if (eff > 0.) countsHistArr[t + etabin*numtrigs_sublist]->Fill(jpt, 1./eff);
                 }
             }
@@ -188,9 +188,13 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
     run_info.Write(Form("run_info_%i", thisRunNumber));
 
     output->Close();
+    delete output;
+    //delete[] triggerEfficiencies;
+    for (Trigger* trig : triggerVec) {
+        delete (*triggerEfficiencyFunctions)[trig->index];
+        delete trig;
+    }
 
-    if (debugStatements) cout << "Status: In triggers.C (193): Finished run " << thisRunNumber << endl;
-
-    delete[] triggerEfficiencies;
+    if (debugStatements) cout << "Status: In TriggerPtAnalysis.C (193): Finished run " << thisRunNumber << endl;
     return;
 }

@@ -15,11 +15,12 @@ double totalLuminosity;
 vector<Trigger*> triggerVec(0); // total list of triggers used.
 double kinematicLumiVec[numpbins*numetabins]; // total exposed luminosity in a kinematic bin. Units: ub^-1
 Trigger* kinematicTriggerVec[numpbins*numetabins]; // best trigger to use in a kinematic bin.
-double kinematicEfficiencyVec[numpbins*numetabins]; // best trigger efficiency in a kinematic bin.
+//double kinematicEfficiencyVec[numpbins*numetabins]; // best trigger efficiency in a kinematic bin.
 
 // Run list information
 //const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
 const int run_list_v6[26] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
+const int run_list_v7[13] = {313063, 313107, 313136, 313259, 313285, 313435, 313695, 313929, 313984, 314014, 314077, 314105, 314112}; // for debugging purposes
 
 
 //=========================================================================================================
@@ -83,7 +84,7 @@ static double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool 
 /**
  * Returns the momentum transfer ("hardness") Q for the event.
  */
-static double get_q2(double xp, double je, double jpt) {
+static double get_q(double xp, double je, double jpt) {
     return (double)TMath::Sqrt(TMath::Sqrt(A/Z)*sqrt_s_nn*xp*(je-TMath::Sqrt(je*je-jpt*jpt)));
 }
 
@@ -104,8 +105,7 @@ static double get_mjj(TLorentzVector jet0, TLorentzVector jet1) {
 static int getPbin (double pt) {
     int bin = 0;
     while (bin < numpbins+1 && pbins[bin++] < pt);
-    bin -= 2;
-    return bin;
+    return bin - 2;
 }
 
 
@@ -117,8 +117,7 @@ static int getPbin (double pt) {
 static int getEtabin (double eta) {
     int bin = 0;
     while (bin < numetabins+1 && etabins[bin++] < eta);
-    bin -= 2;
-    return bin;
+    return bin - 2;
 }
 
 
@@ -131,6 +130,13 @@ static bool skipRun (int rn) {
     bool contains_rn = false;
     int i = 0;
     switch (useDataVersion) {
+        case 7: {
+            while (i < sizeof(run_list_v7)/sizeof(int) && !contains_rn) {
+                contains_rn = run_list_v6[i] == rn;
+                i++;
+            }
+            break;
+        }
         case 6: {
             while (i < sizeof(run_list_v6)/sizeof(int) && !contains_rn) {
                 contains_rn = run_list_v6[i] == rn;
@@ -148,6 +154,12 @@ static bool skipRun (int rn) {
 static vector<int>* getRunNumbers() {
     vector<int>* rns = new vector<int>(0);
     switch (useDataVersion) {
+        case 7: {
+            for (int i = 0; i < sizeof(run_list_v7)/sizeof(int); i++) {
+                rns->push_back(run_list_v7[i]);
+            }
+            break;
+        }
         case 6: {
             for (int i = 0; i < sizeof(run_list_v6)/sizeof(int); i++) {
                 rns->push_back(run_list_v6[i]);
@@ -175,21 +187,27 @@ bool inTriggerVec(string trigName) {
 /**
  * Returns a list of trigger efficiencies.
  */
-double* getTriggerEfficiencies() {
+vector<TF1*>* getTriggerEfficiencyFunctions() {
 
     TFile* thisFile = new TFile((effPath+"allEfficiencyHistograms.root").c_str(), "READ");
-    double* triggerEfficiencies = new double[numtrigs*numpbins];
+    vector<TF1*>* triggerEfficiencyFunctions = new vector<TF1*>(numtrigs); /*= new TF1[numtrigs*numpbins];*/
+//    for (Trigger* trig : triggerVec) triggerEfficiencyFunctions->push_back(NULL);
     for (Trigger* trig : triggerVec) {
+        if (trig->referenceTrigger == trig) continue;
         int index = trig->index; 
-        TH1F* thisHist = (TH1F*)thisFile->Get(Form("%s_efficiency", trig->name.c_str()));
-        for (int pbin = 0; pbin < numpbins; pbin++) {
-            if ((trig->min_pt + 50) < (int)pbins[pbin]) triggerEfficiencies[index + pbin*numtrigs] = 1.;
+//        TH1F* thisHist = (TH1F*)thisFile->Get(Form("%s_efficiency", trig->name.c_str()));
+        TGraphAsymmErrors* thisGraph = (TGraphAsymmErrors*)thisFile->Get(Form("%s_t_graph", trig->name.c_str()));
+        (*triggerEfficiencyFunctions)[index] = (TF1*)(thisGraph->GetFunction(Form("%s_%s", trig->name.c_str(), fittedFunctionType.c_str())));
+//        (*triggerEfficiencyFunctions)[index] = (TF1*)thisFile->Get(Form("%s_%s", trig->name.c_str(), fittedFunctionType.c_str()));
+
+/*        for (int pbin = 0; pbin < numpbins; pbin++) {
+            if ((trig->min_pt + 25) < (int)pbins[pbin]) triggerEfficiencies[index + pbin*numtrigs] = 1.;
             else triggerEfficiencies[index + pbin*numtrigs] = thisHist->GetBinContent(pbin+1);
-        }
+        }*/
     }
-    thisFile->Close();
-    delete thisFile;
-    return triggerEfficiencies;
+//    thisFile->Close();
+//    delete thisFile;
+    return triggerEfficiencyFunctions;
 }
 
 
@@ -256,10 +274,10 @@ double* getTriggerLuminosities() {
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * Also (optionally) initializes a trigger selection scheme for each kinematic bin in a given run.
  * This includes calculating the relevant luminosity based on the selection method:
- *    Lumi (run #, pt, eta) = Lumi (Trigger (pt, eta), run #)
+ dealRpPbAnalysisHist*    Lumi (run #, pt, eta) = Lumi (Trigger (pt, eta), run #)
  * where Trigger (pt, eta) is a function defining the selection scheme.
  */
-void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEfficiencies=true) {
+void initialize (int runNumber=0, bool initTriggerMaps=true) {
 
     assert (useDataVersion >= 6);
     if (debugStatements) cout << Form("Status: In triggerUtil.C (248): Initializing trigger system for run %i...", runNumber) << endl;
@@ -275,6 +293,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
         trigPath = rootPath + "trigData/";
         effPath = rootPath + "effData/";
         xPath = rootPath + "xData/";
+        RpPbPath = rootPath + "RpPbData/";
     }
     /**** End reset direction information ****/
 
@@ -290,7 +309,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
 
         string trigName, referenceTriggerName;
         double trigLetaFloat, trigUetaFloat; 
-        int trigPt, trigLowerRunNumber, trigUpperRunNumber = 0;
+        int trigMinPt, trigThresholdPt, trigLowerRunNumber, trigUpperRunNumber = 0;
 
         Trigger* minbiasTrigger = new Trigger(minbiasTriggerName, 0, -4.9, 4.9, 0, INT_MAX);
         minbiasTrigger->referenceTrigger = minbiasTrigger;
@@ -300,12 +319,14 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
         while (triggerListFile) {
 
             triggerListFile >> trigName;
-            triggerListFile >> trigPt;
+            triggerListFile >> trigThresholdPt; // listed threshold pt for trigger - e.g. 15 for a j15 trigger
             triggerListFile >> trigLetaFloat;
             triggerListFile >> trigUetaFloat;
             triggerListFile >> referenceTriggerName;
             triggerListFile >> trigLowerRunNumber;
             triggerListFile >> trigUpperRunNumber;
+            triggerListFile >> trigMinPt; // pt required above turn on for efficiency ~1
+            assert (trigUetaFloat >= trigLetaFloat);
             
             bool isPhysicsTrigger = (trigLowerRunNumber <= runNumber && runNumber < trigUpperRunNumber) || (runNumber == 0);
 
@@ -315,7 +336,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
             **/
 
             if (!inTriggerVec(trigName)) {
-                Trigger* newTrig = new Trigger(trigName, trigPt, trigLetaFloat, trigUetaFloat, !isPhysicsTrigger, trigLowerRunNumber, trigUpperRunNumber);
+                Trigger* newTrig = new Trigger(trigName, trigThresholdPt, trigLetaFloat, trigUetaFloat, !isPhysicsTrigger, trigLowerRunNumber, trigUpperRunNumber, trigThresholdPt+trigMinPt);
                 triggerVec.push_back(newTrig);
 
                 if (referenceTriggerName == "MINBIAS") {
@@ -369,7 +390,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
         double* totalLumiVec = getTriggerLuminosities(); // luminosity a particular trigger sees at a given pbin, etabin in a given run
         for (int n = 0; n < numpbins*numetabins; n++) {
             kinematicLumiVec[n] = 0;
-            kinematicEfficiencyVec[n] = 0.;
+//            kinematicEfficiencyVec[n] = 0.;
             kinematicTriggerVec[n] = NULL;
         }
         /**** End local variable declarations ****/
@@ -429,7 +450,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
 
 
         /**** Instantiate trigger efficiency information ****/
-        if (initTriggerEfficiencies) {
+        /*if (initTriggerEfficiencies) {
            
             if (debugStatements) cout << "Status: In triggerUtil.C (420): Gathering trigger efficiency information..." << endl; 
 
@@ -442,7 +463,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true, bool initTriggerEff
                     kinematicEfficiencyVec[pbin + etabin*numpbins] = triggerEfficiencies[bestTrigger->index + pbin*numtrigs];
                 }
             }
-        }
+        }*/
         /**** End instantiate trigger efficiency information ****/
 
 
