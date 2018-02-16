@@ -16,7 +16,7 @@ void DijetAnalysisHist() {
     double* histArrScalesX_eta;
     double* histArrScalesM_eta;
     double* histArrScalesX_Q;
-    if (scaleDijetAnalyses) {
+    if (scaleAnalyses) {
         eta_min = 1e-4;
         eta_max = 1e12;
         q_min = 1e-7;
@@ -52,33 +52,34 @@ void DijetAnalysisHist() {
     TH1D* mHistArr[numetabins];
 
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        xHistArr[etabin] = new TH1D(Form("eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#eta #left[nb#right]", etabins[etabin], etabins[etabin+1]), numxbins, xbins);
+        xHistArr[etabin] = new TH1D(Form("eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#eta #left[nb#right]", etabins[etabin], etabins[etabin+1]), numxbins, xbins);
         xHistArr[etabin]->Sumw2();
     }
     for (int etabin = numetabins; etabin < 2*numetabins; etabin++) {
-        xHistArr[etabin] = new TH1D(Form("eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}#sigma/d#it{x}_{a}d#eta #left[nb#right]", etabins[etabin%numetabins], etabins[(etabin%numetabins)+1]), numxbins, xbins);
+        xHistArr[etabin] = new TH1D(Form("eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#eta #left[nb#right]", etabins[etabin%numetabins], etabins[(etabin%numetabins)+1]), numxbins, xbins);
         xHistArr[etabin]->Sumw2();
     }
 
     for (int qbin = 0; qbin < numqbins; qbin++) {
-        xqHistArr[qbin] = new TH1D(Form("q%i", qbin), Form("%g < #it{Q} < %g;#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin], qbins[qbin+1]), numxbins, xbins);
+        xqHistArr[qbin] = new TH1D(Form("q%i", qbin), Form("%g < #it{Q} < %g;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin], qbins[qbin+1]), numxbins, xbins);
         xqHistArr[qbin]->Sumw2();
     }
     for (int qbin = numqbins; qbin < 2*numqbins; qbin++) {
-        xqHistArr[qbin] = new TH1D(Form("q%i", qbin), Form("%g < #it{Q} < %g;#it{x}_{a};d^{2}#sigma/d#it{x}_{a}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin%numqbins], qbins[(qbin%numqbins)+1]), numxbins, xbins);
+        xqHistArr[qbin] = new TH1D(Form("q%i", qbin), Form("%g < #it{Q} < %g;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin%numqbins], qbins[(qbin%numqbins)+1]), numxbins, xbins);
         xqHistArr[qbin]->Sumw2();
     }
 
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        mHistArr[etabin] = new TH1D(Form("mjj_eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{m}_{JJ} #left[GeV#right];d^{2}#sigma/d#it{m}_{JJ}d#eta #left[nb GeV^{-1}#right]", etabins[etabin], etabins[etabin+1]), nummbins, mbins);
+        mHistArr[etabin] = new TH1D(Form("mjj_eta%i", etabin), Form("%1.1f < #eta < %1.1f;#it{m}_{JJ} #left[GeV#right];d^{2}N/L_{int}d#it{m}_{JJ}d#eta #left[nb GeV^{-1}#right]", etabins[etabin], etabins[etabin+1]), nummbins, mbins);
         mHistArr[etabin]->Sumw2();
     }
 
-    TH2D* qxcorr = new TH2D("xqcorr", ";#it{x}_{a};#it{Q}_{rms}^{2} #left[GeV^{2}#right];d^{2}#sigma/d#it{x}_{a}d#it{Q}_{rms}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
-    TH2D* xaxpcorr = new TH2D("xaxpcorr", ";#it{x}_{a};#it{x}_{p};d^{2}#sigma/d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
-    TH2D* fcalHist = new TH2D("fcalHist", ";#it{x}_{p};FCAL energy [GeV];d^{2}#sigma/d#it{x}_{p}d#it{E}_{FCAL}", numxbins, xbins, numfcalbins, fcalbins);
+    TH2D* qxcorr = new TH2D("xqcorr", ";#it{x}_{a};#it{Q}_{rms}^{2} #left[GeV^{2}#right];d^{2}N/L_{int}d#it{x}_{a}d#it{Q}_{rms}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
+    TH2D* xaxpcorr = new TH2D("xaxpcorr", ";#it{x}_{a};#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
+    TH2D* fcalHist = new TH2D("fcalHist", ";#it{x}_{p};FCAL energy [GeV];d^{2}N/L_{int}d#it{x}_{p}d#it{E}_{FCAL}", numxbins, xbins, numfcalbins, fcalbins);
 
     double integrated_luminosity = 0; // units are nb^{-1}
+    int numGoodEvents = 0;
     TH1D* thisHist;
 
     {
@@ -102,8 +103,9 @@ void DijetAnalysisHist() {
             qxcorr->Add((TH2D*)thisFile->Get(Form("xqcorr_run%i", thisRunNumber)));
             xaxpcorr->Add((TH2D*)thisFile->Get(Form("xaxpcorr_run%i", thisRunNumber)));
             fcalHist->Add((TH2D*)thisFile->Get(Form("fcalhist_run%i", thisRunNumber)));
-            TVectorD* thisluminosityvec = (TVectorD*)(thisFile->Get("lum_vec")); // Accesses luminosity for this run and creates a pointer to it
-            integrated_luminosity += (*thisluminosityvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
+            TVectorD* thisrunvec = (TVectorD*)(thisFile->Get("run_vec")); // Accesses luminosity for this run and creates a pointer to it
+            integrated_luminosity += (*thisrunvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
+            numGoodEvents += (*thisrunvec)[1];
             thisFile->Close();
             delete thisFile;
         }
@@ -140,16 +142,17 @@ void DijetAnalysisHist() {
         const double textx = 0.22 + 0.27*(etabin>=(numetabins/2));
         const double texty = 0.35 - 0.05*((etabin%(numetabins/2))*(etabin >= (numetabins/2)) + (numetabins/2 - etabin - 1)*(etabin < (numetabins/2)));
         char* text;
-        if (scaleDijetAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[etabin], etabins[etabin+1], histScale);
+        if (scaleAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[etabin], etabins[etabin+1], histScale);
         else text = Form("%g < #it{#eta}_{JJ} < %g", etabins[etabin], etabins[etabin+1]);
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.2, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.2, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     string histName = "dijets_xp_pseudorapidity_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";
-    if (scaleDijetAnalyses) histName = histName + "_scaled";
+    if (scaleAnalyses) histName = histName + "_scaled";
 
     canvas->Draw();
     canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
@@ -188,16 +191,17 @@ void DijetAnalysisHist() {
         const double textx = 0.22 + 0.27*(temp>=(numetabins/2));
         const double texty = 0.35 - 0.05*((temp%(numetabins/2))*(temp>=(numetabins/2)) + (numetabins/2 - temp - 1)*(temp < (numetabins/2)));
         char* text;
-        if (scaleDijetAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[temp], etabins[temp+1], histScale);
+        if (scaleAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[temp], etabins[temp+1], histScale);
         else text = Form("%g < #it{#eta}_{JJ} < %g", etabins[temp], etabins[temp+1]);
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.2, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.2, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     histName = "dijets_xa_pseudorapidity_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";
-    if (scaleDijetAnalyses) histName = histName + "_scaled";
+    if (scaleAnalyses) histName = histName + "_scaled";
 
     canvas->Draw();
     canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
@@ -234,16 +238,17 @@ void DijetAnalysisHist() {
         const double textx = 0.22;
         const double texty = 0.55 - 0.05*qbin;
         char* text;
-        if (scaleDijetAnalyses) text = Form("%.0f < #left|Q#right| < %.0f (#times10^{%g})", qbins[qbin], qbins[qbin+1], histScale);
+        if (scaleAnalyses) text = Form("%.0f < #left|Q#right| < %.0f (#times10^{%g})", qbins[qbin], qbins[qbin+1], histScale);
         else text = Form("%.0f < #left|Q#right| < %.0f", qbins[qbin], qbins[qbin+1]);
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.2, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.2, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     histName = "dijets_xp_hardness_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";
-    if (scaleDijetAnalyses) histName = histName + "_scaled";
+    if (scaleAnalyses) histName = histName + "_scaled";
 
     canvas->Draw();
     canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
@@ -281,16 +286,17 @@ void DijetAnalysisHist() {
         const double textx = 0.22;
         const double texty = 0.55 - 0.05*temp;
         char* text;
-        if (scaleDijetAnalyses) text = Form("%.0f < #left|Q#right| < %.0f (#times10^{%g})", qbins[temp], qbins[temp+1], histScale);
+        if (scaleAnalyses) text = Form("%.0f < #left|Q#right| < %.0f (#times10^{%g})", qbins[temp], qbins[temp+1], histScale);
         else text = Form("%.0f < #left|Q#right| < %.0f", qbins[temp], qbins[temp+1]);
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.2, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.2, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     histName = "dijets_xa_hardness_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";
-    if (scaleDijetAnalyses) histName = histName + "_scaled";
+    if (scaleAnalyses) histName = histName + "_scaled";
 
     canvas->Draw();
     canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
@@ -327,16 +333,17 @@ void DijetAnalysisHist() {
         const float textx = 0.45 + (etabin>=(numetabins/2))*0.27;
         const float texty = 0.85 - (etabin%(numetabins/2))*0.05*(etabin>=(numetabins/2)) - (numetabins/2 - etabin - 1)*0.05*(etabin<(numetabins/2));
         char* text;
-        if (scaleDijetAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[etabin], etabins[etabin+1], histScale);
+        if (scaleAnalyses) text = Form("%g < #it{#eta}_{JJ} < %g (#times10^{%1.1f})", etabins[etabin], etabins[etabin+1], histScale);
         else text = Form("%g < #it{#eta}_{JJ} < %g", etabins[etabin], etabins[etabin+1]);
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.43, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.43, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     histName = "dijets_mjj_etabinned_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";
-    if (scaleDijetAnalyses) histName = histName + "_scaled";
+    if (scaleAnalyses) histName = histName + "_scaled";
 
     canvas->Draw();
     canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
@@ -361,6 +368,7 @@ void DijetAnalysisHist() {
 //    xaxpcorr->GetZaxis()->SetTickLength(0.01);
 
     myText (0.19, 0.25, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.19, 0.19, kBlack, Form("%i dijet events", numGoodEvents));
     
     histName = "dijets_Q2_xa_correlation_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
@@ -389,6 +397,7 @@ void DijetAnalysisHist() {
 //    xaxpcorr->GetZaxis()->SetTickLength(0.01);
 
     myText (0.19, 0.25, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.19, 0.19, kBlack, Form("%i dijet events", numGoodEvents));
     
     histName = "dijets_xa_xp_correlation_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
@@ -416,7 +425,7 @@ void DijetAnalysisHist() {
     //fcalHist->GetZaxis()->SetTickLength(0.01);
 
     myText (0.19, 0.91, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
-    //myText (0.19, 0.47, kBlack, Form("#it{L}_{int} = %.1f nb^{-1}", integrated_luminosity));
+    myText (0.19, 0.85, kBlack, Form("%i dijet events", numGoodEvents));
     
     histName = "dijets_xp_fcal_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
@@ -439,6 +448,7 @@ void DijetAnalysisHist() {
     fcalProfileX->SetMarkerStyle(kFullDotMedium);
     fcalProfileX->Draw("e1");
     myText (0.19, 0.91, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
+    myText (0.19, 0.85, kBlack, Form("%i dijet events", numGoodEvents));
     histName = "dijets_xp_fcal_profilex_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
     else if (!runPeriodA && runPeriodB) histName = histName + "_periodB";

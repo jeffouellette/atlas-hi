@@ -108,13 +108,10 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
     
     /**** Generate list of physics triggers ****/
-    vector<Trigger*> triggerSubList(0);
-    for (Trigger* trig : triggerVec) {
-        if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
-    }
+    vector<Trigger*>* triggerSubvector = getTriggerSubvector(thisRunNumber);
     if (debugStatements) {
         cout << "Status: In IdealRpPbAnalysis.C (breakpoint B): Processing run " << thisRunNumber << " with triggers:" << endl;
-        for (Trigger* trig : triggerSubList) {
+        for (Trigger* trig : (*triggerSubvector)) {
             cout << "\t" << trig->name << endl;
         }
     }
@@ -164,7 +161,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
                 interestingBranch = interestingBranch || (branchName.Data() == s);
             }
             if (!interestingBranch) {
-                for (Trigger* trig : triggerSubList) {
+                for (Trigger* trig : (*triggerSubvector)) {
                     if (branchName == trig->name) {
                         interestingBranch = true;
                         break;
@@ -201,7 +198,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("nvert", &nvert);
     tree->SetBranchAddress("vert_type", vert_type);
-    for (Trigger* trig : triggerSubList) {
+    for (Trigger* trig : (*triggerSubvector)) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
     }
     /**** End set branch addresses ****/

@@ -106,8 +106,9 @@ void IdealPtAnalysisHist() {
     /** Plotting routines **/
 
     // Plot best-selected pt spectra
-    double* histArrScales = linspace(-1.5, 1.5, numetabins/2 - 1);
-//    double* histArrScales = linspace(0, 0, numetabins/2 - 1); // for "un-unscaling" to see if one eta bin is particularly lacking in counts
+    double* histArrScales;
+    if (scaleAnalyses) histArrScales = linspace(-1.5, 1.5, numetabins/2 - 1);
+    else histArrScales = linspace(0, 0, numetabins/2 - 1); // for "un-unscaling" to see if one eta bin is particularly lacking in counts
     TCanvas* canvas = new TCanvas("trigCanvas", "", 800, 600);
     canvas->cd();
     gPad->SetLogy();

@@ -9,13 +9,10 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
     
     /**** Generate list of physics triggers ****/
-    vector<Trigger*> triggerSubList(0);
-    for (Trigger* trig : triggerVec) {
-        if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
-    }
+    vector<Trigger*>* triggerSubvector = getTriggerSubvector(thisRunNumber);
     if (debugStatements) {
         cout << "Status: In IdealPtAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
-        for (Trigger* trig : triggerSubList) {
+        for (Trigger* trig : (*triggerSubvector)) {
             cout << "\t" << trig->name << endl;
         }
     }
@@ -64,7 +61,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
                 interestingBranch = interestingBranch || (branchName.Data() == s);
             }
             if (!interestingBranch) {
-                for (Trigger* trig : triggerSubList) {
+                for (Trigger* trig : (*triggerSubvector)) {
                     if (branchName == trig->name) {
                         interestingBranch = true;
                         break;
@@ -89,7 +86,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("j_phi", j_phi);
     tree->SetBranchAddress("njet", &njet);
-    for (Trigger* trig : triggerSubList) {
+    for (Trigger* trig : (*triggerSubvector)) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
     }
     /**** End set branch addresses ****/

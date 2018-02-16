@@ -35,7 +35,7 @@ void IdealRpPbAnalysisHist() {
     }
     TH1D* RpPbHistArr[numppEtabins];
     for (int ppEtabin = 0; ppEtabin < numppEtabins; ppEtabin++) {
-        RpPbHistArr[ppEtabin] = new TH1D(Form("R_pPb_ppEtabin%i", ppEtabin), ";#it{p}_{T}^{jet} #left[GeV#right];R_{#it{pPb}}", numppPtEtabins[ppEtabin], ppPtbins);
+        RpPbHistArr[ppEtabin] = new TH1D(Form("R_pPb_ppEtabin%i", ppEtabin), ";#it{p}_{T}^{jet} [GeV];R_{#it{pPb}}", numppPtEtabins[ppEtabin], ppPtbins);
         RpPbHistArr[ppEtabin]->Sumw2();
     }
 
@@ -120,11 +120,13 @@ void IdealRpPbAnalysisHist() {
     const double histArrShifts[numppEtabins] = {0, 1.5, 3, 4.5, 6, 7.5};
     //const double histArrShifts[numppEtabins] = {7.5, 6, 4.5, 3, 1.5, 0};
     TCanvas* canvas = new TCanvas("RpPbCanvas", "", 800, 600);
+    canvas->Divide(2, 3, 0.01, 0.01);
     TLine* lineDrawer = new TLine();  
     gPad->SetLogx();
     gPad->SetTicks();
     canvas->Draw();
     for (int ppEtabin = 0; ppEtabin < numppEtabins; ppEtabin++) {
+        canvas->cd(ppEtabin+1);
         thisHist = RpPbHistArr[ppEtabin];
         Style_t kStyle = mkstyles[ppEtabin%2];
         Color_t kColor = mkcolors[ppEtabin%8];
@@ -143,7 +145,13 @@ void IdealRpPbAnalysisHist() {
         thisHist->SetLineColor(kColor);
         thisHist->SetMinimum(ymin);
         thisHist->SetMaximum(ymax);
-        thisHist->GetYaxis()->SetTitleOffset(1.35);
+        thisHist->GetYaxis()->SetLabelSize(0.07);
+        thisHist->GetYaxis()->SetTitleSize(0.07);
+        thisHist->GetXaxis()->SetLabelSize(0.07);
+        thisHist->GetXaxis()->SetTitleSize(0.07);
+
+        thisHist->GetYaxis()->SetTitleOffset(1.1);
+        thisHist->GetXaxis()->SetTitleOffset(1.1);
         thisHist->GetXaxis()->SetTickLength(0.02);
         thisHist->GetYaxis()->SetTickLength(0.02);
         if (ppEtabin == 0) thisHist->Draw("e1");
@@ -151,16 +159,16 @@ void IdealRpPbAnalysisHist() {
 
         if (shiftBins) lineDrawer->DrawLine(ppPtbins[0], histArrShifts[ppEtabin]+1, ppPtbins[numppPtbins], histArrShifts[ppEtabin]+1);
 
-        const float textx = 0.76 - 0.04*shiftBins;
-        const float texty = 0.91 - (ppEtabin)*0.05;
+        const float textx = 0.6; //- 0.04*shiftBins;
+        const float texty = 0.85; // - (ppEtabin)*0.05;
         char* text;
         if (shiftBins) text = Form("%g < #left|#it{y}#right|_{CoM} < %g (+%g)", ppEtabins[ppEtabin], ppEtabins[ppEtabin+1], histArrShifts[ppEtabin]); /*histArrScales[(int)((0.5*(numppEtabins-1))-TMath::Abs(ppEtabin-(0.5*(numppEtabins-1))))]);*/
         else text = Form("%g < #left|#it{y}#right|_{CoM} < %g", ppEtabins[ppEtabin], ppEtabins[ppEtabin+1]);
-        myMarkerText (textx, texty, kColor, kStyle, text);
+        myText (textx, texty, kBlack, text,  0.1);
     }
 
-    myText (0.19, 0.85, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{#it{s}} = 8.16 TeV", totalpPbLuminosity));
-    myText (0.19, 0.79, kBlack, Form("2012 #it{pp}, %.1f fb^{-1}, #sqrt{#it{s}} = 8 TeV", totalppLuminosity));
+    myText (0.19, 0.35, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{#it{s}} = 8.16 TeV", totalpPbLuminosity), 0.1);
+    myText (0.19, 0.225, kBlack, Form("2012 #it{pp}, %.1f fb^{-1}, #sqrt{#it{s}} = 8 TeV", totalppLuminosity), 0.1);
 
     string histName;
     histName = "R_pPb_combinedTriggers";
