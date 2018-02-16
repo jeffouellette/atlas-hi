@@ -1,14 +1,22 @@
 /** User defined parameters **/
 
-const int useDataVersion = 6; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. Currently accepted values: 5, 6.
+const int useDataVersion = 7; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. If any value is given other than the currently accepted value, every run will be skipped and nothing will happen. Currently accepted values: 7
 const bool runPeriodA = true; // Analyze period A data
 const bool runPeriodB = true; // Analyze period B data
 const bool debugStatements = false; // Print out periodic statements to monitor code flow
 const double dijet_pt_ratio_cutoff = 0.7; // Minimum subleading-to-leading jet ratio for the event to be considered a dijet
+const bool scaleDijetAnalyses = true; // Whether to separate the dijet plots by relatively rescaling each plot
 const int trigthres = 0; // Additional threshold requirement for triggers
 const string workPath = "/Users/jeffouellette/Research/atlas-hi/P_Pb_dijet_analyses/"; // Home analysis directory
-const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1"; // Accepted triggers: HLT_mb_sptrk_L1MBTS_1, HLT_mb_mbts_L1MBTS_1
+const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1"; // Valid triggers: HLT_mb_sptrk_L1MBTS_1, HLT_mb_mbts_L1MBTS_1
 const string fittedFunctionType = /*"erf";*/ "fermi_dirac"; // Function used to fit trigger efficiencies- accepted values: "fermi_dirac", "erf"
+
+const double lowerPhiCut = TMath::Pi()-0.4;
+const double upperPhiCut = 3.*TMath::Pi()/2.+0.4;
+const double dijetMinimumPt = 20; // Minimum Pt required for jets in dijet analysis
+
+//const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
+const int run_list_v7[26] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
 
 /** End user defined parameters **/
 
@@ -41,5 +49,7 @@ int numtrigs; // Total number of triggers
 const float Z = 82;   // value of Z for Pb
 const float A = 208;  // value of A for Pb
 const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
+
+const double pi = TMath::Pi();
 
 /** End general parameters **/

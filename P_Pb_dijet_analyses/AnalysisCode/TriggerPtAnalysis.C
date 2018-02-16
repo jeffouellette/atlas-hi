@@ -4,11 +4,9 @@
 // For overlapping triggers, this will improve statistics by choosing the trigger that fires more often.
 
 void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
-             double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+                       double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     if (skipRun(thisRunNumber)) return;
-
-    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
 
     initialize(thisRunNumber, false);
 
@@ -19,7 +17,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In TriggerPtAnalysis.C (22): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In TriggerPtAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
@@ -44,7 +42,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
             while ((sysfile = (TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (47): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint B): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         thisFile = new TFile(dataPath+fname, "READ");
                         tree = (TTree*)thisFile->Get("tree");
@@ -55,7 +53,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In triggers_pt_counts.C (58): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In triggers_pt_counts.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
     /**** End find TTree ****/
@@ -67,7 +65,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         bool interestingBranch;
         for (TObject* obj : *branches) {
             TString branchName = (TString)obj->GetName();
-            if (debugStatements) cout << "Status: In triggers_pt_counts.C (63): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+            if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint D): Tree contains branch \"" << branchName.Data() << "\"" << endl;
             interestingBranch = false;
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -108,7 +106,7 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         // pt spectrum for each trigger
         for (int etabin = 0; etabin < numetabins; etabin++) {
             histName = Form("counts_%s_etabin_%i_run%i", trig->name.c_str(), etabin, thisRunNumber);
-            countsHistArr[t + etabin*numtrigs_sublist] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[nb GeV^{-1}#right]", numpbins, pbins);
+            countsHistArr[t + etabin*numtrigs_sublist] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
             countsHistArr[t + etabin*numtrigs_sublist]->Sumw2();
         }
     }
@@ -195,6 +193,6 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
         delete trig;
     }
 
-    if (debugStatements) cout << "Status: In TriggerPtAnalysis.C (193): Finished run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In TriggerPtAnalysis.C (breakpoint E): Finished run " << thisRunNumber << endl;
     return;
 }

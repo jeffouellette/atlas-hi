@@ -1,8 +1,5 @@
 #include "../triggerUtil.C"
-/**
- * Returns the 8 TeV p-p jet pt spectra in the format ppSpectrum[ pbin + etabin * numppPtbins ].
- * Return value has units nb/GeV.
- */
+
 const double etaCoM = -0.465; // boost into CoM frame in period B kinematics
 const int numppPtbins = 34;
 const int numppEtabins = 6;
@@ -13,7 +10,6 @@ int numppPtEtabins[numppEtabins] = {};
 double pPbCoMEtabins[numpPbCoMEtabins+1] = {-3.465, -3.2, -2.965, -2.465, -2, -1.965, -1.465, -1, -0.965, -0.465, 0, 0.035, 0.535, 1, 1.035, 1.535, 2, 2.035, 2.535};
 double* ppJetSpectrum = new double[numppPtbins*numppEtabins];
 double* ppJetSpectrumStatError = new double[numppPtbins*numppEtabins];
-
 
 int getppPbin (double pt) {
     int bin = 0;
@@ -56,7 +52,7 @@ TH1D** setupPPConfiguration() {
         ifstream dataStream;
         dataStream.open(path + file);
         if (!dataStream.is_open()) {
-            cout << "Error: In triggerUtil.C (264): Cannot find input file!" << endl;
+            cout << "Error: In IdealRpPbAnalysis.C (breakpoint A): Cannot find input file!" << endl;
             throw runtime_error("File not found");
         }
         for (int i = 0; i < 641; i++) getline(dataStream, dummyline); // first 640 lines are systematic errors so skip them, 641st line is a table layout
@@ -88,7 +84,7 @@ TH1D** setupPPConfiguration() {
     TH1D** ppHistArr = new TH1D*[numppEtabins];
     for (ppEtabin = 0; ppEtabin < numppEtabins; ppEtabin++) {
         TString histName = Form("pp_spectrum_ppEtabin%i", ppEtabin);
-        ppHistArr[ppEtabin] = new TH1D (histName, ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma/d#it{p}_{T} #left[nb GeV^{-1}#right]", numppPtEtabins[ppEtabin], ppPtbins);
+        ppHistArr[ppEtabin] = new TH1D (histName, ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma/Ad#it{p}_{T} #left[nb GeV^{-1}#right]", numppPtEtabins[ppEtabin], ppPtbins);
         for (ppPtbin = 0; ppPtbin < numppPtbins; ppPtbin++) {
             ppHistArr[ppEtabin]->SetBinContent(ppPtbin+1, 1e-3*ppJetSpectrum[ppPtbin + ppEtabin*numppPtbins]); // 1e-3 to convert pb to nb
             ppHistArr[ppEtabin]->SetBinError(ppPtbin+1, 1e-3*ppJetSpectrumStatError[ppPtbin + ppEtabin*numppPtbins]);
@@ -117,14 +113,13 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In IdealRpPbAnalysis.C (16): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In IdealRpPbAnalysis.C (breakpoint B): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
     }
     /**** End generate list of physics triggers ****/
 
-    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
     const int numhists = numtrigs * numppEtabins;
 
     /**** Find the relevant TTree for this run ****/
@@ -140,7 +135,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             while ((sysfile = (TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (39): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (breakpoint C): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -150,7 +145,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In IdealRpPbAnalysis.C (49): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In IdealRpPbAnalysis.C (breakpoint D): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
     /**** End find TTree ****/
@@ -158,12 +153,12 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
 
     /**** Disable loading of unimportant branch values - speeds up entry retrieval ****/
     {
-        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "vert_type", "nvert"};
+        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi", "j_e", "vert_type", "nvert"};
         TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
         bool interestingBranch;
         for (TObject* obj : *branches) {
             TString branchName = (TString)obj->GetName();
-            if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (62): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+            if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (breakpoint E): Tree contains branch \"" << branchName.Data() << "\"" << endl;
             interestingBranch = false;
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -192,6 +187,8 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     // Create arrays to store jet data for each event
     float j_pt[60] = {};
     float j_eta[60] = {};
+    float j_phi[60] = {};
+    float j_e[60] = {};
     int njet = 0;
     int nvert = 0;
     int vert_type[60] = {};
@@ -199,6 +196,8 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     // Set branch addresses
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
+    tree->SetBranchAddress("j_phi", j_phi);
+    tree->SetBranchAddress("j_e", j_e);
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("nvert", &nvert);
     tree->SetBranchAddress("vert_type", vert_type);
@@ -223,8 +222,9 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
     const bool periodA = (thisRunNumber < 313500);
 
-    double jpt, jeta, eff, lumi;
+    double jpt, jeta, jphi, je, jy, eff, lumi, scale;
     int pbin, etabin, actetabin;
+    TLorentzVector tlv;
     Trigger* bestTrigger = NULL;
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
@@ -234,6 +234,8 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
         for (int j = 0; j < njet; j++) {
             jpt = (double)j_pt[j];
             jeta = (double)j_eta[j];
+            jphi = (double)j_phi[j];
+            je = (double)j_e[j];
 
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
@@ -248,11 +250,17 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             lumi = kinematicLumiVec[pbin + actetabin*numpbins];
             if (eff == 0. || lumi == 0.) continue; // make sure we're not dividing by 0 for some reason
 
-            if (periodA) jeta *= -1.; // flips period A pseudorapidities into period B kinematics, so that when we shift into CoM frame we get the correct kinematics
-            pPbCoMEtabin = getpPbCoMEtabin(jeta);
+            if (periodA) jy *= -1.; // flips period A pseudorapidities into period B kinematics, so that when we shift into CoM frame we get the correct kinematics
+            tlv.SetPtEtaPhiE(jpt, jeta, jphi, je);
+            jy = tlv.Rapidity();
+
+            pPbCoMEtabin = getpPbCoMEtabin(jy);
             if (pPbCoMEtabin < 0 || pPbCoMEtabin > numpPbCoMEtabins) continue; // this checks that the jets fall within the pp eta bins, which cover a smaller range (so this is an important check)
 
-            pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, 1./(eff*lumi));
+            scale = ((2*pi)/(2*pi- (upperPhiCut - lowerPhiCut)))*(1./(eff*lumi));
+            
+            if (jphi <= lowerPhiCut || jphi >= upperPhiCut) pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, scale);
+            //pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, 1./(eff*lumi));
         }
     }
     /**** End event iteration ****/
@@ -264,21 +272,22 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
         pPbCoMHistArr[pPbCoMEtabin]->Scale(1e3/A); // divide by A to normalize the histogram to pp results, and scale by 1e3 to convert ub to nb
         pPbCoMHistArr[pPbCoMEtabin]->Write();
     }
-    TVectorD lum_vec(1);
-    lum_vec[0] = luminosity;
-    lum_vec.Write(Form("lum_vec_%i", thisRunNumber));
+//    TVectorD lum_vec(1);
+//    lum_vec[0] = luminosity;
+//    lum_vec.Write(Form("lum_vec_%i", thisRunNumber));
 
-    TVectorD run_vec(5);
+    TVectorD run_vec(6);
     run_vec[0] = thisRunNumber;
     run_vec[1] = numppEtabins;
     run_vec[2] = numpPbCoMEtabins;
     run_vec[3] = numtrigs;
     run_vec[4] = numppPtbins;
+    run_vec[5] = luminosity;
     run_vec.Write(Form("run_vec_%i", thisRunNumber));
 
     output->Close();
     /**** End write output ****/
 
-    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (163): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (breakpoint F): Finished calculating pt spectrum for run " << thisRunNumber << endl;
     return;
 }

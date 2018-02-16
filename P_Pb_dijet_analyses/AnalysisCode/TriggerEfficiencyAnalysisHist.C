@@ -1,5 +1,8 @@
 #include "../triggerUtil.C"
 
+/**
+ * Bootstraps the trigger efficiency curve in pt.
+ */
 void bootstrap(Trigger* trig, TGraphAsymmErrors** effGraphArr) {
     if (trig->referenceTrigger->index == trig->index) { // iff trigger is the minbias reference trigger
         for (int pbin = 0; pbin < numpbins; pbin++) {
@@ -14,7 +17,7 @@ void bootstrap(Trigger* trig, TGraphAsymmErrors** effGraphArr) {
     int index = trig->index;
     int referenceIndex = trig->referenceTrigger->index;
     if (!(trig->referenceTrigger->isBootstrapped)) {
-        if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (16): Bootstrapping trigger " << trig->referenceTrigger->name << " for " << trig->name << endl;
+        if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (breakpoint A): Bootstrapping trigger " << trig->referenceTrigger->name << " for " << trig->name << endl;
         bootstrap(trig->referenceTrigger, effGraphArr);
     }
     TGraphAsymmErrors* temp = effGraphArr[index];
@@ -34,7 +37,7 @@ void TriggerEfficiencyAnalysisHist() {
 
     TEfficiency* effArr[numhists];
     TGraphAsymmErrors* effGraphArr[numhists];
-    int pbin, ebin, index, referenceIndex;
+    int pbin, etabin, index, referenceIndex;
     double reduced_pbins[40] = {};
     const int num_reduced_pbins = sizeof(reduced_pbins)/sizeof(reduced_pbins[0]) - 1;
     for (int reduced_pbin = 0; reduced_pbin < num_reduced_pbins+1; reduced_pbin++) {
@@ -44,7 +47,7 @@ void TriggerEfficiencyAnalysisHist() {
     for (Trigger* trig : triggerVec) {
         index = trig->index;
         effArr[index] = new TEfficiency(Form("%s_t_efficiency", trig->name.c_str()), ";#it{p}_{T}^{jet} #left[GeV#right];Efficiency #Epsilon", numpbins, pbins);
-        effGraphArr[index] = new TGraphAsymmErrors(numpbins);        
+        effGraphArr[index] = new TGraphAsymmErrors(numpbins);
     }
 
     int thisRunNumber;
@@ -52,7 +55,7 @@ void TriggerEfficiencyAnalysisHist() {
     for (int rnIndex = 0; rnIndex < numruns; rnIndex++) {
         thisRunNumber = (*thisRunNumbers)[rnIndex];
         if (skipRun(thisRunNumber)) {
-            if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysisHist.C (41): Skipping run " << thisRunNumber << endl;
+            if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysisHist.C (breakpoint B): Skipping run " << thisRunNumber << endl;
             continue;
         }
 
@@ -86,6 +89,7 @@ void TriggerEfficiencyAnalysisHist() {
         }
     }
 
+    /** Now bootstrap forward the efficiencies **/
     for (Trigger* trig : triggerVec) {
         bootstrap(trig, effGraphArr);
     }
@@ -93,7 +97,7 @@ void TriggerEfficiencyAnalysisHist() {
 
     /** Plotting routines **/
 
-    TCanvas* trigCanvas;
+    TCanvas* canvas;
     TFile* output = new TFile((effPath+"allEfficiencyHistograms.root").c_str(), "RECREATE");
     TLine* lineDrawer;
     TF1* fittedFunc;
@@ -103,9 +107,9 @@ void TriggerEfficiencyAnalysisHist() {
 
         index = trig->index;
 
-        trigCanvas = new TCanvas(Form("%s_canvas", trig->name.c_str()), "", 800, 600);
-        trigCanvas->cd();
-        trigCanvas->Draw();
+        canvas = new TCanvas(Form("%s_canvas", trig->name.c_str()), "", 800, 600);
+        canvas->cd();
+        canvas->Draw();
 
         lineDrawer = new TLine();
         lineDrawer->SetLineColor(kBlack);
@@ -127,7 +131,7 @@ void TriggerEfficiencyAnalysisHist() {
             fittedFunc = new TF1(Form("%s_erf", trig->name.c_str()), "TMath::Erf([0]*(x-[1]))", pbins[0], pbins[numpbins]);
             fittedFunc->SetParameters(0.2, trig->threshold_pt);
         }
-        effGraph->Fit(fittedFunc, "", "", (double)((trig->threshold_pt)-15), (double)((trig->threshold_pt)+75));
+        effGraph->Fit(fittedFunc, "", "", (double)((trig->threshold_pt)), (double)((trig->threshold_pt)+30));
 
         effGraph->SetMarkerStyle(kDot);
         effGraph->SetMarkerColor(kColor);
@@ -148,16 +152,16 @@ void TriggerEfficiencyAnalysisHist() {
 
         string histName = Form("%s_efficiency", trig->name.c_str());
 
-        trigCanvas->SaveAs((plotPath + "triggerEfficiencies/" + histName + ".pdf").c_str());
+        canvas->SaveAs((plotPath + "triggerEfficiencies/" + histName + ".pdf").c_str());
         effGraph->Write(Form("%s_t_graph", trig->name.c_str()));
         delete effGraphArr[index];
         delete effArr[index];
         delete lineDrawer;
-        delete trigCanvas;
+        delete canvas;
     }
     output->Close();
     delete output;
 
-    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysisHist.C (119): Finished plotting efficiency curves" << endl;
+    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysisHist.C (breakpoint C): Finished plotting efficiency curves" << endl;
     return;
 }

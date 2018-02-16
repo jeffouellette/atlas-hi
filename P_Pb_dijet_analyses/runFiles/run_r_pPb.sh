@@ -1,46 +1,46 @@
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313063, 0.02158528)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313067, 0.92944862)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313100, 8.6607035)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313107, 10.842987)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313136, 9.41972)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313187, 3.235229)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313259, 4.633754)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313285, 4.1909568)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313295, 9.7344818)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313333, 3.718726)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313435, 0.296768)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313572, 0.0051074)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313574, 1.1997638)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313575, 7.059486)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313603, 8.1575371)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313629, 6.2506744)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313630, 6.6318257)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313688, 7.3617282)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313695, 4.1394285)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313833, 4.6966299)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313878, 1.783855)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313929, 0.506215)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313935, 10.21076454)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313984, 2.198223)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314014, 6.854838)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314077, 9.496216)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314105, 6.063611)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314112, 9.795848)'&
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314157, 9.1529452)'& 
-#root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314170, 4.594566)'& 
-#
-#wait
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313063, 0.03)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313067, 1.24)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313100, 9.66)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313107, 11.92)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313136, 10.4)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313187, 3.67)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313259, 5.12)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313285, 4.74)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313295, 10.69)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313333, 4.13)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313435, 0.39)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313572, 0.01)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313574, 1.33)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313575, 7.54)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313603, 8.69)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313629, 6.86)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313630, 7.90)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313688, 7.96)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313695, 4.53)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313833, 5.11)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313878, 2.16)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313929, 0.63)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313935, 10.96)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (313984, 2.40)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314014, 7.36)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314077, 10.19)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314105, 6.50)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314112, 10.49)'&
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314157, 9.83)'& 
+root -l -b -q '../AnalysisCode/IdealRpPbAnalysis.C (314170, 4.92)'& 
+
+wait
 
 root -l -b -q '../AnalysisCode/IdealRpPbAnalysisHist.C ()'

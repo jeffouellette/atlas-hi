@@ -17,7 +17,7 @@ void TriggerPtAnalysisCombinedHist() {
     for (Trigger* trig : triggerVec) {
         for (int etabin = 0; etabin < numetabins; etabin++) {
             TString histName = Form("counts_%s_etabin_%i", trig->name.c_str(), etabin);
-            histArr[trig->index + etabin*numtrigs] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[nb GeV^{-1}#right]", numpbins, pbins);
+            histArr[trig->index + etabin*numtrigs] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
             histArr[trig->index + etabin*numtrigs]->Sumw2();
         }
     }
@@ -36,7 +36,7 @@ void TriggerPtAnalysisCombinedHist() {
             if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
         }
         if (debugStatements) {
-            cout << "Status: In TriggerPtAnalysisCombinedHist.C (39): Processing run " << thisRunNumber << " with triggers:" << endl;
+            cout << "Status: In TriggerPtAnalysisCombinedHist.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
             for (Trigger* trig : triggerSubList) {
                 cout << "\t" << trig->name << endl;
             }
@@ -126,6 +126,6 @@ void TriggerPtAnalysisCombinedHist() {
     }
     /**** End plotting routines ****/
 
-    if (debugStatements) cout << "Status: In TriggerPtAnalysisCombinedHist.C (128): Finished plotting trigger pt spectra" << endl;
+    if (debugStatements) cout << "Status: In TriggerPtAnalysisCombinedHist.C (breakpoint B): Finished plotting trigger pt spectra" << endl;
     return;
 }

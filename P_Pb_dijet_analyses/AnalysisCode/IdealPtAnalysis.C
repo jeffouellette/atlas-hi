@@ -14,15 +14,13 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In IdealPtAnalysis.C (16): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In IdealPtAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
     }
     /**** End generate list of physics triggers ****/
 
-    luminosity = luminosity/1000; // convert from nb^(-1) to pb^(-1)
-    const int numhists = numtrigs * numetabins;
 
     /**** Find the relevant TTree for this run ****/
     TTree* tree = NULL;
@@ -37,7 +35,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             while ((sysfile = (TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (39): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -47,7 +45,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         }
     }
     if (tree == NULL) {
-        cout << "Error: In IdealPtAnalysis.C (49): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In IdealPtAnalysis.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
     /**** End find TTree ****/
@@ -55,12 +53,12 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
     /**** Disable loading of unimportant branch values - speeds up entry retrieval ****/
     {
-        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta"};
+        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi"};
         TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
         bool interestingBranch;
         for (TObject* obj : *branches) {
             TString branchName = (TString)obj->GetName();
-            if (debugStatements) cout << "Status: In IdealPtAnalysis.C (62): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+            if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint D): Tree contains branch \"" << branchName.Data() << "\"" << endl;
             interestingBranch = false;
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -82,18 +80,14 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
 
     /**** Set branching addresses ****/
-    // Create branching addresses:  
-    // Create arrays to store trigger values for each event
-    //bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
-    //float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
-    // Create arrays to store jet data for each event
     float j_pt[60] = {};
     float j_eta[60] = {};
+    float j_phi[60] = {};
     int njet = 0;
 
-    // Set branch addresses
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
+    tree->SetBranchAddress("j_phi", j_phi);
     tree->SetBranchAddress("njet", &njet);
     for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
@@ -102,19 +96,24 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
 
     /**** Histogram initialization ****/
+    const int numhists = numtrigs * numetabins;
     TH1F* histArr[numhists];
+    TH2F* etaPhiHist;
     int pbin, etabin, index;
     for (etabin = 0; etabin < numetabins; etabin++) {
         TString histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, etabin);
-        histArr[etabin] = new TH1F(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}dy #left[nb (GeV/#it{c})^{-1}#right]", numpbins, pbins);
+        histArr[etabin] = new TH1F(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
         histArr[etabin]->Sumw2(); // instruct each histogram to propagate errors
     }
-
+    {
+        TString histName = Form("etaPhiHist_run%i", thisRunNumber);
+        etaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*TMath::Pi());
+    }
 
     /**** Iterate over each event ****/
     const int numentries = tree->GetEntries();
 
-    double jpt, jeta, eff;
+    double jpt, jeta, jphi, eff;
     Trigger* bestTrigger = NULL;
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
@@ -122,6 +121,8 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         for (int j = 0; j < njet; j++) {
             jpt = (double)j_pt[j];
             jeta = (double)j_eta[j];
+            jphi = (double)j_phi[j];
+            while (jphi < 0) jphi += 2.*pi;
 
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
@@ -133,7 +134,12 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             if (bestTrigger == NULL) continue; // make sure we're not trying to look at a null trigger
             eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
             if (eff == 0) continue; // avoid dividing by 0 
-            if (bestTrigger->m_trig_bool) histArr[etabin]->Fill(jpt, 1./eff);
+            if (bestTrigger->m_trig_bool) {
+                if (jphi <= lowerPhiCut || jphi >= upperPhiCut) histArr[etabin]->Fill(jpt, ((2*pi)/(2*pi- (upperPhiCut-lowerPhiCut)))*(1./eff));
+                //if (thisRunNumber < 313500) etaPhiHist->Fill(-jeta, jphi);
+                //else etaPhiHist->Fill(jeta, jphi);
+                etaPhiHist->Fill(jeta, jphi);
+            }
         }
     }
     /**** End event iteration ****/
@@ -145,20 +151,19 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         histArr[etabin]->Scale(1/A); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         histArr[etabin]->Write();
     }
-    TVectorD lum_vec(1);
-    lum_vec[0] = luminosity;
-    lum_vec.Write(Form("lum_vec_%i", thisRunNumber));
+    etaPhiHist->Write();
 
-    TVectorD run_vec(4);
+    TVectorD run_vec(5);
     run_vec[0] = thisRunNumber;
     run_vec[1] = numetabins;
     run_vec[2] = numtrigs;
     run_vec[3] = numpbins;
+    run_vec[4] = luminosity;
     run_vec.Write(Form("run_vec_%i", thisRunNumber));
 
     output->Close();
     /**** End write output ****/
 
-    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (163): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint E): Finished calculating pt spectrum for run " << thisRunNumber << endl;
     return;
 }

@@ -12,7 +12,7 @@ void TriggerPtAnalysisHist(int thisRunNumber) {
         if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In TriggerPtAnalysisHist.C (15): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In TriggerPtAnalysisHist.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerSubList) {
             cout << "\t" << trig->name << endl;
         }
@@ -102,11 +102,11 @@ void TriggerPtAnalysisHist(int thisRunNumber) {
 
     canvas->Draw();
 
-    myText (0.46, 0.9, kBlack, Form("Run %i, %.1f nb^{-1}, #sqrt{#it{s}} = 8.16 TeV", thisRunNumber, 1000.*luminosity));
+    myText (0.46, 0.9, kBlack, Form("Run %i, %.1f nb^{-1}, #sqrt{#it{s}} = 8.16 TeV", thisRunNumber, luminosity));
     myText (0.7, 0.84, kBlack, Form("N^{total}_{counts} = %i", numticks)); 
 
     canvas->SaveAs(Form("%scounts/run_trig_%i.pdf", plotPath.c_str(), thisRunNumber));
-    if (debugStatements) cout << Form("Status: In TriggerPtAnalysisHist.C (108): Triggers for run number %i finished", thisRunNumber) << endl;
+    if (debugStatements) cout << Form("Status: In TriggerPtAnalysisHist.C (breakpoint B): Triggers for run number %i finished", thisRunNumber) << endl;
 
     thisFile->Close();
     delete [] triggerLuminosities;

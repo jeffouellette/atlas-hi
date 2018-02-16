@@ -8,19 +8,11 @@ using namespace std;
 //=========================================================================================================
 /** Variable declarations **/
 
-// Global parameters
-double totalLuminosity;
-
 // Trigger vectors used for pt and eta binning
 vector<Trigger*> triggerVec(0); // total list of triggers used.
 double kinematicLumiVec[numpbins*numetabins]; // total exposed luminosity in a kinematic bin. Units: ub^-1
 Trigger* kinematicTriggerVec[numpbins*numetabins]; // best trigger to use in a kinematic bin.
 //double kinematicEfficiencyVec[numpbins*numetabins]; // best trigger efficiency in a kinematic bin.
-
-// Run list information
-//const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
-const int run_list_v6[26] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
-const int run_list_v7[13] = {313063, 313107, 313136, 313259, 313285, 313435, 313695, 313929, 313984, 314014, 314077, 314105, 314112}; // for debugging purposes
 
 
 //=========================================================================================================
@@ -84,8 +76,8 @@ static double get_xa(double jpt0, double jpt1, double jeta0, double jeta1, bool 
 /**
  * Returns the momentum transfer ("hardness") Q for the event.
  */
-static double get_q(double xp, double je, double jpt) {
-    return (double)TMath::Sqrt(TMath::Sqrt(A/Z)*sqrt_s_nn*xp*(je-TMath::Sqrt(je*je-jpt*jpt)));
+static double get_q2(double xp, double je, double jpt) {
+    return (double)TMath::Sqrt(A/Z)*sqrt_s_nn*xp*(je-TMath::Sqrt(je*je-jpt*jpt));
 }
 
 
@@ -132,14 +124,7 @@ static bool skipRun (int rn) {
     switch (useDataVersion) {
         case 7: {
             while (i < sizeof(run_list_v7)/sizeof(int) && !contains_rn) {
-                contains_rn = run_list_v6[i] == rn;
-                i++;
-            }
-            break;
-        }
-        case 6: {
-            while (i < sizeof(run_list_v6)/sizeof(int) && !contains_rn) {
-                contains_rn = run_list_v6[i] == rn;
+                contains_rn = run_list_v7[i] == rn;
                 i++;
             }
             break;
@@ -157,12 +142,6 @@ static vector<int>* getRunNumbers() {
         case 7: {
             for (int i = 0; i < sizeof(run_list_v7)/sizeof(int); i++) {
                 rns->push_back(run_list_v7[i]);
-            }
-            break;
-        }
-        case 6: {
-            for (int i = 0; i < sizeof(run_list_v6)/sizeof(int); i++) {
-                rns->push_back(run_list_v6[i]);
             }
             break;
         }
@@ -193,8 +172,11 @@ vector<TF1*>* getTriggerEfficiencyFunctions() {
     vector<TF1*>* triggerEfficiencyFunctions = new vector<TF1*>(numtrigs); /*= new TF1[numtrigs*numpbins];*/
 //    for (Trigger* trig : triggerVec) triggerEfficiencyFunctions->push_back(NULL);
     for (Trigger* trig : triggerVec) {
-        if (trig->referenceTrigger == trig) continue;
         int index = trig->index; 
+        if (trig->referenceTrigger == trig) {
+            (*triggerEfficiencyFunctions)[index] = new TF1(Form("%s_%s", trig->name.c_str(), fittedFunctionType.c_str()), "1", pbins[0], pbins[numpbins]);
+            continue;
+        }
 //        TH1F* thisHist = (TH1F*)thisFile->Get(Form("%s_efficiency", trig->name.c_str()));
         TGraphAsymmErrors* thisGraph = (TGraphAsymmErrors*)thisFile->Get(Form("%s_t_graph", trig->name.c_str()));
         (*triggerEfficiencyFunctions)[index] = (TF1*)(thisGraph->GetFunction(Form("%s_%s", trig->name.c_str(), fittedFunctionType.c_str())));
@@ -271,6 +253,54 @@ double* getTriggerLuminosities() {
 
 
 /**
+ * Stores the best triggers for the run referenced by rnIndex in kinematicTriggerVec.
+ */
+void setBestTriggers(int rnIndex) {
+    /**
+    *** Now calculate the best trigger to use for each bin.
+    *** The best trigger is the one satisfying the kinematic cuts of the bin with the highest luminosity.
+    **/
+    vector<int>* runNumbers = getRunNumbers();
+    const int thisRunNumber = (*runNumbers)[rnIndex];
+    const int numruns = runNumbers->size();
+    double* totalLumiVec = getTriggerLuminosities(); // luminosity a given trigger sees at a given pbin, etabin in a given run
+
+    // Get list of triggers used in this run
+    vector<Trigger*> triggerSubList(0);
+    for (Trigger* trig : triggerVec) {
+        if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber) {
+            triggerSubList.push_back(trig);
+        }
+    }
+
+    int actetabin;
+    double bestTrigLumi, thisTrigLumi;
+    Trigger* bestTrigger;
+    for (int etabin = 0; etabin < numetabins; etabin++) { 
+        if (thisRunNumber < 313500) actetabin = numetabins - etabin - 1;
+        else actetabin = etabin;
+        bestTrigger = NULL;
+        bestTrigLumi = 0;
+
+        for (int pbin = 0; pbin < numpbins; pbin++) {
+            for (Trigger* trig : triggerSubList) {
+                if (!(trig->lower_eta <= etabins[etabin] && etabins[etabin+1] <= trig->upper_eta && trig->min_pt <= pbins[pbin])) continue;
+                thisTrigLumi = totalLumiVec[rnIndex + (trig->index)*numruns];
+                if ((bestTrigger == NULL) || (bestTrigLumi < thisTrigLumi) || (bestTrigLumi == thisTrigLumi && bestTrigger->min_pt < trig->min_pt)) {
+                    bestTrigLumi = thisTrigLumi;
+                    bestTrigger = trig;
+                }
+            }
+            kinematicTriggerVec[pbin + etabin*numpbins] = bestTrigger;
+        }
+    }
+    delete[] totalLumiVec;
+    delete runNumbers;
+    return;
+}
+
+
+/**
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * Also (optionally) initializes a trigger selection scheme for each kinematic bin in a given run.
  * This includes calculating the relevant luminosity based on the selection method:
@@ -279,7 +309,7 @@ double* getTriggerLuminosities() {
  */
 void initialize (int runNumber=0, bool initTriggerMaps=true) {
 
-    assert (useDataVersion >= 6);
+    assert (useDataVersion >= 7);
     if (debugStatements) cout << Form("Status: In triggerUtil.C (248): Initializing trigger system for run %i...", runNumber) << endl;
 
     /**** Reset directory information for correct versioning ****/ 
@@ -412,7 +442,7 @@ void initialize (int runNumber=0, bool initTriggerMaps=true) {
     
             vector<Trigger*> triggerSubList(0);
             for (Trigger* trig : triggerVec) {
-                if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber && trig->name != minbiasTriggerName) {
+                if (trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber) {
                     triggerSubList.push_back(trig);
                 }
             }

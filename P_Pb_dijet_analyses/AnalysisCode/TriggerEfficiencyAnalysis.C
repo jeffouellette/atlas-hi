@@ -12,13 +12,12 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
         if ((trig->lowerRunNumber <= thisRunNumber && thisRunNumber < trig->upperRunNumber) || trig->referenceTrigger == trig) triggerSubList.push_back(trig);
     }
     if (debugStatements) {
-        cout << "Status: In TriggerEfficiencyAnalysis.C (37): Processing run " << thisRunNumber << " with triggers:" << endl;
+        cout << "Status: In TriggerEfficiencyAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
         for (Trigger* trig : triggerVec) {
             cout << "\t" << trig->name << endl;
         }
     }
 
-    luminosity *= 1e-3; // convert from nb^(-1) to pb^(-1)
     const int numhists = numtrigs;
 
     TTree* tree = NULL;
@@ -33,7 +32,7 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
             while ((sysfile=(TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (58): Found " << fname.Data() << endl; 
+                    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(thisRunNumber))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
@@ -43,16 +42,16 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
         }
     }
     if (tree == NULL) {
-        cout << "Error: In TriggerEfficiencyAnalysis.C (68): TTree not obtained for given run number. Quitting." << endl;
+        cout << "Error: In TriggerEfficiencyAnalysis.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
         return;
     }
 
     // Disable loading of unimportant branch values
-    vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "hlt_ion_j_pt", "hlt_ion_j_eta", "hlt_ion_njet", "hlt_j_pt", "hlt_j_eta", "hlt_njet", "nvert", "vert_type"};
+    vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi", "hlt_ion_j_pt", "hlt_ion_j_eta", "hlt_ion_j_phi", "hlt_ion_njet", "hlt_j_pt", "hlt_j_eta", "hlt_j_phi", "hlt_njet", "nvert", "vert_type"};
     TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
     for (TObject* obj : *branches) {
         TString branchName = (TString)obj->GetName();
-        if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (77): Tree contains branch \"" << branchName.Data() << "\"" << endl;
+        if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (breakpoint D): Tree contains branch \"" << branchName.Data() << "\"" << endl;
         bool interestingBranch = false;
         for (string s : interestingBranchNames) {
             interestingBranch = interestingBranch || (branchName.Data() == s);
@@ -70,9 +69,11 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
     // Create branching addresses:  
     float j_pt[60] = {};
     float j_eta[60] = {};
+    float j_phi[60] = {};
     int njet = 0;
     float hlt_j_pt[60] = {};
     float hlt_j_eta[60] = {};
+    float hlt_j_phi[60] = {};
     int hlt_njet = 0;
     int nvert = 0;
     int vert_type[60] = {};
@@ -86,11 +87,21 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
     if (thisRunNumber <= 313603) {
         tree->SetBranchAddress("hlt_ion_j_pt", hlt_j_pt);
         tree->SetBranchAddress("hlt_ion_j_eta", hlt_j_eta);
+        tree->SetBranchAddress("hlt_ion_j_phi", hlt_j_phi);
         tree->SetBranchAddress("hlt_ion_njet", &hlt_njet);
+        tree->SetBranchStatus("hlt_j_pt", 0);
+        tree->SetBranchStatus("hlt_j_eta", 0);
+        tree->SetBranchStatus("hlt_j_phi", 0);
+        tree->SetBranchStatus("hlt_njet", 0);
     } else {
         tree->SetBranchAddress("hlt_j_pt", hlt_j_pt);
         tree->SetBranchAddress("hlt_j_eta", hlt_j_eta);
+        tree->SetBranchAddress("hlt_j_phi", hlt_j_phi);
         tree->SetBranchAddress("hlt_njet", &hlt_njet);
+        tree->SetBranchStatus("hlt_ion_j_pt", 0);
+        tree->SetBranchStatus("hlt_ion_j_eta", 0);
+        tree->SetBranchStatus("hlt_ion_j_phi", 0);
+        tree->SetBranchStatus("hlt_ion_njet", 0);
     }
     for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
@@ -106,12 +117,12 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
 
     // Iterate over each event
     const int numentries = tree->GetEntries();
-    double max_j_pt, max_hlt_j_pt;
-    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (140): Looping over " << numentries << " events in run " << thisRunNumber << endl;
+    double max_j_pt, max_hlt_j_pt, max_j_phi, max_hlt_j_phi;
+    if (debugStatements) cout << "Status: In TriggerEfficiencyAnalysis.C (breakpoint E): Looping over " << numentries << " events in run " << thisRunNumber << endl;
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
 
-        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1)) continue; // Basic event selection: require a primary vertex
+        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet == 0 || hlt_njet == 0) continue; // Basic event selection: require a primary vertex and there to be at least one reconstructed and at least one hlt jet
 
         /**          BOOTSTRAPPING METHOD          **/
         /** Method works by calculating lowest pt  **/
@@ -120,22 +131,34 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
         /** relative to lowest pt multiplied by    **/
         /** lowest trigger efficiency, ad          **/
         /** infinitum.                             **/
+        /** To avoid dealing with prescales, check **/
+        /** the HLT objects meeting the trigger    **/
+        /** thresholds instead of whether the      **/
+        /** trigger fired. This tells us how many  **/
+        /** events there are in which the trigger  **/
+        /** would have fired if its prescale was   **/
+        /** uniformly 1.                           **/
 
         for (Trigger* trig : triggerSubList) {
             if (!(trig->referenceTrigger->m_trig_bool)) continue; // only consider events where the reference trigger fired
             index = trig->index;
 
-            max_j_pt = 0; // find leading (reconstructed) jet
+            max_j_pt = 0; // find leading (reconstructed) jet arranged by pt
+            max_j_phi = 0;
             for (int j = 0; j < njet; j++) {
                 if (j_pt[j] > max_j_pt && trig->lower_eta <= j_eta[j] && j_eta[j] <= trig->upper_eta) {
                     max_j_pt = (double)j_pt[j];
+                    max_j_phi = (double)j_phi[j];
                 }
             }
+            while (max_j_phi < 0) max_j_phi += 2*TMath::Pi();
+            if (lowerPhiCut < max_j_phi && max_j_phi < upperPhiCut) continue; // more event selection: cut out events where the jet is the disable HEC region
 
-            max_hlt_j_pt = 0; // find leading jet as seen by the HLT
+            max_hlt_j_pt = 0; // find leading jet as seen by the HLT arranged by pt
             for (int j = 0; j < hlt_njet; j++) {
                 if (hlt_j_pt[j] > max_hlt_j_pt && trig->lower_eta <= hlt_j_eta[j] && hlt_j_eta[j] <= trig->upper_eta) {
                     max_hlt_j_pt = (double)hlt_j_pt[j];
+                    //max_hlt_j_phi = (double)hlt_j_phi[j];
                 }
             }
 
@@ -160,6 +183,6 @@ void TriggerEfficiencyAnalysis(const int thisRunNumber, // Run number identifier
 
     output->Close();
 
-    if (debugStatements) cout << "Status: In triggerEfficiencies.C (192):Finished event loop for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In triggerEfficiencies.C (breakpoint F): Finished event loop for run " << thisRunNumber << endl;
     return;
 }
