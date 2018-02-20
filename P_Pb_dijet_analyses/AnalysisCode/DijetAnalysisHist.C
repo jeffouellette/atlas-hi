@@ -77,6 +77,7 @@ void DijetAnalysisHist() {
     TH2D* qxcorr = new TH2D("xqcorr", ";#it{x}_{a};#it{Q}_{rms}^{2} #left[GeV^{2}#right];d^{2}N/L_{int}d#it{x}_{a}d#it{Q}_{rms}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
     TH2D* xaxpcorr = new TH2D("xaxpcorr", ";#it{x}_{a};#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
     TH2D* fcalHist = new TH2D("fcalHist", ";#it{x}_{p};FCAL energy [GeV];d^{2}N/L_{int}d#it{x}_{p}d#it{E}_{FCAL}", numxbins, xbins, numfcalbins, fcalbins);
+    TH1I* eventSelectionHist = new TH1I("eventSelectionHist", ";Event selection criteria;\"Dijet\" events", 6, -0.5, 5.5);
 
     double integrated_luminosity = 0; // units are nb^{-1}
     int numGoodEvents = 0;
@@ -103,6 +104,7 @@ void DijetAnalysisHist() {
             qxcorr->Add((TH2D*)thisFile->Get(Form("xqcorr_run%i", thisRunNumber)));
             xaxpcorr->Add((TH2D*)thisFile->Get(Form("xaxpcorr_run%i", thisRunNumber)));
             fcalHist->Add((TH2D*)thisFile->Get(Form("fcalhist_run%i", thisRunNumber)));
+            eventSelectionHist->Add((TH1I*)thisFile->Get(Form("eventSelectionHist_run%i", thisRunNumber)));
             TVectorD* thisrunvec = (TVectorD*)(thisFile->Get("run_vec")); // Accesses luminosity for this run and creates a pointer to it
             integrated_luminosity += (*thisrunvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
             numGoodEvents += (*thisrunvec)[1];
@@ -338,7 +340,7 @@ void DijetAnalysisHist() {
         myMarkerText (textx, texty, mkcolor, kFullCircle, text);
     }
     myText (0.43, 0.9, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
-    myText (0.43, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
+//    myText (0.43, 0.84, kBlack, Form("%i dijet events", numGoodEvents));
 
     histName = "dijets_mjj_etabinned_8.16TeV";
     if (runPeriodA && !runPeriodB) histName = histName + "_periodA";
@@ -459,4 +461,25 @@ void DijetAnalysisHist() {
     delete fcalHist;
     delete fcalProfileX;
     /**** End plot FCAL TProfileX ****/
+
+
+    /**** Plot the number of events passing each selection criterion ****/
+    canvas = new TCanvas("event_selection_canvas", "", 800, 600);
+    canvas->cd();
+    gPad->SetLogy();
+    eventSelectionHist->GetXaxis()->SetTickLength(0);
+    eventSelectionHist->GetXaxis()->SetLabelSize(0);
+    eventSelectionHist->Draw();
+    TLatex* text = new TLatex();
+    text->SetTextAngle(90);
+    text->DrawLatex(0, eventSelectionHist->GetBinContent(1)*1.1, "None");
+    text->DrawLatex(1, eventSelectionHist->GetBinContent(2)*1.1, "a");
+    text->DrawLatex(2, eventSelectionHist->GetBinContent(3)*1.1, "a, b");
+    text->DrawLatex(3, eventSelectionHist->GetBinContent(4)*1.1, "a, b, c");
+    text->DrawLatex(4, eventSelectionHist->GetBinContent(5)*1.1, "a, b, c, d");
+    text->DrawLatex(5, eventSelectionHist->GetBinContent(6)*1.1, "a, b, c, d, e");
+
+    histName = "dijets_event_selection";
+    canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
+    /**** End plot event selection histogram ****/
 }

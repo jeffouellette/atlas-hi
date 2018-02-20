@@ -110,7 +110,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     /**** Iterate over each event ****/
     const int numentries = tree->GetEntries();
 
-    double jpt, jeta, jphi, eff;
+    double jpt, jeta, jphi, eff, scale;
     Trigger* bestTrigger = NULL;
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
@@ -119,20 +119,23 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             jpt = (double)j_pt[j];
             jeta = (double)j_eta[j];
             jphi = (double)j_phi[j];
-            while (jphi < 0) jphi += 2.*pi;
+            while (jphi < 0) jphi += 2.*pi; // converts phi to 0, 2*pi range
 
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
-
             if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
-            //eff = kinematicEfficiencyVec[pbin + etabin*numpbins]; 
             if (bestTrigger == NULL) continue; // make sure we're not trying to look at a null trigger
+
             eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
             if (eff == 0) continue; // avoid dividing by 0 
+
+            scale = 1./eff;
+
             if (bestTrigger->m_trig_bool) {
-                if (jphi <= lowerPhiCut || jphi >= upperPhiCut) histArr[etabin]->Fill(jpt, ((2*pi)/(2*pi- (upperPhiCut-lowerPhiCut)))*(1./eff));
+                if (!(lowerPhiCut < jphi && jphi < upperPhiCut && lowerEtaCut < jeta && jeta < upperEtaCut)) histArr[etabin]->Fill(jpt, scale);
+                //histArr[etabin]->Fill(jpt, 1./eff);
                 //if (thisRunNumber < 313500) etaPhiHist->Fill(-jeta, jphi);
                 //else etaPhiHist->Fill(jeta, jphi);
                 etaPhiHist->Fill(jeta, jphi);

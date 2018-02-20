@@ -15,9 +15,9 @@ void IdealPtAnalysisHist() {
         cout << "Status: In IdealPtAnalysisHist.C (breakpoint E): ptPath = " << ptPath << endl;
     }
 
-    const bool cutEtaPhiPlot = true;
+    const bool cutEtaPhiPlot = false;
     const double ymin = 5e-8;
-    const double ymax = 1e5;
+    const double ymax = 1e7;
 //    const Style_t mkstyles[2] = {kFullCircle, kOpenCircle};
     const Style_t mkstyles[2] = {kFullDotMedium, kFullDotMedium};
     const Color_t mkcolors[8] = {kOrange+4, kOrange-3, kRed, kViolet, kBlue, kCyan-2, kGreen+3, kTeal+9};
@@ -46,6 +46,87 @@ void IdealPtAnalysisHist() {
 
     vector<int>* runNumbers = getRunNumbers();
     double totalLuminosity = 0;
+
+    /**** Fill eta-phi correlation plot with results from event loops ****/
+    {
+        TSystemDirectory dir(ptPath.c_str(), ptPath.c_str());
+        TList* sysfiles = dir.GetListOfFiles();
+        if (sysfiles) {
+            TSystemFile *sysfile;
+            TString fname;
+            TString histName;
+            TIter next(sysfiles);
+            TVectorD* run_vec;
+
+            while ((sysfile=(TSystemFile*)next())) {
+                fname = sysfile->GetName();
+                if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
+                    if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data() << endl; 
+                    for (int thisRunNumber : *runNumbers) {
+                        if (skipRun(thisRunNumber)) continue;
+                        if (fname.Contains(to_string(thisRunNumber))) {
+                            TFile* thisFile = new TFile(ptPath + fname, "READ");
+                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", thisRunNumber))[0];
+
+                            // quickly check the parameters stored in this root file
+                            run_vec = (TVectorD*)thisFile->Get(Form("run_vec_%i", thisRunNumber));
+                            assert ((int)(*run_vec)[0] == thisRunNumber);
+                            assert ((int)(*run_vec)[1] == numetabins);
+                            assert ((int)(*run_vec)[2] == numtrigs);
+                            assert ((int)(*run_vec)[3] == numpbins);
+
+                            histName = Form("etaPhiHist_run%i", thisRunNumber);
+                            etaPhiHist->Add((TH2F*)thisFile->Get(histName));
+
+                            thisFile->Close();
+                            delete thisFile;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**** End fill eta-phi correlation plot ****/
+
+
+    /**** Fill in HEC gap region with average ****/
+    int nbins_x = etaPhiHist->GetNbinsX();
+    int nbins_y = etaPhiHist->GetNbinsY();
+    if (cutEtaPhiPlot) {
+        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+                double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                if (lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut) {
+                    etaPhiHist->SetBinContent(bin_x+1, bin_y+1, 0);
+                }
+            }
+        }
+    }
+    else {
+        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {  
+                double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                if ((lowerPhiCut < y && y < upperPhiCut) && (lowerEtaCut < x && x < upperEtaCut)) { // if true, we are in the disabled HEC
+                    double integral_dy = 0;
+                    int numbins_dy = 0; 
+                    for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
+                        double y_prime = etaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                        if (!(lowerPhiCut < y_prime && y_prime < upperPhiCut)) { // if true we are outside of the disabled HEC
+                            integral_dy += etaPhiHist->GetBinContent(bin_x+1, bin_y_prime+1);
+                            numbins_dy++; 
+                        }
+                    }
+                    if (numbins_dy != 0) integral_dy = integral_dy / (double)numbins_dy; // take the average
+                    etaPhiHist->SetBinContent(bin_x+1, bin_y+1, integral_dy);
+                }
+            }
+        }
+    }
+    /**** End fill in HEC region ****/
+
 
     /**** Fill summed histograms with results from event loops ****/
     {
@@ -83,14 +164,28 @@ void IdealPtAnalysisHist() {
                                 histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, actetabin);
                                 thisHist = (TH1F*)thisFile->Get(histName);
 
+                                double scaleHEC = 0;
+                                double numerator = 0;
+                                double denominator = 0;  
+                                for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+                                    double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                                    if (x < etabins[actetabin] || etabins[actetabin+1] < x) continue;
+                                    for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+                                        double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                                        double content = etaPhiHist->GetBinContent(bin_x+1, bin_y+1);
+                                        numerator += content;
+                                        if (!(lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut)) denominator += content; // if true we are in the HEC, add to "total" events
+                                    }
+                                }
+                                if (denominator != 0) scaleHEC = numerator/denominator;
+                      
+                                thisHist->Scale(scaleHEC);
+
                                 histArr[etabin]->Add(thisHist);
                                 if (!runPeriodA || !runPeriodB) continue;
                                 if (thisRunNumber < 313500) numeratorHistArr[etabin]->Add(thisHist);
                                 else if (thisRunNumber > 313500) denominatorHistArr[etabin]->Add(thisHist);
                             }
-                            histName = Form("etaPhiHist_run%i", thisRunNumber);
-                            etaPhiHist->Add((TH2F*)thisFile->Get(histName));
-
                             thisFile->Close();
                             delete thisFile;
                             break;
@@ -178,7 +273,7 @@ void IdealPtAnalysisHist() {
         histArrScales = linspace(-2, 1, numetabins/2 - 1);
         canvas = new TCanvas("ratioCanvas", "", 800, 600);
         canvas->cd();
-        gPad->SetLogy();
+        //gPad->SetLogy();
         gPad->SetLogx();
         gPad->SetTicks();
         gStyle->SetErrorX(0);
@@ -240,8 +335,6 @@ void IdealPtAnalysisHist() {
                 }
                 else if (debugStatements) cout << "Warning: In IdealPtAnalysisHist.C (breakpoint J): No exposed luminosity between pt= " << pbins[pbin] << ", " << pbins[pbin+1] << " and eta= " << etabins[etabin] << ", " << etabins[etabin+1] << endl;
             }
-            //deta = etabins[etabin+1] - etabins[etabin];
-            //thisHist->Scale(1e3*TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/deta, "width"); // separate different etabins
             // Scale denominator by luminosity to get a cross section
             thisHist = denominatorHistArr[etabin];
             for (int pbin = 0; pbin < numpbins; pbin++) {
@@ -252,15 +345,15 @@ void IdealPtAnalysisHist() {
                 }
                 else if (debugStatements) cout << "Warning: In IdealPtAnalysisHist.C (breakpoint J): No exposed luminosity between pt= " << pbins[pbin] << ", " << pbins[pbin+1] << " and eta= " << etabins[etabin] << ", " << etabins[etabin+1] << endl;
             }
-            //deta = etabins[etabin+1] - etabins[etabin];
-            //thisHist->Scale(1e3*TMath::Power(10, histArrScales[(int)(numetabins/2 - 0.5 -TMath::Abs(etabin - numetabins/2 + 0.5))])/deta, "width"); // separate different etabins
             // Now divide the histograms to get a ratio of the cross sections
             numeratorHistArr[etabin]->Divide(denominatorHistArr[etabin]);
 
             // Now go through the plotting routines
             thisHist = numeratorHistArr[etabin];
             double scale = histArrScales[(int)(numetabins/2 - 0.5 - TMath::Abs(etabin - numetabins/2 + 0.5))];
-            thisHist->Scale(TMath::Power(10, scale));
+            for (int pbin = 0; pbin < numpbins; pbin++) {
+                thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1) + scale);
+            }
 
 //            thisHist->SetMarkerStyle(kDot);
             const Style_t kStyle = mkstyles[etabin%2];
@@ -268,8 +361,8 @@ void IdealPtAnalysisHist() {
             thisHist->SetMarkerStyle(kStyle);
             thisHist->SetMarkerColor(kColor);
             thisHist->SetLineColor(kColor);
-            thisHist->SetMinimum(1e-3);
-            thisHist->SetMaximum(1e3);
+            thisHist->SetMinimum(-2);
+            thisHist->SetMaximum(3.5);
             thisHist->GetYaxis()->SetTitleOffset(1.35);
             thisHist->GetXaxis()->SetTickLength(0.02);
             thisHist->GetYaxis()->SetTickLength(0.02);
@@ -295,6 +388,8 @@ void IdealPtAnalysisHist() {
     }
     /**** End plot ratios ****/
 
+
+    /**** Plot eta-phi jet phase space diagram ****/
     delete canvas;
     canvas = new TCanvas("etaPhiCanvas", "", 800, 600);
     canvas->cd();
@@ -307,21 +402,12 @@ void IdealPtAnalysisHist() {
     Int_t nb=100;
     TColor::CreateGradientColorTable(Number,Length,Red,Green,Blue,nb);
 
-    if (cutEtaPhiPlot) {
-        int nbins_x = etaPhiHist->GetNbinsX();
-        int nbins_y = etaPhiHist->GetNbinsY();
-        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
-            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
-                if (lowerPhiCut < etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1) && etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1) < upperPhiCut) {
-                    etaPhiHist->SetBinContent(bin_x+1, bin_y+1, 0);
-                }
-            }
-        }
-    }
-
     canvas->SetRightMargin(0.18);
     canvas->SetTopMargin(-0.02);
+    etaPhiHist->GetXaxis()->SetTitleOffset(0.8);
+    etaPhiHist->GetYaxis()->SetTitleOffset(0.8);
     etaPhiHist->GetZaxis()->SetTitleOffset(1.2);
+
     etaPhiHist->Scale(1., "width");
     etaPhiHist->Draw("colz");
     histName = "inclusive_jets_eta_phi_correlation";
@@ -341,13 +427,17 @@ void IdealPtAnalysisHist() {
         TLine* lineDrawer = new TLine();
         lineDrawer->SetLineStyle(7);
         lineDrawer->SetLineColor(kBlack);
-        lineDrawer->DrawLine(etaPhiHist->GetXaxis()->GetXmin(), lowerPhiCut+0.02, etaPhiHist->GetXaxis()->GetXmax(), lowerPhiCut+0.02);
-        lineDrawer->DrawLine(etaPhiHist->GetXaxis()->GetXmin(), upperPhiCut-0.02, etaPhiHist->GetXaxis()->GetXmax(), upperPhiCut-0.02);
+        lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, upperEtaCut-0.02, lowerPhiCut+0.02);
+        lineDrawer->DrawLine(lowerEtaCut+0.02, upperPhiCut-0.02, upperEtaCut-0.02, upperPhiCut-0.02);
+        lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, lowerEtaCut+0.02, upperPhiCut-0.02);
+        lineDrawer->DrawLine(upperEtaCut-0.02, lowerPhiCut+0.02, upperEtaCut-0.02, upperPhiCut-0.02);
         delete lineDrawer;
     }
         
     canvas->SaveAs((plotPath + histName + ".pdf").c_str());
     delete etaPhiHist;
+    /**** End plot eta-phi diagram ****/
+
 
     /**** Free memory ****/
     for (int etabin = 0; etabin < numetabins; etabin++) {

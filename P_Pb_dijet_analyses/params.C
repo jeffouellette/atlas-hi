@@ -12,7 +12,9 @@ const string fittedFunctionType = /*"erf";*/ "fermi_dirac"; // Function used to 
 
 const double lowerPhiCut = TMath::Pi()-0.4;
 const double upperPhiCut = 3.*TMath::Pi()/2.+0.4;
-const double dijet_pt_ratio_cutoff = 0.7; // Minimum subleading-to-leading jet ratio for the event to be considered a dijet
+const double lowerEtaCut = 1.5-0.4;
+const double upperEtaCut = 3.2+0.4;
+const double dijetPtRatioCut = 0.4; // Maximum pt allowed for subsubleading jet as a proportion of the leading jet pt
 const double dijetMinimumPt = 20; // Minimum Pt required for jets in dijet analysis
 const double thirdJetMaximumPt = 10;
 

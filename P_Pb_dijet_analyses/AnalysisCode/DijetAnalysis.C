@@ -11,7 +11,7 @@ const double* xbins = logspace(1.6e-4, 1.6, numxbins);
 const double* qbins = logspace(20, 1200, numqbins);
 const double* q2bins = logspace(1, 500000, numq2bins);
 const double* q2xbins = logspace(1.6e-4, 1.6, numq2xbins);
-const double* mbins = logspace(20, 1200, nummbins);
+const double* mbins = logspace(20, 2500, nummbins);
 const double* fcalbins = logspace(10, 500, numfcalbins);
 
 void DijetAnalysis(int thisRunNumber, // Run number identifier.
@@ -162,9 +162,11 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     TLorentzVector subleadingj_tlv;
     TLorentzVector dijet_tlv;
     int numGoodEvents = 0;
+    TH1I* eventSelectionHist = new TH1I(Form("eventSelectionHist_run%i", thisRunNumber), ";Event selection combination;\"Dijet\" events", 6, -0.5, 5.5);
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
-        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet < 2) continue; // Basic event selection: require a primary vertex and there to be at least 2 jets
+        // Basic event selection: require a primary vertex and there to be at least 2 reconstructed jets
+        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet < 2) continue;
 
         /** Find the leading dijet pair **/
         leadingj = 0;
@@ -206,11 +208,18 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
         /** End find leading dijets **/
 
         /** Event selection **/
-        if ((lowerPhiCut < leadingjphi && leadingjphi < upperPhiCut) || (lowerPhiCut < subleadingjphi && subleadingjphi < upperPhiCut)) continue; // select outside disabled HEC region
+        eventSelectionHist->Fill(0);
+        if (lowerPhiCut < leadingjphi && leadingjphi < upperPhiCut && lowerEtaCut < leadingjeta && leadingjeta < upperEtaCut) continue;
+        if (lowerPhiCut < subleadingjphi && subleadingjphi < upperPhiCut && lowerEtaCut < subleadingjeta && subleadingjeta < upperEtaCut) continue; // select outside disabled HEC region
+        eventSelectionHist->Fill(1);
         if (deltaphi < 7.*pi/8.) continue; //require deltaPhi gap of 7pi/8
-        if (leadingjpt < dijetMinimumPt || subleadingjpt < dijetMinimumPt) continue; // minimum pt cut
-        if (subsubleadingjpt > thirdJetMaximumPt) continue;
-        //if (subleadingjpt/leadingjpt < dijet_pt_ratio_cutoff) continue; // select on pt balance
+        eventSelectionHist->Fill(2);
+        if (leadingjpt < dijetMinimumPt) continue; // minimum pt cut on leading jet
+        eventSelectionHist->Fill(3);
+        if (subleadingjpt < dijetMinimumPt) continue; // minimum pt cut on subleading jet
+        eventSelectionHist->Fill(4);
+        if (subsubleadingjpt/leadingjpt > dijetPtRatioCut) continue; // maximum pt cut on subsubleading jet as a function of the leading jet pt
+        eventSelectionHist->Fill(5);
         numGoodEvents++;
         /** End event selection **/
 
@@ -312,6 +321,8 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     qxcorr->Write();
     xaxpcorr->Write();
     fcalhist->Write();
+
+    eventSelectionHist->Write();
 
     TVectorD run_vec(2);
     run_vec[0] = luminosity;

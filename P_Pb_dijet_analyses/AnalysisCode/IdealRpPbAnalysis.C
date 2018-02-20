@@ -255,9 +255,8 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             if (pPbCoMEtabin < 0 || pPbCoMEtabin > numpPbCoMEtabins) continue; // this checks that the jets fall within the pp eta bins, which cover a smaller range (so this is an important check)
 
             scale = ((2*pi)/(2*pi- (upperPhiCut - lowerPhiCut)))*(1./(eff*lumi));
-            
-            if (jphi <= lowerPhiCut || jphi >= upperPhiCut) pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, scale);
-            //pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, 1./(eff*lumi));
+            if (lowerPhiCut < jphi && jphi < upperPhiCut) continue; 
+            pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, scale);
         }
     }
     /**** End event iteration ****/
