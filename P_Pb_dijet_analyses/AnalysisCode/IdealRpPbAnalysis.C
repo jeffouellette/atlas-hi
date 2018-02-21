@@ -176,6 +176,36 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     /**** End disable unimportant branches ****/
 
 
+    /**** Load eta-phi histogram for rescaling ****/
+    double etaPhiScaleFactors[numpPbCoMEtabins];
+    {
+        TFile* etaPhiFile = new TFile((rootPath + "etaPhiHist.root").c_str(), "READ");
+        TH2D* etaPhiHist = (TH2D*)etaPhiFile->Get("etaPhiHist");
+        for (int pPbCoMEtabin = 0; pPbCoMEtabin < numpPbCoMEtabins; pPbCoMEtabin++) {
+            double numerator = 0;
+            double denominator = 0;
+            int nbins_x = etaPhiHist->GetNbinsX();
+            int nbins_y = etaPhiHist->GetNbinsY();
+            double x, y, content;
+            for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+                x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                if (!(pPbCoMEtabins[pPbCoMEtabin] < x && x < pPbCoMEtabins[pPbCoMEtabin+1])) continue; // if we do not overlap with these bins then just continue along.
+                for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+                    y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                    content = etaPhiHist->GetBinContent(bin_x+1, bin_y+1);
+                    if (!(lowerPhiCut < y && y < upperPhiCut && lowerEtaCut < x && x < upperEtaCut)) denominator += content; // if we're outside the HEC, add to the denominator
+                    numerator += content; // always add to the numerator
+                }
+            }
+            if (denominator == 0. && debugStatements) cout << "Warning: In IdealRpPbAnalysis.C (breakpoint F): No jets found outside HEC region!" << endl;
+            else if (denominator == 0.) etaPhiScaleFactors[pPbCoMEtabin] = 0;
+            else etaPhiScaleFactors[pPbCoMEtabin] = numerator/denominator;
+        }
+        etaPhiFile->Close();
+    }
+    /**** End load eta-phi histogram ****/
+
+
     /**** Set branching addresses ****/
     // Create branching addresses:  
     // Create arrays to store trigger values for each event
@@ -219,7 +249,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     const int numentries = tree->GetEntries();
     const bool periodA = (thisRunNumber < 313500);
 
-    double jpt, jeta, jphi, je, jy, eff, lumi, scale;
+    double jpt, jeta, jphi, je, jy, eff, lumi, scale, numerator, denominator;
     int pbin, etabin, actetabin;
     TLorentzVector tlv;
     Trigger* bestTrigger = NULL;
@@ -234,6 +264,9 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             jphi = (double)j_phi[j];
             je = (double)j_e[j];
 
+            // skip jets in the HEC region.
+            if (lowerPhiCut < jphi && jphi < upperPhiCut && lowerEtaCut < jeta && jeta < upperEtaCut) continue;
+
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
             if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
@@ -247,6 +280,9 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             lumi = kinematicLumiVec[pbin + actetabin*numpbins];
             if (eff == 0. || lumi == 0.) continue; // make sure we're not dividing by 0 for some reason
 
+            scale = 1./(eff*lumi);
+            scale *= etaPhiScaleFactors[getpPbCoMEtabin(jeta)];
+
             if (periodA) jy *= -1.; // flips period A pseudorapidities into period B kinematics, so that when we shift into CoM frame we get the correct kinematics
             tlv.SetPtEtaPhiE(jpt, jeta, jphi, je);
             jy = tlv.Rapidity();
@@ -254,8 +290,6 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             pPbCoMEtabin = getpPbCoMEtabin(jy);
             if (pPbCoMEtabin < 0 || pPbCoMEtabin > numpPbCoMEtabins) continue; // this checks that the jets fall within the pp eta bins, which cover a smaller range (so this is an important check)
 
-            scale = ((2*pi)/(2*pi- (upperPhiCut - lowerPhiCut)))*(1./(eff*lumi));
-            if (lowerPhiCut < jphi && jphi < upperPhiCut) continue; 
             pPbCoMHistArr[pPbCoMEtabin]->Fill(jpt, scale);
         }
     }
@@ -284,6 +318,6 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
     output->Close();
     /**** End write output ****/
 
-    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (breakpoint F): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In IdealRpPbAnalysis.C (breakpoint G): Finished calculating pt spectrum for run " << thisRunNumber << endl;
     return;
 }

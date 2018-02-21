@@ -91,6 +91,55 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     /**** End disable unimportant branches ****/
 
 
+    /**** Load eta-phi jet correlation plot ****/
+    TFile* etaPhiFile = new TFile((rootPath + "etaPhiHist.root").c_str(), "READ");
+    TH2D* etaPhiHist = (TH2D*)etaPhiFile->Get("etaPhiHist");
+    /**** End load eta-phi correlation ****/
+
+
+    /**** Evaluate the eta-phi rescaling factor at each point so we don't have to do this for each event ****/
+    int nbins_x = etaPhiHist->GetNbinsX();
+    int nbins_y = etaPhiHist->GetNbinsY();
+    double* etaPhiScaleFactors = new double[nbins_x*nbins_y];
+
+    // for each point in space where the leading jet COULD be, evaluate what the rescaling should be
+    for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+        double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+        for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+            double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+
+            // if the leading jet is in the HEC region don't bother finding the scale factor.
+            if (lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut) continue;
+
+            double x_prime, y_prime, dy, content, numerator, denominator;
+
+            numerator = 0;
+            denominator = 0;
+            for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
+                y_prime = etaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                dy = TMath::Abs(y - y_prime);
+                if (dy > pi) dy = 2*pi - dy;
+                if (dy < 7.*pi/8.) continue; // this checks whether our y' coordinate is further away from y by at least 7pi/8 (up to pi). Otherwise it is not in our integration region, we skip it.
+                for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
+                    x_prime = etaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
+                    // now check if x' meets the eta cut requirements
+                    content = etaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
+                    // if the ' coordinate is outside the HEC region, then add the counts there to your integral in the denominator
+                    if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
+                    // as long as the ' coordinate meets the dphi cut, add the counts there to your integral in the numerator
+                    numerator += content;
+                }
+            }
+            if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint E): 0 jets meeting dphi cut!" << endl;
+            else if (denominator != 0.) etaPhiScaleFactors[bin_x + bin_y*nbins_x] = numerator/denominator;
+            else etaPhiScaleFactors[bin_x + bin_y*nbins_x] = 0;
+        }
+    }
+
+    //etaPhiFile->Close();
+    /**** End evaluate eta-phi rescaling ****/
+
+
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
     TH1D* xHistArr[2*numetabins];
     TH1D* xqHistArr[2*numqbins];
@@ -244,6 +293,7 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
 
         scale = 1e3/(eff*lumi); // set the scale to convert counts -> "efficiency corrected cross-section"-esque measurement
         //scale = 1;
+        scale *= etaPhiScaleFactors[(etaPhiHist->GetXaxis()->FindBin(leadingjeta)-1) + (etaPhiHist->GetYaxis()->FindBin(leadingjphi)-1)*nbins_x];
 
         if (periodA) {
             leadingjeta *= -1;

@@ -1,11 +1,11 @@
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313063, 0.03)'&
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313067, 1.24)'&
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313100, 9.66)'&
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313107, 11.92)'& 
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313136, 10.4)'& 
-root -l -b -q '../AnalysisCode/DijetAnalysis.C (313187, 3.67)'&
-
-wait
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313063, 0.03)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313067, 1.24)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313100, 9.66)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313107, 11.92)'& 
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313136, 10.4)'& 
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (313187, 3.67)'&
+#
+#wait
 
 root -l -b -q '../AnalysisCode/DijetAnalysis.C (313259, 5.12)'& 
 root -l -b -q '../AnalysisCode/DijetAnalysis.C (313285, 4.74)'&

@@ -352,7 +352,8 @@ void IdealPtAnalysisHist() {
             thisHist = numeratorHistArr[etabin];
             double scale = histArrScales[(int)(numetabins/2 - 0.5 - TMath::Abs(etabin - numetabins/2 + 0.5))];
             for (int pbin = 0; pbin < numpbins; pbin++) {
-                thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1) + scale);
+                if (thisHist->GetBinContent(pbin+1) == 0.) thisHist->SetBinContent(pbin+1, -5);
+                else thisHist->SetBinContent(pbin+1, thisHist->GetBinContent(pbin+1) + scale);
             }
 
 //            thisHist->SetMarkerStyle(kDot);
@@ -370,8 +371,8 @@ void IdealPtAnalysisHist() {
             else thisHist->Draw("same e1");
 
             lineDrawer->SetLineColor(kColor);
-            if (etabins[etabin] < 0) lineDrawer->DrawLine(pbins[0], TMath::Power(10, scale), pbins[numpbins], TMath::Power(10, scale));
-            else lineDrawer->DrawLine(0.5*(pbins[0]+pbins[1]), TMath::Power(10, scale), 0.5*(pbins[numpbins-1]+pbins[numpbins]), TMath::Power(10, scale));
+            if (etabins[etabin] < 0) lineDrawer->DrawLine(pbins[0], scale+1, pbins[numpbins], scale+1);
+            else lineDrawer->DrawLine(0.5*(pbins[0]+pbins[1]), scale+1, 0.5*(pbins[numpbins-1]+pbins[numpbins]), scale+1);
 
             const float textx = 0.47 + (etabin>=(numetabins/2))*0.25;
             const float texty = 0.91 - (etabin%(numetabins/2))*0.05*(etabin>=(numetabins/2)) - (numetabins/2 - etabin - 1)*0.05*(etabin<(numetabins/2));
@@ -435,6 +436,12 @@ void IdealPtAnalysisHist() {
     }
         
     canvas->SaveAs((plotPath + histName + ".pdf").c_str());
+
+    TFile* output = new TFile((rootPath + "etaPhiHist.root").c_str(), "RECREATE");
+    etaPhiHist->Write(); // save the eta phi distribution for further use
+    output->Close();
+
+    delete output;
     delete etaPhiHist;
     /**** End plot eta-phi diagram ****/
 
