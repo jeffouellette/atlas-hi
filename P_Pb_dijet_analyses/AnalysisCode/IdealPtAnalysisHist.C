@@ -23,23 +23,23 @@ void IdealPtAnalysisHist() {
     const Color_t mkcolors[8] = {kOrange+4, kOrange-3, kRed, kViolet, kBlue, kCyan-2, kGreen+3, kTeal+9};
 
     double hscale, deta;
-    TH1F* thisHist;
+    TH1D* thisHist;
 
     if (debugStatements) cout << "Status: In IdealPtAnalysisHist.C (breakpoint F): Initialized histArr histograms..." << endl;
-    TH1F* histArr[numetabins]; // for pt spectra
-    TH1F* numeratorHistArr[numetabins]; // for period A - period B pt spectrum ratio
-    TH1F* denominatorHistArr[numetabins];
-    TH2F* etaPhiHist = new TH2F("etaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
+    TH1D* histArr[numetabins]; // for pt spectra
+    TH1D* numeratorHistArr[numetabins]; // for period A - period B pt spectrum ratio
+    TH1D* denominatorHistArr[numetabins];
+    TH2D* etaPhiHist = new TH2D("etaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
     etaPhiHist->Sumw2();
-    TH2F* subleadingEtaPhiHist = new TH2F("subleadingEtaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
+    TH2D* subleadingEtaPhiHist = new TH2D("subleadingEtaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
     subleadingEtaPhiHist->Sumw2();
     
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        histArr[etabin] = new TH1F(Form("best_statistics_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
+        histArr[etabin] = new TH1D(Form("best_statistics_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
         histArr[etabin]->Sumw2();
-        numeratorHistArr[etabin] = new TH1F(Form("best_statistics_numerator_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma_{A}/d#sigma_{B}", numpbins, pbins);
+        numeratorHistArr[etabin] = new TH1D(Form("best_statistics_numerator_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma_{A}/d#sigma_{B}", numpbins, pbins);
         numeratorHistArr[etabin]->Sumw2();
-        denominatorHistArr[etabin] = new TH1F(Form("best_statistics_denominator_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma_{A}/d#sigma_{B}", numpbins, pbins);
+        denominatorHistArr[etabin] = new TH1D(Form("best_statistics_denominator_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma_{A}/d#sigma_{B}", numpbins, pbins);
         denominatorHistArr[etabin]->Sumw2();
     }
     if (debugStatements) {
@@ -79,9 +79,9 @@ void IdealPtAnalysisHist() {
                             assert ((int)(*run_vec)[3] == numpbins);
 
                             histName = Form("etaPhiHist_run%i", thisRunNumber);
-                            etaPhiHist->Add((TH2F*)thisFile->Get(histName));
+                            etaPhiHist->Add((TH2D*)thisFile->Get(histName));
                             histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
-                            subleadingEtaPhiHist->Add((TH2F*)thisFile->Get(histName));
+                            subleadingEtaPhiHist->Add((TH2D*)thisFile->Get(histName));
 
                             thisFile->Close();
                             delete thisFile;
@@ -200,7 +200,7 @@ void IdealPtAnalysisHist() {
                                 if (thisRunNumber < 313500) actetabin = numetabins - etabin - 1;
                                 else actetabin = etabin;
                                 histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, actetabin);
-                                thisHist = (TH1F*)thisFile->Get(histName);
+                                thisHist = (TH1D*)thisFile->Get(histName);
 
                                 double scaleHEC = 0;
                                 double numerator = 0;

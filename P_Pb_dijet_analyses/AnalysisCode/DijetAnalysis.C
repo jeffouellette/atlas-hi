@@ -2,14 +2,14 @@
 
 const int numxbins = 50;
 const int numqbins = 8;
-const int numq2bins = 110;
+const int numq2bins = 120;
 const int numq2xbins = 100;
 const int nummbins = 50;
 const int numfcalbins = 60;
 
 const double* xbins = logspace(1.6e-4, 1.6, numxbins);
 const double* qbins = logspace(20, 1200, numqbins);
-const double* q2bins = logspace(1, 500000, numq2bins);
+const double* q2bins = logspace(1, 1000000, numq2bins);
 const double* q2xbins = logspace(1.6e-4, 1.6, numq2xbins);
 const double* mbins = logspace(20, 2500, nummbins);
 const double* fcalbins = logspace(10, 500, numfcalbins);
@@ -101,11 +101,13 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     /**** Evaluate the eta-phi rescaling factor at each point so we don't have to do this for each event ****/
     int nbins_x = etaPhiHist->GetNbinsX();
     int nbins_y = etaPhiHist->GetNbinsY();
-    double* etaPhiScaleFactors = new double[nbins_x*nbins_y];
+    //double* etaPhiScaleFactors = new double[nbins_x*nbins_y];
+    TH2D* etaPhiScaleFactorsHist = new TH2D("etaPhiScaleFactorsHist", "", 98, -4.9, 4.9, 100, 0, 2*pi);
 
     // for each point in space where the leading jet COULD be, evaluate what the rescaling should be
     for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
         double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+        int etabin = getEtabin(x);
         for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
             double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
 
@@ -134,29 +136,28 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
                 }
             }
             if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint E): 0 jets meeting HEC cut!" << endl;
-            else if (denominator != 0.) etaPhiScaleFactors[bin_x + bin_y*nbins_x] = numerator/denominator;
-            else etaPhiScaleFactors[bin_x + bin_y*nbins_x] = 0;
+            else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, numerator/denominator);
+            else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
 
-            // Calculate the number of leading jets you missed
+            // Calculate the number of leading jets you missed in this etabin. Often this factor comes out to 1.
             numerator = 0;
             denominator = 0;
-            int etabin = getEtabin(x);
             for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
                 x_prime = etaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
                 if(!(etabins[etabin] < x_prime && x_prime < etabins[etabin+1])) continue;
                 for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
                     y_prime = etaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                    content = etaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
                     if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
                     numerator += content;
                 }
             }
             if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint F): 0 jets meeting HEC cut!" << endl;
-            else if (denominator != 0.) etaPhiScaleFactors[bin_x + bin_y*nbins_x] *= numerator/denominator;
-            else etaPhiScaleFactors[bin_x + bin_y*nbins_x] = 0;
+            else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, etaPhiScaleFactorsHist->GetBinContent(bin_x+1, bin_y+1) * numerator/denominator);
+            else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
         }
     }
 
-    //etaPhiFile->Close();
     /**** End evaluate eta-phi rescaling ****/
 
 
@@ -295,6 +296,8 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
 
         if (leadingjpt > 1200) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, thisRunNumber, eventNumber) << endl;
 
+
+        /** Find scaling information to get a cross section measurement **/
         etabin = getEtabin(leadingjeta);
         pbin = getPbin(leadingjpt);
         if (pbin == -1 || pbin > numpbins || etabin == -1 || etabin > numetabins) continue; // make sure we are in a valid kinematic bin
@@ -312,13 +315,13 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
         if (!takeEvent) continue; // make sure the trigger fired, and that we're not going to be dividing by 0
 
         scale = 1e3/(eff*lumi); // set the scale to convert counts -> "efficiency corrected cross-section"-esque measurement
-        //scale = 1;
-        scale *= etaPhiScaleFactors[(etaPhiHist->GetXaxis()->FindBin(leadingjeta)-1) + (etaPhiHist->GetYaxis()->FindBin(leadingjphi)-1)*nbins_x];
+        scale *= etaPhiScaleFactorsHist->GetBinContent(etaPhiScaleFactorsHist->FindBin(leadingjeta, leadingjphi));
 
         if (periodA) {
             leadingjeta *= -1;
             subleadingjeta *= -1;
         }
+        /** End find scaling info **/
 
         xp = get_xp(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, false);
         xa = get_xa(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, false);

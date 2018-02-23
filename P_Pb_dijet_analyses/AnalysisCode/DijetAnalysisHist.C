@@ -363,6 +363,7 @@ void DijetAnalysisHist() {
     gPad->SetLogx();
     gPad->SetLogy();
     gPad->SetLogz();
+    qxcorr->SetMinimum(1e-5);
     qxcorr->Draw("colz");
 
     //xaxpcorr->GetXaxis()->SetTickLength(0.02);

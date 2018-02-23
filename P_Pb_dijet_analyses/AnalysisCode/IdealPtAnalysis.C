@@ -101,23 +101,23 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
     /**** Histogram initialization ****/
     const int numhists = numtrigs * numetabins;
-    TH1F* histArr[numhists];
-    TH2F* etaPhiHist;
-    TH2F* subleadingEtaPhiHist;
-    TH2F* yPhiHist;
+    TH1D* histArr[numhists];
+    TH2D* etaPhiHist;
+    TH2D* subleadingEtaPhiHist;
+    TH2D* yPhiHist;
     int pbin, etabin, index;
     for (etabin = 0; etabin < numetabins; etabin++) {
         TString histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, etabin);
-        histArr[etabin] = new TH1F(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
+        histArr[etabin] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
         histArr[etabin]->Sumw2(); // instruct each histogram to propagate errors
     }
     {
         TString histName = Form("etaPhiHist_run%i", thisRunNumber);
-        etaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
+        etaPhiHist = new TH2D(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
         histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
-        subleadingEtaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
+        subleadingEtaPhiHist = new TH2D(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
         histName = Form("yPhiHist_run%i", thisRunNumber);
-        yPhiHist = new TH2F(histName, ";#it{y};#phi;", 138, -3.5, 3.5, 100, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
+        yPhiHist = new TH2D(histName, ";#it{y};#phi;", 138, -3.5, 3.5, 100, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
     }
 
     /**** Iterate over each event ****/
@@ -161,10 +161,11 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         }
         
         leadingj = 0;
-        if (njet < 2) continue;
+        if (njet < 2) continue; // specialize to events with 2+ jets
         for (int j = 1; j < njet; j++) {
             if (j_pt[leadingj] < j_pt[j]) leadingj = j;
         }
+        // fill eta-phi correlation with only non-leading jets
         for (int j = 0; j < njet; j++) {
             if (j == leadingj) continue;
             jpt = (double)j_pt[j];
