@@ -29,7 +29,10 @@ void IdealPtAnalysisHist() {
     TH1F* histArr[numetabins]; // for pt spectra
     TH1F* numeratorHistArr[numetabins]; // for period A - period B pt spectrum ratio
     TH1F* denominatorHistArr[numetabins];
-    TH2F* etaPhiHist = new TH2F("etaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*TMath::Pi());
+    TH2F* etaPhiHist = new TH2F("etaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
+    etaPhiHist->Sumw2();
+    TH2F* subleadingEtaPhiHist = new TH2F("subleadingEtaPhiHist", ";#eta;#phi;Counts / d#eta d#phi", 98, -4.9, 4.9, 100, 0, 2*pi);
+    subleadingEtaPhiHist->Sumw2();
     
     for (int etabin = 0; etabin < numetabins; etabin++) {
         histArr[etabin] = new TH1F(Form("best_statistics_etabin%i", etabin), ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
@@ -77,6 +80,8 @@ void IdealPtAnalysisHist() {
 
                             histName = Form("etaPhiHist_run%i", thisRunNumber);
                             etaPhiHist->Add((TH2F*)thisFile->Get(histName));
+                            histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
+                            subleadingEtaPhiHist->Add((TH2F*)thisFile->Get(histName));
 
                             thisFile->Close();
                             delete thisFile;
@@ -121,6 +126,39 @@ void IdealPtAnalysisHist() {
                     }
                     if (numbins_dy != 0) integral_dy = integral_dy / (double)numbins_dy; // take the average
                     etaPhiHist->SetBinContent(bin_x+1, bin_y+1, integral_dy);
+                }
+            }
+        }
+    }
+    // average out HEC region on just subleading jets plot
+    if (cutEtaPhiPlot) {
+        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+                double x = subleadingEtaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                double y = subleadingEtaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                if (lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut) {
+                    subleadingEtaPhiHist->SetBinContent(bin_x+1, bin_y+1, 0);
+                }
+            }
+        }
+    }
+    else {
+        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {  
+                double x = subleadingEtaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+                double y = subleadingEtaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+                if ((lowerPhiCut < y && y < upperPhiCut) && (lowerEtaCut < x && x < upperEtaCut)) { // if true, we are in the disabled HEC
+                    double integral_dy = 0;
+                    int numbins_dy = 0; 
+                    for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
+                        double y_prime = subleadingEtaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                        if (!(lowerPhiCut < y_prime && y_prime < upperPhiCut)) { // if true we are outside of the disabled HEC
+                            integral_dy += subleadingEtaPhiHist->GetBinContent(bin_x+1, bin_y_prime+1);
+                            numbins_dy++; 
+                        }
+                    }
+                    if (numbins_dy != 0) integral_dy = integral_dy / (double)numbins_dy; // take the average
+                    subleadingEtaPhiHist->SetBinContent(bin_x+1, bin_y+1, integral_dy);
                 }
             }
         }
@@ -262,7 +300,7 @@ void IdealPtAnalysisHist() {
     else {
         myText (0.19, 0.33, kBlack, "Period A & B");
     }
-
+    if (highPtJetsOnly) histName += "_highPtJetsOnly";
     if (runPeriodA || runPeriodB) canvas->SaveAs((plotPath + "ptSpectra/" + histName + ".pdf").c_str());
 
 
@@ -384,6 +422,7 @@ void IdealPtAnalysisHist() {
         myText (0.19, 0.85, kBlack, Form("#sqrt{#it{s}} = 8.16 TeV"));
 
         histName = "ptSpectra_ratio_combinedTriggers_etabinned";
+        if (highPtJetsOnly) histName += "_highPtJetsOnly";
         canvas->SaveAs((plotPath + "ptSpectra/" + histName + ".pdf").c_str());
         delete lineDrawer;
     }
@@ -412,6 +451,7 @@ void IdealPtAnalysisHist() {
     etaPhiHist->Scale(1., "width");
     etaPhiHist->Draw("colz");
     histName = "inclusive_jets_eta_phi_correlation";
+    myText (0.19, 0.39, kBlack, "Inclusive jets");
     if (runPeriodA && !runPeriodB) {
         myText (0.19, 0.33, kBlack, "Period A");
         histName = histName + "_periodA";
@@ -425,24 +465,74 @@ void IdealPtAnalysisHist() {
     }
     if (cutEtaPhiPlot) {
         histName += "_withoutDroppedBins";
-        TLine* lineDrawer = new TLine();
-        lineDrawer->SetLineStyle(7);
-        lineDrawer->SetLineColor(kBlack);
-        lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, upperEtaCut-0.02, lowerPhiCut+0.02);
-        lineDrawer->DrawLine(lowerEtaCut+0.02, upperPhiCut-0.02, upperEtaCut-0.02, upperPhiCut-0.02);
-        lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, lowerEtaCut+0.02, upperPhiCut-0.02);
-        lineDrawer->DrawLine(upperEtaCut-0.02, lowerPhiCut+0.02, upperEtaCut-0.02, upperPhiCut-0.02);
-        delete lineDrawer;
     }
+
+    TLine* lineDrawer = new TLine();
+    lineDrawer->SetLineStyle(7);
+    lineDrawer->SetLineColor(kBlack);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, upperEtaCut-0.02, lowerPhiCut+0.02);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, upperPhiCut-0.02, upperEtaCut-0.02, upperPhiCut-0.02);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, lowerEtaCut+0.02, upperPhiCut-0.02);
+    lineDrawer->DrawLine(upperEtaCut-0.02, lowerPhiCut+0.02, upperEtaCut-0.02, upperPhiCut-0.02);
+
+    if (highPtJetsOnly) histName += "_highPtJetsOnly";
         
     canvas->SaveAs((plotPath + histName + ".pdf").c_str());
 
-    TFile* output = new TFile((rootPath + "etaPhiHist.root").c_str(), "RECREATE");
+    histName = "etaPhiHist";
+    if (highPtJetsOnly) histName += "_highPtJetsOnly";
+    TFile* output = new TFile((rootPath + histName + ".root").c_str(), "RECREATE");
     etaPhiHist->Write(); // save the eta phi distribution for further use
+    subleadingEtaPhiHist->Write();
     output->Close();
 
     delete output;
     delete etaPhiHist;
+    /**** End plot eta-phi diagram ****/
+
+
+    /**** Plot eta-phi jet phase space diagram ****/
+    delete canvas;
+    canvas = new TCanvas("subleadingEtaPhiCanvas", "", 800, 600);
+    canvas->cd();
+
+    canvas->SetRightMargin(0.18);
+    canvas->SetTopMargin(-0.02);
+    subleadingEtaPhiHist->GetXaxis()->SetTitleOffset(0.8);
+    subleadingEtaPhiHist->GetYaxis()->SetTitleOffset(0.8);
+    subleadingEtaPhiHist->GetZaxis()->SetTitleOffset(1.2);
+
+    subleadingEtaPhiHist->Scale(1., "width");
+    subleadingEtaPhiHist->Draw("colz");
+    histName = "subleading_jets_eta_phi_correlation";
+    myText (0.19, 0.39, kBlack, "Subleading jets");
+    if (runPeriodA && !runPeriodB) {
+        myText (0.19, 0.33, kBlack, "Period A");
+        histName = histName + "_periodA";
+    }
+    else if (!runPeriodA && runPeriodB) {
+        myText (0.19, 0.33, kBlack, "Period B");
+        histName = histName + "_periodB";
+    }
+    else {
+        myText (0.19, 0.33, kBlack, "Period A & B");
+    }
+    if (cutEtaPhiPlot) {
+        histName += "_withoutDroppedBins";
+    }
+
+    lineDrawer->SetLineStyle(7);
+    lineDrawer->SetLineColor(kBlack);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, upperEtaCut-0.02, lowerPhiCut+0.02);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, upperPhiCut-0.02, upperEtaCut-0.02, upperPhiCut-0.02);
+    lineDrawer->DrawLine(lowerEtaCut+0.02, lowerPhiCut+0.02, lowerEtaCut+0.02, upperPhiCut-0.02);
+    lineDrawer->DrawLine(upperEtaCut-0.02, lowerPhiCut+0.02, upperEtaCut-0.02, upperPhiCut-0.02);
+
+    if (highPtJetsOnly) histName += "_highPtJetsOnly";
+        
+    canvas->SaveAs((plotPath + histName + ".pdf").c_str());
+
+    delete subleadingEtaPhiHist;
     /**** End plot eta-phi diagram ****/
 
 
@@ -452,6 +542,7 @@ void IdealPtAnalysisHist() {
         delete numeratorHistArr[etabin];
         delete denominatorHistArr[etabin];
     }
+    delete lineDrawer;
     delete canvas;
     delete[] histArrScales;
     delete runNumbers;

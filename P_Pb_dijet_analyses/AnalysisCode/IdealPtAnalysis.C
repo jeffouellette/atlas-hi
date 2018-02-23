@@ -50,7 +50,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
     /**** Disable loading of unimportant branch values - speeds up entry retrieval ****/
     {
-        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi"};
+        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi", "j_e", "nvert", "vert_type"};
         TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
         bool interestingBranch;
         for (TObject* obj : *branches) {
@@ -80,12 +80,19 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     float j_pt[60] = {};
     float j_eta[60] = {};
     float j_phi[60] = {};
+    float j_e[60] = {};
     int njet = 0;
+    int vert_type[60] = {};
+    int nvert = 0;
+    
 
     tree->SetBranchAddress("j_pt", j_pt);
     tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("j_phi", j_phi);
+    tree->SetBranchAddress("j_e", j_e);
     tree->SetBranchAddress("njet", &njet);
+    tree->SetBranchAddress("nvert", &nvert);
+    tree->SetBranchAddress("vert_type", vert_type);
     for (Trigger* trig : (*triggerSubvector)) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
     }
@@ -96,6 +103,8 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     const int numhists = numtrigs * numetabins;
     TH1F* histArr[numhists];
     TH2F* etaPhiHist;
+    TH2F* subleadingEtaPhiHist;
+    TH2F* yPhiHist;
     int pbin, etabin, index;
     for (etabin = 0; etabin < numetabins; etabin++) {
         TString histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, etabin);
@@ -104,21 +113,31 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     }
     {
         TString histName = Form("etaPhiHist_run%i", thisRunNumber);
-        etaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*TMath::Pi());
+        etaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
+        histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
+        subleadingEtaPhiHist = new TH2F(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
+        histName = Form("yPhiHist_run%i", thisRunNumber);
+        yPhiHist = new TH2F(histName, ";#it{y};#phi;", 138, -3.5, 3.5, 100, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
     }
 
     /**** Iterate over each event ****/
     const int numentries = tree->GetEntries();
 
-    double jpt, jeta, jphi, eff, scale;
+    int leadingj;
+    double jpt, jeta, jphi, je, eff, scale;
+    TLorentzVector tlv;
     Trigger* bestTrigger = NULL;
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
+
+        // basic event selection: require there to be a primary vertex and for there to be a jet
+        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet < 1) continue;
 
         for (int j = 0; j < njet; j++) {
             jpt = (double)j_pt[j];
             jeta = (double)j_eta[j];
             jphi = (double)j_phi[j];
+            je = (double)j_e[j];
             while (jphi < 0) jphi += 2.*pi; // converts phi to 0, 2*pi range
 
             etabin = getEtabin(jeta);
@@ -135,11 +154,32 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
             if (bestTrigger->m_trig_bool) {
                 if (!(lowerPhiCut < jphi && jphi < upperPhiCut && lowerEtaCut < jeta && jeta < upperEtaCut)) histArr[etabin]->Fill(jpt, scale);
-                //histArr[etabin]->Fill(jpt, 1./eff);
-                //if (thisRunNumber < 313500) etaPhiHist->Fill(-jeta, jphi);
-                //else etaPhiHist->Fill(jeta, jphi);
-                etaPhiHist->Fill(jeta, jphi);
+                if (!highPtJetsOnly || jpt > 70) etaPhiHist->Fill(jeta, jphi);
+                tlv.SetPtEtaPhiE(jpt, jeta, jphi, je);
+                yPhiHist->Fill(tlv.Rapidity(), jphi);
             }
+        }
+        
+        leadingj = 0;
+        if (njet < 2) continue;
+        for (int j = 1; j < njet; j++) {
+            if (j_pt[leadingj] < j_pt[j]) leadingj = j;
+        }
+        for (int j = 0; j < njet; j++) {
+            if (j == leadingj) continue;
+            jpt = (double)j_pt[j];
+            jeta = (double)j_eta[j];
+            jphi = (double)j_phi[j];
+            while (jphi < 0) jphi += 2.*pi;
+
+            etabin = getEtabin(jeta);
+            pbin = getPbin(jpt);
+            if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
+
+            bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
+            if (bestTrigger == NULL || !bestTrigger->m_trig_bool) continue; // make sure we're not trying to look at a null trigger, and if not, that it fired
+
+            subleadingEtaPhiHist->Fill(jeta, jphi);
         }
     }
     /**** End event iteration ****/
@@ -152,6 +192,8 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
         histArr[etabin]->Write();
     }
     etaPhiHist->Write();
+    subleadingEtaPhiHist->Write();
+    yPhiHist->Write();
 
     TVectorD run_vec(5);
     run_vec[0] = thisRunNumber;
