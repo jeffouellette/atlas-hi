@@ -14,28 +14,45 @@ const double* q2xbins = logspace(1.6e-4, 1.6, numq2xbins);
 const double* mbins = logspace(20, 2500, nummbins);
 const double* fcalbins = logspace(10, 500, numfcalbins);
 
-void DijetAnalysis(int thisRunNumber, // Run number identifier.
+void DijetAnalysis(int dataSet, // Data set identifier
                    double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
-    if (skipRun(thisRunNumber)) return;
-    initialize(thisRunNumber, true);
-    vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
+    initialize(dataSet, true);
 
-    const bool periodA = thisRunNumber < 313500;
+    int mcSampleNumber = 0;
+    int runNumber = 0;
+    bool isMC = false;
+    if (useDataVersion == 0) {
+        isMC = true;
+        mcSampleNumber = dataSet;
+    }
+    else runNumber = dataSet;
+
+    // Check whether to skip this particular analysis
+    if (!isMC && skipRun(runNumber)) return;
+    else if (isMC && skipMC(mcSampleNumber)) return;
+
+    vector<TF1*>* triggerEfficiencyFunctions = NULL;
+    if (!isMC) triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
+
+    bool periodA = (!isMC && runNumber < 313500);
 
     /**** Generate list of physics triggers ****/
-    vector<Trigger*>* triggerSubvector = getTriggerSubvector(thisRunNumber);
-    if (debugStatements) {
-        cout << "Status: In DijetAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
-        for (Trigger* trig : (*triggerSubvector)) {
-            cout << "\t" << trig->name << endl;
+    vector<Trigger*>* triggerSubvector = NULL;
+    if (!isMC) {
+        triggerSubvector = getTriggerSubvector(runNumber);
+        if (debugStatements) {
+            cout << "Status: In DijetAnalysis.C (breakpoint A): Processing run " << runNumber << " with triggers:" << endl;
+            for (Trigger* trig : (*triggerSubvector)) {
+                cout << "\t" << trig->name << endl;
+            }
         }
     }
     /**** End generate list of physics triggers ****/
 
 
     /**** Find the relevant TTree for this run ****/
-    //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), thisRunNumber)))->Get("tree");
+    //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), runNumber)))->Get("tree");
     TTree* tree = NULL;
     {
         TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
@@ -49,8 +66,9 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
                     if (debugStatements) cout << "Status: In DijetAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
-                    if (fname.Contains(to_string(thisRunNumber))) {
+                    if (fname.Contains(to_string(dataSet))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
+                        if (isMC) periodA = fname.Contains("e6395") || fname.Contains("e6519");
                         break;
                     }
                 }
@@ -75,7 +93,7 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
             }
-            if (!interestingBranch) {
+            if (!interestingBranch && !isMC) {
                 for (Trigger* trig : (*triggerSubvector)) {
                     if (branchName == trig->name || branchName == trig->name + "_prescale") {
                         interestingBranch = true;
@@ -91,74 +109,77 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     /**** End disable unimportant branches ****/
 
 
-    /**** Load eta-phi jet correlation plot ****/
-    TFile* etaPhiFile = new TFile((rootPath + "etaPhiHist.root").c_str(), "READ");
-    TH2D* etaPhiHist = (TH2D*)etaPhiFile->Get("etaPhiHist");
-    TH2D* subleadingEtaPhiHist = (TH2D*)etaPhiFile->Get("subleadingEtaPhiHist");
-    /**** End load eta-phi correlation ****/
+    TH2D* etaPhiScaleFactorsHist = NULL;
+    if (!isMC) {
+        /**** Load eta-phi jet correlation plot ****/
+        TFile* etaPhiFile = new TFile((rootPath + "etaPhiHist.root").c_str(), "READ");
+        TH2D* etaPhiHist = (TH2D*)etaPhiFile->Get("etaPhiHist");
+        TH2D* subleadingEtaPhiHist = (TH2D*)etaPhiFile->Get("subleadingEtaPhiHist");
+        /**** End load eta-phi correlation ****/
 
 
-    /**** Evaluate the eta-phi rescaling factor at each point so we don't have to do this for each event ****/
-    int nbins_x = etaPhiHist->GetNbinsX();
-    int nbins_y = etaPhiHist->GetNbinsY();
-    //double* etaPhiScaleFactors = new double[nbins_x*nbins_y];
-    TH2D* etaPhiScaleFactorsHist = new TH2D("etaPhiScaleFactorsHist", "", 98, -4.9, 4.9, 100, 0, 2*pi);
+        /**** Evaluate the eta-phi rescaling factor at each point so we don't have to do this for each event ****/
+        int nbins_x = etaPhiHist->GetNbinsX();
+        int nbins_y = etaPhiHist->GetNbinsY();
+        //double* etaPhiScaleFactors = new double[nbins_x*nbins_y];
+        etaPhiScaleFactorsHist = new TH2D("etaPhiScaleFactorsHist", "", 98, -4.9, 4.9, 100, 0, 2*pi);
 
-    // for each point in space where the leading jet COULD be, evaluate what the rescaling should be
-    for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
-        double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
-        int etabin = getEtabin(x);
-        for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
-            double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
+        // for each point in space where the leading jet COULD be, evaluate what the rescaling should be
+        for (int bin_x = 0; bin_x < nbins_x; bin_x++) {
+            double x = etaPhiHist->GetXaxis()->GetBinCenter(bin_x+1);
+            int etabin = getEtabin(x);
+            for (int bin_y = 0; bin_y < nbins_y; bin_y++) {
+                double y = etaPhiHist->GetYaxis()->GetBinCenter(bin_y+1);
 
-            // if the leading jet is in the HEC region don't bother finding the scale factor since it won't be selected
-            if (lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut) continue;
+                // if the leading jet is in the HEC region don't bother finding the scale factor since it won't be selected
+                if (lowerEtaCut < x && x < upperEtaCut && lowerPhiCut < y && y < upperPhiCut) continue;
 
-            // First calculate the number of subleading jets you missed given the position of the leading jet.
-            // This requires knowing the number of subleading jets meeting their event selection cuts.
-            double x_prime, y_prime, dy, content, numerator, denominator;
+                // First calculate the number of subleading jets you missed given the position of the leading jet.
+                // This requires knowing the number of subleading jets meeting their event selection cuts.
+                double x_prime, y_prime, dy, content, numerator, denominator;
 
-            numerator = 0;
-            denominator = 0;
-            for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
-                y_prime = subleadingEtaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
-                dy = TMath::Abs(y - y_prime);
-                if (dy > pi) dy = 2*pi - dy;
-                if (dy < 7.*pi/8.) continue; // this checks whether our y' coordinate is further away from y by at least 7pi/8 (up to pi). Otherwise it is not in our integration region, we skip it.
-                for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
-                    x_prime = subleadingEtaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
-                    // now check if x' meets the eta cut requirements
-                    content = subleadingEtaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
-                    // if the ' coordinate is outside the HEC region, then add the counts there to your integral in the denominator
-                    if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
-                    // as long as the ' coordinate meets the dphi cut, add the counts there to your integral in the numerator
-                    numerator += content;
-                }
-            }
-            if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint E): 0 jets meeting HEC cut!" << endl;
-            else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, numerator/denominator);
-            else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
-
-            // Calculate the number of leading jets you missed in this etabin. Often this factor comes out to 1.
-            numerator = 0;
-            denominator = 0;
-            for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
-                x_prime = etaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
-                if(!(etabins[etabin] < x_prime && x_prime < etabins[etabin+1])) continue;
+                numerator = 0;
+                denominator = 0;
                 for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
-                    y_prime = etaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
-                    content = etaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
-                    if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
-                    numerator += content;
+                    y_prime = subleadingEtaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                    dy = TMath::Abs(y - y_prime);
+                    if (dy > pi) dy = 2*pi - dy;
+                    if (dy < 7.*pi/8.) continue; // this checks whether our y' coordinate is further away from y by at least 7pi/8 (up to pi). Otherwise it is not in our integration region, we skip it.
+                    for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
+                        x_prime = subleadingEtaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
+                        // now check if x' meets the eta cut requirements
+                        content = subleadingEtaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
+                        // if the ' coordinate is outside the HEC region, then add the counts there to your integral in the denominator
+                        if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
+                        // as long as the ' coordinate meets the dphi cut, add the counts there to your integral in the numerator
+                        numerator += content;
+                    }
                 }
-            }
-            if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint F): 0 jets meeting HEC cut!" << endl;
-            else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, etaPhiScaleFactorsHist->GetBinContent(bin_x+1, bin_y+1) * numerator/denominator);
-            else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
-        }
-    }
+                if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint E): 0 jets meeting HEC cut!" << endl;
+                else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, numerator/denominator);
+                else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
 
-    /**** End evaluate eta-phi rescaling ****/
+                // Calculate the number of leading jets you missed in this etabin. Often this factor comes out to 1.
+                numerator = 0;
+                denominator = 0;
+                for (int bin_x_prime = 0; bin_x_prime < nbins_x; bin_x_prime++) {
+                    x_prime = etaPhiHist->GetXaxis()->GetBinCenter(bin_x_prime+1);
+                    if(!(etabins[etabin] < x_prime && x_prime < etabins[etabin+1])) continue;
+                    for (int bin_y_prime = 0; bin_y_prime < nbins_y; bin_y_prime++) {
+                        y_prime = etaPhiHist->GetYaxis()->GetBinCenter(bin_y_prime+1);
+                        content = etaPhiHist->GetBinContent(bin_x_prime+1, bin_y_prime+1);
+                        if (!(lowerEtaCut < x_prime && x_prime < upperEtaCut && lowerPhiCut < y_prime && y_prime < upperPhiCut)) denominator += content;
+                        numerator += content;
+                    }
+                }
+                if (denominator == 0. && debugStatements) cout << "Warning: In DijetAnalysis.C (breakpoint F): 0 jets meeting HEC cut!" << endl;
+                else if (denominator != 0.) etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, etaPhiScaleFactorsHist->GetBinContent(bin_x+1, bin_y+1) * numerator/denominator);
+                else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
+            }
+        }
+
+        /**** End evaluate eta-phi rescaling ****/
+    }
 
 
     // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
@@ -167,31 +188,31 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     TH1D* mHistArr[numetabins];
 
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        xHistArr[etabin] = new TH1D(Form("%ieta%i", thisRunNumber, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#eta #left[nb#right]", etabins[etabin], etabins[etabin+1]), numxbins, xbins);
+        xHistArr[etabin] = new TH1D(Form("%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#eta #left[nb#right]", etabins[etabin], etabins[etabin+1]), numxbins, xbins);
         xHistArr[etabin]->Sumw2();
     }
     for (int etabin = numetabins; etabin < 2*numetabins; etabin++) {
-        xHistArr[etabin] = new TH1D(Form("%ieta%i", thisRunNumber, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#eta #left[nb#right]", etabins[etabin%numetabins], etabins[(etabin%numetabins)+1]), numxbins, xbins);
+        xHistArr[etabin] = new TH1D(Form("%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#eta #left[nb#right]", etabins[etabin%numetabins], etabins[(etabin%numetabins)+1]), numxbins, xbins);
         xHistArr[etabin]->Sumw2();
     }
 
     for (int qbin = 0; qbin < numqbins; qbin++) {
-        xqHistArr[qbin] = new TH1D(Form("%iq%i", thisRunNumber, qbin), Form("%g < #it{Q} < %g;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin], qbins[qbin+1]), numxbins, xbins);
+        xqHistArr[qbin] = new TH1D(Form("%iq%i", dataSet, qbin), Form("%g < #it{Q} < %g;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin], qbins[qbin+1]), numxbins, xbins);
         xqHistArr[qbin]->Sumw2();
     }
     for (int qbin = numqbins; qbin < 2*numqbins; qbin++) {
-        xqHistArr[qbin] = new TH1D(Form("%iq%i", thisRunNumber, qbin), Form("%g < #it{Q} < %g;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin%numqbins], qbins[(qbin%numqbins)+1]), numxbins, xbins);
+        xqHistArr[qbin] = new TH1D(Form("%iq%i", dataSet, qbin), Form("%g < #it{Q} < %g;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin%numqbins], qbins[(qbin%numqbins)+1]), numxbins, xbins);
         xqHistArr[qbin]->Sumw2();
     }
 
     for (int etabin = 0; etabin < numetabins; etabin++) {
-        mHistArr[etabin] = new TH1D(Form("mjj_%ieta%i", thisRunNumber, etabin), Form("%1.1f < #eta < %1.1f;#it{m}_{JJ} #left[GeV#right];d^{2}N/L_{int}d#it{m}_{JJ}d#eta #left[nb GeV^{-1}#right]", etabins[etabin], etabins[etabin+1]), nummbins, mbins);
+        mHistArr[etabin] = new TH1D(Form("mjj_%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{m}_{JJ} #left[GeV#right];d^{2}N/L_{int}d#it{m}_{JJ}d#eta #left[nb GeV^{-1}#right]", etabins[etabin], etabins[etabin+1]), nummbins, mbins);
         mHistArr[etabin]->Sumw2();
     }
 
-    TH2D* qxcorr = new TH2D(Form("xqcorr_run%i", thisRunNumber), ";#it{x}_{a};#it{#bar{Q}}^{2} #left[GeV^{2}#right];d^{2}N/L_{int}d{x}_{a}d#it{#bar{Q}}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
-    TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_run%i", thisRunNumber), ";#it{x}_{a};#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
-    TH2D* fcalhist = new TH2D(Form("fcalhist_run%i", thisRunNumber), ";#it{x}_{p};FCAL energy #left[GeV#right];", numxbins, xbins, numfcalbins, fcalbins);
+    TH2D* qxcorr = new TH2D(Form("xqcorr_dataset%i", dataSet), ";#it{x}_{a};#it{#bar{Q}}^{2} #left[GeV^{2}#right];d^{2}N/L_{int}d{x}_{a}d#it{#bar{Q}}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
+    TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_dataset%i", dataSet), ";#it{x}_{a};#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
+    TH2D* fcalhist = new TH2D(Form("fcalhist_dataset%i", dataSet), ";#it{x}_{p};FCAL energy #left[GeV#right];", numxbins, xbins, numfcalbins, fcalbins);
 
     // Create arrays to store jet data for each event
     float j_pt[60] = {};
@@ -214,10 +235,12 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     else tree->SetBranchAddress("fcalA_et", &fcal_et);
     tree->SetBranchAddress("eventNumber", &eventNumber);
 
-    // Set branch addresses
-    for (Trigger* trig : (*triggerSubvector)) {
-        tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
-        tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
+    // Set branch addresses for triggers
+    if (!isMC) {
+        for (Trigger* trig : (*triggerSubvector)) {
+            tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
+            tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
+        }
     }
 
     // Iterate over each event
@@ -232,7 +255,7 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     TLorentzVector subleadingj_tlv;
     TLorentzVector dijet_tlv;
     int numGoodEvents = 0;
-    TH1I* eventSelectionHist = new TH1I(Form("eventSelectionHist_run%i", thisRunNumber), ";Event selection combination;\"Dijet\" events", 6, -0.5, 5.5);
+    TH1I* eventSelectionHist = new TH1I(Form("eventSelectionHist_dataset%i", dataSet), ";Event selection combination;\"Dijet\" events", 6, -0.5, 5.5);
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
         // Basic event selection: require a primary vertex and there to be at least 2 reconstructed jets
@@ -294,7 +317,7 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
         /** End event selection **/
 
 
-        if (leadingjpt > 1200) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, thisRunNumber, eventNumber) << endl;
+        if (leadingjpt > 1200) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, runNumber, eventNumber) << endl;
 
 
         /** Find scaling information to get a cross section measurement **/
@@ -302,20 +325,26 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
         pbin = getPbin(leadingjpt);
         if (pbin == -1 || pbin > numpbins || etabin == -1 || etabin > numetabins) continue; // make sure we are in a valid kinematic bin
 
-        bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins]; // kinematicTriggerVec is created per run, so we do not need to flip etas
-        if (bestTrigger == NULL) continue; // make sure its not a null trigger
+        if (!isMC) {
+            bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins]; // kinematicTriggerVec is created per run, so we do not need to flip etas
+            if (bestTrigger == NULL) continue; // make sure its not a null trigger
+            takeEvent = bestTrigger->m_trig_bool && bestTrigger->m_trig_prescale > 0 && bestTrigger->min_pt <= leadingjpt;
 
-        if (periodA) actetabin = numetabins - etabin - 1;
-        else actetabin = etabin;
+            if (periodA) actetabin = numetabins - etabin - 1;
+            else actetabin = etabin;
 
-        index = bestTrigger->index;
-        lumi = kinematicLumiVec[pbin + actetabin*numpbins]; // kinematicLumiVec is created for all runs, so we DO need to flip etas!!!!
-        eff = (*triggerEfficiencyFunctions)[index]->Eval(leadingjpt); // same with trigger efficiency, but there is no eta dependence
-        takeEvent = bestTrigger->m_trig_bool && bestTrigger->m_trig_prescale > 0 && bestTrigger->min_pt <= leadingjpt && lumi != 0 && eff != 0.;
-        if (!takeEvent) continue; // make sure the trigger fired, and that we're not going to be dividing by 0
+            index = bestTrigger->index;
+            lumi = kinematicLumiVec[pbin + actetabin*numpbins]; // kinematicLumiVec is created for all runs, so we DO need to flip etas!!!!
+            eff = (*triggerEfficiencyFunctions)[index]->Eval(leadingjpt); // same with trigger efficiency, but there is no eta dependence
+            takeEvent = takeEvent && lumi != 0 && eff != 0.;
+            if (!takeEvent) continue; // make sure the trigger fired, and that we're not going to be dividing by 0
+        } else {
+            lumi = 1; // assume 1 ub of luminosity for simplicity right now if MC
+            eff = 1; // no triggers for MC, so efficiency is just 1
+        }
 
         scale = 1e3/(eff*lumi); // set the scale to convert counts -> "efficiency corrected cross-section"-esque measurement
-        scale *= etaPhiScaleFactorsHist->GetBinContent(etaPhiScaleFactorsHist->FindBin(leadingjeta, leadingjphi));
+        if (etaPhiScaleFactorsHist != NULL) scale *= etaPhiScaleFactorsHist->GetBinContent(etaPhiScaleFactorsHist->FindBin(leadingjeta, leadingjphi));
 
         if (periodA) {
             leadingjeta *= -1;
@@ -368,7 +397,7 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
     if (runPeriodA && !runPeriodB) output_name = output_name + "periodA/";
     else if (!runPeriodA && runPeriodB) output_name = output_name + "periodB/";
     else output_name = output_name + "periodAB/";
-    output_name = Form("%srun_%i.root", output_name.c_str(), thisRunNumber);
+    output_name = Form("%sdataset_%i.root", output_name.c_str(), dataSet);
 
     TFile* output = new TFile(output_name.c_str(), "RECREATE");
     for (int etabin = 0; etabin < 2*numetabins; etabin++) {
@@ -397,9 +426,9 @@ void DijetAnalysis(int thisRunNumber, // Run number identifier.
 
     eventSelectionHist->Write();
 
-    TVectorD run_vec(2);
-    run_vec[0] = luminosity;
-    run_vec[1] = numGoodEvents;
-    run_vec.Write("run_vec");
+    TVectorD infoVec(2);
+    infoVec[0] = luminosity;
+    infoVec[1] = numGoodEvents;
+    infoVec.Write("infoVec");
     output->Close();
 }

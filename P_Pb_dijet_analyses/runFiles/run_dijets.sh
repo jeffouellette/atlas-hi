@@ -43,4 +43,20 @@ root -l -b -q '../AnalysisCode/DijetAnalysis.C (314170, 4.92)'&
 
 wait
 
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13202455, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13200714, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13216170, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13211323, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13237282, 1)'&
+#
+#wait
+#
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13211331, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13211339, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13211348, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13214408, 1)'&
+#root -l -b -q '../AnalysisCode/DijetAnalysis.C (13214423, 1)'&
+#
+#wait
+
 root -l -b -q '../AnalysisCode/DijetAnalysisHist.C ()'

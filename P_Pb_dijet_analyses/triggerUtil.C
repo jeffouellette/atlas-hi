@@ -12,7 +12,6 @@ using namespace std;
 vector<Trigger*> triggerVec(0); // total list of triggers used.
 double kinematicLumiVec[numpbins*numetabins]; // total exposed luminosity in a kinematic bin. Units: ub^-1
 Trigger* kinematicTriggerVec[numpbins*numetabins]; // best trigger to use in a kinematic bin.
-//double kinematicEfficiencyVec[numpbins*numetabins]; // best trigger efficiency in a kinematic bin.
 
 
 //=========================================================================================================
@@ -117,6 +116,7 @@ static int getEtabin (double eta) {
  * Determines whether analysis of this run should be skipped.
  */
 static bool skipRun (int rn) {
+    if (useDataVersion == 0) return true;
     if (rn < 313500 && !runPeriodA) return true;
     if (rn > 313500 && !runPeriodB) return true;
     bool contains_rn = false;
@@ -129,8 +129,48 @@ static bool skipRun (int rn) {
             }
             break;
         }
+        case 0: {
+            return true;
+        }
     }
     return !contains_rn;
+}
+
+
+/**
+ * Determines whether analysis of this MC sample should be skipped.
+ */
+static bool skipMC (int mcn) {
+    if (useDataVersion != 0) return true;
+
+    TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
+    TList* sysfiles = dir.GetListOfFiles();
+    bool isPeriodA = false;
+    if (sysfiles) {
+        TSystemFile* sysfile;
+        TString fname;
+        TIter next(sysfiles);
+
+        while ((sysfile = (TSystemFile*)next())) {
+            fname = sysfile->GetName();
+            if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
+                if (fname.Contains(to_string(mcn))) {
+                    isPeriodA = fname.Contains("e6395") || fname.Contains("e6519");
+                }
+            }
+        }
+    }
+    delete sysfiles; // this line feels wrong to write...
+
+    if (isPeriodA && !runPeriodA) return true;
+    if (!isPeriodA && !runPeriodB) return true;
+    bool contains_mcn = false;
+    int i = 0;
+    while (i < sizeof(mc_samples)/sizeof(int) && !contains_mcn) {
+        contains_mcn = mc_samples[i] == mcn;
+        i++;
+    }
+    return !contains_mcn;
 }
 
 /**
@@ -145,8 +185,22 @@ static vector<int>* getRunNumbers() {
             }
             break;
         }
+        case 0: {
+            break;
+        }
     }
     return rns;
+}
+
+/**
+ * Returns a pointer to an std::vector<int> of the MC samples currently being processed.
+ */
+static vector<int>* getMCSamples() {
+    vector<int>* mcs = new vector<int>(0);
+    for (int i = 0; i < sizeof(mc_samples)/sizeof(int); i++) {
+        mcs->push_back(mc_samples[i]);
+    }
+    return mcs;
 }
 
 
@@ -306,13 +360,14 @@ void setBestTriggers(int rnIndex) {
  */
 void initialize (int runNumber=0, bool initTriggerMaps=true) {
 
-    assert (useDataVersion >= 7);
+    assert (useDataVersion == 7 || useDataVersion == 0);
     if (debugStatements) cout << Form("Status: In triggerUtil.C (248): Initializing trigger system for run %i...", runNumber) << endl;
 
     /**** Reset directory information for correct versioning ****/ 
     {
         string versionString;
-        versionString = "v" + to_string(useDataVersion) + "/";
+        if (useDataVersion == 0) versionString = "mc/";
+        else versionString = "v" + to_string(useDataVersion) + "/";
         rootPath = rootPath + versionString;
         dataPath = dataPath + versionString;
         plotPath = plotPath + versionString;
@@ -323,6 +378,10 @@ void initialize (int runNumber=0, bool initTriggerMaps=true) {
         RpPbPath = rootPath + "RpPbData/";
     }
     /**** End reset direction information ****/
+
+
+    /**** If Monte Carlo (MC), we don't need to get trigger information. ****/
+    if (useDataVersion == 0) return;
 
 
     /**** Create an array of triggers ****/
@@ -417,7 +476,6 @@ void initialize (int runNumber=0, bool initTriggerMaps=true) {
         double* totalLumiVec = getTriggerLuminosities(); // luminosity a particular trigger sees at a given pbin, etabin in a given run
         for (int n = 0; n < numpbins*numetabins; n++) {
             kinematicLumiVec[n] = 0;
-//            kinematicEfficiencyVec[n] = 0.;
             kinematicTriggerVec[n] = NULL;
         }
         /**** End local variable declarations ****/

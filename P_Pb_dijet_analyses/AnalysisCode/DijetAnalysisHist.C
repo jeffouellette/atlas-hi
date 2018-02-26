@@ -10,7 +10,13 @@ Int_t nb=100;
 void DijetAnalysisHist() {
     if (!runPeriodA && !runPeriodB) return;
     initialize(0, false);
-    std::vector<int>* thisRunNumbers = getRunNumbers();
+
+    bool isMC = useDataVersion == 0;
+    std::vector<int>* dataSamples;
+    if (!isMC) dataSamples = getRunNumbers();
+    else dataSamples = getMCSamples();
+
+    //std::vector<int>* thisRunNumbers = getRunNumbers();
 
     double eta_min, eta_max, q_min, q_max, mjj_min, mjj_max;
     double* histArrScalesX_eta;
@@ -84,30 +90,54 @@ void DijetAnalysisHist() {
     TH1D* thisHist;
 
     {
-        string period_dir;
-        if (runPeriodA && !runPeriodB) period_dir = "periodA/";
-        else if (!runPeriodA && runPeriodB) period_dir = "periodB/";
-        else period_dir = "periodAB/";
+        string periodSubDir;
+        if (runPeriodA && !runPeriodB) periodSubDir = "periodA/";
+        else if (!runPeriodA && runPeriodB) periodSubDir = "periodB/";
+        else periodSubDir = "periodAB/";
 
-        for (int thisRunNumber : (*thisRunNumbers)) {
-            if (skipRun(thisRunNumber)) continue;
-            TFile* thisFile = new TFile(Form("%s%srun_%i.root", xPath.c_str(), period_dir.c_str(), thisRunNumber), "READ");
+        for (int dataSample : (*dataSamples)) {
+            if (!isMC && skipRun(dataSample)) continue;
+            else if (isMC && skipMC(dataSample)) continue;
+
+            TFile* thisFile;
+            {
+                TSystemDirectory dir((xPath + periodSubDir).c_str(), (xPath + periodSubDir).c_str());
+                TList* sysfiles = dir.GetListOfFiles();
+                if (sysfiles) {
+                    TSystemFile* sysfile;
+                    TString fname;
+                    TIter next(sysfiles);
+ 
+                    while ((sysfile = (TSystemFile*)next())) {
+                        fname = sysfile->GetName();
+                        if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
+                            if (fname.Contains(to_string(dataSample))) {
+                                thisFile = new TFile((xPath + periodSubDir + fname), "READ");
+                                break;
+                            }
+                        }
+                    }
+                }
+                delete sysfiles; // this line feels wrong to write...
+            }
+            
+            //TFile* thisFile = new TFile(Form("%s%srun_%i.root", xPath.c_str(), periodSubDir.c_str(), dataSample), "READ");
             for (int etabin = 0; etabin < 2*numetabins; etabin++) {
-                xHistArr[etabin]->Add((TH1D*)thisFile->Get(Form("%ieta%i", thisRunNumber, etabin)));
+                xHistArr[etabin]->Add((TH1D*)thisFile->Get(Form("%ieta%i", dataSample, etabin)));
             }
             for (int qbin = 0; qbin < 2*numqbins; qbin++) {
-                xqHistArr[qbin]->Add((TH1D*)thisFile->Get(Form("%iq%i", thisRunNumber, qbin)));
+                xqHistArr[qbin]->Add((TH1D*)thisFile->Get(Form("%iq%i", dataSample, qbin)));
             }
             for (int etabin = 0; etabin < numetabins; etabin++) {
-                mHistArr[etabin]->Add((TH1D*)thisFile->Get(Form("mjj_%ieta%i", thisRunNumber, etabin)));
+                mHistArr[etabin]->Add((TH1D*)thisFile->Get(Form("mjj_%ieta%i", dataSample, etabin)));
             }
-            qxcorr->Add((TH2D*)thisFile->Get(Form("xqcorr_run%i", thisRunNumber)));
-            xaxpcorr->Add((TH2D*)thisFile->Get(Form("xaxpcorr_run%i", thisRunNumber)));
-            fcalHist->Add((TH2D*)thisFile->Get(Form("fcalhist_run%i", thisRunNumber)));
-            eventSelectionHist->Add((TH1I*)thisFile->Get(Form("eventSelectionHist_run%i", thisRunNumber)));
-            TVectorD* thisrunvec = (TVectorD*)(thisFile->Get("run_vec")); // Accesses luminosity for this run and creates a pointer to it
-            integrated_luminosity += (*thisrunvec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
-            numGoodEvents += (*thisrunvec)[1];
+            qxcorr->Add((TH2D*)thisFile->Get(Form("xqcorr_dataset%i", dataSample)));
+            xaxpcorr->Add((TH2D*)thisFile->Get(Form("xaxpcorr_dataset%i", dataSample)));
+            fcalHist->Add((TH2D*)thisFile->Get(Form("fcalhist_dataset%i", dataSample)));
+            eventSelectionHist->Add((TH1I*)thisFile->Get(Form("eventSelectionHist_dataset%i", dataSample)));
+            TVectorD* infoVec = (TVectorD*)(thisFile->Get("infoVec")); // Accesses luminosity for this run and creates a pointer to it
+            integrated_luminosity += (*infoVec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
+            numGoodEvents += (*infoVec)[1];
             thisFile->Close();
             delete thisFile;
         }
@@ -364,6 +394,7 @@ void DijetAnalysisHist() {
     gPad->SetLogy();
     gPad->SetLogz();
     qxcorr->SetMinimum(1e-5);
+    qxcorr->GetZaxis()->SetTitleOffset(1.2);
     qxcorr->Draw("colz");
 
     //xaxpcorr->GetXaxis()->SetTickLength(0.02);
@@ -393,11 +424,8 @@ void DijetAnalysisHist() {
     gPad->SetLogx();
     gPad->SetLogy();
     gPad->SetLogz();
+    xaxpcorr->GetZaxis()->SetTitleOffset(1.2);
     xaxpcorr->Draw("colz");
-
-    //xaxpcorr->GetXaxis()->SetTickLength(0.02);
-    //xaxpcorr->GetYaxis()->SetTickLength(0.02);
-//    xaxpcorr->GetZaxis()->SetTickLength(0.01);
 
     myText (0.19, 0.25, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
     myText (0.19, 0.19, kBlack, Form("%i dijet events", numGoodEvents));
@@ -422,10 +450,8 @@ void DijetAnalysisHist() {
     gPad->SetLogx();
     gPad->SetLogy();
     gPad->SetLogz();
+    fcalHist->GetZaxis()->SetTitleOffset(1.2);
     fcalHist->Draw("colz");
-    //fcalHist->GetXaxis()->SetTickLength(0.02);
-    //fcalHist->GetYaxis()->SetTickLength(0.02);
-    //fcalHist->GetZaxis()->SetTickLength(0.01);
 
     myText (0.19, 0.91, kBlack, Form("2016 #it{p-Pb}, %.1f nb^{-1}, #sqrt{s} = 8.16 TeV", integrated_luminosity));
     myText (0.19, 0.85, kBlack, Form("%i dijet events", numGoodEvents));
