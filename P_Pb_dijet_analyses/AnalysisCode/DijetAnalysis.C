@@ -14,35 +14,28 @@ const double* q2xbins = logspace(1.6e-4, 1.6, numq2xbins);
 const double* mbins = logspace(20, 2500, nummbins);
 const double* fcalbins = logspace(10, 500, numfcalbins);
 
-void DijetAnalysis(int dataSet, // Data set identifier
-                   double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this should be a run number. If MC, this should be whatever number follows "tid" in the MC file.
+                   const double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
     initialize(dataSet, true);
 
-    int mcSampleNumber = 0;
-    int runNumber = 0;
-    bool isMC = false;
-    if (useDataVersion == 0) {
-        isMC = true;
-        mcSampleNumber = dataSet;
-    }
-    else runNumber = dataSet;
+    const bool isMC = useDataVersion == 0;
 
     // Check whether to skip this particular analysis
-    if (!isMC && skipRun(runNumber)) return;
-    else if (isMC && skipMC(mcSampleNumber)) return;
+    if (!isMC && skipRun(dataSet)) return;
+    if (isMC && skipMC(dataSet)) return;
 
     vector<TF1*>* triggerEfficiencyFunctions = NULL;
     if (!isMC) triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
 
-    bool periodA = (!isMC && runNumber < 313500);
+    const bool periodA = isPeriodA(dataSet);
 
     /**** Generate list of physics triggers ****/
     vector<Trigger*>* triggerSubvector = NULL;
     if (!isMC) {
-        triggerSubvector = getTriggerSubvector(runNumber);
+        triggerSubvector = getTriggerSubvector(dataSet);
         if (debugStatements) {
-            cout << "Status: In DijetAnalysis.C (breakpoint A): Processing run " << runNumber << " with triggers:" << endl;
+            cout << "Status: In DijetAnalysis.C (breakpoint A): Processing run " << dataSet << " with triggers:" << endl;
             for (Trigger* trig : (*triggerSubvector)) {
                 cout << "\t" << trig->name << endl;
             }
@@ -52,7 +45,7 @@ void DijetAnalysis(int dataSet, // Data set identifier
 
 
     /**** Find the relevant TTree for this run ****/
-    //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), runNumber)))->Get("tree");
+    //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), dataSet)))->Get("tree");
     TTree* tree = NULL;
     {
         TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
@@ -68,7 +61,6 @@ void DijetAnalysis(int dataSet, // Data set identifier
                     if (debugStatements) cout << "Status: In DijetAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
                     if (fname.Contains(to_string(dataSet))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
-                        if (isMC) periodA = fname.Contains("e6395") || fname.Contains("e6519");
                         break;
                     }
                 }
@@ -317,13 +309,13 @@ void DijetAnalysis(int dataSet, // Data set identifier
         /** End event selection **/
 
 
-        if (leadingjpt > 1200) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, runNumber, eventNumber) << endl;
+        if (leadingjpt > 1200) cout << Form("High pt (%.0f GeV) jet detected in run %i, event %i!", leadingjpt, dataSet, eventNumber) << endl;
 
 
         /** Find scaling information to get a cross section measurement **/
         etabin = getEtabin(leadingjeta);
         pbin = getPbin(leadingjpt);
-        if (pbin == -1 || pbin > numpbins || etabin == -1 || etabin > numetabins) continue; // make sure we are in a valid kinematic bin
+        if (pbin == -1 || pbin == numpbins || etabin == -1 || etabin == numetabins) continue; // make sure we are in a valid kinematic bin
 
         if (!isMC) {
             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins]; // kinematicTriggerVec is created per run, so we do not need to flip etas
@@ -359,9 +351,9 @@ void DijetAnalysis(int dataSet, // Data set identifier
         q_avg = TMath::Sqrt(0.5*(get_q2(xp, leadingje, leadingjpt) + get_q2(xp, subleadingje, subleadingjpt)));
         {
             qbin = 0;
-            while (qbin < numqbins+1 && qbins[qbin++] < q_avg);
-            qbin -= 2;
-            if (!(qbin == -1 || qbin > numqbins)) {
+            while (qbin < numqbins+1 && qbins[qbin] < q_avg) qbin++;
+            qbin -= 1;
+            if (!(qbin == -1 || qbin >= numqbins)) {
                 xqHistArr[qbin]->Fill(xp, scale);
                 xqHistArr[qbin+numqbins]->Fill(xa, scale);
             }
@@ -384,7 +376,7 @@ void DijetAnalysis(int dataSet, // Data set identifier
         etajj = dijet_tlv.Eta();
 
         etabin = getEtabin(etajj);
-        if (etabin == -1 || etabin > numetabins) continue;
+        if (etabin == -1 || etabin == numetabins) continue;
         
         mHistArr[etabin]->Fill(mjj, scale);
         // Fill xa xp distribution plots

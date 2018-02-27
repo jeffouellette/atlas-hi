@@ -1,22 +1,29 @@
 #include "../triggerUtil.C"
 
-void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
-                       double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+void IdealPtAnalysis(const int dataSet, // Run number identifier.
+                     const double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
-    if (skipRun(thisRunNumber)) return;
+    initialize(dataSet, true);
 
-    initialize(thisRunNumber, true);
-    vector<TF1*>* triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
-    
-    /**** Generate list of physics triggers ****/
-    vector<Trigger*>* triggerSubvector = getTriggerSubvector(thisRunNumber);
-    if (debugStatements) {
-        cout << "Status: In IdealPtAnalysis.C (breakpoint A): Processing run " << thisRunNumber << " with triggers:" << endl;
-        for (Trigger* trig : (*triggerSubvector)) {
-            cout << "\t" << trig->name << endl;
+    const bool isMC = useDataVersion == 0;
+    if (!isMC && skipRun(dataSet)) return;
+    if (isMC && skipMC(dataSet)) return;
+   
+    vector<TF1*>* triggerEfficiencyFunctions = NULL;
+    vector<Trigger*>* triggerSubvector = NULL;
+    if (!isMC) {
+        triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
+
+        /**** Generate list of physics triggers ****/
+        triggerSubvector = getTriggerSubvector(dataSet);
+        if (debugStatements) {
+            cout << "Status: In IdealPtAnalysis.C (breakpoint A): Processing run " << dataSet << " with triggers:" << endl;
+            for (Trigger* trig : (*triggerSubvector)) {
+                cout << "\t" << trig->name << endl;
+            }
         }
+        /**** End generate list of physics triggers ****/
     }
-    /**** End generate list of physics triggers ****/
 
 
     /**** Find the relevant TTree for this run ****/
@@ -33,7 +40,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
                     if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
-                    if (fname.Contains(to_string(thisRunNumber))) {
+                    if (fname.Contains(to_string(dataSet))) {
                         tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
                         break;
                     }
@@ -60,7 +67,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
             for (string s : interestingBranchNames) {
                 interestingBranch = interestingBranch || (branchName.Data() == s);
             }
-            if (!interestingBranch) {
+            if (!isMC && !interestingBranch) {
                 for (Trigger* trig : (*triggerSubvector)) {
                     if (branchName == trig->name) {
                         interestingBranch = true;
@@ -93,36 +100,36 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("nvert", &nvert);
     tree->SetBranchAddress("vert_type", vert_type);
-    for (Trigger* trig : (*triggerSubvector)) {
-        tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
+    if (!isMC) {
+        for (Trigger* trig : (*triggerSubvector)) {
+            tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
+        }
     }
     /**** End set branch addresses ****/
 
 
     /**** Histogram initialization ****/
-    const int numhists = numtrigs * numetabins;
-    TH1D* histArr[numhists];
+    TH1D* histArr[numetabins];
     TH2D* etaPhiHist;
     TH2D* subleadingEtaPhiHist;
     TH2D* yPhiHist;
-    int pbin, etabin, index;
+    int pbin, etabin;
     for (etabin = 0; etabin < numetabins; etabin++) {
-        TString histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, etabin);
+        TString histName = Form("trig_pt_counts_dataset%i_etabin%i", dataSet, etabin);
         histArr[etabin] = new TH1D(histName, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
         histArr[etabin]->Sumw2(); // instruct each histogram to propagate errors
     }
     {
-        TString histName = Form("etaPhiHist_run%i", thisRunNumber);
+        TString histName = Form("etaPhiHist_dataset%i", dataSet);
         etaPhiHist = new TH2D(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
-        histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
+        histName = Form("subleadingEtaPhiHist_dataset%i", dataSet);
         subleadingEtaPhiHist = new TH2D(histName, ";#eta;#phi;", 98, -4.9, 4.9, 100, 0, 2*pi);
-        histName = Form("yPhiHist_run%i", thisRunNumber);
+        histName = Form("yPhiHist_dataset%i", dataSet);
         yPhiHist = new TH2D(histName, ";#it{y};#phi;", 138, -3.5, 3.5, 100, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
     }
 
     /**** Iterate over each event ****/
     const int numentries = tree->GetEntries();
-
     int leadingj;
     double jpt, jeta, jphi, je, eff, scale;
     TLorentzVector tlv;
@@ -142,17 +149,19 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
-            if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
+            if (pbin == -1 || etabin == -1 || pbin == numpbins || etabin == numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
-            bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
-            if (bestTrigger == NULL) continue; // make sure we're not trying to look at a null trigger
+            if (!isMC) {
+                bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
+                if (bestTrigger == NULL) continue; // make sure we're not trying to look at a null trigger
 
-            eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
-            if (eff == 0) continue; // avoid dividing by 0 
+                eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
+                if (eff == 0) continue; // avoid dividing by 0 
+                scale = 1./eff;
+            }
+            else scale = 1.;
 
-            scale = 1./eff;
-
-            if (bestTrigger->m_trig_bool) {
+            if (isMC || (!isMC && bestTrigger->m_trig_bool)) {
                 if (!(lowerPhiCut < jphi && jphi < upperPhiCut && lowerEtaCut < jeta && jeta < upperEtaCut)) histArr[etabin]->Fill(jpt, scale);
                 if (!highPtJetsOnly || jpt > 70) etaPhiHist->Fill(jeta, jphi);
                 tlv.SetPtEtaPhiE(jpt, jeta, jphi, je);
@@ -175,10 +184,12 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
             etabin = getEtabin(jeta);
             pbin = getPbin(jpt);
-            if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
+            if (pbin == -1 || etabin == -1 || pbin == numpbins || etabin == numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
-            bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
-            if (bestTrigger == NULL || !bestTrigger->m_trig_bool) continue; // make sure we're not trying to look at a null trigger, and if not, that it fired
+            if (!isMC) {
+                bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
+                if (bestTrigger == NULL || !bestTrigger->m_trig_bool) continue; // make sure we're not trying to look at a null trigger, and if not, that it fired
+            }
 
             subleadingEtaPhiHist->Fill(jeta, jphi);
         }
@@ -187,7 +198,7 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
 
 
     /**** Write output histograms to a root file ****/
-    TFile* output = new TFile(Form("%srun_%i.root", ptPath.c_str(), thisRunNumber), "RECREATE");
+    TFile* output = new TFile(Form("%sdataset_%i.root", ptPath.c_str(), dataSet), "RECREATE");
     for (etabin = 0; etabin < numetabins; etabin++) {
         histArr[etabin]->Scale(1/A); // each bin stores dN, so the cross section should be the histogram rescaled by the total luminosity, then divided by the pseudorapidity width
         histArr[etabin]->Write();
@@ -196,17 +207,17 @@ void IdealPtAnalysis(const int thisRunNumber, // Run number identifier.
     subleadingEtaPhiHist->Write();
     yPhiHist->Write();
 
-    TVectorD run_vec(5);
-    run_vec[0] = thisRunNumber;
-    run_vec[1] = numetabins;
-    run_vec[2] = numtrigs;
-    run_vec[3] = numpbins;
-    run_vec[4] = luminosity;
-    run_vec.Write(Form("run_vec_%i", thisRunNumber));
+    TVectorD infoVec(5);
+    infoVec[0] = dataSet;
+    infoVec[1] = numetabins;
+    infoVec[2] = numtrigs;
+    infoVec[3] = numpbins;
+    infoVec[4] = luminosity;
+    infoVec.Write(Form("infoVec_%i", dataSet));
 
     output->Close();
     /**** End write output ****/
 
-    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint E): Finished calculating pt spectrum for run " << thisRunNumber << endl;
+    if (debugStatements) cout << "Status: In IdealPtAnalysis.C (breakpoint E): Finished calculating pt spectrum for run " << dataSet << endl;
     return;
 }

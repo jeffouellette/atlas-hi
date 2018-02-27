@@ -1,6 +1,6 @@
 /** User defined parameters **/
 
-const int useDataVersion = 7; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. If any value is given other than the currently accepted value, every run will be skipped and nothing will happen. If 0 is specified, MC will be run instead. Currently accepted values: 0, 7
+const int useDataVersion = 0; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. If any value is given other than the currently accepted value, every run will be skipped and nothing will happen. If 0 is specified, MC will be run instead. Currently accepted values: 0, 7
 const bool runPeriodA = true; // Analyze period A data
 const bool runPeriodB = true; // Analyze period B data
 const bool debugStatements = false; // Print out periodic statements to monitor code flow
@@ -21,7 +21,7 @@ const bool highPtJetsOnly = false; // only use jets above 70GeV
 
 //const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
 const int run_list_v7[26] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313574, 313575, 313629, 313630, 313688, 313695, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
-const int mc_samples[1] = {13202455};
+const int mc_samples[6] = {13202455, 13211348, 13211339, 13216170, 13214408, 13211331};
 
 /** End user defined parameters **/
 
@@ -48,7 +48,7 @@ const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
 const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
 //const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
 const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
-int numtrigs; // Total number of triggers
+int numtrigs = 0; // Total number of triggers
 
 // Useful constants
 const float Z = 82;   // value of Z for Pb

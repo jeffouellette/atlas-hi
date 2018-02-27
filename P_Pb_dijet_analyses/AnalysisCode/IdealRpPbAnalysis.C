@@ -10,22 +10,22 @@ double pPbYbins[numpPbYbins+1] = {-3.465, -3.2, -2.965, -2.465, -2, -1.965, -1.4
 
 int getppPbin (double pt) {
     int bin = 0;
-    while (bin < numppPtbins+1 && ppPtbins[bin++] < pt);
-    return bin - 2;
+    while (bin < numppPtbins+1 && ppPtbins[bin] < pt) bin++;
+    return bin - 1;
 }
 
 
 int getppYbin (double eta) {
     int bin = 0;
-    while (bin < numppYbins+1 && ppYbins[bin++] < eta);
-    return bin - 2;
+    while (bin < numppYbins+1 && ppYbins[bin] < eta) bin++;
+    return bin - 1;
 }
 
 
 int getpPbYbin (double eta) {
     int bin = 0;
-    while (bin < numpPbYbins+1 && pPbYbins[bin++] < eta);
-    return bin - 2;
+    while (bin < numpPbYbins+1 && pPbYbins[bin] < eta) bin++;
+    return bin - 1;
 }
 
 /**
@@ -339,7 +339,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
             jy = tlv.Rapidity();
 
             pPbYbin = getpPbYbin(jy);
-            if (pPbYbin < 0 || pPbYbin > numpPbYbins) continue; // this checks that the jets fall within the pp eta bins, which cover a smaller range (so this is an important check)
+            if (pPbYbin < 0 || pPbYbin >= numpPbYbins) continue; // this checks that the jets fall within the pp eta bins, which cover a smaller range (so this is an important check)
 
             pPbCoMHistArr[pPbYbin]->Fill(jpt, scale);
         }

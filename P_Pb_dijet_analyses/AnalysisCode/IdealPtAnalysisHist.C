@@ -3,12 +3,17 @@
 void IdealPtAnalysisHist() {
 
     initialize(0, true);
-    vector<int>* thisRunNumbers = getRunNumbers();
+    const bool isMC = useDataVersion == 0;
 
-    const int numruns = (*thisRunNumbers).size();
-    const int numhists = numtrigs * numruns * numetabins;
+    vector<int>* dataSets = NULL;
+    if (!isMC) dataSets = getRunNumbers();
+    else dataSets = getMCSamples();
+    
+    //vector<int>* thisRunNumbers = getRunNumbers();
+
+    const int numDataSets = (*dataSets).size();
     if (debugStatements) {
-        cout << "Status: In IdealPtAnalysisHist.C (breakpoint A): Building trigger pt histograms with " << numruns << " runs being used" << endl;
+        cout << "Status: In IdealPtAnalysisHist.C (breakpoint A): Building trigger pt histograms with " << numDataSets << " runs being used" << endl;
         cout << "Status: In IdealPtAnalysisHist.C (breakpoint B): Numtrigs = " << numtrigs << endl;
         cout << "Status: In IdealPtAnalysisHist.C (breakpoint C): Numetabins = " << numetabins << endl;
         cout << "Status: In IdealPtAnalysisHist.C (breakpoint D): Numpbins = " << numpbins << endl;
@@ -47,7 +52,6 @@ void IdealPtAnalysisHist() {
         cout << "Status: In IdealPtAnalysisHist.C (breakpoint H): Starting loop over triggers..." << endl;
     }
 
-    vector<int>* runNumbers = getRunNumbers();
     double totalLuminosity = 0;
 
     /**** Fill eta-phi correlation plot with results from event loops ****/
@@ -59,28 +63,29 @@ void IdealPtAnalysisHist() {
             TString fname;
             TString histName;
             TIter next(sysfiles);
-            TVectorD* run_vec;
+            TVectorD* infoVec;
 
             while ((sysfile=(TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
                     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data() << endl; 
-                    for (int thisRunNumber : *runNumbers) {
-                        if (skipRun(thisRunNumber)) continue;
-                        if (fname.Contains(to_string(thisRunNumber))) {
+                    for (int dataSet : *dataSets) {
+                        if (!isMC && skipRun(dataSet)) continue;
+                        else if (isMC && skipMC(dataSet)) continue; 
+                        if (fname.Contains(to_string(dataSet))) {
                             TFile* thisFile = new TFile(ptPath + fname, "READ");
-                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", thisRunNumber))[0];
+                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", dataSet))[0];
 
                             // quickly check the parameters stored in this root file
-                            run_vec = (TVectorD*)thisFile->Get(Form("run_vec_%i", thisRunNumber));
-                            assert ((int)(*run_vec)[0] == thisRunNumber);
-                            assert ((int)(*run_vec)[1] == numetabins);
-                            assert ((int)(*run_vec)[2] == numtrigs);
-                            assert ((int)(*run_vec)[3] == numpbins);
+                            infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", dataSet));
+                            assert ((int)(*infoVec)[0] == dataSet);
+                            assert ((int)(*infoVec)[1] == numetabins);
+                            assert ((int)(*infoVec)[2] == numtrigs);
+                            assert ((int)(*infoVec)[3] == numpbins);
 
-                            histName = Form("etaPhiHist_run%i", thisRunNumber);
+                            histName = Form("etaPhiHist_dataset%i", dataSet);
                             etaPhiHist->Add((TH2D*)thisFile->Get(histName));
-                            histName = Form("subleadingEtaPhiHist_run%i", thisRunNumber);
+                            histName = Form("subleadingEtaPhiHist_dataset%i", dataSet);
                             subleadingEtaPhiHist->Add((TH2D*)thisFile->Get(histName));
 
                             thisFile->Close();
@@ -175,31 +180,32 @@ void IdealPtAnalysisHist() {
             TString fname;
             TString histName;
             TIter next(sysfiles);
-            TVectorD* run_vec;
+            TVectorD* infoVec;
 
             while ((sysfile=(TSystemFile*)next())) {
                 fname = sysfile->GetName();
                 if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
                     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data() << endl; 
-                    for (int thisRunNumber : *runNumbers) {
-                        if (skipRun(thisRunNumber)) continue;
-                        if (fname.Contains(to_string(thisRunNumber))) {
+                    for (int dataSet : *dataSets) {
+                        if (!isMC && skipRun(dataSet)) continue;
+                        else if (isMC && skipMC(dataSet)) continue;
+                        if (fname.Contains(to_string(dataSet))) {
                             TFile* thisFile = new TFile(ptPath + fname, "READ");
-                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", thisRunNumber))[0];
+                        //    totalLuminosity += (TVectorD*)thisFile->Get(Form("lum_vec_%i", dataSet))[0];
 
                             // quickly check the parameters stored in this root file
-                            run_vec = (TVectorD*)thisFile->Get(Form("run_vec_%i", thisRunNumber));
-                            assert ((int)(*run_vec)[0] == thisRunNumber);
-                            assert ((int)(*run_vec)[1] == numetabins);
-                            assert ((int)(*run_vec)[2] == numtrigs);
-                            assert ((int)(*run_vec)[3] == numpbins);
-                            totalLuminosity += (*run_vec)[4];
+                            infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", dataSet));
+                            assert ((int)(*infoVec)[0] == dataSet);
+                            assert ((int)(*infoVec)[1] == numetabins);
+                            assert ((int)(*infoVec)[2] == numtrigs);
+                            assert ((int)(*infoVec)[3] == numpbins);
+                            totalLuminosity += (*infoVec)[4];
 
                             int actetabin; // used to flip period A pseudorapidities
                             for (int etabin = 0; etabin < numetabins; etabin++) {
-                                if (thisRunNumber < 313500) actetabin = numetabins - etabin - 1;
+                                if (isPeriodA(dataSet)) actetabin = numetabins - etabin - 1;
                                 else actetabin = etabin;
-                                histName = Form("trig_pt_counts_run%i_etabin%i", thisRunNumber, actetabin);
+                                histName = Form("trig_pt_counts_dataset%i_etabin%i", dataSet, actetabin);
                                 thisHist = (TH1D*)thisFile->Get(histName);
 
                                 double scaleHEC = 0;
@@ -221,8 +227,8 @@ void IdealPtAnalysisHist() {
 
                                 histArr[etabin]->Add(thisHist);
                                 if (!runPeriodA || !runPeriodB) continue;
-                                if (thisRunNumber < 313500) numeratorHistArr[etabin]->Add(thisHist);
-                                else if (thisRunNumber > 313500) denominatorHistArr[etabin]->Add(thisHist);
+                                if (isPeriodA(dataSet)) numeratorHistArr[etabin]->Add(thisHist);
+                                else denominatorHistArr[etabin]->Add(thisHist);
                             }
                             thisFile->Close();
                             delete thisFile;
@@ -319,37 +325,43 @@ void IdealPtAnalysisHist() {
 
         double* periodALuminosities = new double[numpbins*numetabins];
         double* periodBLuminosities = new double[numpbins*numetabins];
-        for (int i = 0; i < numpbins*numetabins; i++) {
-            periodALuminosities[i] = 0;
-            periodBLuminosities[i] = 0;
-        }
 
-        {
+        if (isMC) {
+            for (int i = 0; i < numpbins*numetabins; i++) {
+                periodALuminosities[i] = 0;
+                periodBLuminosities[i] = 0;
+            }
+        } else {
+            for (int i = 0; i < numpbins*numetabins; i++) {
+                periodALuminosities[i] = 0;
+                periodBLuminosities[i] = 0;
+            }
             const double* allLuminosities = getTriggerLuminosities();
+            
             Trigger* bestTrigger;
             double bestLumi;
             int thisRunNumber;
-            for (int rnIndex = 0; rnIndex < numruns; rnIndex++) {
-                thisRunNumber = (*thisRunNumbers)[rnIndex];
+            for (int rnIndex = 0; rnIndex < numDataSets; rnIndex++) {
+                thisRunNumber = (*dataSets)[rnIndex];
                 /**** Need to get kinematic trigger vec for this run ****/
                 setBestTriggers(rnIndex);
 
-                if (thisRunNumber < 313500) {
+                if (isPeriodA(thisRunNumber)) {
                     for (int pbin = 0; pbin < numpbins; pbin++) {
                         for (int etabin = 0; etabin < numetabins; etabin++) {
                             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
                             if (bestTrigger == NULL) continue;
-                            int actetabin = numetabins - etabin - 1;
-                            bestLumi = allLuminosities[rnIndex + (bestTrigger->index)*numruns];
+                            const int actetabin = numetabins - etabin - 1;
+                            bestLumi = allLuminosities[rnIndex + (bestTrigger->index)*numDataSets];
                             periodALuminosities[pbin + actetabin*numpbins] += bestLumi;
                         }
                     }
-                } else if (thisRunNumber > 313500) {
+                } else if (!isPeriodA(thisRunNumber)) {
                     for (int pbin = 0; pbin < numpbins; pbin++) {
                         for (int etabin = 0; etabin < numetabins; etabin++) {
                             bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
                             if (bestTrigger == NULL) continue;
-                            bestLumi = allLuminosities[rnIndex + (bestTrigger->index)*numruns];
+                            bestLumi = allLuminosities[rnIndex + (bestTrigger->index)*numDataSets];
                             periodBLuminosities[pbin + etabin*numpbins] += bestLumi;
                         }
                     }
@@ -545,7 +557,7 @@ void IdealPtAnalysisHist() {
     delete lineDrawer;
     delete canvas;
     delete[] histArrScales;
-    delete runNumbers;
+    delete dataSets;
     /**** End free memory ****/
 
 

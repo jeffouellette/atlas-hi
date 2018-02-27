@@ -93,29 +93,57 @@ static double get_mjj(TLorentzVector jet0, TLorentzVector jet1) {
  * Returns -1 iff pt < pbins[0] or (numpbins+1) iff pbins[numpbins] <= pt.
  * Otherwise returns n iff pbins[n] <= jpt and jpt < pbins[n+1], etc.
  */
-static int getPbin (double pt) {
+static int getPbin (const double pt) {
     int bin = 0;
-    while (bin < numpbins+1 && pbins[bin++] < pt);
-    return bin - 2;
+    while (bin < numpbins+1 && pbins[bin] < pt) bin++;
+    return bin - 1;
 }
 
 
 /**
  * Returns the bin number of eta in etabins.
- * Returns -1 if eta < etabins[0] and (numetabins+1) if etabins[numetabins] <= eta.
+ * Returns -1 if eta < etabins[0] and numetabins if etabins[numetabins] <= eta.
  * Otherwise returns n iff etabins[n] <= eta && eta < etabins[n+1], etc.
  */
-static int getEtabin (double eta) {
+static int getEtabin (const double eta) {
     int bin = 0;
-    while (bin < numetabins+1 && etabins[bin++] < eta);
-    return bin - 2;
+    while (bin < numetabins+1 && etabins[bin] < eta) bin++;
+    return bin - 1;
+}
+
+
+bool isPeriodA (const int dataset) {
+    if (useDataVersion == 0) {
+        TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
+        TList* sysfiles = dir.GetListOfFiles();
+        if (sysfiles) {
+            TSystemFile* sysfile;
+            TString fname;
+            TIter next(sysfiles);
+
+            while ((sysfile = (TSystemFile*)next())) {
+                fname = sysfile->GetName();
+                if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
+                    if (fname.Contains(to_string(dataset))) {
+                        return fname.Contains("e6394") || fname.Contains("e6518");
+                //        pa = fname.Contains("e6395") || fname.Contains("e6519");
+                    }
+                }
+            }
+        }
+        delete sysfiles; // this line feels wrong to write...
+    }
+    else {
+        return dataset < 313500;
+    }
+    return false;
 }
 
 
 /**
  * Determines whether analysis of this run should be skipped.
  */
-static bool skipRun (int rn) {
+static bool skipRun (const int rn) {
     if (useDataVersion == 0) return true;
     if (rn < 313500 && !runPeriodA) return true;
     if (rn > 313500 && !runPeriodB) return true;
@@ -140,30 +168,13 @@ static bool skipRun (int rn) {
 /**
  * Determines whether analysis of this MC sample should be skipped.
  */
-static bool skipMC (int mcn) {
+bool skipMC (const int mcn) {
     if (useDataVersion != 0) return true;
 
-    TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
-    TList* sysfiles = dir.GetListOfFiles();
-    bool isPeriodA = false;
-    if (sysfiles) {
-        TSystemFile* sysfile;
-        TString fname;
-        TIter next(sysfiles);
+    bool pa = isPeriodA(mcn);
+    if (pa && !runPeriodA) return true;
+    if (!pa && !runPeriodB) return true;
 
-        while ((sysfile = (TSystemFile*)next())) {
-            fname = sysfile->GetName();
-            if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-                if (fname.Contains(to_string(mcn))) {
-                    isPeriodA = fname.Contains("e6395") || fname.Contains("e6519");
-                }
-            }
-        }
-    }
-    delete sysfiles; // this line feels wrong to write...
-
-    if (isPeriodA && !runPeriodA) return true;
-    if (!isPeriodA && !runPeriodB) return true;
     bool contains_mcn = false;
     int i = 0;
     while (i < sizeof(mc_samples)/sizeof(int) && !contains_mcn) {
@@ -220,7 +231,7 @@ bool inTriggerVec(string trigName) {
 /**
  * Returns a vector that is a sublist of triggers used in the run number given.
  */
-vector<Trigger*>* getTriggerSubvector(int runNumber) {
+vector<Trigger*>* getTriggerSubvector(const int runNumber) {
     vector<Trigger*>* triggerSublist = new vector<Trigger*>(0);
     for (Trigger* trig : triggerVec) {
         if (trig->lowerRunNumber <= runNumber && runNumber < trig->upperRunNumber) triggerSublist->push_back(trig);
@@ -357,6 +368,8 @@ void setBestTriggers(int rnIndex) {
  * This includes calculating the relevant luminosity based on the selection method:
  dealRpPbAnalysisHist*    Lumi (run #, pt, eta) = Lumi (Trigger (pt, eta), run #)
  * where Trigger (pt, eta) is a function defining the selection scheme.
+ *
+ * IMPORTANT: Note that initialize should be called as early as possible to ensure that all global variables are in working order.
  */
 void initialize (int runNumber=0, bool initTriggerMaps=true) {
 
