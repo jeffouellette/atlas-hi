@@ -1,2 +1,12 @@
+# General
 *.DS_Store
-./P_Pb_dijet_analyses/data/*
+*.swp
+cernvm3-micro-2.8-6.iso
+
+# 2016 pPb dijets
+P_Pb_dijet_analyses/data/*
+P_Pb_dijet_analyses/rootFiles/*
+P_Pb_dijet_analyses/HepData*
+
+# 2017 pp run
+offlineAnalysis/Data/
