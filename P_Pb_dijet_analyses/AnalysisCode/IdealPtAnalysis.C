@@ -57,7 +57,7 @@ void IdealPtAnalysis(const int dataSet, // Run number identifier.
 
     /**** Disable loading of unimportant branch values - speeds up entry retrieval ****/
     {
-        vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi", "j_e", "nvert", "vert_type"};
+        vector<string> interestingBranchNames = {"njet", "jet_pt", "jet_eta", "jet_phi", "jet_e", "nvert", "vert_type"};
         TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
         bool interestingBranch;
         for (TObject* obj : *branches) {
@@ -84,22 +84,27 @@ void IdealPtAnalysis(const int dataSet, // Run number identifier.
 
 
     /**** Set branching addresses ****/
-    float j_pt[60] = {};
-    float j_eta[60] = {};
-    float j_phi[60] = {};
-    float j_e[60] = {};
+    vector<float>* jet_pt = NULL;
+    vector<float>* jet_eta = NULL;
+    vector<float>* jet_phi = NULL;
+    vector<float>* jet_e = NULL;
+    /*float jet_pt[60] = {};
+    float jet_eta[60] = {};
+    float jet_phi[60] = {};
+    float jet_e[60] = {};*/
     int njet = 0;
-    int vert_type[60] = {};
+    vector<int>* vert_type = NULL;
+    //int vert_type[60] = {};
     int nvert = 0;
     
 
-    tree->SetBranchAddress("j_pt", j_pt);
-    tree->SetBranchAddress("j_eta", j_eta);
-    tree->SetBranchAddress("j_phi", j_phi);
-    tree->SetBranchAddress("j_e", j_e);
+    tree->SetBranchAddress("jet_pt", &jet_pt);
+    tree->SetBranchAddress("jet_eta", &jet_eta);
+    tree->SetBranchAddress("jet_phi", &jet_phi);
+    tree->SetBranchAddress("jet_e", &jet_e);
     tree->SetBranchAddress("njet", &njet);
     tree->SetBranchAddress("nvert", &nvert);
-    tree->SetBranchAddress("vert_type", vert_type);
+    tree->SetBranchAddress("vert_type", &vert_type);
     if (!isMC) {
         for (Trigger* trig : (*triggerSubvector)) {
             tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
@@ -137,14 +142,13 @@ void IdealPtAnalysis(const int dataSet, // Run number identifier.
     for (long long entry = 0; entry < numentries; entry++) {
         tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
 
-        // basic event selection: require there to be a primary vertex and for there to be a jet
-        if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet < 1) continue;
+        if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1)) continue; // basic event selection: require there to be a primary vertex
 
         for (int j = 0; j < njet; j++) {
-            jpt = (double)j_pt[j];
-            jeta = (double)j_eta[j];
-            jphi = (double)j_phi[j];
-            je = (double)j_e[j];
+            jpt = (double)jet_pt->at(j);
+            jeta = (double)jet_eta->at(j);
+            jphi = (double)jet_phi->at(j);
+            je = (double)jet_e->at(j);
             while (jphi < 0) jphi += 2.*pi; // converts phi to 0, 2*pi range
 
             etabin = getEtabin(jeta);
@@ -172,14 +176,14 @@ void IdealPtAnalysis(const int dataSet, // Run number identifier.
         leadingj = 0;
         if (njet < 2) continue; // specialize to events with 2+ jets
         for (int j = 1; j < njet; j++) {
-            if (j_pt[leadingj] < j_pt[j]) leadingj = j;
+            if (jet_pt->at(leadingj) < jet_pt->at(j)) leadingj = j;
         }
         // fill eta-phi correlation with only non-leading jets
         for (int j = 0; j < njet; j++) {
             if (j == leadingj) continue;
-            jpt = (double)j_pt[j];
-            jeta = (double)j_eta[j];
-            jphi = (double)j_phi[j];
+            jpt = (double)jet_pt->at(j);
+            jeta = (double)jet_eta->at(j);
+            jphi = (double)jet_phi->at(j);
             while (jphi < 0) jphi += 2.*pi;
 
             etabin = getEtabin(jeta);

@@ -116,13 +116,19 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
     //bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
     //float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
     // Create arrays to store jet data for each event
-    float j_pt[60] = {};
-    float j_eta[60] = {};
     int njet = 0;
+    vector<float>* jet_pt = NULL;
+    vector<float>* jet_eta = NULL;
+    /*float j_pt[60] = {};
+    float j_eta[60] = {};*/
+    int nvert = 0;
+    vector<float>* vert_type = NULL;
     // Set branch addresses
-    tree->SetBranchAddress("j_pt", j_pt);
-    tree->SetBranchAddress("j_eta", j_eta);
     tree->SetBranchAddress("njet", &njet);
+    tree->SetBranchAddress("jet_pt", &jet_pt);
+    tree->SetBranchAddress("jet_eta", &jet_eta);
+    tree->SetBranchAddress("nvert", &nvert);
+    tree->SetBranchAddress("vert_type", &vert_type);
     for (Trigger* trig : triggerSubList) {
         tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
         tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
@@ -136,14 +142,16 @@ void TriggerPtAnalysis(const int thisRunNumber, // Run number identifier.
     for (long long event = 0; event < numentries; event++) {
         tree->GetEntry(event); // stores trigger values and data in the designated branch addresses
 
+        if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1)) continue; // Basic event selection: require a primary vertex
+
         for (int t = 0; t < numtrigs_sublist; t++) {
             trig = triggerSubList[t];
             index = trig->index;
             if (!(trig->m_trig_bool) || trig->m_trig_prescale <= 0) continue;
             
             for (int j = 0; j < njet; j++) {
-                jpt = (double)j_pt[j];
-                jeta = (double)j_eta[j];
+                jpt = (double)jet_pt->at(j);
+                jeta = (double)jet_eta->at(j);
                 if (jpt < pbins[0] || jeta < etabins[0] || jeta > etabins[numetabins]) continue;
 
                 pbin = 0;

@@ -207,22 +207,27 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
     TH2D* fcalhist = new TH2D(Form("fcalhist_dataset%i", dataSet), ";#it{x}_{p};FCAL energy #left[GeV#right];", numxbins, xbins, numfcalbins, fcalbins);
 
     // Create arrays to store jet data for each event
-    float j_pt[60] = {};
+    int njet = 0;
+    vector<float>* jet_pt = NULL;
+    vector<float>* jet_eta = NULL;
+    vector<float>* jet_phi = NULL;
+    vector<float>* jet_e = NULL;
+    /*float j_pt[60] = {};
     float j_eta[60] = {};
     float j_phi[60] = {};
-    float j_e[60] = {};
-    int vert_type[60] = {};
+    float j_e[60] = {};*/
     int nvert = 0;
+    //int vert_type[60] = {};
+    vector<int>* vert_type = NULL;
     int eventNumber = 0;
-    int njet = 0;
     float fcal_et = 0;
-    tree->SetBranchAddress("j_pt", j_pt);
-    tree->SetBranchAddress("j_eta", j_eta);
-    tree->SetBranchAddress("j_phi", j_phi);
-    tree->SetBranchAddress("j_e", j_e);
     tree->SetBranchAddress("njet", &njet);
+    tree->SetBranchAddress("jet_pt", &jet_pt);
+    tree->SetBranchAddress("jet_eta", &jet_eta);
+    tree->SetBranchAddress("jet_phi", &jet_phi);
+    tree->SetBranchAddress("jet_e", &jet_e);
     tree->SetBranchAddress("nvert", &nvert);
-    tree->SetBranchAddress("vert_type", vert_type);
+    tree->SetBranchAddress("vert_type", &vert_type);
     if (!periodA) tree->SetBranchAddress("fcalC_et", &fcal_et);
     else tree->SetBranchAddress("fcalA_et", &fcal_et);
     tree->SetBranchAddress("eventNumber", &eventNumber);

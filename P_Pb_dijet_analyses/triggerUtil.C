@@ -150,9 +150,9 @@ static bool skipRun (const int rn) {
     bool contains_rn = false;
     int i = 0;
     switch (useDataVersion) {
-        case 7: {
-            while (i < sizeof(run_list_v7)/sizeof(int) && !contains_rn) {
-                contains_rn = run_list_v7[i] == rn;
+        case 8: {
+            while (i < sizeof(run_list_v8)/sizeof(int) && !contains_rn) {
+                contains_rn = run_list_v8[i] == rn;
                 i++;
             }
             break;
@@ -190,9 +190,9 @@ bool skipMC (const int mcn) {
 static vector<int>* getRunNumbers() {
     vector<int>* rns = new vector<int>(0);
     switch (useDataVersion) {
-        case 7: {
-            for (int i = 0; i < sizeof(run_list_v7)/sizeof(int); i++) {
-                rns->push_back(run_list_v7[i]);
+        case 8: {
+            for (int i = 0; i < sizeof(run_list_v8)/sizeof(int); i++) {
+                rns->push_back(run_list_v8[i]);
             }
             break;
         }
@@ -373,7 +373,7 @@ void setBestTriggers(int rnIndex) {
  */
 void initialize (int runNumber=0, bool initTriggerMaps=true) {
 
-    assert (useDataVersion == 7 || useDataVersion == 0);
+    assert (useDataVersion == 8 || useDataVersion == 0);
     if (debugStatements) cout << Form("Status: In triggerUtil.C (248): Initializing trigger system for run %i...", runNumber) << endl;
 
     /**** Reset directory information for correct versioning ****/ 
