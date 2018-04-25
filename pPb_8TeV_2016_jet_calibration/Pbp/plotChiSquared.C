@@ -9,10 +9,24 @@ void plotChiSquared() {
   TGraphErrors* chidist = new TGraphErrors(90);
   for (int bin=0; bin<90; bin++) {
     infile >> chi;
-    chidist->SetPoint(bin, -4.45+bin*0.1, chi);
+    chidist->SetPoint(bin, (0.1*bin+0.05)*TMath::Power(-1, bin-1), chi);
     chidist->SetPointError(bin, 0.05, 0);
   }
+  if(infile) infile.close();
+  infile.open("chi-squared-wgroom.dat");
+  TGraphErrors* chidistwgroom = new TGraphErrors(90);
+  for (int bin=0; bin<90; bin++) {
+    infile >> chi;
+    cout << "x=" << (0.1*(bin/2)+0.05)*TMath::Power(-1, bin-1) << endl;
+    chidistwgroom->SetPoint(bin, (0.1*(bin/2)+0.05)*TMath::Power(-1, bin-1), chi);
+    chidistwgroom->SetPointError(bin, 0.05, 0);
+  }
+
   chidist->SetMarkerColor(kBlack);
   chidist->SetLineColor(kBlack);
-  chidist->Draw("ab");
+  chidist->Draw("ap");
+  chidistwgroom->SetMarkerColor(kBlue);
+  chidistwgroom->SetLineColor(kBlue);
+  chidistwgroom->Draw("ap,same");
+    
 }

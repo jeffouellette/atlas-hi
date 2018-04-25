@@ -1,4 +1,4 @@
-#include "../triggerUtil.C"
+#include "../Util.C"
 void TriggerPtAnalysisCombinedHist() {
 
     initialize(0, false);

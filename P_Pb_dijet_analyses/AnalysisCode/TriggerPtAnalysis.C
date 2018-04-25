@@ -1,4 +1,4 @@
-#include "../triggerUtil.C"
+#include "../Util.C"
 
 // IDEA: plot the number of times each trigger fired for a particular run number.
 // For overlapping triggers, this will improve statistics by choosing the trigger that fires more often.
