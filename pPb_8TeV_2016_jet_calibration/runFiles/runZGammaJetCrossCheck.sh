@@ -1,20 +1,20 @@
 root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313063, 0.03)'&
-##root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313067, 1.24)'&
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313100, 9.66)'&
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313107, 11.92)'& 
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313136, 10.4)'& 
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313187, 3.67)'&
-#
-#wait
-#
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313259, 5.12)'& 
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313285, 4.74)'&
-##root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313295, 10.69)'&
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313333, 4.13)'&
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313435, 0.39)'&
-##root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313572, 0.01)'&
-#
-#wait
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313067, 1.24)'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313100, 9.66)'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313107, 11.92)'& 
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313136, 10.4)'& 
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313187, 3.67)'&
+
+wait
+
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313259, 5.12)'& 
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313285, 4.74)'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313295, 10.69)'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313333, 4.13)'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313435, 0.39)'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313572, 0.01)'&
+
+wait
 
 #root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313574, 1.33)'&
 #root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (313575, 7.54)'&

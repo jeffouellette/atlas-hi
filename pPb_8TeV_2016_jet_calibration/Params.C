@@ -4,22 +4,16 @@
 
 const bool runPeriodA = true; // Analyze period A data
 const bool runPeriodB = true; // Analyze period B data
-const bool scaleAnalyses = true; // Whether to separate analysis plots by relatively rescaling each plot
-workPath = homePath + "pPb_8TeV_2016_jet_calibration/"; // Home analysis directory, should be modified in code outside this path structure
 
 /** End user defined parameters **/
 
 
 /** General (non-user defined) paramters **/
 
-// More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
-rootPath = workPath + "rootFiles/"; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
-dataPath = workPath + "data/"; // Where the *.root raw data files (from the CERN grid) are stored.
-plotPath = workPath + "Plots/"; // Where plots are stored.
-ptPath = rootPath + "ptData/"; // Where the pt analysis module output is stored.
-trigPath = rootPath + "trigData/";  // Where the trigger fire count module output is stored.
-effPath = rootPath + "effData/"; // Where the trigger efficiency module output is stored.
-xPath = rootPath + "xData/"; // Where the xa/xp module output is stored.
-RpPbPath = rootPath + "RpPbData/"; // Where the R_pPb module output is stored.
+const double pbins[68] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 115., 120., 125., 130., 135., 140., 145., 150., 155., 160., 165., 170., 175., 180., 185., 190., 195., 200., 205., 210., 220., 230., 240., 250., 260., 270., 280., 290., 300., 320., 340., 360., 380., 400., 425., 450., 475., 500., 550., 600., 700., 800., 1000., 1250., 1500., 2000., 2500., 6000.};
+const int numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
+const double etabins[9] = {-4.9, -3.2, -2., -1., 0, 1, 2., 3.2, 4.9};
+//const double etabins[2] = {-4.9, 4.9}; // Used for avoiding eta-binning.
+const int numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 
 /** End general parameters **/

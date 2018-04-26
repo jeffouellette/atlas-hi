@@ -274,7 +274,7 @@ double* getTriggerLuminosities() {
       }
     }
     if (thisTrigger == NULL) {
-      if (debugStatements) cout << "Warning: In triggerUtil.C (200): " << thisTriggerName << " is not a registered trigger! Ignoring." << endl;
+      if (debugStatements) cout << "Warning: In Util.C (277): " << thisTriggerName << " is not a registered trigger! Ignoring." << endl;
       for (int rn_itr = 0; rn_itr < 60; rn_itr++) { luminositiesTxt >> thisLumi; } // just read through the rest of the line.
       continue;
     }
@@ -286,12 +286,12 @@ double* getTriggerLuminosities() {
     for (int rn_itr = 0; rn_itr < 30; rn_itr++) {
       luminositiesTxt >> thisRN;
       luminositiesTxt >> thisLumi;
-      if (debugStatements) cout << "Status: In triggerUtil.C (212): adding " << thisTriggerName << "\tRun: " << thisRN << "\tLumi: " << thisLumi*thisConversionFactor << " ub^-1" << endl;
+      if (debugStatements) cout << "Status: In Util.C (289): adding " << thisTriggerName << "\tRun: " << thisRN << "\tLumi: " << thisLumi*thisConversionFactor << " ub^-1" << endl;
       if (!skipRun(thisRN)) { // ensures that thisRN is in the list of run numbers
         int thisRNIndex = 0;
         while ((*runNumbers)[thisRNIndex] != thisRN) thisRNIndex++; // don't need to check array bounds since we are not skipping thisRN
         if (thisRNIndex >= numruns) {
-          cout << "Error: In triggerUtil.C (217): run number index runs past bounds of array!" << endl;
+          cout << "Error: In Util.C (294): run number index runs past bounds of array!" << endl;
           throw out_of_range("Index out of bounds");
         }
         triggerLuminosities[thisRNIndex + (thisTrigger->index)*numruns] = thisLumi * thisConversionFactor;
@@ -359,13 +359,13 @@ void setBestTriggers(const int rnIndex) {
 void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
 
   assert (useDataVersion == 8 || useDataVersion == 0);
-  if (debugStatements) cout << Form("Status: In triggerUtil.C (248): Initializing trigger system for dataSetId %i...", dataSetId) << endl;
+  if (debugStatements) cout << Form("Status: In Util.C (362): Initializing trigger system for dataSetId %i...", dataSetId) << endl;
 
   {
     string versionString;
     if (useDataVersion == 0) versionString = "mc";
     else versionString = to_string(useDataVersion);
-    setupDirectories(versionString);
+    setupDirectories(versionString, "P_Pb_dijet_analyses/");
   }
 
   /**** If Monte Carlo (MC), we don't need to get trigger information. ****/
@@ -377,10 +377,10 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
 
   /**** Debugging statements ****/
   if (debugStatements) {
-    cout << "Status: In triggerUtil.C (344): Triggers initialized for dataSetId " << dataSetId << endl;
-    cout << "Status: In triggerUtil.C (345): Num trigs = " << numtrigs << endl;
-    cout << "Status: In triggerUtil.C (346): Trigger pt bin path is " << trigPath << endl;    
-    cout << "Status: In triggerUtil.C (347): Saving plots to " << plotPath << endl;
+    cout << "Status: In Util.C (380): Triggers initialized for dataSetId " << dataSetId << endl;
+    cout << "Status: In Util.C (381): Num trigs = " << numtrigs << endl;
+    cout << "Status: In Util.C (382): Trigger pt bin path is " << trigPath << endl;    
+    cout << "Status: In Util.C (383): Saving plots to " << plotPath << endl;
   }
   /**** End debugging ****/
 
@@ -388,7 +388,7 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
   /**** Instantiate the pseudorapidity interval trigger vectors if required. ****/
   if (initTriggerMaps) {
 
-    if (debugStatements) cout << "Status: In triggerUtil.C (355): Generating triggering scheme..." << endl;
+    if (debugStatements) cout << "Status: In Util.C (391): Generating triggering scheme..." << endl;
 
     /**** Local variable array declarations ****/
     vector<int>* runNumbers = getRunNumbers();
@@ -450,9 +450,9 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
 
 
     /**** Debug statements ****/
-    if (debugStatements) cout << "Status: In triggerUtil.C (436): Triggering scheme completed for run number " << runNumber << endl;  
+    if (debugStatements) cout << "Status: In Util.C (453): Triggering scheme completed for run number " << runNumber << endl;  
     if (runNumber == 313063 && debugStatements) {
-      cout << "Status: In triggerUtil.C (438): Example trigger assignment (run " << runNumber << "):" << endl << endl;
+      cout << "Status: In Util.C (455): Example trigger assignment (run " << runNumber << "):" << endl << endl;
       for (int etabin = 0; etabin < numetabins; etabin++) {
         int actetabin;
         if (runNumber < 313500) actetabin = numetabins - etabin - 1;

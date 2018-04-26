@@ -1,58 +1,55 @@
-#include "Params.C"
+#include "../Params.C"
 #include "../../Initialization.C"
-
-static const float muon_mass = 0.105658; // GeV
 
 void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should be a run number.
                           const double luminosity) { // Integrated luminosity for this run. Presumed constant over the run period.
 
-  workPath = "/Users/jeffouellette/Research/atlas-hi/pPb_8TeV_2016_jet_calibration/";
-  dataPath = "/Users/jeffouellette/Research/atlas-hi/pPb_8TeV_2016_jet_calibration/data/";
   // Setup trigger vectors
-  initialize(dataSet, false);
+  setupDirectories("", "pPb_8TeV_2016_jet_calibration/");
+  setupTriggers(dataSet);
 
-  const double etacuts[7] = {-1.3, -0.8, -0.3, 0, 0.3, 0.8, 1.3};
+//  const double etabins[7] = {-1.3, -0.8, -0.3, 0, 0.3, 0.8, 1.3};
 
-  int eventNumber;
+  int eventNumber = 0;
   //int ntrk;
-  int nvert;
-  vector<float>* vert_x;
-  vector<float>* vert_y;
-  vector<float>* vert_z;
-  vector<int>* vert_ntrk;
-  vector<int>* vert_type;
+  int nvert = 0;
+  vector<float>* vert_x = NULL;
+  vector<float>* vert_y = NULL;
+  vector<float>* vert_z = NULL;
+  vector<int>* vert_ntrk = NULL;
+  vector<int>* vert_type = NULL;
  
-  int jet_n; 
-  vector<float>* jet_pt;
-  vector<float>* jet_eta;
-  vector<float>* jet_phi;
-  vector<float>* jet_e;
+  int jet_n = 0; 
+  vector<float>* jet_pt = NULL;
+  vector<float>* jet_eta = NULL;
+  vector<float>* jet_phi = NULL;
+  vector<float>* jet_e = NULL;
   
-  int muon_n;
-  vector<float>* muon_pt;
-  vector<float>* muon_eta;
-  vector<float>* muon_phi;
-  vector<int>* muon_quality;
-  vector<int>* muon_charge;
-  vector<bool>* muon_tight;
-  vector<bool>* muon_loose;
+  int muon_n = 0;
+  vector<float>* muon_pt = NULL;
+  vector<float>* muon_eta = NULL;
+  vector<float>* muon_phi = NULL;
+  vector<int>* muon_quality = NULL;
+  vector<int>* muon_charge = NULL;
+  vector<bool>* muon_tight = NULL;
+  vector<bool>* muon_loose = NULL;
 
-  int electron_n;
-  vector<float>* electron_pt;
-  vector<float>* electron_eta;
-  vector<float>* electron_phi;
-  vector<int>* electron_charge;
-  vector<bool>* electron_loose;
-  vector<bool>* electron_tight;
+  int electron_n = 0;
+  vector<float>* electron_pt = NULL;
+  vector<float>* electron_eta = NULL;
+  vector<float>* electron_phi = NULL;
+  vector<int>* electron_charge = NULL;
+  vector<bool>* electron_loose = NULL;
+  vector<bool>* electron_tight = NULL;
 
-  int photon_n;
-  vector<float>* photon_pt;
-  vector<float>* photon_eta;
-  vector<float>* photon_phi;
-  vector<bool>* photon_tight;
-  vector<unsigned int>* photon_isem;
-  vector<int>* photon_convFlag;
-  vector<float>* photon_Rconv;
+  int photon_n = 0;
+  vector<float>* photon_pt = NULL;
+  vector<float>* photon_eta = NULL;
+  vector<float>* photon_phi = NULL;
+  vector<bool>* photon_tight = NULL;
+  vector<unsigned int>* photon_isem = NULL;
+  vector<int>* photon_convFlag = NULL;
+  vector<float>* photon_Rconv = NULL;
 
   const int jetTrigLengthA = 27;
   const int jetTrigLengthB = 19;
@@ -138,9 +135,9 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   };
   const float photonTriggerPtCuts[photonTrigLength] = {10, 15, 20, 25, 30, 35};
 
-
   /**** Find the relevant TTree for this run ****/
   TTree* tree = NULL;
+  TFile* file = NULL;
   {
     TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
     TList* sysfiles = dir.GetListOfFiles();
@@ -154,14 +151,15 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
         if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
           if (debugStatements) cout << "Status: In DijetAnalysis.C (breakpoint B): Found " << fname.Data() << endl;
           if (fname.Contains(to_string(dataSet))) {
-            tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
+            file = new TFile(dataPath+fname, "READ");
+            tree = (TTree*)file->Get("tree");
             break;
           }
         }
       }
     }
   }
-  if (tree == NULL) {
+  if (tree == NULL || file == NULL) {
       cout << "Error: In ZGammaJetCrossCheck.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
       return;
   }
@@ -180,7 +178,6 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   vector<Trigger*> electronTriggers = {};
   vector<Trigger*> muonTriggers = {};
   vector<Trigger*> photonTriggers = {};
-
 
   if (dataSet < 313629) { // ion triggers used up to run 313603
     for (int jetTriggerN = 0; jetTriggerN < jetTrigLengthA; jetTriggerN++) {
@@ -243,7 +240,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   tree->SetBranchAddress("muon_quality", &muon_quality);
   tree->SetBranchAddress("muon_tight", &muon_tight);
   tree->SetBranchAddress("muon_loose", &muon_loose);
-  
+
   tree->SetBranchAddress("photon_n", &photon_n);
   tree->SetBranchAddress("photon_pt", &photon_pt);
   tree->SetBranchAddress("photon_eta", &photon_eta);
@@ -253,7 +250,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   tree->SetBranchAddress("photon_convFlag", &photon_convFlag);
   tree->SetBranchAddress("photon_Rconv", &photon_Rconv);
 
-  const long long numEvents = tree->GetEntries();
+  const int numEntries = (int) tree->GetEntries();
 
   const int nhists = 6;
   TH2F* zjethists[nhists];
@@ -263,8 +260,8 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   }
 
   // begin loop over events
-  for (long long eventNum = 0; eventNum < numEvents; eventNum++) {
-    tree->GetEntry(eventNum);
+  for (int entry = 0; entry < numEntries; entry++) {
+    tree->GetEntry(entry);
 
     // basic event selection.
     if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1)) continue;
@@ -275,17 +272,18 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     for (int jet = 0; jet < jet_n; jet++) {
       if (leading_jet == -1 || jet_pt->at(leading_jet) < jet_pt->at(jet)) leading_jet = jet;
     }
+
     float leading_jet_pt = jet_pt->at(leading_jet);
     float leading_jet_eta = jet_eta->at(leading_jet);
     float leading_jet_phi = jet_phi->at(leading_jet);
     float leading_jet_e = jet_e->at(leading_jet);
 
-    if (leading_jet_eta < etacuts[0] || leading_jet_eta > etacuts[6]) continue;
+    if (leading_jet_eta < etabins[0] || leading_jet_eta > etabins[6]) continue;
 
     int etabin = 0;
-    while (etacuts[etabin] < leading_jet_eta) etabin++;
+    while (etabins[etabin] < leading_jet_eta) etabin++;
     etabin--;
-    
+
     // Z + jet -> mu- + mu+ + jet events
     if (muon_n == 2 && electron_n == 0 && photon_n == 0) {
       int leading_muon = -1;
@@ -313,18 +311,19 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
       zjethists[etabin]->Fill(leading_jet_pt, ptratio);
     } 
   }
+  
   /** End event loop **/
 
-  TFile* outfile = new TFile(Form("./rootFiles/run_%i.root", dataSet), "RECREATE");
+  TFile* outfile = new TFile(Form("%srun_%i.root", rootPath.c_str(), dataSet), "RECREATE");
   for (int nhist = 0; nhist < nhists; nhist++) {
     zjethists[nhist]->Write();
-    delete zjethists[nhist];
+    if (zjethists[nhist]) delete zjethists[nhist];
   }
   TVectorD infoVec(2);
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write("infoVec");
   outfile->Close();
-  delete outfile;
+  if (outfile) delete outfile;
   return;
 }

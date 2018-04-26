@@ -1,16 +1,17 @@
 /**
- * This class initializes important jet trigger lists and directory strings used during these analyses.
+ * This class initializes important jet trigger lists and used during these analyses.
  * Author: Jeff Ouellette
  * Dated: 4/25/2018
  */
 
 
 #include "Trigger.C"
-#include "GlobalParams.C"
 
 using namespace std;
 
 vector<Trigger*> triggerVec(0); // total list of triggers used.
+const int trigThres = 0; // Additional threshold requirement for triggers
+const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1";
 
 
 /**
@@ -18,7 +19,7 @@ vector<Trigger*> triggerVec(0); // total list of triggers used.
  */
 bool inTriggerVec(const string trigName) {
   for (Trigger* trig : triggerVec) {
-    if (trig.name == trigName) {
+    if (trig->name == trigName) {
       return true;
     }
   }
@@ -34,7 +35,7 @@ void setupTriggers (const int runNumber=0) {
   const string triggerListTxt = "/Users/jeffouellette/Research/atlas-hi/pPbJetTriggerList.txt";
   ifstream triggerListFile (triggerListTxt.c_str());
   if (!triggerListFile.is_open()) {
-    cout << "Status: In triggerUtil (277): Cannot find pPbJetTriggerList.txt!" << endl;
+    cout << "Status: In Initialization (37): Cannot find pPbJetTriggerList.txt!" << endl;
     throw runtime_error("ifstream file not found");
   }
 
@@ -84,7 +85,7 @@ void setupTriggers (const int runNumber=0) {
   }
   if (debugStatements) {
     for (Trigger* trig : triggerVec) {
-      cout << "Status: In triggerUtil.C (327): Trig name:\t" << trig->name << "\tReference trig:\t" << trig->referenceTrigger->name << endl;
+      cout << "Status: In Initialization.C (87): Trig name:\t" << trig->name << "\tReference trig:\t" << trig->referenceTrigger->name << endl;
     }
   }
   triggerListFile.close();
@@ -95,23 +96,5 @@ void setupTriggers (const int runNumber=0) {
     triggerVec[i]->index = i;
   }
   /**** End assign indices ****/
-  return;
-}
-
-
-/**
- * Modifies the directory strings to point to the correct locations.
- */
-void setupDirectories (const string dataSubDir) {
-
-  rootPath = workPath + "rootPath/" + dataSubDir;
-  dataPath = workPath + "dataPath/" + dataSubDir;
-  plotPath = workPath + "plotPath/" + dataSubDir;
-  ptPath = rootPath + "ptData/";
-  trigPath = rootPath + "trigData/";
-  effPath = rootPath + "effData/";
-  xPath = rootPath + "xData/";
-  RpPbPath = rootPath + "RpPbData/";
-
   return;
 }

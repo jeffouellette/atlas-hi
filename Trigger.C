@@ -60,7 +60,7 @@ Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau,
 Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, bool thisdisabled, int lRN=0, int uRN=INT_MAX, int thisMinPt=0) {
     name = thisname;
     threshold_pt = thisThresholdPt;
-    min_pt = thisMinPt+trigthres;
+    min_pt = thisMinPt;
     lower_eta = etal;
     upper_eta = etau;
     lowerRunNumber = lRN;
