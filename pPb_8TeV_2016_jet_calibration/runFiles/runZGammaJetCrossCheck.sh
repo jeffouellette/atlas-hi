@@ -59,4 +59,4 @@ wait
 #
 #wait
 #
-#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheckHist.C ()'
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheckHist.C ()'

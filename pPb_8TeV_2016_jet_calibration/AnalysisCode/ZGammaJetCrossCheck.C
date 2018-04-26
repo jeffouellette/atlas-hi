@@ -8,8 +8,6 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   setupDirectories("", "pPb_8TeV_2016_jet_calibration/");
   setupTriggers(dataSet);
 
-//  const double etabins[7] = {-1.3, -0.8, -0.3, 0, 0.3, 0.8, 1.3};
-
   int eventNumber = 0;
   //int ntrk;
   int nvert = 0;
@@ -160,8 +158,8 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     }
   }
   if (tree == NULL || file == NULL) {
-      cout << "Error: In ZGammaJetCrossCheck.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
-      return;
+    cout << "Error: In ZGammaJetCrossCheck.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+    return;
   }
   /**** End find TTree ****/
 
@@ -179,11 +177,14 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   vector<Trigger*> muonTriggers = {};
   vector<Trigger*> photonTriggers = {};
 
+  string jetTriggerUsedName = "HLT_j40_ion_L1J5";
+  Trigger* jetTriggerUsed = NULL;
   if (dataSet < 313629) { // ion triggers used up to run 313603
     for (int jetTriggerN = 0; jetTriggerN < jetTrigLengthA; jetTriggerN++) {
       for (Trigger* temp : triggerVec) {
         if (temp->name == jetTriggerNamesA[jetTriggerN]) {
           jetTriggers.push_back(temp);
+          if (temp->name == jetTriggerUsedName) jetTriggerUsed = temp;
           tree->SetBranchAddress(jetTriggerNamesA[jetTriggerN], &(temp->m_trig_bool));
           tree->SetBranchAddress(Form("%s_prescale", jetTriggerNamesA[jetTriggerN]), &(temp->m_trig_prescale));
           break;
@@ -195,6 +196,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
       for (Trigger* temp : triggerVec) {
         if (temp->name == jetTriggerNamesB[jetTriggerN]) {
           jetTriggers.push_back(temp);
+          if (temp->name == jetTriggerUsedName) jetTriggerUsed = temp;
           tree->SetBranchAddress(jetTriggerNamesB[jetTriggerN], &(temp->m_trig_bool));
           tree->SetBranchAddress(Form("%s_prescale", jetTriggerNamesB[jetTriggerN]), &(temp->m_trig_prescale));
           break;
@@ -203,19 +205,34 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     }
   }
 
+  string electronTriggerUsedName = "HLT_e20_lhloose_L1EM15";
+  Trigger* electronTriggerUsed = NULL;
   for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
     Trigger* temp = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerPtCuts[electronTriggerN], -2.47, 2.47);
     electronTriggers.push_back(temp);
+    if (temp->name == electronTriggerUsedName) electronTriggerUsed = temp;
+    tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(temp->m_trig_bool));
+    tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(temp->m_trig_prescale));
   }
 
+  string muonTriggerUsedName = "HLT_mu15";
+  Trigger* muonTriggerUsed = NULL;
   for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
     Trigger* temp = new Trigger(muonTriggerNames[muonTriggerN], muonTriggerPtCuts[muonTriggerN], -2.47, 2.47);
     muonTriggers.push_back(temp);
+    if (temp->name == muonTriggerUsedName) muonTriggerUsed = temp;
+    tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(temp->m_trig_bool));
+    tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(temp->m_trig_prescale));
   }
 
+  string photonTriggerUsedName = "HLT_g35_loose";
+  Trigger* photonTriggerUsed = NULL;
   for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
     Trigger* temp = new Trigger(photonTriggerNames[photonTriggerN], photonTriggerPtCuts[photonTriggerN], -2.47, 2.47);
     photonTriggers.push_back(temp);
+    if (temp->name == photonTriggerUsedName) photonTriggerUsed = temp;
+    tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(temp->m_trig_bool));
+    tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(temp->m_trig_prescale));
   }
 
   tree->SetBranchAddress("jet_n", &jet_n);
@@ -252,10 +269,10 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
   const int numEntries = (int) tree->GetEntries();
 
-  const int nhists = 6;
+  const int nhists = numetabins;
   TH2F* zjethists[nhists];
   for (int nhist = 0; nhist < nhists; nhist++) {
-    zjethists[nhist] = new TH2F(Form("Zmumu%i", nhist), "", numpbins, pbins, 120, 0, 1.2);
+    zjethists[nhist] = new TH2F(Form("Zjet_run%i_hist%i", dataSet, nhist), "", numpbins, pbins, 40, 0, 1.6);
     zjethists[nhist]->Sumw2();
   }
 
@@ -266,26 +283,36 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     // basic event selection.
     if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1)) continue;
 
-    if (muon_n > 2) continue; // reject events with more than 2 muons
+    if (muon_n < 2) continue; // reject events with less than 2 muons
 
     int leading_jet = -1;
     for (int jet = 0; jet < jet_n; jet++) {
       if (leading_jet == -1 || jet_pt->at(leading_jet) < jet_pt->at(jet)) leading_jet = jet;
     }
 
+    if (leading_jet == -1 || !(jetTriggerUsed->m_trig_bool)) continue;
+
     float leading_jet_pt = jet_pt->at(leading_jet);
     float leading_jet_eta = jet_eta->at(leading_jet);
     float leading_jet_phi = jet_phi->at(leading_jet);
     float leading_jet_e = jet_e->at(leading_jet);
 
-    if (leading_jet_eta < etabins[0] || leading_jet_eta > etabins[6]) continue;
+    if (leading_jet_eta < etabins[0] || leading_jet_eta > etabins[numetabins]) continue;
 
     int etabin = 0;
     while (etabins[etabin] < leading_jet_eta) etabin++;
     etabin--;
 
     // Z + jet -> mu- + mu+ + jet events
-    if (muon_n == 2 && electron_n == 0 && photon_n == 0) {
+    bool electronFired = electronTriggerUsed->m_trig_bool;
+    bool muonFired = muonTriggerUsed->m_trig_bool;
+    bool photonFired = photonTriggerUsed->m_trig_bool;
+    //for (Trigger* etrig : electronTriggers) electronFired = electronFired || etrig->m_trig_bool;
+    //for (Trigger* mtrig : muonTriggers) muonFired = muonFired || mtrig->m_trig_bool;
+    //for (Trigger* ptrig : photonTriggers) photonFired = photonFired || ptrig->m_trig_bool;
+
+    if (muonFired && !electronFired && !photonFired) {
+      //if (!(muonTriggerUsed->m_trig_bool)) continue;
       int leading_muon = -1;
       int subleading_muon = -1;
       for (int muon = 0; muon < muon_n; muon++) {
@@ -299,7 +326,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
       TLorentzVector mu1, mu2;
       mu1.SetPtEtaPhiM(muon_pt->at(leading_muon), muon_eta->at(leading_muon), muon_phi->at(leading_muon), muon_mass);
       mu2.SetPtEtaPhiM(muon_pt->at(subleading_muon), muon_eta->at(subleading_muon), muon_phi->at(subleading_muon), muon_mass);
-      if (muon_charge[leading_muon] == muon_charge[subleading_muon]) continue; // require oppositely charged muons
+      if (muon_charge->at(leading_muon) == muon_charge->at(subleading_muon)) continue; // require oppositely charged muons
       TLorentzVector Z = mu1 + mu2;
       float Z_pt = Z.Pt(); 
       float Z_eta = Z.Eta();
