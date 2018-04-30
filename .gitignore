@@ -4,9 +4,9 @@
 cernvm3-micro-2.8-6.iso
 
 # 2016 pPb dijets
-P_Pb_dijet_analyses/data/*
-P_Pb_dijet_analyses/rootFiles/*
-P_Pb_dijet_analyses/HepData*
+pPb_8TeV_2016_dijetAnalysis/data/*
+pPb_8TeV_2016_dijetAnalysis/rootFiles/*
+pPb_8TeV_2016_dijetAnalysis/HepData*
 
 # 2017 pp run
 pp_5TeV_2017_offlineElectronAnalysis/Data/
