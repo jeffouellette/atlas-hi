@@ -9,7 +9,7 @@ P_Pb_dijet_analyses/rootFiles/*
 P_Pb_dijet_analyses/HepData*
 
 # 2017 pp run
-offlineAnalysis/Data/
+pp_5TeV_2017_offlineElectronAnalysis/Data/
 
 # 2016 8TeV pPb jet calibration
 pPb_8TeV_2016_jet_calibration/data/*
