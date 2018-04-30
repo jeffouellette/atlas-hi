@@ -283,7 +283,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     // basic event selection.
     if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1)) continue;
 
-    if (muon_n < 2) continue; // reject events with less than 2 muons
+    if (muon_n < 2 && electron_n < 2) continue; // reject events with less than 2 muons
 
     int leading_jet = -1;
     for (int jet = 0; jet < jet_n; jet++) {
@@ -307,22 +307,53 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     bool electronFired = electronTriggerUsed->m_trig_bool;
     bool muonFired = muonTriggerUsed->m_trig_bool;
     bool photonFired = photonTriggerUsed->m_trig_bool;
-    //for (Trigger* etrig : electronTriggers) electronFired = electronFired || etrig->m_trig_bool;
-    //for (Trigger* mtrig : muonTriggers) muonFired = muonFired || mtrig->m_trig_bool;
-    //for (Trigger* ptrig : photonTriggers) photonFired = photonFired || ptrig->m_trig_bool;
+    for (Trigger* etrig : electronTriggers) electronFired = electronFired || etrig->m_trig_bool;
+    for (Trigger* mtrig : muonTriggers) muonFired = muonFired || mtrig->m_trig_bool;
+    for (Trigger* ptrig : photonTriggers) photonFired = photonFired || ptrig->m_trig_bool;
 
-    if (muonFired && !electronFired && !photonFired) {
-      //if (!(muonTriggerUsed->m_trig_bool)) continue;
-      int leading_muon = -1;
-      int subleading_muon = -1;
-      for (int muon = 0; muon < muon_n; muon++) {
-        if (leading_muon == -1 || muon_pt->at(leading_muon) < muon_pt->at(muon)) {
-          subleading_muon = leading_muon;
-          leading_muon = muon;
-        } else if (subleading_muon == -1 || muon_pt->at(subleading_muon) < muon_pt->at(muon)) {
-          subleading_muon = muon;
-        }
+    int leading_electron = -1;
+    int subleading_electron = -1;
+    int subsubleading_electron = -1;
+    for (int electron = 0; electron < electron_n; electron++) {
+      if (leading_electron == -1 || electron_pt->at(leading_electron) < electron_pt->at(electron)) {
+        subsubleading_electron = subleading_electron;
+        subleading_electron = leading_electron;
+        leading_electron = electron;
+      } else if (subleading_electron == -1 || electron_pt->at(subleading_electron) < electron_pt->at(electron)) {
+        subsubleading_electron = subleading_electron;
+        subleading_electron = electron;
+      } else if (subsubleading_electron == -1 || electron_pt->at(subsubleading_electron) < electron_pt->at(electron)) {
+        subsubleading_electron = electron;
       }
+    }
+    if (subsubleading_electron != -1) {
+      if (electron_pt->at(subsubleading_electron) > 10) continue;
+    }
+
+    int leading_muon = -1;
+    int subleading_muon = -1;
+    int subsubleading_muon = -1;
+    for (int muon = 0; muon < muon_n; muon++) {
+      if (leading_muon == -1 || muon_pt->at(leading_muon) < muon_pt->at(muon)) {
+        subsubleading_muon = subleading_muon;
+        subleading_muon = leading_muon;
+        leading_muon = muon;
+      } else if (subleading_muon == -1 || muon_pt->at(subleading_muon) < muon_pt->at(muon)) {
+        subsubleading_muon = subleading_muon;
+        subleading_muon = muon;
+      } else if (subsubleading_muon == -1 || muon_pt->at(subsubleading_muon) < muon_pt->at(muon)) {
+        subsubleading_muon = muon;
+      }
+    }
+    if (subsubleading_muon != -1) {
+      if (muon_pt->at(subsubleading_muon) > 10) continue;
+    }
+
+    if (muonFired) {
+      if (!(muonTriggerUsed->m_trig_bool)) continue;
+
+      if (leading_electron != -1 && electron_pt->at(leading_electron) > 10) continue;
+
       TLorentzVector mu1, mu2;
       mu1.SetPtEtaPhiM(muon_pt->at(leading_muon), muon_eta->at(leading_muon), muon_phi->at(leading_muon), muon_mass);
       mu2.SetPtEtaPhiM(muon_pt->at(subleading_muon), muon_eta->at(subleading_muon), muon_phi->at(subleading_muon), muon_mass);

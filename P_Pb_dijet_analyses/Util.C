@@ -363,8 +363,8 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
 
   {
     string versionString;
-    if (useDataVersion == 0) versionString = "mc";
-    else versionString = to_string(useDataVersion);
+    if (useDataVersion == 0) versionString = "mc/";
+    else versionString = to_string(useDataVersion) + "/";
     setupDirectories(versionString, "P_Pb_dijet_analyses/");
   }
 
@@ -450,12 +450,12 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
 
 
     /**** Debug statements ****/
-    if (debugStatements) cout << "Status: In Util.C (453): Triggering scheme completed for run number " << runNumber << endl;  
-    if (runNumber == 313063 && debugStatements) {
-      cout << "Status: In Util.C (455): Example trigger assignment (run " << runNumber << "):" << endl << endl;
+    if (debugStatements) cout << "Status: In Util.C (453): Triggering scheme completed for run number " << dataSetId << endl;  
+    if (dataSetId == 313063 && debugStatements) {
+      cout << "Status: In Util.C (455): Example trigger assignment (run " << dataSetId << "):" << endl << endl;
       for (int etabin = 0; etabin < numetabins; etabin++) {
         int actetabin;
-        if (runNumber < 313500) actetabin = numetabins - etabin - 1;
+        if (dataSetId < 313500) actetabin = numetabins - etabin - 1;
         else actetabin = etabin;
         for (int pbin = 0; pbin < numpbins; pbin++) {
           if (kinematicTriggerVec[pbin + etabin*numpbins] != NULL) cout << Form("etabin=%i,\tpbin=%i, \teta=(%.1f, %.1f),\tp=(%i, %i),\ttrig=%s,\tlumi=%f", etabin, pbin, etabins[etabin], etabins[etabin+1], (int)pbins[pbin], (int)pbins[pbin+1], kinematicTriggerVec[pbin + etabin*numpbins]->name.c_str(), kinematicLumiVec[pbin + actetabin*numpbins]) << endl;

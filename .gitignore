@@ -14,6 +14,8 @@ offlineAnalysis/Data/
 # 2016 8TeV pPb jet calibration
 pPb_8TeV_2016_jet_calibration/data/*
 pPb_8TeV_2016_jet_calibration/rootFiles/*
-pPb_8TeV_2016_jet_calibration/pPb/*.pdf
-pPb_8TeV_2016_jet_calibration/Pbp/*.pdf
+pPb_8TeV_2016_jet_calibration/pPb_dR2
+pPb_8TeV_2016_jet_calibration/pPb_dR4
+pPb_8TeV_2016_jet_calibration/Pbp_dR2
+pPb_8TeV_2016_jet_calibration/Pbp_dR4
 pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*

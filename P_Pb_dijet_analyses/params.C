@@ -2,9 +2,9 @@
 
 /** User defined parameters **/
 
-const int useDataVersion = 8; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. If any value is given other than the currently accepted value, every run will be skipped and nothing will happen. If 0 is specified, MC will be run instead. Currently accepted values: 0, 8.
+const int useDataVersion = 0; // Specifies which version of raw data to use. Different versions have different branches in trees and (generally) different analysis procedures. If any value is given other than the currently accepted value, every run will be skipped and nothing will happen. If 0 is specified, MC will be run instead. Currently accepted values: 0, 8.
 const bool runPeriodA = true; // Analyze period A data
-const bool runPeriodB = true; // Analyze period B data
+const bool runPeriodB = false; // Analyze period B data
 const bool scaleAnalyses = true; // Whether to separate analysis plots by relatively rescaling each plot
 const string fittedFunctionType = /*"erf";*/ "fermi_dirac"; // Function used to fit trigger efficiencies- accepted values: "fermi_dirac", "erf"
 

@@ -7,7 +7,6 @@
 /** User defined parameters **/
 
 static const bool debugStatements = false; // Print out periodic statements to monitor code flow
-const bool scaleAnalyses = true; // Whether to separate analysis plots by relatively rescaling each plot
 static const string homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
 
 const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
