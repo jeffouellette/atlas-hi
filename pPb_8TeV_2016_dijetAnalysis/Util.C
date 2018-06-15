@@ -15,40 +15,6 @@ Trigger* kinematicTriggerVec[numpbins*numetabins]; // best trigger to use in a k
 //=========================================================================================================
 // General functions
 
-/**
- * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
- */
-static double* linspace(double lo, double hi, int num) {
-  double* arr = new double[num+1];
-  double delta = ((double)(hi)-(double)(lo))/(double)(num);
-  for (int i = 0; i <= num; i++) {
-    arr[i] = lo + i * delta;
-  }
-  return arr;
-}
-
-
-/**
- * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
- */
-static double* logspace(double lo, double hi, int num) {
-  double loghi = TMath::Log2(hi);
-  if (lo == 0) {
-    double* arr = linspace(TMath::Log2(hi/(100*num)), loghi, num);
-    for (int i = 0; i <= num; i++) {
-      arr[i] = TMath::Power(2, arr[i]);
-    }
-    return arr;
-  } else {
-    double loglo = TMath::Log2(lo);
-    double* arr = linspace(loglo, loghi, num);
-    for (int i = 0; i <= num; i++) {
-      arr[i] = TMath::Power(2, arr[i]);
-    }
-    return arr;
-  }
-}
-
 
 /**
  * Returns xp for the event.
@@ -148,15 +114,15 @@ static bool skipRun (const int rn) {
   bool contains_rn = false;
   int i = 0;
   switch (useDataVersion) {
-    case 8: {
-      while (i < sizeof(run_list_v8)/sizeof(int) && !contains_rn) {
-          contains_rn = run_list_v8[i] == rn;
+    case 0: {
+      return true;
+    }
+    default: {
+      while (i < sizeof(run_list)/sizeof(int) && !contains_rn) {
+          contains_rn = run_list[i] == rn;
           i++;
       }
       break;
-    }
-    case 0: {
-      return true;
     }
   }
   return !contains_rn;
@@ -188,13 +154,13 @@ bool skipMC (const int mcn) {
 static vector<int>* getRunNumbers() {
   vector<int>* rns = new vector<int>(0);
   switch (useDataVersion) {
-    case 8: {
-      for (int i = 0; i < sizeof(run_list_v8)/sizeof(int); i++) {
-          rns->push_back(run_list_v8[i]);
-      }
+    case 0: {
       break;
     }
-    case 0: {
+    default: {
+      for (int i = 0; i < sizeof(run_list)/sizeof(int); i++) {
+          rns->push_back(run_list[i]);
+      }
       break;
     }
   }
@@ -364,8 +330,8 @@ void initialize (const int dataSetId=0, const bool initTriggerMaps=true) {
   {
     string versionString;
     if (useDataVersion == 0) versionString = "mc/";
-    else versionString = to_string(useDataVersion) + "/";
-    setupDirectories(versionString, "P_Pb_dijet_analyses/");
+    else versionString = "v" + to_string(useDataVersion) + "/";
+    setupDirectories(versionString, "pPb_8TeV_2016_dijetAnalysis/");
   }
 
   /**** If Monte Carlo (MC), we don't need to get trigger information. ****/

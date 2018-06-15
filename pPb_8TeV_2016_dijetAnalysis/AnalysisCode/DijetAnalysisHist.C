@@ -85,8 +85,13 @@ void DijetAnalysisHist() {
   TH2D* fcalHist = new TH2D("fcalHist", ";#it{x}_{p};FCAL energy [GeV];d^{2}N/L_{int}d#it{x}_{p}d#it{E}_{FCAL}", numxbins, xbins, numfcalbins, fcalbins);
   TH1I* eventSelectionHist = new TH1I("eventSelectionHist", ";Event selection criteria;\"Dijet\" events", 6, -0.5, 5.5);
 
+  TH1D* leadingJetEtaHist = new TH1D("leadingJetEtaHist", ";#eta;Counts / d#eta", 98, -4.9, 4.9);
+  TH1D* subleadingJetEtaHist = new TH1D("subleadingJetEtaHist", ";#eta;Counts / d#eta", 98, -4.9, 4.9);
+
   double integrated_luminosity = 0; // units are nb^{-1}
   int numGoodEvents = 0;
+  int numberOfEventsThatWillEarnMeFreeCoffee = 0; // for Dennis: x_p >= 0.1 events
+  int numberOfEventsThatWontEarnMeFreeCoffee = 0; // x_p >= 0.01 events
   TH1D* thisHist;
 
   {
@@ -118,7 +123,7 @@ void DijetAnalysisHist() {
             }
           }
         }
-        delete sysfiles; // this line feels wrong to write...
+        if (sysfiles) delete sysfiles; // this line feels wrong to write... :)
       }
       
       //TFile* thisFile = new TFile(Form("%s%srun_%i.root", xPath.c_str(), periodSubDir.c_str(), dataSample), "READ");
@@ -135,11 +140,15 @@ void DijetAnalysisHist() {
       xaxpcorr->Add((TH2D*)thisFile->Get(Form("xaxpcorr_dataset%i", dataSample)));
       fcalHist->Add((TH2D*)thisFile->Get(Form("fcalhist_dataset%i", dataSample)));
       eventSelectionHist->Add((TH1I*)thisFile->Get(Form("eventSelectionHist_dataset%i", dataSample)));
+      leadingJetEtaHist->Add((TH1D*)thisFile->Get(Form("leadingJetEtaHist_dataSet%i", dataSample)));
+      subleadingJetEtaHist->Add((TH1D*)thisFile->Get(Form("subleadingJetEtaHist_dataSet%i", dataSample)));
       TVectorD* infoVec = (TVectorD*)(thisFile->Get("infoVec")); // Accesses luminosity for this run and creates a pointer to it
       integrated_luminosity += (*infoVec)[0];   // Dereferences the luminosity vector pointer to add the run luminosity
       numGoodEvents += (*infoVec)[1];
+      numberOfEventsThatWillEarnMeFreeCoffee += (*infoVec)[2];
+      numberOfEventsThatWontEarnMeFreeCoffee += (*infoVec)[3];
       thisFile->Close();
-      delete thisFile;
+      if (thisFile) delete thisFile;
     }
   }
 
@@ -188,8 +197,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  for (int etabin = 0; etabin < numetabins; etabin++) delete xHistArr[etabin];
-  delete canvas;
+  for (int etabin = 0; etabin < numetabins; etabin++) if (xHistArr[etabin]) delete xHistArr[etabin];
+  if (canvas) delete canvas;
   /**** End plot xp spectrum, eta binned ****/
 
 
@@ -237,8 +246,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  for (int etabin = numetabins; etabin < 2*numetabins; etabin++) delete xHistArr[etabin];
-  delete canvas;
+  for (int etabin = numetabins; etabin < 2*numetabins; etabin++) if (xHistArr[etabin]) delete xHistArr[etabin];
+  if (canvas) delete canvas;
   /**** End plot xa spectrum, eta binned ****/
 
 
@@ -284,8 +293,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  for (int qbin = 0; qbin < numqbins; qbin++) delete xqHistArr[qbin];
-  delete canvas;
+  for (int qbin = 0; qbin < numqbins; qbin++) if (xqHistArr[qbin]) delete xqHistArr[qbin];
+  if (canvas) delete canvas;
   /**** End plot xp spectrum, q binned ****/
 
 
@@ -332,8 +341,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  for (int qbin = numqbins; qbin < 2*numqbins; qbin++) delete xqHistArr[qbin];
-  delete canvas;
+  for (int qbin = numqbins; qbin < 2*numqbins; qbin++) if (xqHistArr[qbin]) delete xqHistArr[qbin];
+  if (canvas) delete canvas;
   /**** End plot xa spectrum, q binned ****/
 
 
@@ -379,8 +388,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  for (int etabin = 0; etabin < numetabins; etabin++) delete mHistArr[etabin];
-  delete canvas;
+  for (int etabin = 0; etabin < numetabins; etabin++) if (mHistArr[etabin]) delete mHistArr[etabin];
+  if (canvas) delete canvas;
   /**** End plot M_jj spectrum, eta binned ****/
 
 
@@ -410,8 +419,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  delete qxcorr;
-  delete canvas;
+  if (qxcorr) delete qxcorr;
+  if (canvas) delete canvas;
   /**** End plot q2-xa correlation ****/
 
 
@@ -436,8 +445,8 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  delete xaxpcorr;
-  delete canvas;
+  if (xaxpcorr) delete xaxpcorr;
+  if (canvas) delete canvas;
   /**** End plot xa-xp correlation ****/
 
 
@@ -462,7 +471,7 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  delete canvas;
+  if (canvas) delete canvas;
   /**** End plot FCAL-xp ****/
 
 
@@ -484,9 +493,9 @@ void DijetAnalysisHist() {
 
   canvas->Draw();
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
-  delete canvas;
-  delete fcalHist;
-  delete fcalProfileX;
+  if (canvas) delete canvas;
+  if (fcalHist) delete fcalHist;
+  if (fcalProfileX) delete fcalProfileX;
   /**** End plot FCAL TProfileX ****/
 
 
@@ -509,4 +518,32 @@ void DijetAnalysisHist() {
   histName = "dijets_event_selection";
   canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
   /**** End plot event selection histogram ****/
+
+
+  /**** Plot the eta distribution of both the leading and subleading jets ****/
+
+  cout << "numberOfEventsThatWillEarnMeFreeCoffee (dijet criteria with x_p >= 0.1) = " << numberOfEventsThatWillEarnMeFreeCoffee << endl;
+  cout << "numberOfEventsThatWontEarnMeFreeCoffee (same, but x_p >= 0.01) = " << numberOfEventsThatWontEarnMeFreeCoffee << endl;
+
+  canvas = new TCanvas("leadingJetEtaCanvas", "", 800, 600);
+  canvas->cd();
+  gPad->SetLogy();
+  gStyle->SetErrorX(0);
+
+  leadingJetEtaHist->SetMarkerColor(kBlack);
+  leadingJetEtaHist->SetLineColor(kBlack);
+  subleadingJetEtaHist->SetMarkerColor(kBlue);
+  subleadingJetEtaHist->SetLineColor(kBlue);
+
+  leadingJetEtaHist->Scale(1., "width");
+  subleadingJetEtaHist->Scale(1., "width");
+
+  leadingJetEtaHist->Draw("e1");
+  subleadingJetEtaHist->Draw("same e1");
+
+  myMarkerText (0.6, 0.7, kBlack, kFullCircle, "Leading jet");
+  myMarkerText (0.6, 0.78, kBlue, kFullCircle, "Subleading jet");
+
+  histName = "dijets_eta_distribution";
+  canvas->SaveAs((plotPath + "dijets/" + histName + ".pdf").c_str());
 }

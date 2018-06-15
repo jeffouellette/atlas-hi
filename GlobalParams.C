@@ -8,6 +8,7 @@
 
 static const bool debugStatements = false; // Print out periodic statements to monitor code flow
 static const string homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
+static const string drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
 const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
 const double lowerPhiCut = TMath::Pi()-dR_HEC;
@@ -24,6 +25,7 @@ const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 3
 
 // More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
 string workPath; // Home analysis directory, should be modified in code outside this path structure
+string externalWorkPath; // External drive storage directory, should be modified in code below
 string rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
 string dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
 string plotPath; // Where plots are stored.
@@ -41,12 +43,14 @@ static const double MAX_ETA = 4.9; // Maximum detectable pseudorapidity
 int numtrigs = 0; // Total number of triggers
 
 // Useful constants
-static const float Z = 82;   // value of Z for Pb
-static const float A = 208;  // value of A for Pb
-static const float sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
-static const float muon_mass = 0.105658; // GeV
+static const double Z = 82;   // value of Z for Pb
+static const double A = 208;  // value of A for Pb
+static const double sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
+static const double electron_mass = 0.000511; // GeV
+static const double muon_mass = 0.105658; // GeV
+static const double Z_mass = 91.2; // GeV
 
-const double pi = TMath::Pi();
+static const double pi = TMath::Pi();
 
 /** End general parameters **/
 
@@ -56,11 +60,16 @@ const double pi = TMath::Pi();
  */
 void setupDirectories (const string dataSubDir, const string thisWorkPath) {
 
-  if (thisWorkPath.at(thisWorkPath.length()-1) != '/') workPath = homePath + thisWorkPath + "/";
-  else workPath = homePath + thisWorkPath;
+  if (thisWorkPath.at(thisWorkPath.length()-1) != '/') {
+    workPath = homePath + thisWorkPath + "/";
+    externalWorkPath = drivePath + thisWorkPath + "/";
+  } else {
+    workPath = homePath + thisWorkPath;
+    externalWorkPath = drivePath + thisWorkPath;
+  }
 
   rootPath = workPath + "rootFiles/" + dataSubDir;
-  dataPath = workPath + "data/" + dataSubDir;
+  dataPath = externalWorkPath + "data/" + dataSubDir;
   plotPath = workPath + "Plots/" + dataSubDir;
   ptPath = rootPath + "ptData/";
   trigPath = rootPath + "trigData/";
@@ -69,4 +78,39 @@ void setupDirectories (const string dataSubDir, const string thisWorkPath) {
   RpPbPath = rootPath + "RpPbData/";
 
   return;
+}
+
+
+/**
+ * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
+ */
+static double* linspace(double lo, double hi, int num) {
+  double* arr = new double[num+1];
+  double delta = ((double)(hi)-(double)(lo))/(double)(num);
+  for (int i = 0; i <= num; i++) {
+    arr[i] = lo + i * delta;
+  }
+  return arr;
+}
+
+
+/**
+ * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
+ */
+static double* logspace(double lo, double hi, int num) {
+  double loghi = TMath::Log2(hi);
+  if (lo == 0) {
+    double* arr = linspace(TMath::Log2(hi/(100*num)), loghi, num);
+    for (int i = 0; i <= num; i++) {
+      arr[i] = TMath::Power(2, arr[i]);
+    }
+    return arr;
+  } else {
+    double loglo = TMath::Log2(lo);
+    double* arr = linspace(loglo, loghi, num);
+    for (int i = 0; i <= num; i++) {
+      arr[i] = TMath::Power(2, arr[i]);
+    }
+    return arr;
+  }
 }

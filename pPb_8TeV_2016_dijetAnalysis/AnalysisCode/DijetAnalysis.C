@@ -29,6 +29,7 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   if (!isMC) triggerEfficiencyFunctions = getTriggerEfficiencyFunctions();
 
   const bool periodA = isPeriodA(dataSet);
+  const bool useIonTriggers = !isMC && dataSet < 313629; // false for MC
 
   /**** Generate list of physics triggers ****/
   vector<Trigger*>* triggerSubvector = NULL;
@@ -46,7 +47,9 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
 
   /**** Find the relevant TTree for this run ****/
   //TTree* tree = (TTree*)(new TFile(Form("%srun_%i_raw.root", dataPath.c_str(), dataSet)))->Get("tree");
+  TFile* inputFile = NULL;
   TTree* tree = NULL;
+  const bool containsPeriodLetter = useIonTriggers;
   {
     TSystemDirectory dir(dataPath.c_str(), dataPath.c_str());
     TList* sysfiles = dir.GetListOfFiles();
@@ -60,7 +63,9 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
         if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
           if (debugStatements) cout << "Status: In DijetAnalysis.C (breakpoint B): Found " << fname.Data() << endl; 
           if (fname.Contains(to_string(dataSet))) {
-            tree = (TTree*)(new TFile(dataPath+fname, "READ"))->Get("tree");
+            //containsPeriodLetter = periodA || fname.Contains(".104");
+            inputFile = new TFile(dataPath+fname, "READ");
+            tree = (TTree*)(inputFile->Get("tree"));
             break;
           }
         }
@@ -73,9 +78,10 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   }
   /**** End find TTree ****/
 
+
   /**** Disable loading of unimportant branch values - speeds up entry retrieval ****/
   {
-    vector<string> interestingBranchNames = {"njet", "j_pt", "j_eta", "j_phi", "j_e", "eventNumber", "fcalA_et", "fcalC_et", "nvert", "vert_type"};
+    vector<string> interestingBranchNames = {"njet", "jet_pt", "jet_eta", "jet_phi", "jet_e", "eventNumber", "fcalA_et", "fcalC_et", "nvert", "vert_type", "ntrk", "trk_quality_4", "trk_d0", "trk_z0", "trk_theta", "trk_charge", "trk_pt", "trk_eta", "trk_phi", "vert_x", "vert_y", "vert_z"};
     TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
     bool interestingBranch;
     for (TObject* obj : *branches) {
@@ -87,7 +93,7 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
       }
       if (!interestingBranch && !isMC) {
         for (Trigger* trig : (*triggerSubvector)) {
-          if (branchName == trig->name || branchName == trig->name + "_prescale") {
+          if (branchName == trig->name || (containsPeriodLetter && branchName == trig->name + "_prescale_A") || (!containsPeriodLetter && branchName == trig->name + "_prescale")) {
             interestingBranch = true;
             break;
           }
@@ -101,6 +107,7 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   /**** End disable unimportant branches ****/
 
 
+  /**** Calculate eta-phi rescaling information ****/
   TH2D* etaPhiScaleFactorsHist = NULL;
   if (!isMC) {
     /**** Load eta-phi jet correlation plot ****/
@@ -169,12 +176,29 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
         else etaPhiScaleFactorsHist->SetBinContent(bin_x+1, bin_y+1, 0);
       }
     }
-
-    /**** End evaluate eta-phi rescaling ****/
+    etaPhiFile->Close();
+    if (etaPhiFile) delete etaPhiFile;
   }
+  if (etaPhiScaleFactorsHist == NULL) {
+    cout << "Error: In DijetAnalysis.C (breakpoint C): etaPhiScaleFactorsHist not obtained for given run number. Quitting." << endl;
+    return;
+  }
+  /**** End evaluate eta-phi rescaling ****/
 
 
-  // Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a. 
+  /**** Create output TTree ****/
+  string output_name = xPath;
+  if (runPeriodA && !runPeriodB) output_name = output_name + "periodA/";
+  else if (!runPeriodA && runPeriodB) output_name = output_name + "periodB/";
+  else output_name = output_name + "periodAB/";
+  output_name = Form("%sdataset_%i.root", output_name.c_str(), dataSet);
+
+  TFile* outputFile = new TFile(output_name.c_str(), "RECREATE");
+  TTree* outTree = tree->CloneTree(0);//new TTree("trackTree", "trackTree");
+  /**** End create output TTree ****/
+
+
+  /**** Create an array of 16 histograms, one for each rapidity region and one for x_p, x_a, as well as other histograms ****/
   TH1D* xHistArr[2*numetabins];
   TH1D* xqHistArr[2*numqbins];
   TH1D* mHistArr[numetabins];
@@ -182,45 +206,88 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   for (int etabin = 0; etabin < numetabins; etabin++) {
     xHistArr[etabin] = new TH1D(Form("%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#eta #left[nb#right]", etabins[etabin], etabins[etabin+1]), numxbins, xbins);
     xHistArr[etabin]->Sumw2();
+    xHistArr[etabin]->SetDirectory(outputFile);
   }
   for (int etabin = numetabins; etabin < 2*numetabins; etabin++) {
     xHistArr[etabin] = new TH1D(Form("%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#eta #left[nb#right]", etabins[etabin%numetabins], etabins[(etabin%numetabins)+1]), numxbins, xbins);
     xHistArr[etabin]->Sumw2();
+    xHistArr[etabin]->SetDirectory(outputFile);
   }
 
   for (int qbin = 0; qbin < numqbins; qbin++) {
     xqHistArr[qbin] = new TH1D(Form("%iq%i", dataSet, qbin), Form("%g < #it{Q} < %g;#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin], qbins[qbin+1]), numxbins, xbins);
     xqHistArr[qbin]->Sumw2();
+    xqHistArr[qbin]->SetDirectory(outputFile);
   }
   for (int qbin = numqbins; qbin < 2*numqbins; qbin++) {
     xqHistArr[qbin] = new TH1D(Form("%iq%i", dataSet, qbin), Form("%g < #it{Q} < %g;#it{x}_{a};d^{2}N/L_{int}d#it{x}_{a}d#it{Q} #left[nb GeV^{-1}#right]", qbins[qbin%numqbins], qbins[(qbin%numqbins)+1]), numxbins, xbins);
     xqHistArr[qbin]->Sumw2();
+    xqHistArr[qbin]->SetDirectory(outputFile);
   }
 
   for (int etabin = 0; etabin < numetabins; etabin++) {
     mHistArr[etabin] = new TH1D(Form("mjj_%ieta%i", dataSet, etabin), Form("%1.1f < #eta < %1.1f;#it{m}_{JJ} #left[GeV#right];d^{2}N/L_{int}d#it{m}_{JJ}d#eta #left[nb GeV^{-1}#right]", etabins[etabin], etabins[etabin+1]), nummbins, mbins);
     mHistArr[etabin]->Sumw2();
+    mHistArr[etabin]->SetDirectory(outputFile);
   }
 
   TH2D* qxcorr = new TH2D(Form("xqcorr_dataset%i", dataSet), ";#it{x}_{a};#it{#bar{Q}}^{2} #left[GeV^{2}#right];d^{2}N/L_{int}d{x}_{a}d#it{#bar{Q}}^{2} #left[nb GeV^{-2}#right]", numq2xbins, q2xbins, numq2bins, q2bins);
+  qxcorr->SetDirectory(outputFile);
   TH2D* xaxpcorr = new TH2D(Form("xaxpcorr_dataset%i", dataSet), ";#it{x}_{a};#it{x}_{p};d^{2}N/L_{int}d#it{x}_{p}d#it{x}_{a}", numxbins, xbins, numxbins, xbins);
+  xaxpcorr->SetDirectory(outputFile);
   TH2D* fcalhist = new TH2D(Form("fcalhist_dataset%i", dataSet), ";#it{x}_{p};FCAL energy #left[GeV#right];", numxbins, xbins, numfcalbins, fcalbins);
+  fcalhist->SetDirectory(outputFile);
 
-  // Create arrays to store jet data for each event
-  int njet = 0;
-  vector<float>* jet_pt = NULL;
-  vector<float>* jet_eta = NULL;
-  vector<float>* jet_phi = NULL;
-  vector<float>* jet_e = NULL;
-  /*float j_pt[60] = {};
-  float j_eta[60] = {};
-  float j_phi[60] = {};
-  float j_e[60] = {};*/
-  int nvert = 0;
-  //int vert_type[60] = {};
-  vector<int>* vert_type = NULL;
+  TH1D* leadingJetEtaHist = new TH1D(Form("leadingJetEtaHist_dataSet%i", dataSet), ";#eta;Counts", 98, -4.9, 4.9);
+  leadingJetEtaHist->SetDirectory(outputFile);
+  TH1D* subleadingJetEtaHist = new TH1D(Form("subleadingJetEtaHist_dataSet%i", dataSet), ";#eta;Counts", 98, -4.9, 4.9);
+  subleadingJetEtaHist->SetDirectory(outputFile);
+  /**** End histogram initialization ****/
+
+
+  /**** Create variables, arrays to store data for each event, then set branches ****/
   int eventNumber = 0;
   float fcal_et = 0;
+  int njet = 0;
+  vector<float>* jet_pt = NULL;
+  vector<float> out_jet_pt;
+  vector<float>* jet_eta = NULL;
+  vector<float> out_jet_eta;
+  vector<float>* jet_phi = NULL;
+  vector<float> out_jet_phi;
+  vector<float>* jet_e = NULL;
+  vector<float> out_jet_e;
+  int nvert = 0;
+  vector<int>* vert_type = NULL;
+  vector<int> out_vert_type;
+  vector<float>* vert_x = NULL;
+  vector<float> out_vert_x;
+  vector<float>* vert_y = NULL;
+  vector<float> out_vert_y;
+  vector<float>* vert_z = NULL;
+  vector<float> out_vert_z;
+  int ntrk = 0;
+  vector<bool>* trk_quality_4 = NULL;
+  vector<bool> out_trk_quality_4;
+  vector<float>* trk_d0 = NULL;
+  vector<float> out_trk_d0;
+  vector<float>* trk_z0 = NULL;
+  vector<float> out_trk_z0;
+  vector<float>* trk_theta = NULL;
+  vector<float> out_trk_theta;
+  vector<float>* trk_charge = NULL;
+  vector<float> out_trk_charge;
+  vector<float>* trk_pt = NULL;
+  vector<float> out_trk_pt;
+  vector<float>* trk_eta = NULL;
+  vector<float> out_trk_eta;
+  vector<float>* trk_phi = NULL;
+  vector<float> out_trk_phi;
+  
+  tree->SetBranchAddress("eventNumber", &eventNumber);
+  if (!periodA) tree->SetBranchAddress("fcalC_et", &fcal_et);
+  else tree->SetBranchAddress("fcalA_et", &fcal_et);
+
   tree->SetBranchAddress("njet", &njet);
   tree->SetBranchAddress("jet_pt", &jet_pt);
   tree->SetBranchAddress("jet_eta", &jet_eta);
@@ -228,17 +295,48 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   tree->SetBranchAddress("jet_e", &jet_e);
   tree->SetBranchAddress("nvert", &nvert);
   tree->SetBranchAddress("vert_type", &vert_type);
-  if (!periodA) tree->SetBranchAddress("fcalC_et", &fcal_et);
-  else tree->SetBranchAddress("fcalA_et", &fcal_et);
-  tree->SetBranchAddress("eventNumber", &eventNumber);
+  tree->SetBranchAddress("vert_x", &vert_x);
+  tree->SetBranchAddress("vert_y", &vert_y);
+  tree->SetBranchAddress("vert_z", &vert_z);
+  tree->SetBranchAddress("ntrk", &ntrk);
+  tree->SetBranchAddress("trk_quality_4", &trk_quality_4);
+  tree->SetBranchAddress("trk_d0", &trk_d0);
+  tree->SetBranchAddress("trk_z0", &trk_z0);
+  tree->SetBranchAddress("trk_theta", &trk_theta);
+  tree->SetBranchAddress("trk_charge", &trk_charge);
+  tree->SetBranchAddress("trk_pt", &trk_pt);
+  tree->SetBranchAddress("trk_eta", &trk_eta);
+  tree->SetBranchAddress("trk_phi", &trk_phi);
+
+  /*outTree->Branch("eventNumber", &eventNumber);
+  outTree->Branch("njet", &njet);
+  outTree->Branch("jet_pt", &out_jet_pt);
+  outTree->Branch("jet_eta", &out_jet_eta);
+  outTree->Branch("jet_e", &out_jet_e);
+  outTree->Branch("nvert", &nvert);
+  outTree->Branch("vert_type", &out_vert_type);
+  outTree->Branch("vert_x", &out_vert_x);
+  outTree->Branch("vert_y", &out_vert_y);
+  outTree->Branch("vert_z", &out_vert_z);
+  outTree->Branch("ntrk", &ntrk);
+  outTree->Branch("trk_quality_4", &out_trk_quality_4);
+  outTree->Branch("trk_d0", &out_trk_d0);
+  outTree->Branch("trk_z0", &out_trk_z0);
+  outTree->Branch("trk_theta", &out_trk_theta);
+  outTree->Branch("trk_charge", &out_trk_charge);
+  outTree->Branch("trk_pt", &out_trk_pt);
+  outTree->Branch("trk_eta", &out_trk_eta);
+  outTree->Branch("trk_phi", &out_trk_phi);*/
 
   // Set branch addresses for triggers
   if (!isMC) {
     for (Trigger* trig : (*triggerSubvector)) {
       tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
-      tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
+      if (containsPeriodLetter) tree->SetBranchAddress(Form("%s_prescale_A", trig->name.c_str()), &(trig->m_trig_prescale));
+      else tree->SetBranchAddress(Form("%s_prescale", trig->name.c_str()), &(trig->m_trig_prescale));
     }
   }
+  /**** End create variables and set branches ****/
 
   // Iterate over each event
   const int numentries = tree->GetEntries();
@@ -252,42 +350,45 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
   TLorentzVector subleadingj_tlv;
   TLorentzVector dijet_tlv;
   int numGoodEvents = 0;
+
+  int numberOfEventsThatWillEarnMeFreeCoffee = 0;
+  int numberOfEventsThatWontEarnMeFreeCoffee = 0;
   TH1I* eventSelectionHist = new TH1I(Form("eventSelectionHist_dataset%i", dataSet), ";Event selection combination;\"Dijet\" events", 6, -0.5, 5.5);
+  eventSelectionHist->SetDirectory(outputFile);
   for (long long entry = 0; entry < numentries; entry++) {
     tree->GetEntry(entry); // stores trigger values and data in the designated branch addresses
     // Basic event selection: require a primary vertex and there to be at least 2 reconstructed jets
-    if ((nvert == 0) || (nvert > 0 && vert_type[0] != 1) || njet < 2) continue;
+    if ((nvert == 0) || (nvert > 0 && vert_type->at(0) != 1) || njet < 2) continue;
 
-    /** Find the leading dijet pair **/
-    leadingj = 0;
-    for (int j = 1; j < njet; j++) {
-      if (j_pt[j] > j_pt[leadingj]) leadingj = j;
-    }
-    subleadingj = 0;
-    for (int j = 1; j < njet; j++) {
-      if (j == leadingj) continue; // ensures subleadingj != leadingj
-      // if the subleading jet candidate IS the leading jet candidate ~OR~ if the next jet has a higher pt AND is not the leading jet, THEN jet j is a better subleading jet candidate.
-      if (subleadingj == leadingj || j_pt[j] > j_pt[subleadingj]) subleadingj = j;
-    }
-    subsubleadingj = 0;
-    for (int j = 1; j < njet; j++) {
-      if (j == leadingj || j == subleadingj) continue; // ensures subsubleadingj != leadingj AND subsubleadingj != subleadingj
-      if (subsubleadingj == leadingj || subsubleadingj == subleadingj || j_pt[j] > j_pt[subsubleadingj]) subsubleadingj = j;
+    leadingj = -1;
+    subleadingj = -1;
+    subsubleadingj = -1;
+    for (int j = 0; j < njet; j++) {
+      if (leadingj == -1 || jet_pt->at(leadingj) < jet_pt->at(j)) {
+        subsubleadingj = subleadingj;
+        subleadingj = leadingj;
+        leadingj = j;
+      } else if (subleadingj == -1 || jet_pt->at(subleadingj) < jet_pt->at(j)) {
+        subsubleadingj = subleadingj;
+        subleadingj = j;
+      } else if (subsubleadingj == -1 || jet_pt->at(subsubleadingj) < jet_pt->at(j)) {
+        subsubleadingj = j;
+      }
     }
 
     /** Stores parameters of the leading dijet pair **/
-    leadingjpt = (double)j_pt[leadingj];
-    subleadingjpt = (double)j_pt[subleadingj];
-    if (njet != 2) subsubleadingjpt = (double)j_pt[subsubleadingj];
+    leadingjpt = (double)jet_pt->at(leadingj);
+    subleadingjpt = (double)jet_pt->at(subleadingj);
+    if (njet >= 3) subsubleadingjpt = (double)jet_pt->at(subsubleadingj);
     else subsubleadingjpt = 0;
 
-    leadingjphi = (double)j_phi[leadingj];
-    subleadingjphi = (double)j_phi[subleadingj];
-    leadingjeta = (double)j_eta[leadingj];
-    subleadingjeta = (double)j_eta[subleadingj];
+    leadingjphi = (double)jet_phi->at(leadingj);
+    subleadingjphi = (double)jet_phi->at(subleadingj);
+    leadingjeta = (double)jet_eta->at(leadingj);
+    subleadingjeta = (double)jet_eta->at(subleadingj);
 
-    leadingje = (double)j_e[leadingj];
-    subleadingje = (double)j_e[subleadingj];
+    leadingje = (double)jet_e->at(leadingj);
+    subleadingje = (double)jet_e->at(subleadingj);
 
     // make sure phi variables are in the range 0 to 2pi
     while (leadingjphi < 0) leadingjphi += 2*pi;
@@ -341,7 +442,7 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
     }
 
     scale = 1e3/(eff*lumi); // set the scale to convert counts -> "efficiency corrected cross-section"-esque measurement
-    if (etaPhiScaleFactorsHist != NULL) scale *= etaPhiScaleFactorsHist->GetBinContent(etaPhiScaleFactorsHist->FindBin(leadingjeta, leadingjphi));
+    //if (etaPhiScaleFactorsHist != NULL) scale *= etaPhiScaleFactorsHist->GetBinContent(etaPhiScaleFactorsHist->FindBin(leadingjeta, leadingjphi));
 
     if (periodA) {
       leadingjeta *= -1;
@@ -351,6 +452,32 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
 
     xp = get_xp(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, false);
     xa = get_xa(leadingjpt, subleadingjpt, leadingjeta, subleadingjeta, false);
+
+    if (xp >= 0.1) {
+      out_jet_pt.clear();         for (auto element : *jet_pt) out_jet_pt.push_back(element);
+      out_jet_eta.clear();        for (auto element : *jet_eta) out_jet_eta.push_back(element);
+      out_jet_phi.clear();        for (auto element : *jet_phi) out_jet_phi.push_back(element);
+      out_jet_e.clear();          for (auto element : *jet_e) out_jet_e.push_back(element);
+      out_vert_type.clear();      for (auto element : *vert_type) out_vert_type.push_back(element);
+      out_vert_x.clear();         for (auto element : *vert_x) out_vert_x.push_back(element);
+      out_vert_y.clear();         for (auto element : *vert_y) out_vert_y.push_back(element);
+      out_vert_z.clear();         for (auto element : *vert_z) out_vert_z.push_back(element);
+      out_trk_quality_4.clear();  for (auto element : *trk_quality_4) out_trk_quality_4.push_back(element);
+      out_trk_theta.clear();      for (auto element : *trk_theta) out_trk_theta.push_back(element);
+      out_trk_d0.clear();         for (auto element : *trk_d0) out_trk_d0.push_back(element);
+      out_trk_z0.clear();         for (auto element : *trk_z0) out_trk_z0.push_back(element);
+      out_trk_charge.clear();     for (auto element : *trk_charge) out_trk_charge.push_back(element);
+      out_trk_pt.clear();         for (auto element : *trk_pt) out_trk_pt.push_back(element);
+      out_trk_eta.clear();        for (auto element : *trk_eta) out_trk_eta.push_back(element);
+      out_trk_phi.clear();        for (auto element : *trk_phi) out_trk_phi.push_back(element);
+
+      outTree->Fill();
+      numberOfEventsThatWillEarnMeFreeCoffee++;
+      leadingJetEtaHist->Fill(leadingjeta);
+      subleadingJetEtaHist->Fill(subleadingjeta);
+    }
+
+    if (xp >= 0.01) numberOfEventsThatWontEarnMeFreeCoffee++;
 
     // Fill hardness (Q^2) plots
     q_avg = TMath::Sqrt(0.5*(get_q2(xp, leadingje, leadingjpt) + get_q2(xp, subleadingje, subleadingjpt)));
@@ -389,14 +516,8 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
     xHistArr[etabin+numetabins]->Fill(xa, scale);
 
   }
-  // Save to root file
-  string output_name = xPath;
-  if (runPeriodA && !runPeriodB) output_name = output_name + "periodA/";
-  else if (!runPeriodA && runPeriodB) output_name = output_name + "periodB/";
-  else output_name = output_name + "periodAB/";
-  output_name = Form("%sdataset_%i.root", output_name.c_str(), dataSet);
 
-  TFile* output = new TFile(output_name.c_str(), "RECREATE");
+  // Save to root file
   for (int etabin = 0; etabin < 2*numetabins; etabin++) {
     scale = 1. / (etabins[(etabin%numetabins)+1] - etabins[etabin%numetabins]);
     xHistArr[etabin]->Scale(scale, "width");
@@ -423,9 +544,18 @@ void DijetAnalysis(const int dataSet, // Data set identifier. If not MC, this sh
 
   eventSelectionHist->Write();
 
-  TVectorD infoVec(2);
+  leadingJetEtaHist->Write();
+  subleadingJetEtaHist->Write();
+
+  TVectorD infoVec(4);
   infoVec[0] = luminosity;
   infoVec[1] = numGoodEvents;
+  infoVec[2] = numberOfEventsThatWillEarnMeFreeCoffee;
+  infoVec[3] = numberOfEventsThatWontEarnMeFreeCoffee;
   infoVec.Write("infoVec");
-  output->Close();
+
+  outTree->Write();
+  outputFile->Close();
+  if (outputFile) delete outputFile;
+  //if (outTree) delete outTree;
 }
