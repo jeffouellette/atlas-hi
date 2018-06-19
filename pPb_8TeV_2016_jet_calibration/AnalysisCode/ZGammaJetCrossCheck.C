@@ -29,9 +29,9 @@ double GetXCalibSystematicError(TFile* file, const double jpt, const double jeta
 }
 
 
-void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should be a run number.
-                          const double luminosity, // Integrated luminosity for this run. Presumed constant over the run period.
-                          const bool isMC = false, // is data/MC flag
+void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should be a run number for data or some other identifier for MC (e.g., slice number).
+                          const double luminosity = 0, // Integrated luminosity for this run. Presumed constant over the run period. Meaningless for MC.
+                          const bool isMC = false, // is data/MC flag.
                           const bool isMCperiodAflag = false, // flag that is raised for MC (meaningless if isMC is false)
                           const string inFileName = "") // Input root file name where tree is stored; if == "" code will try to guess file name based on other info
 {
@@ -40,7 +40,9 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   setupDirectories("", "pPb_8TeV_2016_jet_calibration/");
   if (!isMC) setupTriggers(dataSet);
 
-  const string identifier = (isMC ? (string(isMCperiodAflag ? "pPb_":"Pbp_") + (dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet":(string("ZeeJet")+to_string(-dataSet))))) : to_string(dataSet));
+  const bool isValidationSample = isMC && (TString(inFileName).Contains("valid") || TString(inFileName).Contains("Zee"));
+  const string identifier = (isMC ? (string(isMCperiodAflag ? "pPb_":"Pbp_") + (dataSet > 0 ? (string(isValidationSample ? "Valid_":"Overlay_") + "GammaJet_Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet":(string("ZeeJet")+to_string(-dataSet))))) : to_string(dataSet));
+  cout << "File Identifier: " << identifier << endl;
 
   int eventNumber = 0;
   double eventWeight = 0;
@@ -143,7 +145,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   };
 
   const char* electronTriggerNames[electronTrigLength] = {
-  //  "HLT_e10_lhloose",
+  //  "HLT_e10_lhloose", // these triggers don't really do anything since Z's only start appearing really at much higher electron pT (~40-50 GeV and up)
   //  "HLT_e15_lhloose",
     "HLT_e20_lhloose",
     "HLT_e22_lhloose",

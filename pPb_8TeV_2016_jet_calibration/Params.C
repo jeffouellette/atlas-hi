@@ -4,6 +4,7 @@
 
 static const bool runPeriodA = true; // Analyze period A data
 static const bool runPeriodB = true; // Analyze period B data
+static const bool runValidation = false; // Use validation (signal only) gamma+jet sample instead of data overlay
 
 static const double electron_pt_cut = 20; // Cut on electron pt
 static const double muon_pt_cut = 20; // Cut on muon pt

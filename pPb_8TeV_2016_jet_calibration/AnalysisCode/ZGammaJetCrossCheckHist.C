@@ -28,19 +28,22 @@ void ZGammaJetCrossCheckHist () {
   // Setup trigger vectors
   setupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
+  // Setup list of data and lists of MC samples
   vector<int> runNumbers(0);
   for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
-  vector<TString> mcSampleIds(0);
-  for (short i = 0; i < 12; i++) {
-    if (i / 5 == 0) mcSampleIds.push_back("Pbp_Slice" + to_string(i%5));
-    else if (i / 5 == 1) mcSampleIds.push_back("pPb_Slice" + to_string(i%5));
+  vector<TString> gammaJetSampleIds(0);
+  for (short i = 0; i < 6; i++) {
+    gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+    gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
-  for (short i = 0; i < 5; i++) {
-    mcSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
-    mcSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
+  vector<TString> zeeJetSampleIds(0);
+  for (short i = 0; i < 6; i++) {
+    zeeJetSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
+    zeeJetSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
   }
-  mcSampleIds.push_back("Pbp_ZmumuJet");
-  mcSampleIds.push_back("pPb_ZmumuJet");
+  vector<TString> zmumuJetSampleIds(0);
+  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
 
   TH2F* zeeJetHists[3][numetabins][2][3];
   TH2F* zmumuJetHists[3][numetabins][2][3];
@@ -112,6 +115,7 @@ void ZGammaJetCrossCheckHist () {
           for (int runNumber : runNumbers) { // check for data
             if (fname.Contains(to_string(runNumber))) {
               numFiles++;
+              cout << "Reading in " << rootPath+fname << endl;
               TFile* thisFile = new TFile(rootPath + fname, "READ");
               infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", runNumber));
 
@@ -157,43 +161,86 @@ void ZGammaJetCrossCheckHist () {
               break;
             }
           }
-          for (TString mcSampleId : mcSampleIds) { // check for MC
-            if (fname.Contains(mcSampleId)) {
+          for (TString gammaJetSampleId : gammaJetSampleIds) { // check for gamma jet MC
+            if (fname.Contains(gammaJetSampleId)) {
               numFiles++;
+              cout << "Reading in " << rootPath+fname << endl;
               TFile* thisFile = new TFile(rootPath + fname, "READ");
-              infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", mcSampleId.Data()));
+              infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", gammaJetSampleId.Data()));
 
               for (short etabin = 0; etabin < numetabins; etabin++) {
-                const short periodType = (mcSampleId.Contains("Pbp") ? 0 : 1);
-                const short act_etabin = (mcSampleId.Contains("Pbp") ? numetabins - etabin - 1 : etabin); // period A condition
+                const short periodType = (gammaJetSampleId.Contains("pPb") ? 0 : 1);
+                const short act_etabin = (gammaJetSampleId.Contains("pPb") ? (numetabins - etabin - 1) : etabin); // period A condition
 
-                Zee_n[periodType][1][etabin] += (*infoVec)[2+etabin];
-                Zee_n[2][1][act_etabin] += (*infoVec)[2+etabin];
-                Zmumu_n[periodType][1][etabin] += (*infoVec)[2+numetabins+etabin];
-                Zmumu_n[2][1][act_etabin] += (*infoVec)[2+numetabins+etabin];
                 g_n[periodType][1][etabin] += (*infoVec)[2+2*numetabins+etabin];
                 g_n[2][1][act_etabin] += (*infoVec)[2+2*numetabins+etabin];
 
                 // Only add the statistical error plots for MC (don't need to consider systematics)
-                zeeJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), etabin)));
-                zeeJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), act_etabin)));
-                zmumuJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), etabin)));
-                zmumuJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), act_etabin)));
-                gJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), etabin)));
-                gJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%s_hist%i_mc_stat", mcSampleId.Data(), act_etabin)));
+                gJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%s_hist%i_mc_stat", gammaJetSampleId.Data(), etabin)));
+                gJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%s_hist%i_mc_stat", gammaJetSampleId.Data(), act_etabin)));
               }
 
-              for (short spcType = 0; spcType < 2; spcType++) {
-                TString species = "ee";
-                if (spcType == 0) species = "mumu";
+              thisFile->Close();
+              delete thisFile;
+              break;
+            }
+          }
+          for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
+            if (fname.Contains(zeeJetSampleId)) {
+              numFiles++;
+              cout << "Reading in " << rootPath+fname << endl;
+              TFile* thisFile = new TFile(rootPath + fname, "READ");
+              infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", zeeJetSampleId.Data()));
 
-                for (short etabin = 0; etabin < numetabins; etabin++) {
-                  zMassSpectra[spcType][1][etabin]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_dataSet%s_mc_etabin%i", species.Data(), mcSampleId.Data(), etabin)));
-                  zMassSpectra_AllSigns[spcType][1][etabin]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", species.Data(), mcSampleId.Data(), etabin)));
-                }
-                zMassSpectra[spcType][1][numetabins]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_dataSet%s_mc", species.Data(), mcSampleId.Data())));
-                zMassSpectra_AllSigns[spcType][1][numetabins]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%s_mc", species.Data(), mcSampleId.Data())));
+              for (short etabin = 0; etabin < numetabins; etabin++) {
+                const short periodType = (zeeJetSampleId.Contains("pPb") ? 0 : 1);
+                const short act_etabin = (zeeJetSampleId.Contains("pPb") ? numetabins - etabin - 1 : etabin); // period A condition
+
+                Zee_n[periodType][1][etabin] += (*infoVec)[2+etabin];
+                Zee_n[2][1][act_etabin] += (*infoVec)[2+etabin];
+
+                // Only add the statistical error plots for MC (don't need to consider systematics)
+                zeeJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_hist%i_mc_stat", zeeJetSampleId.Data(), etabin)));
+                zeeJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_hist%i_mc_stat", zeeJetSampleId.Data(), act_etabin)));
               }
+
+              for (short etabin = 0; etabin < numetabins; etabin++) {
+                zMassSpectra[1][1][etabin]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_dataSet%s_mc_etabin%i", zeeJetSampleId.Data(), etabin)));
+                zMassSpectra_AllSigns[1][1][etabin]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zeeJetSampleId.Data(), etabin)));
+              }
+              zMassSpectra[1][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_dataSet%s_mc", zeeJetSampleId.Data())));
+              zMassSpectra_AllSigns[1][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc", zeeJetSampleId.Data())));
+
+              thisFile->Close();
+              delete thisFile;
+              break;
+            }
+          }
+          for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
+            if (fname.Contains(zmumuJetSampleId)) {
+              numFiles++;
+              cout << "Reading in " << rootPath+fname << endl;
+              TFile* thisFile = new TFile(rootPath + fname, "READ");
+              infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", zmumuJetSampleId.Data()));
+
+              for (short etabin = 0; etabin < numetabins; etabin++) {
+                const short periodType = (zmumuJetSampleId.Contains("pPb") ? 0 : 1);
+                const short act_etabin = (zmumuJetSampleId.Contains("pPb") ? numetabins - etabin - 1 : etabin); // period A condition
+
+                Zmumu_n[periodType][1][etabin] += (*infoVec)[2+numetabins+etabin];
+                Zmumu_n[2][1][act_etabin] += (*infoVec)[2+numetabins+etabin];
+
+                // Only add the statistical error plots for MC (don't need to consider systematics)
+                zmumuJetHists[periodType][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_hist%i_mc_stat", zmumuJetSampleId.Data(), etabin)));
+                zmumuJetHists[2][etabin][1][1]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_hist%i_mc_stat", zmumuJetSampleId.Data(), act_etabin)));
+              }
+
+              for (short etabin = 0; etabin < numetabins; etabin++) {
+                zMassSpectra[0][1][etabin]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_dataSet%s_mc_etabin%i", zmumuJetSampleId.Data(), etabin)));
+                zMassSpectra_AllSigns[0][1][etabin]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zmumuJetSampleId.Data(), etabin)));
+              }
+              zMassSpectra[0][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_dataSet%s_mc", zmumuJetSampleId.Data())));
+              zMassSpectra_AllSigns[0][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc", zmumuJetSampleId.Data())));
 
               thisFile->Close();
               delete thisFile;
@@ -294,10 +341,11 @@ void ZGammaJetCrossCheckHist () {
       zJetHist->DrawCopy("E1 X0");
       zJetHist_mc->DrawCopy("SAME E1 X0");
       zJetGraph_sys->Draw("2");
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("Z (#mu#mu) + Jet Data, EtaJES + Cross-Calib Insitu (%i events)", Zmumu_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Z (#mu#mu) + Jet MC, EtaJES (%i events)", Zmumu_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 Data (%i events)", Zmumu_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("MC with Data Overlay (%i events)", Zmumu_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
       if (periodType == 0) myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{A} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{B} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
+      myText(0.155, 0.28, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.c_str(), 0.04/uPadY);
 
       lowerPad->cd();
@@ -331,7 +379,7 @@ void ZGammaJetCrossCheckHist () {
       zJetHist_rat->Draw("E1 X0");
       zJetGraph_rat_sys->Draw("2");
       for (TLine* line : lines) line->Draw("SAME");
-      canvas->SaveAs(Form("%s/z_mumu_jet%i_period%s.pdf", plotPath.c_str(), etabin, (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str()));
+      canvas->SaveAs(Form("%s/Period%s/z_mumu_jet%i.pdf", plotPath.c_str(), (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str(), etabin));
       if (zJetHist_rat) delete zJetHist_rat;
       if (zJetGraph_rat_sys) delete zJetGraph_rat_sys;
 
@@ -370,10 +418,11 @@ void ZGammaJetCrossCheckHist () {
       zJetHist->DrawCopy("E1 X0");
       zJetHist_mc->DrawCopy("SAME E1 X0");
       zJetGraph_sys->Draw("2");
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("Z (ee) + Jet Data, EtaJES + Cross-Calib Insitu (%i events)", Zee_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Z (ee) + Jet MC, EtaJES (%i events)", Zee_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 Data, Cross-Calib Insitu (%i events)", Zee_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("MC Signal Only (%i events)", Zee_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
       if (periodType == 0) myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{A} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{B} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
+      myText(0.155, 0.28, kBlack, "Z (ee) + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.c_str(), 0.04/uPadY);
 
       lowerPad->cd();
@@ -407,7 +456,7 @@ void ZGammaJetCrossCheckHist () {
       zJetHist_rat->Draw("E1 X0");
       zJetGraph_rat_sys->Draw("2");
       for (TLine* line : lines) line->Draw("SAME");
-      canvas->SaveAs(Form("%s/z_ee_jet%i_period%s.pdf", plotPath.c_str(), etabin, (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str()));
+      canvas->SaveAs(Form("%s/Period%s/z_ee_jet%i.pdf", plotPath.c_str(), (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str(), etabin));
       if (zJetHist_rat) delete zJetHist_rat;
       if (zJetGraph_rat_sys) delete zJetGraph_rat_sys;
 
@@ -446,10 +495,11 @@ void ZGammaJetCrossCheckHist () {
       gJetHist->DrawCopy("E1 X0");
       gJetHist_mc->DrawCopy("SAME E1 X0");
       gJetGraph_sys->Draw("2");
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("#gamma + Jet Data, EtaJES + Cross-Calib Insitu (%i events)", g_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("#gamma + Jet MC, EtaJES (%i events)", g_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 Data, Cross-Calib Insitu (%i events)", g_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("MC %s (%i events)", (runValidation ? "Signal Only":"with Data Overlay"), g_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
       if (periodType == 0) myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{A} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{B} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
+      myText(0.155, 0.28, kBlack, "#gamma + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.c_str(), 0.04/uPadY);
 
       lowerPad->cd();
@@ -482,7 +532,7 @@ void ZGammaJetCrossCheckHist () {
       gJetHist_rat->Draw("e1 X0"); 
       gJetGraph_rat_sys->Draw("2");
       for (TLine* line : lines) line->Draw("SAME");
-      canvas->SaveAs(Form("%s/gamma_jet%i_period%s.pdf", plotPath.c_str(), etabin, (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str()));
+      canvas->SaveAs(Form("%s/Period%s/gamma_jet%i%s.pdf", plotPath.c_str(), (string(periodType%2==0 ? "A":"") + string(periodType>0 ? "B":"")).c_str(), etabin, (runValidation ? "_signalOnly":"")));
       if (gJetHist_rat) delete gJetHist_rat;
     }
   }
@@ -511,7 +561,7 @@ void ZGammaJetCrossCheckHist () {
         thisHist->GetXaxis()->SetTitle("#font[12]{ll} Invariant Mass #left[GeV#right]");
         thisHist->GetYaxis()->SetTitle("Normalized Counts / 1 GeV");
         thisHist->GetYaxis()->SetTitleSize(0.04/uPadY);
-        thisHist->GetYaxis()->SetTitleOffset(uPadY);
+        thisHist->GetYaxis()->SetTitleOffset(1.1*uPadY);
         thisHist->GetYaxis()->SetLabelSize(0.04/uPadY);
         thisHist->SetLineColor(color);
         thisHist->SetMarkerColor(color);
@@ -546,20 +596,22 @@ void ZGammaJetCrossCheckHist () {
         if (dType == 0) thisHist->Draw("hist");
         else thisHist->Draw("hist same");
         fits[dType]->Draw("same");
-        if (etabin != numetabins) myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
+        if (etabin != numetabins) myText(0.175, 0.15,kBlack, Form("%g < #eta_{jet} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
       }
       if (species == 0) {
-        myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("Z (#mu#mu) + Jet Data (%i events)", Zmumu_n[2][0][etabin]), 1.25, 0.04/uPadY);
-        myMarkerText(0.175, 0.63, mc_color, kFullCircle, Form("Z (#mu#mu) + Jet MC (%i events)", Zmumu_n[2][1][etabin]), 1.25, 0.04/uPadY);
+        myText(0.175, 0.88, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
+        myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 Data (%i events)", Zmumu_n[2][0][etabin]), 1.25, 0.04/uPadY);
+        myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("MC with Data Overlay (%i events)", Zmumu_n[2][1][etabin]), 1.25, 0.04/uPadY);
       }
       else if (species == 1) {
-        myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("Z (ee) + Jet Data (%i events)", Zee_n[2][0][etabin]), 1.25, 0.04/uPadY);
-        myMarkerText(0.175, 0.63, mc_color, kFullCircle, Form("Z (ee) + Jet MC (%i events)", Zee_n[2][1][etabin]), 1.25, 0.04/uPadY);
+        myText(0.175, 0.88, kBlack, "Z (ee) + Jet", 0.04/uPadY);
+        myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 Data (%i events)", Zee_n[2][0][etabin]), 1.25, 0.04/uPadY);
+        myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("MC Signal Only (%i events)", Zee_n[2][1][etabin]), 1.25, 0.04/uPadY);
       }
-      myText(0.175, 0.80, kBlack, Form("m_{Z}^{data} = %.2f #pm %.2f GeV", mean[0], mean_err[0]), 0.04/uPadY);
-      myText(0.175, 0.72, kBlack, Form("#sigma_{Z}^{data} = %.2f #pm %.2f GeV", sigma[0], sigma_err[0]), 0.04/uPadY);
-      myText(0.175, 0.55, kBlack, Form("m_{Z}^{mc} = %.2f #pm %.2f GeV", mean[1], mean_err[1]), 0.04/uPadY);
-      myText(0.175, 0.47, kBlack, Form("#sigma_{Z}^{mc} = %.2f #pm %.2f GeV", sigma[1], sigma_err[1]), 0.04/uPadY);
+      myText(0.175, 0.72, kBlack, Form("m_{Z}^{data} = %.2f #pm %.2f GeV", mean[0], mean_err[0]), 0.04/uPadY);
+      myText(0.175, 0.64, kBlack, Form("#sigma_{Z}^{data} = %.2f #pm %.2f GeV", sigma[0], sigma_err[0]), 0.04/uPadY);
+      myText(0.175, 0.47, kBlack, Form("m_{Z}^{mc} = %.2f #pm %.2f GeV", mean[1], mean_err[1]), 0.04/uPadY);
+      myText(0.175, 0.39, kBlack, Form("#sigma_{Z}^{mc} = %.2f #pm %.2f GeV", sigma[1], sigma_err[1]), 0.04/uPadY);
 
       lowerPad->cd();
       gPad->SetLogx();
@@ -570,7 +622,7 @@ void ZGammaJetCrossCheckHist () {
       thisHist->GetXaxis()->SetTitleSize(0.04/lPadY);
       thisHist->GetYaxis()->SetTitleSize(0.04/lPadY);
       thisHist->GetXaxis()->SetTitleOffset(1);
-      thisHist->GetYaxis()->SetTitleOffset(lPadY);
+      thisHist->GetYaxis()->SetTitleOffset(1.1*lPadY);
       thisHist->GetXaxis()->SetLabelSize(0.04/lPadY);
       thisHist->GetYaxis()->SetLabelSize(0.04/lPadY);
       thisHist->SetLineColor(kBlack);
