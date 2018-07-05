@@ -16,6 +16,7 @@ class Trigger {
     string name;
 
     int min_pt;
+    int max_pt;
     int threshold_pt;
     double lower_eta;    
     double upper_eta;
@@ -43,6 +44,7 @@ Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau,
     name = thisname;
     threshold_pt = thisThresholdPt;
     min_pt = thisMinPt;
+    max_pt = 0;
     lower_eta = etal;
     upper_eta = etau;
     lowerRunNumber = lRN;
@@ -61,6 +63,7 @@ Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau,
     name = thisname;
     threshold_pt = thisThresholdPt;
     min_pt = thisMinPt;
+    max_pt = 0;
     lower_eta = etal;
     upper_eta = etau;
     lowerRunNumber = lRN;
@@ -78,6 +81,7 @@ Trigger::Trigger(const Trigger* t) {
     name = t->name;
     threshold_pt = t->threshold_pt;
     min_pt = t->min_pt;
+    max_pt = t->max_pt;
     lower_eta = t->lower_eta;
     upper_eta = t->upper_eta;
     lowerRunNumber = t->lowerRunNumber;
