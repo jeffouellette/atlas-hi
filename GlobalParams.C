@@ -84,7 +84,7 @@ void setupDirectories (const string dataSubDir, const string thisWorkPath) {
 /**
  * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
  */
-static double* linspace(double lo, double hi, int num) {
+static double* linspace (double lo, double hi, int num) {
   double* arr = new double[num+1];
   double delta = ((double)(hi)-(double)(lo))/(double)(num);
   for (int i = 0; i <= num; i++) {
@@ -97,7 +97,7 @@ static double* linspace(double lo, double hi, int num) {
 /**
  * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
  */
-static double* logspace(double lo, double hi, int num) {
+static double* logspace (double lo, double hi, int num) {
   double loghi = TMath::Log2(hi);
   if (lo == 0) {
     double* arr = linspace(TMath::Log2(hi/(100*num)), loghi, num);
@@ -113,4 +113,26 @@ static double* logspace(double lo, double hi, int num) {
     }
     return arr;
   }
+}
+
+
+/**
+ * Calculates the systematic errors on optimal, storing the results in graph.
+ */
+static void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo) {
+  for (int xbin = 1; xbin <= optimal->GetNbinsX(); xbin++) {
+   const double content = optimal->GetBinContent(xbin);
+   const double diff_lo = content - sys_lo->GetBinContent(xbin);
+   const double diff_hi = sys_hi->GetBinContent(xbin) - content;
+   double err_lo = diff_lo;
+   double err_hi = diff_hi;
+
+   //if (diff_lo == 0 && diff_hi != 0) err_lo = diff_hi;
+   //else if (diff_lo != 0 && diff_hi == 0) err_hi = diff_lo;
+
+   graph->SetPoint(xbin-1, optimal->GetBinCenter(xbin), content);
+   graph->SetPointEYlow(xbin-1, err_lo);
+   graph->SetPointEYhigh(xbin-1, err_hi);
+  }
+  return;
 }

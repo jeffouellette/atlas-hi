@@ -7,6 +7,7 @@ cernvm3-micro-2.8-6.iso
 pPb_8TeV_2016_dijetAnalysis/data/*
 pPb_8TeV_2016_dijetAnalysis/rootFiles/*
 pPb_8TeV_2016_dijetAnalysis/HepData*
+pPb_8TeV_2016_dijetAnalysis/Slides*
 
 # 2017 pp run
 pp_5TeV_2017_offlineElectronAnalysis/Data/
@@ -19,3 +20,7 @@ pPb_8TeV_2016_jet_calibration/pPb_dR4
 pPb_8TeV_2016_jet_calibration/Pbp_dR2
 pPb_8TeV_2016_jet_calibration/Pbp_dR4
 pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
+pPb_8TeV_2016_jet_calibration/Plots/PeriodA/pref_slices
+pPb_8TeV_2016_jet_calibration/Plots/PeriodB/pref_slices
+pPb_8TeV_2016_jet_calibration/Plots/PeriodAB/pref_slices
+pPb_8TeV_2016_jet_calibration/Slides*

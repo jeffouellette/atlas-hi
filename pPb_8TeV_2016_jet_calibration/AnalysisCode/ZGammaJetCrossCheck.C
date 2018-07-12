@@ -18,16 +18,16 @@ double deltaR (const double eta1, const double eta2, const double phi1, const do
 
 
 double GetXCalibSystematicError(TFile* file, const double jpt, const double jeta) {
+  if (!file || !file->IsOpen()) return 0;
 
- short etabin = 0;
- while (xcalibEtabins[etabin] < TMath::Abs(jeta)) etabin++;
- etabin--;
+  short etabin = 0;
+  while (xcalibEtabins[etabin] < TMath::Abs(jeta)) etabin++;
+  etabin--;
 
- const TString hname = TString("fsys_rel_") + Form("%i", etabin);
- TH1D* fsys_rel = (TH1D*)file->Get(hname.Data());
+  const TString hname = TString("fsys_rel_") + Form("%i", etabin);
+  TH1D* fsys_rel = (TH1D*)file->Get(hname.Data());
 
- return TMath::Abs(fsys_rel->GetBinContent(fsys_rel->FindBin(jpt)) - 1) * jpt;
-
+  return TMath::Abs(fsys_rel->GetBinContent(fsys_rel->FindBin(jpt)) - 1) * jpt;
 }
 
 
@@ -36,17 +36,17 @@ double GetXCalibSystematicError(TFile* file, const double jpt, const double jeta
  * reference vector boson pt^ref.
  */
 double GetNewXCalibSystematicError(TFile* file, const double jeta, const double refpt) {
+  if (!file || !file->IsOpen()) return 0;
 
- short bin = 0;
- while (bin <= numetabins && etabins[bin] < jeta) bin++;
- bin--;
+  short bin = 0;
+  while (bin <= numetabins && etabins[bin] < jeta) bin++;
+  bin--;
 
- const char* period = (isPeriodA ?  "periodA" : "periodB");
- const TString hname = TString(Form("gJetPtRatio_diff%i_stat_%s", bin, period));
- TH1D* hist = (TH1D*)file->Get(hname.Data());
+  const char* period = (isPeriodA ?  "periodA" : "periodB");
+  const TString hname = TString(Form("gJetPtRatio_diff%i_stat_%s", bin, period));
+  TH1D* hist = (TH1D*)file->Get(hname.Data());
 
- return hist->GetBinContent(hist->FindBin(refpt)) * refpt;
-
+  return hist->GetBinContent(hist->FindBin(refpt)) * refpt;
 }
 
 
@@ -110,63 +110,9 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   vector<float>* photon_Rconv = NULL;
   vector<float>* photon_topoetcone40 = NULL;
 
-  //const short jetTrigLengthA = 27;
-  //const short jetTrigLengthB = 19;
   const short electronTrigLength = 3;//5;
   const short muonTrigLength = 4;
   const short photonTrigLength = 7;
-
-  //const char* jetTriggerNamesA[jetTrigLengthA] = {
-  // "HLT_j15_ion_n320eta490_L1MBTS_1_1",
-  // "HLT_j25_ion_n320eta490_L1TE5",
-  // "HLT_j30_ion_0eta490_L1TE10",
-  // "HLT_j35_ion_n320eta490_L1TE10",
-  // "HLT_j40_ion_L1J5",
-  // "HLT_j50_ion_L1J10",
-  // "HLT_j60_ion_L1J20",
-  // "HLT_j75_ion_L1J20",
-  // "HLT_j90_ion_L1J20",
-  // "HLT_j100_ion_L1J20",
-  // "HLT_j45_ion_n200eta320",
-  // "HLT_j55_ion_n200eta320",
-  // "HLT_j65_ion_n200eta320",
-  // "HLT_j75_ion_n200eta320",
-  // "HLT_j45_ion_p200eta320",
-  // "HLT_j55_ion_p200eta320",
-  // "HLT_j65_ion_p200eta320",
-  // "HLT_j75_ion_p200eta320",
-  // "HLT_j15_ion_p320eta490_L1MBTS_1_1",
-  // "HLT_j25_ion_p320eta490_L1TE5",
-  // "HLT_j35_ion_p320eta490_L1TE10",
-  // "HLT_j45_ion_p320eta490",
-  // "HLT_j55_ion_p320eta490",
-  // "HLT_j65_ion_p320eta490",
-  // "HLT_j45_ion_n320eta490",
-  // "HLT_j55_ion_n320eta490",
-  // "HLT_j65_ion_n320eta490"
-  //};
-
-  //const char* jetTriggerNamesB[jetTrigLengthB] = {
-  // "HLT_j30_0eta490_L1TE10",
-  // "HLT_j30_L1J5",
-  // "HLT_j40_L1J5",
-  // "HLT_j50_L1J10",
-  // "HLT_j60",
-  // "HLT_j75_L1J20",
-  // "HLT_j90_L1J20",
-  // "HLT_j100_L1J20",
-  // "HLT_j45_p200eta320",
-  // "HLT_j55_p200eta320",
-  // "HLT_j65_p200eta320",
-  // "HLT_j75_p200eta320",
-  // "HLT_j15_p320eta490_L1MBTS_1_1",
-  // "HLT_j25_p320eta490_L1TE5",
-  // "HLT_j35_p320eta490_L1TE10",
-  // "HLT_j45_p320eta490",
-  // "HLT_j55_p320eta490",
-  // "HLT_j65_p320eta490",
-  // "HLT_j75_p320eta490"
-  //};
 
   const char* electronTriggerNames[electronTrigLength] = {
   // "HLT_e10_lhloose", // these triggers don't really do anything since Z's only start appearing really at much higher electron pT (~40-50 GeV and up)
@@ -247,31 +193,9 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   vector<Trigger*> photonTriggers = {};
 
   if (!isMC) {
-   //if (dataSet < 313629) { // ion triggers used up to run 313603
-   // for (short jetTriggerN = 0; jetTriggerN < jetTrigLengthA; jetTriggerN++) {
-   //  for (Trigger* temp : triggerVec) {
-   //   if (temp->name == jetTriggerNamesA[jetTriggerN]) {
-   //    tree->SetBranchStatus(jetTriggerNamesA[jetTriggerN], 0);
-   //    tree->SetBranchStatus(Form("%s_prescale", jetTriggerNamesA[jetTriggerN]), 0);
-   //    break;
-   //   }
-   //  }
-   // }
-   //}
-   //else {
-   // for (short jetTriggerN = 0; jetTriggerN < jetTrigLengthB; jetTriggerN++) {
-   //  for (Trigger* temp : triggerVec) {
-   //   if (temp->name == jetTriggerNamesB[jetTriggerN]) {
-   //    tree->SetBranchStatus(jetTriggerNamesB[jetTriggerN], 0);
-   //    tree->SetBranchStatus(Form("%s_prescale", jetTriggerNamesB[jetTriggerN]), 0);
-   //    break;
-   //   }
-   //  }
-   // }
-   //}
-
    for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
     Trigger* temp = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerPtCuts[electronTriggerN], -2.47, 2.47);
+    temp->min_pt = electronTriggerPtCuts[electronTriggerN];
     electronTriggers.push_back(temp);
     tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(temp->m_trig_bool));
     tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(temp->m_trig_prescale));
@@ -279,6 +203,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
    for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
     Trigger* temp = new Trigger(muonTriggerNames[muonTriggerN], muonTriggerPtCuts[muonTriggerN], -2.40, 2.40);
+    temp->min_pt = muonTriggerPtCuts[muonTriggerN];
     muonTriggers.push_back(temp);
     tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(temp->m_trig_bool));
     tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(temp->m_trig_prescale));
@@ -286,6 +211,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
    for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
     Trigger* temp = new Trigger(photonTriggerNames[photonTriggerN], photonTriggerPtCuts[photonTriggerN], -2.47, 2.47);
+    temp->min_pt = photonTriggerPtCuts[photonTriggerN];
     temp->max_pt = photonTriggerMaxPtCuts[photonTriggerN];
     photonTriggers.push_back(temp);
     tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(temp->m_trig_bool));
@@ -346,20 +272,20 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
     if (errType == 1) error = "stat";
     else if (errType == 2) error = "sys_hi";
 
-    zeeJetHists[errType][etabin] = new TH2F(Form("zeeJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpbins, pbins, numxjrefbins, xjrefbins);
+    zeeJetHists[errType][etabin] = new TH2F(Form("zeeJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
     zeeJetHists[errType][etabin]->Sumw2();
-    //zeeJetHistsSys[errType][etabin] = new TH2F(Form("zeeJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpbins, pbins, numxjrefbins, xjrefbins);
+    //zeeJetHistsSys[errType][etabin] = new TH2F(Form("zeeJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
     //zeeJetHistsSys[errType][etabin]->Sumw2();
 
-    zmumuJetHists[errType][etabin] = new TH2F(Form("zmumuJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpbins, pbins, numxjrefbins, xjrefbins);
+    zmumuJetHists[errType][etabin] = new TH2F(Form("zmumuJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
     zmumuJetHists[errType][etabin]->Sumw2();
-    //zmumuJetHistsSys[errType][etabin] = new TH2F(Form("zmumuJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpbins, pbins, numxjrefbins, xjrefbins);
+    //zmumuJetHistsSys[errType][etabin] = new TH2F(Form("zmumuJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
     //zmumuJetHistsSys[errType][etabin]->Sumw2();
 
-    gJetHists[errType][etabin] = new TH2F(Form("gJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numprefbins, prefbins, numxjrefbins, xjrefbins);
+    gJetHists[errType][etabin] = new TH2F(Form("gJetPtRatio_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpgammabins, pgammabins, numxjrefbins, xjrefbins);
     gJetHists[errType][etabin]->Sumw2();
     if (errType == 1) {
-     gJetHistsSys[errType][etabin] = new TH2F(Form("gJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpbins, pbins, numSigmaBins, -maxSigma, maxSigma);
+     gJetHistsSys[errType][etabin] = new TH2F(Form("gJetPtRatioSys_dataSet%s_hist%i_%s_%s", identifier.c_str(), etabin, (isMC ? "mc":"data"), error.c_str()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
      gJetHistsSys[errType][etabin]->Sumw2();
     }
    }
@@ -659,19 +585,20 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
      const float this_photon_phi = photon_phi->at(p);
      photon.SetPtEtaPhiM(this_photon_pt, this_photon_eta, this_photon_phi, 0);
 
-     if ((1.37 < TMath::Abs(this_photon_eta) &&
-          TMath::Abs(this_photon_eta) < 1.52) ||
-         2.37 < TMath::Abs(this_photon_eta))
+     //if ((1.37 < TMath::Abs(this_photon_eta) &&
+     //     TMath::Abs(this_photon_eta) < 1.52) ||
+     //    2.37 < TMath::Abs(this_photon_eta))
+     // continue;
+     if (1.37 < TMath::Abs(this_photon_eta))
       continue;
 
      float prescale = 1;
      if (!isMC) {
       Trigger* photonTrigger = NULL;
       for (Trigger* trig : photonTriggers)
-       if (photonTrigger == NULL ||
-           (trig->m_trig_prescale > 0 &&
-            trig->min_pt <= this_photon_pt &&
-            this_photon_pt <= trig->max_pt))
+       if (trig->m_trig_prescale > 0 &&
+           trig->min_pt <= this_photon_pt &&
+           this_photon_pt <= trig->max_pt)
         photonTrigger = trig;
        //if ((minPrescalePhotonTrigger == NULL ||
        //     trig->m_trig_prescale < minPrescalePhotonTrigger->m_trig_prescale) &&
