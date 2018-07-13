@@ -17,7 +17,8 @@ double deltaR (const double eta1, const double eta2, const double phi1, const do
 }
 
 
-double GetXCalibSystematicError(TFile* file, const double jpt, const double jeta) {
+double GetXCalibSystematicError(const double jpt, const double jeta) {
+  TFile* file = xCalibSystematicsFile;
   if (!file || !file->IsOpen()) return 0;
 
   short etabin = 0;
@@ -31,11 +32,8 @@ double GetXCalibSystematicError(TFile* file, const double jpt, const double jeta
 }
 
 
-/**
- * Calculates the additional systematic on jet pt given the jet eta and the
- * reference vector boson pt^ref.
- */
-double GetNewXCalibSystematicError(TFile* file, const double jeta, const double refpt) {
+double GetNewXCalibSystematicError(const double jeta, const double refpt) {
+  TFile* file = dataOverMCFile;
   if (!file || !file->IsOpen()) return 0;
 
   short bin = 0;
@@ -68,80 +66,8 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   const string identifier = (isMC ? (string(isMCperiodAflag ? "pPb_":"Pbp_") + (dataSet > 0 ? (string(isValidationSample ? "Valid_":"Overlay_") + "GammaJet_Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet":(string("ZeeJet")+to_string(-dataSet))))) : to_string(dataSet));
   cout << "File Identifier: " << identifier << endl;
 
-  int eventNumber = 0;
-  double eventWeight = 0;
-
-  int nvert = 0;
-  vector<float>* vert_z = NULL;
-  vector<int>* vert_ntrk = NULL;
-  vector<int>* vert_type = NULL;
- 
-  int jet_n = 0; 
-  vector<float>* jet_pt = NULL;
-  vector<float>* jet_eta = NULL;
-  vector<float>* jet_phi = NULL;
-  vector<float>* jet_e = NULL;
-  vector<float>* init_jet_pt = NULL;
-  
-  int muon_n = 0;
-  vector<float>* muon_pt = NULL;
-  vector<float>* muon_eta = NULL;
-  vector<float>* muon_phi = NULL;
-  vector<int>* muon_quality = NULL;
-  vector<int>* muon_charge = NULL;
-  vector<bool>* muon_tight = NULL;
-  vector<bool>* muon_loose = NULL;
-
-  int electron_n = 0;
-  vector<float>* electron_pt = NULL;
-  vector<float>* electron_eta = NULL;
-  vector<float>* electron_phi = NULL;
-  vector<int>* electron_charge = NULL;
-  vector<bool>* electron_loose = NULL;
-  vector<bool>* electron_tight = NULL;
-
-  int photon_n = 0;
-  vector<float>* photon_pt = NULL;
-  vector<float>* photon_eta = NULL;
-  vector<float>* photon_phi = NULL;
-  vector<bool>* photon_tight = NULL;
-  vector<unsigned int>* photon_isem = NULL;
-  vector<int>* photon_convFlag = NULL;
-  vector<float>* photon_Rconv = NULL;
-  vector<float>* photon_topoetcone40 = NULL;
-
-  const short electronTrigLength = 3;//5;
-  const short muonTrigLength = 4;
-  const short photonTrigLength = 7;
-
-  const char* electronTriggerNames[electronTrigLength] = {
-  // "HLT_e10_lhloose", // these triggers don't really do anything since Z's only start appearing really at much higher electron pT (~40-50 GeV and up)
-  // "HLT_e15_lhloose",
-   "HLT_e20_lhloose",
-   "HLT_e22_lhloose",
-   "HLT_e24_lhloose"
-  };
-  const float electronTriggerPtCuts[electronTrigLength] = {/*10, 15,*/ 20, 22, 24};
-
-  const char* muonTriggerNames[muonTrigLength] = {
-   "HLT_mu15",
-   "HLT_mu18",
-   "HLT_mu20",
-   "HLT_mu20_L1MU15"
-  };
-  const float muonTriggerPtCuts[muonTrigLength] = {15, 18, 20, 20};
-
-  const char* photonTriggerNames[photonTrigLength] = {
-   "HLT_g10_loose",
-   "HLT_g15_loose",
-   "HLT_g20_loose",
-   "HLT_g25_loose",
-   "HLT_g30_loose",
-   "HLT_g35_loose",
-   "HLT_g60_loose"
-  };
-  const float photonTriggerPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40, 65};
-  const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 65, 350};
+  xCalibSystematicsFile = new TFile((rootPath + "cc_sys_090816.root").c_str(), "READ");
+  dataOverMCFile = new TFile((rootPath + "cc_difference.root").c_str(), "READ");
 
   /**** Find the relevant TTree for this run ****/
   TFile* file = NULL;
@@ -188,14 +114,11 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   tree->SetBranchAddress("vert_ntrk", &vert_ntrk);
   tree->SetBranchAddress("vert_type", &vert_type);
 
-  vector<Trigger*> electronTriggers = {};
-  vector<Trigger*> muonTriggers = {};
-  vector<Trigger*> photonTriggers = {};
-
   if (!isMC) {
    for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
     Trigger* temp = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerPtCuts[electronTriggerN], -2.47, 2.47);
-    temp->min_pt = electronTriggerPtCuts[electronTriggerN];
+    temp->min_pt = electronTriggerMinPtCuts[electronTriggerN];
+    temp->max_pt = electronTriggerMaxPtCuts[electronTriggerN];
     electronTriggers.push_back(temp);
     tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(temp->m_trig_bool));
     tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(temp->m_trig_prescale));
@@ -203,7 +126,8 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
    for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
     Trigger* temp = new Trigger(muonTriggerNames[muonTriggerN], muonTriggerPtCuts[muonTriggerN], -2.40, 2.40);
-    temp->min_pt = muonTriggerPtCuts[muonTriggerN];
+    temp->min_pt = muonTriggerMinPtCuts[muonTriggerN];
+    temp->max_pt = muonTriggerMaxPtCuts[muonTriggerN];
     muonTriggers.push_back(temp);
     tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(temp->m_trig_bool));
     tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(temp->m_trig_prescale));
@@ -211,7 +135,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
    for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
     Trigger* temp = new Trigger(photonTriggerNames[photonTriggerN], photonTriggerPtCuts[photonTriggerN], -2.47, 2.47);
-    temp->min_pt = photonTriggerPtCuts[photonTriggerN];
+    temp->min_pt = photonTriggerMinPtCuts[photonTriggerN];
     temp->max_pt = photonTriggerMaxPtCuts[photonTriggerN];
     photonTriggers.push_back(temp);
     tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(temp->m_trig_bool));
@@ -255,17 +179,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   tree->SetBranchAddress("photon_Rconv", &photon_Rconv);
   tree->SetBranchAddress("photon_topoetcone40", &photon_topoetcone40);
 
-  const long long numEntries = tree->GetEntries();
-
-  TH2F* zeeJetHists[3][numetabins];
-  //TH2F* zeeJetHistsSys[3][numetabins];
-  TH2F* zmumuJetHists[3][numetabins];
-  //TH2F* zmumuJetHistsSys[3][numetabins];
-  TH2F* gJetHists[3][numetabins];
-  TH2F* gJetHistsSys[3][numetabins];
-  TH1F* zMassSpectra[2][numetabins+1];
-  TH1F* zMassSpectra_AllSigns[2][numetabins+1];
-
+  // initialize histograms
   for (short etabin = 0; etabin < numetabins; etabin++) {
    for (short errType = 0; errType < 3; errType++) {
     string error = "sys_lo";
@@ -308,12 +222,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
    }
   }
 
-  int Zee_n[numetabins] = {};
-  int Zmumu_n[numetabins] = {};
-  int g_n[numetabins] = {};
-
-  TFile* xCalibSystematicsFile = new TFile((rootPath + "cc_sys_090816.root").c_str(), "READ");
-  TFile* dataOverMCFile = new TFile((rootPath + "cc_difference.root").c_str(), "READ");
+  const long long numEntries = tree->GetEntries();
 
   // begin loop over events
   for (long long entry = 0; entry < numEntries; entry++) {
@@ -348,20 +257,19 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
       float prescale = 1;
       if (!isMC) {
-       Trigger* minPrescaleElectronTrigger = NULL;
+       Trigger* electronTrigger = NULL;
        for (Trigger* trig : electronTriggers)
-        if ((minPrescaleElectronTrigger == NULL || 
-             trig->m_trig_prescale < minPrescaleElectronTrigger->m_trig_prescale) &&
-            trig->m_trig_prescale > 0 &&
+        if (trig->m_trig_prescale > 0 &&
             trig->min_pt <= leading_electron_pt &&
+            leading_electron_pt <= trig->max_pt &&
             trig->lower_eta <= leading_electron_eta &&
             leading_electron_eta <= trig->upper_eta)
-         minPrescaleElectronTrigger = trig;
-       if (minPrescaleElectronTrigger == NULL ||
-          !(minPrescaleElectronTrigger->m_trig_bool) ||
-          minPrescaleElectronTrigger->m_trig_prescale <= 0.)
+         electronTrigger = trig;
+       if (electronTrigger == NULL ||
+          !(electronTrigger->m_trig_bool) ||
+          electronTrigger->m_trig_prescale <= 0.)
         continue;
-       prescale = minPrescaleElectronTrigger->m_trig_prescale;
+       prescale = electronTrigger->m_trig_prescale;
       }
       else prescale = eventWeight;
 
@@ -441,7 +349,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
       if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
        continue; // cut on our sample Z boson mass
 
-      const float leading_jet_pt_err = GetXCalibSystematicError(xCalibSystematicsFile, leading_jet_pt, leading_jet_eta);
+      const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
       const float ptref = Z_pt * TMath::Cos(pi - dPhi);
       const float ptratio[3] = {leading_jet_pt-leading_jet_pt_err, leading_jet_pt, leading_jet_pt+leading_jet_pt_err};
    
@@ -469,22 +377,22 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
       float prescale = 1;
       if (!isMC) {
-       Trigger* minPrescaleMuonTrigger = NULL;
-       for (Trigger* trig : muonTriggers)
-        if ((minPrescaleMuonTrigger == NULL ||
-             trig->m_trig_prescale < minPrescaleMuonTrigger->m_trig_prescale) &&
-            trig->m_trig_prescale > 0 &&
+       Trigger* muonTrigger = NULL;
+       for (Trigger* trig : muonTriggers) {
+        if (trig->m_trig_prescale > 0 &&
             trig->min_pt <= leading_muon_pt &&
+            leading_muon_pt <= trig->max_pt &&
             trig->lower_eta <= leading_muon_eta &&
             leading_muon_eta <= trig->upper_eta)
-         minPrescaleMuonTrigger = trig;
-       if (minPrescaleMuonTrigger == NULL ||
-          !(minPrescaleMuonTrigger->m_trig_bool))
+         muonTrigger = trig;
+       }
+       if (muonTrigger == NULL ||
+          !(muonTrigger->m_trig_bool))
         continue;
-       prescale = minPrescaleMuonTrigger->m_trig_prescale;
+       prescale = muonTrigger->m_trig_prescale;
       }
       else prescale = eventWeight;
-      
+
       //if (!(muon_tight->at(m1) || muon_tight->at(m2))) continue;
       if (!(muon_loose->at(m1) && muon_loose->at(m2)))
        continue; // muon quality criteria
@@ -562,7 +470,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
       if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
        continue; // cut on our sample Z boson mass
 
-      const float leading_jet_pt_err = GetXCalibSystematicError(xCalibSystematicsFile, leading_jet_pt, leading_jet_eta);
+      const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
       const float ptref = Z_pt * TMath::Cos(pi - dPhi);
       const float ptratio[3] = {leading_jet_pt-leading_jet_pt_err, leading_jet_pt, leading_jet_pt+leading_jet_pt_err};
 
@@ -585,28 +493,22 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
      const float this_photon_phi = photon_phi->at(p);
      photon.SetPtEtaPhiM(this_photon_pt, this_photon_eta, this_photon_phi, 0);
 
-     //if ((1.37 < TMath::Abs(this_photon_eta) &&
-     //     TMath::Abs(this_photon_eta) < 1.52) ||
-     //    2.37 < TMath::Abs(this_photon_eta))
-     // continue;
-     if (1.37 < TMath::Abs(this_photon_eta))
+     if ((1.37 < TMath::Abs(this_photon_eta) &&
+          TMath::Abs(this_photon_eta) < 1.52) ||
+         2.37 < TMath::Abs(this_photon_eta))
       continue;
+     //if (1.37 < TMath::Abs(this_photon_eta))
+     // continue;
 
      float prescale = 1;
      if (!isMC) {
       Trigger* photonTrigger = NULL;
-      for (Trigger* trig : photonTriggers)
+      for (Trigger* trig : photonTriggers) {
        if (trig->m_trig_prescale > 0 &&
            trig->min_pt <= this_photon_pt &&
            this_photon_pt <= trig->max_pt)
         photonTrigger = trig;
-       //if ((minPrescalePhotonTrigger == NULL ||
-       //     trig->m_trig_prescale < minPrescalePhotonTrigger->m_trig_prescale) &&
-       //    trig->m_trig_prescale > 0 &&
-       //    trig->min_pt <= this_photon_pt &&
-       //    trig->lower_eta <= this_photon_eta &&
-       //    this_photon_eta <= trig->upper_eta)
-       // minPrescalePhotonTrigger = trig;
+      }
       if (photonTrigger == NULL ||
           !(photonTrigger->m_trig_bool))
        continue;
@@ -679,7 +581,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
      while (etabins[etabin] < leading_jet_eta) etabin++;
      etabin--;
 
-     const float leading_jet_pt_err = GetXCalibSystematicError(xCalibSystematicsFile, leading_jet_pt, leading_jet_eta);
+     const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
      const float ptref = this_photon_pt * TMath::Cos(pi - dPhi);
      const float ptratio[3] = {leading_jet_pt-leading_jet_pt_err, leading_jet_pt, leading_jet_pt+leading_jet_pt_err};
 
@@ -690,7 +592,7 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
 
      // if data, calculate additional systematics for this jet
      if (!isMC)
-      gJetHistsSys[1][etabin]->Fill(leading_jet_pt, GetNewXCalibSystematicError(dataOverMCFile, leading_jet_eta, ptref)/leading_jet_pt, prescale);
+      gJetHistsSys[1][etabin]->Fill(leading_jet_pt, GetNewXCalibSystematicError(leading_jet_eta, ptref)/leading_jet_pt, prescale);
      g_n[etabin]++;
     }
    } 
@@ -704,7 +606,8 @@ void ZGammaJetCrossCheck (const int dataSet, // Data set identifier. This should
   
   /** End event loop **/
 
-  TFile* outfile = new TFile(Form("%sdataSet_%s.root", rootPath.c_str(), identifier.c_str()), "RECREATE");
+  outfile = new TFile(Form("%sdataSet_%s.root", rootPath.c_str(), identifier.c_str()), "RECREATE");
+
 
   // Write histograms to output and clean memory
   for (short etabin = 0; etabin < numetabins; etabin++) {

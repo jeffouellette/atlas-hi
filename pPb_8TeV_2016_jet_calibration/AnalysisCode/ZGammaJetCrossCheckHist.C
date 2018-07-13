@@ -212,18 +212,24 @@ void ZGammaJetCrossCheckHist () {
 
          TH2F* temp = (TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, etabin, error.c_str()));
          zeeJetHists[periodType][etabin][0][errType]->Add(temp);
+         zeeJetHists[periodType][numetabins][0][errType]->Add(temp);
          temp = (TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, act_etabin, error.c_str()));
          zeeJetHists[2][etabin][0][errType]->Add(temp);
+         zeeJetHists[2][numetabins][0][errType]->Add(temp);
 
          temp = (TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, etabin, error.c_str()));
          zmumuJetHists[periodType][etabin][0][errType]->Add(temp);
+         zmumuJetHists[periodType][numetabins][0][errType]->Add(temp);
          temp = (TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, act_etabin, error.c_str()));
          zmumuJetHists[2][etabin][0][errType]->Add(temp);
+         zmumuJetHists[2][numetabins][0][errType]->Add(temp);
 
          temp = (TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, etabin, error.c_str()));
          gJetHists[periodType][etabin][0][errType]->Add(temp);
+         gJetHists[periodType][numetabins][0][errType]->Add(temp);
          temp = (TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, act_etabin, error.c_str()));
          gJetHists[2][etabin][0][errType]->Add(temp);
+         gJetHists[2][numetabins][0][errType]->Add(temp);
 
          //zmumuJetHists[periodType][etabin][0][errType]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, etabin, error.c_str())));
          //zmumuJetHists[2][etabin][0][errType]->Add((TH2F*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_hist%i_data_%s", runNumber, act_etabin, error.c_str())));
