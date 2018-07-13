@@ -40,7 +40,7 @@ class Trigger {
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, int lRN=0, int uRN=INT_MAX, int thisMinPt=0) {
+Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, int lRN=0, int uRN=10000000, int thisMinPt=0) {
     name = thisname;
     threshold_pt = thisThresholdPt;
     min_pt = thisMinPt;
@@ -59,7 +59,7 @@ Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau,
  * Creates a Trigger object. By default, the maximum momentum and branching index are both 0. It is
  * expected that these values will be nonzero by the time the object is used purposefully.
  */
-Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, bool thisdisabled, int lRN=0, int uRN=INT_MAX, int thisMinPt=0) {
+Trigger::Trigger(string thisname, int thisThresholdPt, double etal, double etau, bool thisdisabled, int lRN=0, int uRN=10000000, int thisMinPt=0) {
     name = thisname;
     threshold_pt = thisThresholdPt;
     min_pt = thisMinPt;

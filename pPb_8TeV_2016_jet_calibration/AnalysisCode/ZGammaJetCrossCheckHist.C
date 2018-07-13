@@ -156,12 +156,6 @@ void ZGammaJetCrossCheckHist () {
      zMassSpectra[spcType][dType][etabin]->Sumw2();
      zMassSpectra_AllSigns[spcType][dType][etabin] = new TH1F(Form("z%sMassSpectrum_AllSigns_%s_etabin%i", species.c_str(), dataType.c_str(), etabin), "", 50, 60, 110);
      zMassSpectra_AllSigns[spcType][dType][etabin]->Sumw2();
-     //if (etabin == 0) {
-     // zMassSpectra[spcType][dType][numetabins] = new TH1F(Form("z%sMassSpectrum_%s", species.c_str(), dataType.c_str()), "", 50, 60, 110);
-     // zMassSpectra[spcType][dType][numetabins]->Sumw2();
-     // zMassSpectra_AllSigns[spcType][dType][numetabins] = new TH1F(Form("z%sMassSpectrum_AllSigns_%s", species.c_str(), dataType.c_str()), "", 50, 60, 110);
-     // zMassSpectra_AllSigns[spcType][dType][numetabins]->Sumw2();
-     //}
     }
    }
   }
