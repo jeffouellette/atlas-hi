@@ -45,33 +45,33 @@ root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (314170, 4.92, false, false
 wait
 
 # gamma+jet pp sample with pPb data overlay
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423100.Slice1.pPb_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423101.Slice2.pPb_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423102.Slice3.pPb_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.401.mc15_8TeV.423103.Slice4.pPb_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423104.Slice5.pPb_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423105.Slice6.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423100.Slice1.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423101.Slice2.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423102.Slice3.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423103.Slice4.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423104.Slice5.pPb_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423105.Slice6.pPb_myOutput.root")'&
 
 wait
 
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423100.Slice1.Pbp_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423101.Slice2.Pbp_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423102.Slice3.Pbp_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423103.Slice4.Pbp_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423104.Slice5.Pbp_myOutput.root")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.400.mc15_8TeV.423105.Slice6.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423100.Slice1.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423101.Slice2.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423102.Slice3.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423103.Slice4.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423104.Slice5.Pbp_myOutput.root")'&
+root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, false, "user.jeouelle.2.4.30hi.calibcheck.500.mc15_8TeV.423105.Slice6.Pbp_myOutput.root")'&
 
 wait
 
-# validation signal-only gamma+jet sample (period A only!)
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423100.Slice1.pPb")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423101.Slice2.pPb")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423102.Slice3.pPb")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423103.Slice4.pPb")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423104.Slice5.pPb")'&
-root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423105.Slice6.pPb")'&
-
-wait
+## validation signal-only gamma+jet sample (period A only!)
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (1, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423100.Slice1.pPb")'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (2, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423101.Slice2.pPb")'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (3, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423102.Slice3.pPb")'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (4, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423103.Slice4.pPb")'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (5, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423104.Slice5.pPb")'&
+#root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (6, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.valid.420.mc15_8TeV.423105.Slice6.pPb")'&
+#
+#wait
 
 # Zmumu (data overlay) and Zee (signal only) samples for period A
 root -l -b -q '../AnalysisCode/ZGammaJetCrossCheck.C (0, 0, true, true, "user.jeouelle.2.4.30hi.calibcheck.410.mc15_8TeV.361107.ZmumuJet.pPb_myOutput.root")'&

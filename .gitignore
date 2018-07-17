@@ -8,6 +8,7 @@ pPb_8TeV_2016_dijetAnalysis/data/*
 pPb_8TeV_2016_dijetAnalysis/rootFiles/*
 pPb_8TeV_2016_dijetAnalysis/HepData*
 pPb_8TeV_2016_dijetAnalysis/Slides*
+pPb_8TeV_2016_dijetAnalysis/Derivation/*.root
 
 # 2017 pp run
 pp_5TeV_2017_offlineElectronAnalysis/Data/

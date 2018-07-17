@@ -1,5 +1,8 @@
 #include "../Params.C"
 #include "../../Initialization.C"
+#include "../RooZfit.C"
+
+//using namespace RooFit;
 
 TH1D* GetProfileX(const TString name, TH2F* hist, const int nbinsx, const double* xbins, const bool useFit) {
   TH1D* prof = new TH1D(name, "", nbinsx, xbins);
@@ -13,7 +16,7 @@ TH1D* GetProfileX(const TString name, TH2F* hist, const int nbinsx, const double
    for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
     if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
 
-   if (useFit && useGaussian && numNonzeroBins > 3) {
+   if (useFit && useGaussian && numNonzeroBins > 4) {
     TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
     projy->Fit(gaus, "Q0R");
     mean = gaus->GetParameter(1);
@@ -21,7 +24,7 @@ TH1D* GetProfileX(const TString name, TH2F* hist, const int nbinsx, const double
     chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
     if (gaus) delete gaus;
    }
-   if (!useGaussian || !useFit || chi_square > 1.0) {
+   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
     mean = projy->GetMean();
     mean_err = projy->GetMeanError();
    }
@@ -43,7 +46,7 @@ TH1D* GetDataOverMC(const TString name, TH2F* data, TH2F* mc, const int numxbins
    for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
     if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
 
-   if (useFit && useGaussian && numNonzeroBins > 3) {
+   if (useFit && useGaussian && numNonzeroBins > 4) {
     TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
     projy->Fit(gaus, "Q0R");
     dataAvg = gaus->GetParameter(1);
@@ -51,7 +54,7 @@ TH1D* GetDataOverMC(const TString name, TH2F* data, TH2F* mc, const int numxbins
     chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
     if (gaus) delete gaus;
    }
-   if (!useGaussian || !useFit || chi_square > 1.0) {
+   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
     dataAvg = projy->GetMean();
     dataErr = projy->GetMeanError();
    }
@@ -64,7 +67,7 @@ TH1D* GetDataOverMC(const TString name, TH2F* data, TH2F* mc, const int numxbins
    for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
     if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
 
-   if (useFit && useGaussian && numNonzeroBins > 3) {
+   if (useFit && useGaussian && numNonzeroBins > 4) {
     TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
     projy->Fit(gaus, "Q0R");
     mcAvg = gaus->GetParameter(1);
@@ -72,7 +75,7 @@ TH1D* GetDataOverMC(const TString name, TH2F* data, TH2F* mc, const int numxbins
     chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
     if (gaus) delete gaus;
    }
-   if (!useGaussian || !useFit || chi_square > 1.0) {
+   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
     mcAvg = projy->GetMean();
     mcErr = projy->GetMeanError();
    }
@@ -388,14 +391,18 @@ void ZGammaJetCrossCheckHist () {
   TLine* glines[8] = {};
   TLine* xlines[8] = {};
   for (short i = 0; i < 8; i++) {
-   zlines[i] = new TLine(pzbins[0], 0.8+0.2*i, pzbins[numpzbins], 0.8+0.2*i);
-   glines[i] = new TLine(pgammabins[0], 0.8+0.2*i, pgammabins[numpgammabins], 0.8+0.2*i);
-   xlines[i] = new TLine(xjrefbins[0], 0.8+0.2*i, xjrefbins[numxjrefbins], 0.8+0.2*i);
-   int style = 3;
-   if (0.8+0.2*i == 1) style = 1;
-   zlines[i]->SetLineStyle(style);
-   glines[i]->SetLineStyle(style);
-   xlines[i]->SetLineStyle(style);
+   const float dz = 0.1;
+   const float dg = 0.1;
+   const float dx = 0.2;
+   zlines[i] = new TLine(pzbins[0], 0.8+dz*i, pzbins[numpzbins], 0.8+dz*i);
+   glines[i] = new TLine(pgammabins[0], 0.8+dg*i, pgammabins[numpgammabins], 0.8+dg*i);
+   xlines[i] = new TLine(xjrefbins[0], 0.8+dx*i, xjrefbins[numxjrefbins], 0.8+dx*i);
+   if (0.8+dz*i == 1) zlines[i]->SetLineStyle(1);
+   else zlines[i]->SetLineStyle(3);
+   if (0.8+dg*i == 1) glines[i]->SetLineStyle(1);
+   else glines[i]->SetLineStyle(3);
+   if (0.8+dx*i == 1) xlines[i]->SetLineStyle(1);
+   else xlines[i]->SetLineStyle(3);
   }
 
 
@@ -483,12 +490,14 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_rat_sys->SetFillStyle(3001);
 
     vJetHist_rat->SetYTitle("Data / MC");
+    //vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
     vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
     vJetHist_rat->GetYaxis()->SetNdivisions(405);
     vJetHist_rat->GetXaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTitleOffset(1);
     vJetHist_rat->GetYaxis()->SetTitleOffset(dPadY);
+    vJetHist_rat->GetYaxis()->CenterTitle(true);
     vJetHist_rat->GetXaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTickLength(0.08);
@@ -573,12 +582,14 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_rat_sys->SetFillStyle(3001);
 
     vJetHist_rat->SetYTitle("Data / MC");
+    //vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
     vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
     vJetHist_rat->GetYaxis()->SetNdivisions(405);
     vJetHist_rat->GetXaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTitleOffset(1);
     vJetHist_rat->GetYaxis()->SetTitleOffset(dPadY);
+    vJetHist_rat->GetYaxis()->CenterTitle(true);
     vJetHist_rat->GetXaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTickLength(0.08);
@@ -691,6 +702,7 @@ void ZGammaJetCrossCheckHist () {
     vJetHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTitleOffset(1);
     vJetHist_rat->GetYaxis()->SetTitleOffset(dPadY);
+    vJetHist_rat->GetYaxis()->CenterTitle(true);
     vJetHist_rat->GetXaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetLabelSize(0.04/dPadY);
     vJetHist_rat->GetXaxis()->SetTickLength(0.08);
@@ -843,6 +855,7 @@ void ZGammaJetCrossCheckHist () {
      vJetHist->GetYaxis()->SetTitleSize(0.04/dPadY);
      vJetHist->GetXaxis()->SetTitleOffset(1);
      vJetHist->GetYaxis()->SetTitleOffset(1.1*dPadY);
+     vJetHist->GetYaxis()->CenterTitle(true);
      vJetHist->GetXaxis()->SetLabelSize(0.04/dPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/dPadY);
      vJetHist->GetXaxis()->SetTickLength(0.08);
@@ -907,13 +920,15 @@ void ZGammaJetCrossCheckHist () {
 
     bottomPad->cd();
     rmsHist->SetXTitle("#it{p}_{T}^{jet} #left[GeV#right]");
-    rmsHist->SetYTitle("RMS(#sigma)/#it{p}_{T}^{jet}");
+    //rmsHist->SetYTitle("RMS(#sigma)/#it{p}_{T}^{jet}");
+    rmsHist->SetYTitle("RMS");
     rmsHist->SetAxisRange(0, 0.09, "Y");
     rmsHist->GetYaxis()->SetNdivisions(405);
     rmsHist->GetXaxis()->SetTitleSize(0.04/dPadY);
     rmsHist->GetYaxis()->SetTitleSize(0.04/dPadY);
     rmsHist->GetXaxis()->SetTitleOffset(1);
     rmsHist->GetYaxis()->SetTitleOffset(1.1*dPadY);
+    rmsHist->GetYaxis()->CenterTitle(true);
     rmsHist->GetXaxis()->SetLabelSize(0.04/dPadY);
     rmsHist->GetYaxis()->SetLabelSize(0.04/dPadY);
     rmsHist->GetXaxis()->SetTickLength(0.08);
@@ -948,6 +963,7 @@ void ZGammaJetCrossCheckHist () {
     double sigma[2] = {};
     double sigma_err[2] = {};
     TF1* fits[2];
+    //RooZfit* fits[2];
     for (short dType = 0; dType < 2; dType++) {
      TH1F* thisHist = zMassSpectra[species][dType][etabin];
      Color_t color = (dType==0 ? data_color : mc_color);
@@ -960,6 +976,21 @@ void ZGammaJetCrossCheckHist () {
      thisHist->SetMarkerColor(color);
      thisHist->GetXaxis()->SetNdivisions(50802, false);
      thisHist->Scale(1.0, "width");
+
+     //TF1* gausFit = new TF1(Form("fit_guess_species%i_dType%i", species, dType), "gaus(0)", Z_mass - 10, Z_mass + 10);
+     //thisHist->Fit(gausFit, "R", "L");
+     //double m = gausFit->GetParameter(1);
+     //double s = gausFit->GetParameter(2);
+     //const double scale = 1.0 / thisHist->Integral(thisHist->FindBin(m-Z_mass_fitNsigma*s), thisHist->FindBin(m+Z_mass_fitNsigma*s));
+     //thisHist->Scale(scale);
+     
+     //RooZfit* fit = new RooZfit(thisHist, color);
+     //fits[dType] = fit;
+
+     //mean[dType] = fit->mean->getVal();
+     //mean_err[dType] = fit->mean->getError();
+     //sigma[dType] = fit->sigma->getVal();
+     //sigma_err[dType] = fit->sigma->getError();
 
      TF1* fit = new TF1(Form("fit_guess_species%i_dType%i", species, dType), "gaus(0)", Z_mass - 10, Z_mass + 10);
      thisHist->Fit(fit, "R", "L");
@@ -1017,6 +1048,7 @@ void ZGammaJetCrossCheckHist () {
     thisHist->GetYaxis()->SetTitleSize(0.04/dPadY);
     thisHist->GetXaxis()->SetTitleOffset(1);
     thisHist->GetYaxis()->SetTitleOffset(1.1*dPadY);
+    thisHist->GetYaxis()->CenterTitle(true);
     thisHist->GetXaxis()->SetLabelSize(0.04/dPadY);
     thisHist->GetYaxis()->SetLabelSize(0.04/dPadY);
     thisHist->SetLineColor(kBlack);

@@ -117,6 +117,18 @@ static double* logspace (double lo, double hi, int num) {
 
 
 /**
+ * Returns the equivalent angle in the range 0 to 2pi.
+ */
+static float InTwoPi (float phi) {
+  while (phi < 0 || 2*pi <= phi) {
+   if (phi < 0) phi += 2*pi;
+   else phi -= 2*pi;
+  }
+  return phi;
+}
+
+
+/**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
 static void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo) {

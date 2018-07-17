@@ -111,12 +111,6 @@ void ZGammaJetCrossCheck (const int dataSet,
   TreeVariables* t = new TreeVariables(tree);
   t->SetBranchAddresses(isMC);
 
-  //if (!isMC) tree->SetBranchAddress("eventNumber", &eventNumber);
-  //tree->SetBranchAddress("nvert", &nvert);
-  //tree->SetBranchAddress("vert_z", &vert_z);
-  //tree->SetBranchAddress("vert_ntrk", &vert_ntrk);
-  //tree->SetBranchAddress("vert_type", &vert_type);
-
   if (!isMC) {
    for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
     Trigger* temp = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerMinPtCuts[electronTriggerN], -2.47, 2.47);
@@ -145,42 +139,6 @@ void ZGammaJetCrossCheck (const int dataSet,
     tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(temp->m_trig_prescale));
    }
   } // end branch triggers
-  //else {
-  // tree->SetBranchAddress("EventWeight", &eventWeight);
-  //}
-
-  //tree->SetBranchAddress("jet_n", &jet_n);
-  //tree->SetBranchAddress("xcalib_etajes_jet_pt", &jet_pt);
-  //tree->SetBranchAddress("xcalib_etajes_jet_eta", &jet_eta);
-  //tree->SetBranchAddress("xcalib_etajes_jet_phi", &jet_phi);
-  //tree->SetBranchAddress("xcalib_etajes_jet_e", &jet_e);
-
-  //tree->SetBranchAddress("electron_n", &electron_n);
-  //tree->SetBranchAddress("electron_pt", &electron_pt);
-  //tree->SetBranchAddress("electron_eta", &electron_eta);
-  //tree->SetBranchAddress("electron_phi", &electron_phi);
-  //tree->SetBranchAddress("electron_charge", &electron_charge);
-  //tree->SetBranchAddress("electron_tight", &electron_tight);
-  //tree->SetBranchAddress("electron_loose", &electron_loose);
-
-  //tree->SetBranchAddress("muon_n", &muon_n);
-  //tree->SetBranchAddress("muon_pt", &muon_pt);
-  //tree->SetBranchAddress("muon_eta", &muon_eta);
-  //tree->SetBranchAddress("muon_phi", &muon_phi);
-  //tree->SetBranchAddress("muon_charge", &muon_charge);
-  //tree->SetBranchAddress("muon_quality", &muon_quality);
-  //tree->SetBranchAddress("muon_tight", &muon_tight);
-  //tree->SetBranchAddress("muon_loose", &muon_loose);
-
-  //tree->SetBranchAddress("photon_n", &photon_n);
-  //tree->SetBranchAddress("photon_pt", &photon_pt);
-  //tree->SetBranchAddress("photon_eta", &photon_eta);
-  //tree->SetBranchAddress("photon_phi", &photon_phi);
-  //tree->SetBranchAddress("photon_tight", &photon_tight);
-  //tree->SetBranchAddress("photon_isem", &photon_isem);
-  //tree->SetBranchAddress("photon_convFlag", &photon_convFlag);
-  //tree->SetBranchAddress("photon_Rconv", &photon_Rconv);
-  //tree->SetBranchAddress("photon_topoetcone40", &photon_topoetcone40);
 
   // initialize histograms
   TH2F* zeeJetHists[3][numetabins];
@@ -259,15 +217,20 @@ void ZGammaJetCrossCheck (const int dataSet,
          TMath::Abs(t->electron_eta->at(e1)) < 1.52) ||
         2.47 < TMath::Abs(t->electron_eta->at(e1)))
      continue;
+    //if (1.37 < TMath::Abs(t->electron_eta->at(e1)))
+    // continue;
     for (int e2 = 0; e2 < e1; e2++) { 
      if (t->electron_pt->at(e2) < electron_pt_cut) continue;
      if ((1.37 < TMath::Abs(t->electron_eta->at(e2)) &&
           TMath::Abs(t->electron_eta->at(e2)) < 1.52) ||
-         2.47 < TMath::Abs(t->electron_eta->at(e2))) continue;
+         2.47 < TMath::Abs(t->electron_eta->at(e2)))
+      continue;
+     //if (1.37 < TMath::Abs(t->electron_eta->at(e2)))
+     // continue;
 
      TLorentzVector electron1, electron2;
-     electron1.SetPtEtaPhiM(t->electron_pt->at(e1), t->electron_eta->at(e1), t->electron_phi->at(e1), electron_mass);
-     electron2.SetPtEtaPhiM(t->electron_pt->at(e2), t->electron_eta->at(e2), t->electron_phi->at(e2), electron_mass);
+     electron1.SetPtEtaPhiM(t->electron_pt->at(e1), t->electron_eta->at(e1), InTwoPi(t->electron_phi->at(e1)), electron_mass);
+     electron2.SetPtEtaPhiM(t->electron_pt->at(e2), t->electron_eta->at(e2), InTwoPi(t->electron_phi->at(e2)), electron_mass);
      const int le = (t->electron_pt->at(e1) > t->electron_pt->at(e2) ? e1 : e2);
      const float leading_electron_pt = t->electron_pt->at(le);
      const float leading_electron_eta = t->electron_eta->at(le);
@@ -277,15 +240,15 @@ void ZGammaJetCrossCheck (const int dataSet,
       Trigger* electronTrigger = NULL;
       for (Trigger* trig : electronTriggers) {
        if (trig->m_trig_prescale > 0 &&
-           trig->min_pt <= leading_electron_pt &&
-           leading_electron_pt <= trig->max_pt &&
-           trig->lower_eta <= leading_electron_eta &&
-           leading_electron_eta <= trig->upper_eta)
+           (electronTrigger == NULL ||
+            (trig->m_trig_prescale < electronTrigger->m_trig_prescale &&
+             trig->min_pt <= leading_electron_pt &&
+             leading_electron_pt <= trig->max_pt)))
         electronTrigger = trig;
       }
       if (electronTrigger == NULL ||
-         !(electronTrigger->m_trig_bool) ||
-         electronTrigger->m_trig_prescale <= 0.)
+          !(electronTrigger->m_trig_bool) ||
+          electronTrigger->m_trig_prescale <= 0.)
        continue;
       prescale = electronTrigger->m_trig_prescale;
      }
@@ -296,8 +259,10 @@ void ZGammaJetCrossCheck (const int dataSet,
      const TLorentzVector Z = electron1 + electron2;
      const float Z_pt = Z.Pt(); 
      const float Z_eta = Z.Eta();
-     const float Z_phi = Z.Phi();
+     const float Z_phi = InTwoPi(Z.Phi());
      const float Z_m = Z.M();
+
+     if (Z_pt < Z_pt_cut) continue; // pt cut on Z bosons
 
      // find the 2 highest pt jets
      int leading_jet = -1;
@@ -326,10 +291,17 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      const float leading_jet_pt = t->jet_pt->at(leading_jet);
      const float leading_jet_eta = t->jet_eta->at(leading_jet);
-     const float leading_jet_phi = t->jet_phi->at(leading_jet);
+     const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
+
+     // Reject event on additional HEC cuts
+     if (lowerPhiCut < leading_jet_phi &&
+         leading_jet_phi < upperPhiCut &&
+         lowerEtaCut < leading_jet_eta &&
+         leading_jet_eta < upperEtaCut)
+      continue;
 
      const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_phi->at(subleading_jet) : 0);
+     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
 
      // Calculate opening angle in the transverse plane
      float dPhi = TMath::Abs(leading_jet_phi - Z_phi);
@@ -386,8 +358,8 @@ void ZGammaJetCrossCheck (const int dataSet,
      if (2.4 < TMath::Abs(t->muon_eta->at(m2))) continue;
 
      TLorentzVector muon1, muon2;
-     muon1.SetPtEtaPhiM(t->muon_pt->at(m1), t->muon_eta->at(m1), t->muon_phi->at(m1), muon_mass);
-     muon2.SetPtEtaPhiM(t->muon_pt->at(m2), t->muon_eta->at(m2), t->muon_phi->at(m2), muon_mass);
+     muon1.SetPtEtaPhiM(t->muon_pt->at(m1), t->muon_eta->at(m1), InTwoPi(t->muon_phi->at(m1)), muon_mass);
+     muon2.SetPtEtaPhiM(t->muon_pt->at(m2), t->muon_eta->at(m2), InTwoPi(t->muon_phi->at(m2)), muon_mass);
      const int lm = (t->muon_pt->at(m1) > t->muon_pt->at(m2) ? m1 : m2);
      const float leading_muon_pt = t->muon_pt->at(lm);
      const float leading_muon_eta = t->muon_eta->at(lm);
@@ -398,13 +370,12 @@ void ZGammaJetCrossCheck (const int dataSet,
       for (Trigger* trig : muonTriggers) {
        if (trig->m_trig_prescale > 0 &&
            trig->min_pt <= leading_muon_pt &&
-           leading_muon_pt <= trig->max_pt &&
-           trig->lower_eta <= leading_muon_eta &&
-           leading_muon_eta <= trig->upper_eta)
+           leading_muon_pt <= trig->max_pt)
         muonTrigger = trig;
       }
       if (muonTrigger == NULL ||
-         !(muonTrigger->m_trig_bool))
+          !(muonTrigger->m_trig_bool) ||
+          muonTrigger->m_trig_prescale <= 0)
        continue;
       prescale = muonTrigger->m_trig_prescale;
      }
@@ -417,8 +388,10 @@ void ZGammaJetCrossCheck (const int dataSet,
      const TLorentzVector Z = muon1 + muon2;
      const float Z_pt = Z.Pt(); 
      const float Z_eta = Z.Eta();
-     const float Z_phi = Z.Phi();
+     const float Z_phi = InTwoPi(Z.Phi());
      const float Z_m = Z.M();
+
+     if (Z_pt < Z_pt_cut) continue; // pt cut on Z bosons
 
      // find the 2 highest pt jets
      int leading_jet = -1;
@@ -446,10 +419,17 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      const float leading_jet_pt = t->jet_pt->at(leading_jet);
      const float leading_jet_eta = t->jet_eta->at(leading_jet);
-     const float leading_jet_phi = t->jet_phi->at(leading_jet);
+     const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
+
+     // Reject event on additional HEC cuts
+     if (lowerPhiCut < leading_jet_phi &&
+         leading_jet_phi < upperPhiCut &&
+         lowerEtaCut < leading_jet_eta &&
+         leading_jet_eta < upperEtaCut)
+      continue;
 
      const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_phi->at(subleading_jet) : 0);
+     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
 
      // Calculate opening angle in the transverse plane
      float dPhi = TMath::Abs(leading_jet_phi - Z_phi);
@@ -506,7 +486,7 @@ void ZGammaJetCrossCheck (const int dataSet,
     TLorentzVector photon;
     const float this_photon_pt = t->photon_pt->at(p);
     const float this_photon_eta = t->photon_eta->at(p);
-    const float this_photon_phi = t->photon_phi->at(p);
+    const float this_photon_phi = InTwoPi(t->photon_phi->at(p));
     photon.SetPtEtaPhiM(this_photon_pt, this_photon_eta, this_photon_phi, 0);
 
     if ((1.37 < TMath::Abs(this_photon_eta) &&
@@ -543,7 +523,7 @@ void ZGammaJetCrossCheck (const int dataSet,
     TLorentzVector jet_tlv;
     for (int jet = 0; jet < t->jet_n; jet++) {
       jet_tlv.SetPtEtaPhiE(t->jet_pt->at(jet), t->jet_eta->at(jet), t->jet_phi->at(jet), t->jet_e->at(jet));
-      if (jet_tlv.DeltaR(photon) < 0.6) continue;
+      if (jet_tlv.DeltaR(photon) < 0.4) continue;
 
       if (leading_jet == -1 ||
           t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
@@ -563,10 +543,17 @@ void ZGammaJetCrossCheck (const int dataSet,
 
     const float leading_jet_pt = t->jet_pt->at(leading_jet);
     const float leading_jet_eta = t->jet_eta->at(leading_jet);
-    const float leading_jet_phi = t->jet_phi->at(leading_jet);
+    const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
+
+    // Reject event on additional HEC cuts
+    if (lowerPhiCut < leading_jet_phi &&
+        leading_jet_phi < upperPhiCut &&
+        lowerEtaCut < leading_jet_eta &&
+        leading_jet_eta < upperEtaCut)
+     continue;
 
     const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-    const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_phi->at(subleading_jet) : 0);
+    const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
 
     if (leading_jet_eta < etabins[0] ||
         leading_jet_eta > etabins[numetabins])
