@@ -2,48 +2,6 @@
 #include "../../Initialization.C"
 #include "../TreeVariables.C"
 
-//int eventNumber = 0;
-//double eventWeight = 0;
-//
-//int nvert = 0;
-//vector<float>* vert_z = NULL;
-//vector<int>* vert_ntrk = NULL;
-//vector<int>* vert_type = NULL;
-//
-//int jet_n = 0; 
-//vector<float>* jet_pt = NULL;
-//vector<float>* jet_eta = NULL;
-//vector<float>* jet_phi = NULL;
-//vector<float>* jet_e = NULL;
-//vector<float>* init_jet_pt = NULL;
-//
-//int muon_n = 0;
-//vector<float>* muon_pt = NULL;
-//vector<float>* muon_eta = NULL;
-//vector<float>* muon_phi = NULL;
-//vector<int>* muon_quality = NULL;
-//vector<int>* muon_charge = NULL;
-//vector<bool>* muon_tight = NULL;
-//vector<bool>* muon_loose = NULL;
-//
-//int electron_n = 0;
-//vector<float>* electron_pt = NULL;
-//vector<float>* electron_eta = NULL;
-//vector<float>* electron_phi = NULL;
-//vector<int>* electron_charge = NULL;
-//vector<bool>* electron_loose = NULL;
-//vector<bool>* electron_tight = NULL;
-//
-//int photon_n = 0;
-//vector<float>* photon_pt = NULL;
-//vector<float>* photon_eta = NULL;
-//vector<float>* photon_phi = NULL;
-//vector<bool>* photon_tight = NULL;
-//vector<unsigned int>* photon_isem = NULL;
-//vector<int>* photon_convFlag = NULL;
-//vector<float>* photon_Rconv = NULL;
-//vector<float>* photon_topoetcone40 = NULL;
-
 static const short electronTrigLength = 3;
 static const char* electronTriggerNames[electronTrigLength] = {
  "HLT_e20_lhloose",
@@ -51,7 +9,7 @@ static const char* electronTriggerNames[electronTrigLength] = {
  "HLT_e24_lhloose"
 };
 static const float electronTriggerMinPtCuts[electronTrigLength] = {20, 22, 24};
-static const float electronTriggerMaxPtCuts[electronTrigLength] = {8000, 8000, 8000};
+static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000, 100000, 100000};
 
 static const short muonTrigLength = 3;
 static const char* muonTriggerNames[muonTrigLength] = {
@@ -61,7 +19,7 @@ static const char* muonTriggerNames[muonTrigLength] = {
  "HLT_mu20_L1MU15"
 };
 static const float muonTriggerMinPtCuts[muonTrigLength] = {15, 18, 20};
-static const float muonTriggerMaxPtCuts[muonTrigLength] = {18, 20, 8000};
+static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000, 100000, 100000};
 
 static const short photonTrigLength = 7;
 static const char* photonTriggerNames[photonTrigLength] = {
@@ -76,9 +34,6 @@ static const char* photonTriggerNames[photonTrigLength] = {
 static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40, 65};
 static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 65, 8000};
 
-//vector<Trigger*> electronTriggers = {};
-//vector<Trigger*> muonTriggers = {};
-//vector<Trigger*> photonTriggers = {};
 
 /**
  * Calculates the delta R between two 4-vectors given their eta, phi coordinates.

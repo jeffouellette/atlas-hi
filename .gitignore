@@ -2,6 +2,7 @@
 *.DS_Store
 *.swp
 cernvm3-micro-2.8-6.iso
+*.key
 
 # 2016 pPb dijets
 pPb_8TeV_2016_dijetAnalysis/data/*
@@ -9,6 +10,10 @@ pPb_8TeV_2016_dijetAnalysis/rootFiles/*
 pPb_8TeV_2016_dijetAnalysis/HepData*
 pPb_8TeV_2016_dijetAnalysis/Slides*
 pPb_8TeV_2016_dijetAnalysis/Derivation/*.root
+pPb_8TeV_2016_dijetAnalysis/Plots
+
+# 2016 pPb data overlay
+pPb_8TeV_2016_dijetAnalysis/Validation/*.pdf
 
 # 2017 pp run
 pp_5TeV_2017_offlineElectronAnalysis/Data/
@@ -25,3 +30,29 @@ pPb_8TeV_2016_jet_calibration/Plots/PeriodA/pref_slices
 pPb_8TeV_2016_jet_calibration/Plots/PeriodB/pref_slices
 pPb_8TeV_2016_jet_calibration/Plots/PeriodAB/pref_slices
 pPb_8TeV_2016_jet_calibration/Slides*
+
+# Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
+
+# PDF files in top-level directory
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.pdf
+# PDF files produced by epstopdf
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*-eps-converted-to.pdf
+
+# Generic files to ignore
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.aux
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.bcf
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.bbl
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*-blx.bib
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.blg
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/.*.lb
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.fdb_latexmk
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.fls
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.lof
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.log
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.lot
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.out
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.run.xml
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.spl
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.synctex.gz
+pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.toc
+

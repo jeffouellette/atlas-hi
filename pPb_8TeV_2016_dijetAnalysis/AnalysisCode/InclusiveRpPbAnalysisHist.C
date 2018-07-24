@@ -1,6 +1,6 @@
-#include "IdealRpPbAnalysis.C"
+#include "InclusiveRpPbAnalysis.C"
 
-void IdealRpPbAnalysisHist() {
+void InclusiveRpPbAnalysisHist() {
 
   TH1D** ppHistArr = setupPPConfiguration(); // creates the pp histograms and setups the relevant environment variables
 

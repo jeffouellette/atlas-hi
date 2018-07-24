@@ -9,18 +9,6 @@ vector<Trigger*> photonTriggers = {};
 
 bool isPeriodA = false;
 
-double deltaR (const double eta1, const double eta2, const double phi1, const double phi2 ) {
-
- double deta = eta1 - eta2;
- double dphi = phi1 - phi2;
-
- if (dphi < -pi) dphi += 2*pi;
- if (dphi > pi) dphi -= 2*pi;
-
- return sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
-
-}
-
 
 double GetXCalibSystematicError(const double jpt, const double jeta) {
   TFile* file = xCalibSystematicsFile;
@@ -53,6 +41,31 @@ double GetNewXCalibSystematicError(const double jeta, const double refpt) {
 }
 
 
+string GetIdentifier (const int dataSet, const bool isMC, const bool isValidationSample, const bool periodA) {
+  if (!isMC) return to_string(dataSet);
+  string id = "";
+  if (isPeriodA) id = "Pbp_";
+  else id = "pPb_";
+  if (dataSet > 0) { // true for GammaJet samples
+   if (isValidationSample) id = id + "Valid_";
+   else id = id + "Overlay_";
+   id = id + "GammaJet_Slice" + to_string(dataSet);
+  }
+  else {
+   if (dataSet == 0) { // true for Zmumu samples
+    id = id + "ZmumuJet";
+   }
+   else if (dataSet == -6) { // true for Zee overlay samples
+    id = id + "ZeeJet_Overlay";
+   }
+   else { // true for Zee signal-only samples
+    id = id + "ZeeJet_Slice" + to_string(-dataSet);
+   }
+  }
+  return id;
+}
+
+
 void ZGammaJetCrossCheck (const int dataSet,
                           const double luminosity = 0,
                           const bool isMC, 
@@ -66,7 +79,7 @@ void ZGammaJetCrossCheck (const int dataSet,
   else isPeriodA = isMCperiodAflag;
 
   const bool isValidationSample = isMC && (TString(inFileName).Contains("valid") || TString(inFileName).Contains("Zee"));
-  const string identifier = (isMC ? (string(isMCperiodAflag ? "pPb_":"Pbp_") + (dataSet > 0 ? (string(isValidationSample ? "Valid_":"Overlay_") + "GammaJet_Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet":(string("ZeeJet")+to_string(-dataSet))))) : to_string(dataSet));
+  const string identifier = GetIdentifier(dataSet, isMC, isValidationSample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
@@ -117,8 +130,8 @@ void ZGammaJetCrossCheck (const int dataSet,
     temp->min_pt = electronTriggerMinPtCuts[electronTriggerN];
     temp->max_pt = electronTriggerMaxPtCuts[electronTriggerN];
     electronTriggers.push_back(temp);
-    tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(temp->m_trig_bool));
-    tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(temp->m_trig_prescale));
+    tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(temp->trigBool));
+    tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(temp->trigPrescale));
    }
 
    for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
@@ -126,8 +139,8 @@ void ZGammaJetCrossCheck (const int dataSet,
     temp->min_pt = muonTriggerMinPtCuts[muonTriggerN];
     temp->max_pt = muonTriggerMaxPtCuts[muonTriggerN];
     muonTriggers.push_back(temp);
-    tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(temp->m_trig_bool));
-    tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(temp->m_trig_prescale));
+    tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(temp->trigBool));
+    tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(temp->trigPrescale));
    }
 
    for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
@@ -135,8 +148,8 @@ void ZGammaJetCrossCheck (const int dataSet,
     temp->min_pt = photonTriggerMinPtCuts[photonTriggerN];
     temp->max_pt = photonTriggerMaxPtCuts[photonTriggerN];
     photonTriggers.push_back(temp);
-    tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(temp->m_trig_bool));
-    tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(temp->m_trig_prescale));
+    tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(temp->trigBool));
+    tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(temp->trigPrescale));
    }
   } // end branch triggers
 
@@ -149,6 +162,8 @@ void ZGammaJetCrossCheck (const int dataSet,
   TH2F* gJetHistsSys[3][numetabins];
   TH1F* zMassSpectra[2][numetabins+1];
   TH1F* zMassSpectra_AllSigns[2][numetabins+1];
+  TH1F* electronEnergyScale = new TH1F(Form("electronEnergyScale_dataSet%s", identifier.c_str()), "", 200, 0, 2);
+  electronEnergyScale->Sumw2();
   for (short etabin = 0; etabin < numetabins; etabin++) {
    for (short errType = 0; errType < 3; errType++) {
     string error = "sys_lo";
@@ -191,8 +206,8 @@ void ZGammaJetCrossCheck (const int dataSet,
    }
   }
 
-  int Zee_n[numetabins] = {};
-  int Zmumu_n[numetabins] = {};
+  int Zee_n[numetabins+1] = {};
+  int Zmumu_n[numetabins+1] = {};
   int g_n[numetabins] = {};
 
   xCalibSystematicsFile = new TFile((rootPath + "cc_sys_090816.root").c_str(), "READ");
@@ -205,7 +220,7 @@ void ZGammaJetCrossCheck (const int dataSet,
    tree->GetEntry(entry);
 
    // basic event selection: require a primary vertex
-   if ((t->nvert == 0) || (t->nvert > 0 && t->vert_type->at(0) != 1)) continue;
+   //if ((t->nvert <= 0) || (t->nvert >= 2 && t->vert_type->at(1) != 1)) continue;
 
    // reject events with less than 2 muons, 2 electrons AND 1 photon
    if (t->photon_n < 1 && t->muon_n < 2 && t->electron_n < 2) continue;
@@ -213,24 +228,33 @@ void ZGammaJetCrossCheck (const int dataSet,
    // Z + jet -> e- + e+ + jet events
    for (int e1 = 0; e1 < t->electron_n; e1++) {
     if (t->electron_pt->at(e1) < electron_pt_cut) continue;
-    if ((1.37 < TMath::Abs(t->electron_eta->at(e1)) &&
-         TMath::Abs(t->electron_eta->at(e1)) < 1.52) ||
-        2.47 < TMath::Abs(t->electron_eta->at(e1)))
-     continue;
-    //if (1.37 < TMath::Abs(t->electron_eta->at(e1)))
-    // continue;
+    if (!InEMCal (t->electron_eta->at(e1))) continue;
+    if (!t->electron_loose->at(e1)) continue;
+
+    // fill the electron energy scale plot first, finding the truth-reco pair
+    if (isMC && t->truth_electron_n > 0) {
+     int closestEl = (e1 < t->truth_electron_n ? e1:t->truth_electron_n-1); // best initial guess
+     
+     double minDeltaR = DeltaR (t->electron_eta->at(e1), t->truth_electron_eta->at(closestEl), t->electron_phi->at(e1), t->truth_electron_phi->at(closestEl));
+     for (int e2 = 0; e2 < t->truth_electron_n; e2++) {
+      if (t->electron_charge->at(e1) != t->truth_electron_charge->at(e2)) continue;
+      const double dR = DeltaR (t->electron_eta->at(e1), t->truth_electron_eta->at(e2), t->electron_phi->at(e1), t->truth_electron_phi->at(e2));
+      if (dR < minDeltaR) {
+       closestEl = e2;
+       minDeltaR = dR;
+      }
+     }
+     electronEnergyScale->Fill (t->electron_pt->at(e1) / t->truth_electron_pt->at(closestEl));//, t->eventWeight);
+    }
+
     for (int e2 = 0; e2 < e1; e2++) { 
      if (t->electron_pt->at(e2) < electron_pt_cut) continue;
-     if ((1.37 < TMath::Abs(t->electron_eta->at(e2)) &&
-          TMath::Abs(t->electron_eta->at(e2)) < 1.52) ||
-         2.47 < TMath::Abs(t->electron_eta->at(e2)))
-      continue;
-     //if (1.37 < TMath::Abs(t->electron_eta->at(e2)))
-     // continue;
+     if (!InEMCal (t->electron_eta->at(e2))) continue;
+     if (!t->electron_loose->at(e2)) continue;
 
      TLorentzVector electron1, electron2;
-     electron1.SetPtEtaPhiM(t->electron_pt->at(e1), t->electron_eta->at(e1), InTwoPi(t->electron_phi->at(e1)), electron_mass);
-     electron2.SetPtEtaPhiM(t->electron_pt->at(e2), t->electron_eta->at(e2), InTwoPi(t->electron_phi->at(e2)), electron_mass);
+     electron1.SetPtEtaPhiM (t->electron_pt->at(e1), t->electron_eta->at(e1), InTwoPi (t->electron_phi->at(e1)), 0);//electron_mass);
+     electron2.SetPtEtaPhiM (t->electron_pt->at(e2), t->electron_eta->at(e2), InTwoPi (t->electron_phi->at(e2)), 0);//electron_mass);
      const int le = (t->electron_pt->at(e1) > t->electron_pt->at(e2) ? e1 : e2);
      const float leading_electron_pt = t->electron_pt->at(le);
      const float leading_electron_eta = t->electron_eta->at(le);
@@ -239,23 +263,21 @@ void ZGammaJetCrossCheck (const int dataSet,
      if (!isMC) {
       Trigger* electronTrigger = NULL;
       for (Trigger* trig : electronTriggers) {
-       if (trig->m_trig_prescale > 0 &&
+       if (trig->trigPrescale > 0 &&
            (electronTrigger == NULL ||
-            (trig->m_trig_prescale < electronTrigger->m_trig_prescale &&
+            (trig->trigPrescale < electronTrigger->trigPrescale &&
              trig->min_pt <= leading_electron_pt &&
              leading_electron_pt <= trig->max_pt)))
         electronTrigger = trig;
       }
       if (electronTrigger == NULL ||
-          !(electronTrigger->m_trig_bool) ||
-          electronTrigger->m_trig_prescale <= 0.)
+          !electronTrigger->trigBool ||
+          electronTrigger->trigPrescale <= 0.)
        continue;
-      prescale = electronTrigger->m_trig_prescale;
+      prescale = electronTrigger->trigPrescale;
      }
      else prescale = t->eventWeight;
 
-     if (!(t->electron_loose->at(e1) && t->electron_loose->at(e2)))
-      continue; // electron quality criteria
      const TLorentzVector Z = electron1 + electron2;
      const float Z_pt = Z.Pt(); 
      const float Z_eta = Z.Eta();
@@ -264,21 +286,29 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      if (Z_pt < Z_pt_cut) continue; // pt cut on Z bosons
 
+     //zMassSpectra_AllSigns[1][numetabins]->Fill(Z_m, prescale);
+     if (t->electron_charge->at(e1) == t->electron_charge->at(e2)) continue;
+
+     zMassSpectra[1][numetabins]->Fill(Z_m, prescale);
+     Zee_n[numetabins]++;
+
      // find the 2 highest pt jets
      int leading_jet = -1;
      int subleading_jet = -1;
-     TLorentzVector jet_tlv;
      for (int jet = 0; jet < t->jet_n; jet++) {
-      jet_tlv.SetPtEtaPhiE(t->jet_pt->at(jet), t->jet_eta->at(jet), t->jet_phi->at(jet), t->jet_e->at(jet));
-      if (jet_tlv.DeltaR(electron1) < 0.2 || jet_tlv.DeltaR(electron2) < 0.2)
+      if (DeltaR (t->electron_eta->at(e1), t->jet_eta->at(jet), t->electron_phi->at(e1), t->jet_phi->at(jet)) < 0.2 ||
+          DeltaR (t->electron_eta->at(e2), t->jet_eta->at(jet), t->electron_phi->at(e2), t->jet_phi->at(jet)) < 0.2)
        continue; // jet isolation criteria
-      if (leading_jet == -1 ||
-          t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
-       subleading_jet = leading_jet;
+      else if (leading_jet == -1 ||
+               t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
+       if (leading_jet == -1 || !InDisabledHEC (t->jet_eta->at(leading_jet), t->jet_phi->at(leading_jet)))
+        subleading_jet = leading_jet;
        leading_jet = jet;
       }
-      else if (subleading_jet == -1 ||
-               t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) {
+      // Exclude subleading jets in the HEC
+      else if ((subleading_jet == -1 ||
+                t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) &&
+               !InDisabledHEC (t->jet_eta->at(jet), t->jet_phi->at(jet))) {
        subleading_jet = jet;
       }
      }
@@ -291,75 +321,72 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      const float leading_jet_pt = t->jet_pt->at(leading_jet);
      const float leading_jet_eta = t->jet_eta->at(leading_jet);
-     const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
+     const float leading_jet_phi = InTwoPi (t->jet_phi->at(leading_jet));
 
      // Reject event on additional HEC cuts
-     if (lowerPhiCut < leading_jet_phi &&
-         leading_jet_phi < upperPhiCut &&
-         lowerEtaCut < leading_jet_eta &&
-         leading_jet_eta < upperEtaCut)
+     if (InDisabledHEC (leading_jet_eta, leading_jet_phi)) continue;
+
+     // Make sure jet is in eta bounds
+     if (leading_jet_eta < etabins[0] ||
+         leading_jet_eta > etabins[numetabins])
       continue;
+     // Put the jet in the right eta bin
+     short etabin = 0;
+     while (etabins[etabin] < leading_jet_eta) etabin++;
+     etabin--;
 
      const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
+     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi (t->jet_phi->at(subleading_jet)) : 0);
 
      // Calculate opening angle in the transverse plane
-     float dPhi = TMath::Abs(leading_jet_phi - Z_phi);
-     while (dPhi > pi) dPhi = TMath::Abs(dPhi - 2*pi);
+     const float dPhi = DeltaPhi (leading_jet_phi, Z_phi);
      // cut on Z+jet samples not back-to-back in the transverse plane
      if (dPhi < 7*pi/8) continue;
 
      // Determine if the opening angle between the subleading jet and the Z
      // gives a non-vanishing pt ratio
      if (subleading_jet_pt > 12) {
-      float subleading_dPhi = TMath::Abs(subleading_jet_phi - Z_phi);
-      while (subleading_dPhi > pi) subleading_dPhi = TMath::Abs(subleading_dPhi - 2*pi);
+      const float subleading_dPhi = DeltaPhi (subleading_jet_phi, Z_phi);
       if (subleading_jet_pt / (Z_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
+      //if (subleading_jet_pt * TMath::Cos(pi - subleading_dPhi) / Z_pt > 0.2)
        continue; // suppress dijets
      }
   
-     // Make sure the jet is within the relevant bounds
-     if (leading_jet_eta < etabins[0] ||
-         leading_jet_eta > etabins[numetabins])
-      continue;
-     // Put the jet in the right eta bin
-     int etabin = 0;
-     while (etabins[etabin] < leading_jet_eta) etabin++;
-     etabin--;
+     //zMassSpectra_AllSigns[1][etabin]->Fill(Z_m, prescale);
+     //if (t->electron_charge->at(e1) == t->electron_charge->at(e2)) continue;
 
-     zMassSpectra_AllSigns[1][etabin]->Fill(Z_m, prescale);
-     zMassSpectra_AllSigns[1][numetabins]->Fill(Z_m, prescale);
-
-     if (t->electron_charge->at(e1) == t->electron_charge->at(e2)) continue;
-
-     zMassSpectra[1][etabin]->Fill(Z_m, prescale);
-     zMassSpectra[1][numetabins]->Fill(Z_m, prescale);
+     zMassSpectra[1][etabin]->Fill (Z_m, prescale);
      Zee_n[etabin]++;
 
      if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
       continue; // cut on our sample Z boson mass
 
-     const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
+     const float leading_jet_pt_err = GetXCalibSystematicError (leading_jet_pt, leading_jet_eta);
      const float ptref = Z_pt * TMath::Cos(pi - dPhi);
      const float ptratio[3] = {leading_jet_pt-leading_jet_pt_err, leading_jet_pt, leading_jet_pt+leading_jet_pt_err};
    
      //for (short errType = 0; errType < 3; errType++) zeeJetHists[errType][etabin]->Fill(Z_pt, ptratio[errType]/ptref, prescale);
-     for (short errType = 0; errType < 3; errType++) zeeJetHists[errType][etabin]->Fill(ptref, ptratio[errType]/ptref, prescale);
+     for (short errType = 0; errType < 3; errType++)
+      zeeJetHists[errType][etabin]->Fill (ptref, ptratio[errType]/ptref, prescale);
      //for (short errType = 0; errType < 3; errType++) zeeJetHistsSys[errType][etabin]->Fill(leading_jet_pt, ptratio[errType]/ptref, prescale);
     }
    } // end loop over electron pairs
-    // end Z->ee type events
+   // end Z->ee type events
 
+   // Z->mumu + jet type events
    for (int m1 = 0; m1 < t->muon_n; m1++) {
     if (t->muon_pt->at(m1) < muon_pt_cut) continue;
-    if (2.4 < TMath::Abs(t->muon_eta->at(m1))) continue;
+    if (!t->muon_loose->at(m1)) continue;
+    if (2.4 < abs(t->muon_eta->at(m1))) continue;
+
     for (int m2 = 0; m2 < m1; m2++) {
      if (t->muon_pt->at(m2) < muon_pt_cut) continue; 
-     if (2.4 < TMath::Abs(t->muon_eta->at(m2))) continue;
+     if (!t->muon_loose->at(m2)) continue;
+     if (2.4 < abs(t->muon_eta->at(m2))) continue;
 
      TLorentzVector muon1, muon2;
-     muon1.SetPtEtaPhiM(t->muon_pt->at(m1), t->muon_eta->at(m1), InTwoPi(t->muon_phi->at(m1)), muon_mass);
-     muon2.SetPtEtaPhiM(t->muon_pt->at(m2), t->muon_eta->at(m2), InTwoPi(t->muon_phi->at(m2)), muon_mass);
+     muon1.SetPtEtaPhiM (t->muon_pt->at(m1), t->muon_eta->at(m1), InTwoPi (t->muon_phi->at(m1)), muon_mass);
+     muon2.SetPtEtaPhiM (t->muon_pt->at(m2), t->muon_eta->at(m2), InTwoPi (t->muon_phi->at(m2)), muon_mass);
      const int lm = (t->muon_pt->at(m1) > t->muon_pt->at(m2) ? m1 : m2);
      const float leading_muon_pt = t->muon_pt->at(lm);
      const float leading_muon_eta = t->muon_eta->at(lm);
@@ -368,83 +395,65 @@ void ZGammaJetCrossCheck (const int dataSet,
      if (!isMC) {
       Trigger* muonTrigger = NULL;
       for (Trigger* trig : muonTriggers) {
-       if (trig->m_trig_prescale > 0 &&
-           trig->min_pt <= leading_muon_pt &&
-           leading_muon_pt <= trig->max_pt)
+       if (trig->trigPrescale > 0 &&
+           (muonTrigger == NULL ||
+            (trig->trigPrescale < muonTrigger->trigPrescale &&
+             trig->min_pt <= leading_muon_pt &&
+             leading_muon_pt <= trig->max_pt)))
         muonTrigger = trig;
       }
       if (muonTrigger == NULL ||
-          !(muonTrigger->m_trig_bool) ||
-          muonTrigger->m_trig_prescale <= 0)
+          !muonTrigger->trigBool ||
+          muonTrigger->trigPrescale <= 0.)
        continue;
-      prescale = muonTrigger->m_trig_prescale;
+      prescale = muonTrigger->trigPrescale;
      }
      else prescale = t->eventWeight;
-
-     //if (!(t->muon_tight->at(m1) || t->muon_tight->at(m2))) continue;
-     if (!(t->muon_loose->at(m1) && t->muon_loose->at(m2)))
-      continue; // muon quality criteria
 
      const TLorentzVector Z = muon1 + muon2;
      const float Z_pt = Z.Pt(); 
      const float Z_eta = Z.Eta();
-     const float Z_phi = InTwoPi(Z.Phi());
+     const float Z_phi = InTwoPi (Z.Phi());
      const float Z_m = Z.M();
 
      if (Z_pt < Z_pt_cut) continue; // pt cut on Z bosons
 
+     //zMassSpectra_AllSigns[0][numetabins]->Fill(Z_m, prescale);
+
+     if (t->muon_charge->at(m1) == t->muon_charge->at(m2)) continue;
+
+     zMassSpectra[0][numetabins]->Fill (Z_m, prescale);
+     Zmumu_n[numetabins]++;
+
      // find the 2 highest pt jets
      int leading_jet = -1;
      int subleading_jet = -1;
-     TLorentzVector jet_tlv;
      for (int jet = 0; jet < t->jet_n; jet++) {
-      jet_tlv.SetPtEtaPhiE(t->jet_pt->at(jet), t->jet_eta->at(jet), t->jet_phi->at(jet), t->jet_e->at(jet));
-      if (jet_tlv.DeltaR(muon1) < 0.2 || jet_tlv.DeltaR(muon2) < 0.2)
+      if (DeltaR (t->muon_eta->at(m1), t->jet_eta->at(jet), t->muon_phi->at(m1), t->jet_phi->at(jet)) < 0.2 ||
+          DeltaR (t->muon_eta->at(m2), t->jet_eta->at(jet), t->muon_phi->at(m2), t->jet_phi->at(jet)) < 0.2)
        continue; // jet isolation criteria
-      if (leading_jet == -1 ||
-          t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
-       subleading_jet = leading_jet;
+      else if (leading_jet == -1 ||
+               t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
+       if (leading_jet == -1 || !InDisabledHEC (t->jet_eta->at(leading_jet), t->jet_phi->at(leading_jet)))
+        subleading_jet = leading_jet;
        leading_jet = jet;
       }
-      else if (subleading_jet == -1 ||
-               t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) {
+      // Exclude subleading jets in the HEC
+      else if ((subleading_jet == -1 ||
+               t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) &&
+               !InDisabledHEC (t->jet_eta->at(jet), t->jet_phi->at(jet))) {
        subleading_jet = jet;
       }
      }
      // true iff no jet is isolated enough from the muons
      if (leading_jet == -1) continue;
 
-     // exclude uncorrected jets with pt < 20 GeV
-     //if (init_jet_pt->at(leading_jet) < 20) continue;
-
      const float leading_jet_pt = t->jet_pt->at(leading_jet);
      const float leading_jet_eta = t->jet_eta->at(leading_jet);
-     const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
+     const float leading_jet_phi = InTwoPi (t->jet_phi->at(leading_jet));
 
      // Reject event on additional HEC cuts
-     if (lowerPhiCut < leading_jet_phi &&
-         leading_jet_phi < upperPhiCut &&
-         lowerEtaCut < leading_jet_eta &&
-         leading_jet_eta < upperEtaCut)
-      continue;
-
-     const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
-
-     // Calculate opening angle in the transverse plane
-     float dPhi = TMath::Abs(leading_jet_phi - Z_phi);
-     while (dPhi > pi) dPhi = TMath::Abs(dPhi - 2*pi);
-     // cut on Z+jet samples not back-to-back in the transverse plane
-     if (dPhi < 7*pi/8) continue;
-
-     // Determine if the opening angle between the subleading jet and the Z
-     // gives a non-vanishing pt ratio
-     if (subleading_jet_pt > 12) {
-      float subleading_dPhi = TMath::Abs(subleading_jet_phi - Z_phi);
-      while (subleading_dPhi > pi) subleading_dPhi = TMath::Abs(subleading_dPhi - 2*pi);
-      if (subleading_jet_pt / (Z_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
-       continue; // suppress dijets
-     }
+     if (InDisabledHEC (leading_jet_eta, leading_jet_phi)) continue;
 
      // Make sure the jet is within the relevant bounds
      if (leading_jet_eta < etabins[0] ||
@@ -455,62 +464,50 @@ void ZGammaJetCrossCheck (const int dataSet,
      while (etabins[etabin] < leading_jet_eta) etabin++;
      etabin--;
 
-     zMassSpectra_AllSigns[0][etabin]->Fill(Z_m, prescale);
-     zMassSpectra_AllSigns[0][numetabins]->Fill(Z_m, prescale);
+     const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
+     const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
 
-     if (t->muon_charge->at(m1) == t->muon_charge->at(m2)) continue;
+     // Calculate opening angle in the transverse plane
+     const float dPhi = DeltaPhi (leading_jet_phi, Z_phi);
+     // cut on Z+jet samples not back-to-back in the transverse plane
+     if (dPhi < 7*pi/8) continue;
+
+     // Determine if the opening angle between the subleading jet and the Z
+     // gives a non-vanishing pt ratio
+     if (subleading_jet_pt > 12) {
+      const float subleading_dPhi = DeltaPhi (subleading_jet_phi, Z_phi);
+      if (subleading_jet_pt / (Z_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
+      //if (subleading_jet_pt * TMath::Cos(pi - subleading_dPhi) / Z_pt > 0.2)
+       continue; // suppress dijets
+     }
 
      zMassSpectra[0][etabin]->Fill(Z_m, prescale);
-     zMassSpectra[0][numetabins]->Fill(Z_m, prescale);
      Zmumu_n[etabin]++;
 
      if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
       continue; // cut on our sample Z boson mass
 
-     const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
+     const float leading_jet_pt_err = GetXCalibSystematicError (leading_jet_pt, leading_jet_eta);
      const float ptref = Z_pt * TMath::Cos(pi - dPhi);
      const float ptratio[3] = {leading_jet_pt-leading_jet_pt_err, leading_jet_pt, leading_jet_pt+leading_jet_pt_err};
 
      //for (short errType = 0; errType < 3; errType++)
      // zmumuJetHists[errType][etabin]->Fill(Z_pt, ptratio[errType]/ptref, prescale);
      for (short errType = 0; errType < 3; errType++)
-      zmumuJetHists[errType][etabin]->Fill(ptref, ptratio[errType]/ptref, prescale);
+      zmumuJetHists[errType][etabin]->Fill (ptref, ptratio[errType]/ptref, prescale);
      //for (short errType = 0; errType < 3; errType++)
      // zmumuJetHistsSys[errType][etabin]->Fill(leading_jet_pt, ptratio[errType]/ptref, prescale);
     }
    } // end loop over muon pairs
-    // end Z->mumu type events
+   // end Z->mumu type events
 
+   // photon + jet type events
    for (int p = 0; p < t->photon_n; p++) {
-
     TLorentzVector photon;
     const float this_photon_pt = t->photon_pt->at(p);
     const float this_photon_eta = t->photon_eta->at(p);
     const float this_photon_phi = InTwoPi(t->photon_phi->at(p));
-    photon.SetPtEtaPhiM(this_photon_pt, this_photon_eta, this_photon_phi, 0);
-
-    if ((1.37 < TMath::Abs(this_photon_eta) &&
-         TMath::Abs(this_photon_eta) < 1.52) ||
-        2.37 < TMath::Abs(this_photon_eta))
-     continue;
-    //if (1.37 < TMath::Abs(this_photon_eta))
-    // continue;
-
-    float prescale = 1;
-    if (!isMC) {
-     Trigger* photonTrigger = NULL;
-     for (Trigger* trig : photonTriggers) {
-      if (trig->m_trig_prescale > 0 &&
-          trig->min_pt <= this_photon_pt &&
-          this_photon_pt <= trig->max_pt)
-       photonTrigger = trig;
-     }
-     if (photonTrigger == NULL ||
-         !(photonTrigger->m_trig_bool))
-      continue;
-     prescale = photonTrigger->m_trig_prescale;
-    }
-    else prescale = t->eventWeight;
+    photon.SetPtEtaPhiM (this_photon_pt, this_photon_eta, this_photon_phi, 0);
 
     if (!t->photon_tight->at(p))
      continue; // require tight cuts on photons
@@ -518,64 +515,54 @@ void ZGammaJetCrossCheck (const int dataSet,
     if (t->photon_topoetcone40->at(p) > isolationEnergyIntercept + isolationEnergySlope*this_photon_pt)
      continue; // require maximum isolation energy on gammas
 
+    if (!InEMCal (this_photon_eta) || InDisabledHEC (this_photon_eta, this_photon_phi))
+     continue;
+
+    float prescale = 1;
+    if (!isMC) {
+     Trigger* photonTrigger = NULL;
+     for (Trigger* trig : photonTriggers) {
+      if (trig->trigPrescale > 0 &&
+          trig->min_pt <= this_photon_pt &&
+          this_photon_pt <= trig->max_pt)
+       photonTrigger = trig;
+     }
+     if (photonTrigger == NULL ||
+         !photonTrigger->trigBool)
+      continue;
+     prescale = photonTrigger->trigPrescale;
+    }
+    else prescale = t->eventWeight;
+
     int leading_jet = -1;
     int subleading_jet = -1;
-    TLorentzVector jet_tlv;
     for (int jet = 0; jet < t->jet_n; jet++) {
-      jet_tlv.SetPtEtaPhiE(t->jet_pt->at(jet), t->jet_eta->at(jet), t->jet_phi->at(jet), t->jet_e->at(jet));
-      if (jet_tlv.DeltaR(photon) < 0.4) continue;
-
-      if (leading_jet == -1 ||
-          t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
+     if (DeltaR (this_photon_eta, t->jet_eta->at(jet), this_photon_phi, t->jet_phi->at(jet)) < 0.4) continue;
+     else if (leading_jet == -1 ||
+         t->jet_pt->at(leading_jet) < t->jet_pt->at(jet)) {
+      if (leading_jet == -1 || !InDisabledHEC (t->jet_eta->at(leading_jet), t->jet_phi->at(leading_jet)))
        subleading_jet = leading_jet;
-       leading_jet = jet;
-      }
-      else if (subleading_jet == -1 ||
-               t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) {
-       subleading_jet = jet;
-      }
+      leading_jet = jet;
+     }
+     // Exclude subleading jets in the HEC
+     else if ((subleading_jet == -1 ||
+              t->jet_pt->at(subleading_jet) < t->jet_pt->at(jet)) &&
+              !InDisabledHEC (t->jet_eta->at(jet), t->jet_phi->at(jet))) {
+      subleading_jet = jet;
+     }
     }
 
     // true iff there are no jets
     if (leading_jet == -1) continue;
-    // exclude uncorrected jets with pt < 20 GeV
-    //if (init_jet_pt->at(leading_jet) < 20) continue;
 
     const float leading_jet_pt = t->jet_pt->at(leading_jet);
     const float leading_jet_eta = t->jet_eta->at(leading_jet);
     const float leading_jet_phi = InTwoPi(t->jet_phi->at(leading_jet));
 
     // Reject event on additional HEC cuts
-    if (lowerPhiCut < leading_jet_phi &&
-        leading_jet_phi < upperPhiCut &&
-        lowerEtaCut < leading_jet_eta &&
-        leading_jet_eta < upperEtaCut)
-     continue;
+    if (InDisabledHEC (leading_jet_eta, leading_jet_phi)) continue;
 
-    const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
-    const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
-
-    if (leading_jet_eta < etabins[0] ||
-        leading_jet_eta > etabins[numetabins])
-     continue;
-
-    // Calculate opening angle in the transverse plane
-    float dPhi = TMath::Abs(leading_jet_phi - this_photon_phi);
-    while (dPhi > pi) dPhi = TMath::Abs(dPhi - 2*pi);
-    // cut on gamma+jet samples not back-to-back in the transverse plane
-    if (dPhi < 7*pi/8) continue;
-
-    // Determine if the opening angle between the subleading jet and the Z
-    // gives a non-vanishing pt ratio
-    if (subleading_jet_pt > 12) {
-     float subleading_dPhi = TMath::Abs(subleading_jet_phi - this_photon_phi);
-     while (subleading_dPhi > pi)
-      subleading_dPhi = TMath::Abs(subleading_dPhi - 2*pi);
-     if (subleading_jet_pt / (this_photon_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
-      continue; // suppress dijets
-    }
-
-    // Make sure the jet is within the relevant bounds
+    // Make sure jet is in eta bounds
     if (leading_jet_eta < etabins[0] ||
         leading_jet_eta > etabins[numetabins])
      continue;
@@ -583,6 +570,24 @@ void ZGammaJetCrossCheck (const int dataSet,
     short etabin = 0;
     while (etabins[etabin] < leading_jet_eta) etabin++;
     etabin--;
+
+    const float subleading_jet_pt = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? t->jet_pt->at(subleading_jet) : 0);
+    const float subleading_jet_phi = ((subleading_jet >= 0 && subleading_jet < t->jet_n) ? InTwoPi(t->jet_phi->at(subleading_jet)) : 0);
+
+    // Calculate opening angle in the transverse plane
+    const float dPhi = DeltaPhi (leading_jet_phi, this_photon_phi);
+    // cut on gamma+jet samples not back-to-back in the transverse plane
+    if (dPhi < 7*pi/8) continue;
+
+    // Determine if the opening angle between the subleading jet and the Z
+    // gives a non-vanishing pt ratio
+    if (subleading_jet_pt > 12) {
+     const float subleading_dPhi = DeltaPhi (subleading_jet_phi, this_photon_phi);
+     if (subleading_jet_pt / (this_photon_pt * TMath::Cos(pi - subleading_dPhi)) > 0.1)
+     //if (subleading_jet_pt * TMath::Cos(pi - subleading_dPhi) / this_photon_pt > 0.2)
+     //if (subleading_jet_pt / this_photon_pt > 0.02)
+      continue; // suppress dijets
+    }
 
     const float leading_jet_pt_err = GetXCalibSystematicError(leading_jet_pt, leading_jet_eta);
     const float ptref = this_photon_pt * TMath::Cos(pi - dPhi);
@@ -653,16 +658,18 @@ void ZGammaJetCrossCheck (const int dataSet,
     }
    }
   }
+  electronEnergyScale->Write();
+  if (electronEnergyScale) delete electronEnergyScale;
 
-  TVectorD infoVec(2+3*numetabins);
+  TVectorD infoVec(2+3*(numetabins+1));
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
-  for (short etabin = 0; etabin < numetabins; etabin++)
+  for (short etabin = 0; etabin <= numetabins; etabin++)
    infoVec[2+etabin] = (double)Zee_n[etabin];
+  for (short etabin = 0; etabin <= numetabins; etabin++)
+   infoVec[2+(numetabins+1)+etabin] = (double)Zmumu_n[etabin];
   for (short etabin = 0; etabin < numetabins; etabin++)
-   infoVec[2+numetabins+etabin] = (double)Zmumu_n[etabin];
-  for (short etabin = 0; etabin < numetabins; etabin++)
-   infoVec[2+2*numetabins+etabin] = (double)g_n[etabin];
+   infoVec[2+2*(numetabins+1)+etabin] = (double)g_n[etabin];
   infoVec.Write(Form("infoVec_%s", identifier.c_str()));
   outFile->Close();
   if (outFile) delete outFile;

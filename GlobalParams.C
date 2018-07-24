@@ -1,3 +1,7 @@
+//#include <TMath.h>
+//#include <TH1.h>
+//#include <TGraphAsymmErrors.h>
+
 /**
  * Contains useful variables and directory information for 2016 pPb data analyses.
  * Author: Jeff Ouellette
@@ -46,9 +50,10 @@ int numtrigs = 0; // Total number of triggers
 static const double Z = 82;   // value of Z for Pb
 static const double A = 208;  // value of A for Pb
 static const double sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
-static const double electron_mass = 0.000511; // GeV
-static const double muon_mass = 0.105658; // GeV
-static const double Z_mass = 91.2; // GeV
+static const double electron_mass = 0.000511; // mass of the electron in GeV
+static const double muon_mass = 0.105658; // mass of the muon in GeV
+static const double Z_mass = 91.2; // mass of the Z in GeV
+static const double Z_width = 2.4952; // width of the Z peak in GeV
 
 static const double pi = TMath::Pi();
 
@@ -119,12 +124,50 @@ static double* logspace (double lo, double hi, int num) {
 /**
  * Returns the equivalent angle in the range 0 to 2pi.
  */
-static float InTwoPi (float phi) {
+static double InTwoPi (double phi) {
   while (phi < 0 || 2*pi <= phi) {
    if (phi < 0) phi += 2*pi;
    else phi -= 2*pi;
   }
   return phi;
+}
+
+
+/**
+ * Returns the difference between two angles in 0 to pi.
+ */
+static double DeltaPhi (double phi1, double phi2) {
+  phi1 = InTwoPi(phi1);
+  phi2 = InTwoPi(phi2);
+  double dphi = abs(phi1 - phi2);
+  while (dphi > pi) dphi = abs(dphi - 2*pi);
+  return dphi;
+}
+
+
+/**
+ * Returns dR between two eta, phi coordinates.
+ */
+static double DeltaR (const double eta1, const double eta2, const double phi1, const double phi2 ) {
+ const double deta = eta1 - eta2;
+ const double dphi = DeltaPhi(phi1, phi2);
+ return sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
+}
+
+
+/**
+ * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
+ */
+static bool InDisabledHEC (const float eta, const float phi) {
+  return (lowerEtaCut < eta && eta < upperEtaCut) && (lowerPhiCut < phi && phi < upperPhiCut);
+}
+
+
+/**
+ * Returns true iff this eta lies within the EMCal.
+ */
+static bool InEMCal (const float eta) {
+  return TMath::Abs(eta) < 1.37 || (1.52 < TMath::Abs(eta) && TMath::Abs(eta) < 2.37);
 }
 
 

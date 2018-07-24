@@ -25,12 +25,12 @@ struct RooZfit {
 
 RooZfit::RooZfit(TH1F* hist, Color_t color = kBlack, bool verbose = true) {
   mass = new RooRealVar("mass","m_{ee}", 60, 110, "GeV");
-  mean = new RooRealVar("mean","Zee Mass mean", 90, 85, 95);
-  sigma = new RooRealVar("sigma","Zee reco resolution", 2, 0.5, 15);
-  width = new RooRealVar("width","Zee deacy width", 1.1, 0.5, 15);
+  mean = new RooRealVar("mean","Zee Mass mean", Z_mass, 85, 95);
+  sigma = new RooRealVar("sigma","Zee reco resolution", 0.5*Z_width, 0, 10);
+  width = new RooRealVar("width","Zee decay width", Z_width, 0, 20);
 
   coeff = new RooRealVar("exp","exp", 0);
-  sigFrac = new RooRealVar("sigFrac","signal fraction", 0.5, 0, 1);
+  sigFrac = new RooRealVar("sigFrac","signal fraction", 1);
 
   model_sig = new RooVoigtian("model_sig", "sig pdf", *mass, *mean, *width, *sigma);
   model_bkg = new RooExponential("model_bkg", "bkg pdf", *mass, *coeff);

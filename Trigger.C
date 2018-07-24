@@ -27,8 +27,8 @@ class Trigger {
     bool isBootstrapped;
     Trigger* referenceTrigger;
 
-    bool m_trig_bool;
-    float m_trig_prescale;
+    bool trigBool;
+    float trigPrescale;
 
     Trigger(string, int, double, double, int, int, int);
     Trigger(string, int, double, double, bool, int, int, int);

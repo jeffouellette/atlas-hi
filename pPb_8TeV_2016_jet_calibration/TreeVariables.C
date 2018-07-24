@@ -17,6 +17,14 @@ struct TreeVariables {
    vector<float>* jet_phi = NULL;
    vector<float>* jet_e = NULL;
    vector<float>* init_jet_pt = NULL;
+
+   int truth_jet_n = 0;
+   vector<float>* truth_jet_pt = NULL;
+   vector<float>* truth_jet_eta = NULL;
+   vector<float>* truth_jet_phi = NULL;
+   vector<float>* truth_jet_e = NULL;
+   vector<unsigned int>* truth_jet_type = NULL;
+   vector<unsigned int>* truth_jet_origin = NULL;
    
    int muon_n = 0;
    vector<float>* muon_pt = NULL;
@@ -26,6 +34,14 @@ struct TreeVariables {
    vector<int>* muon_charge = NULL;
    vector<bool>* muon_tight = NULL;
    vector<bool>* muon_loose = NULL;
+
+   int truth_muon_n = 0;
+   vector<float>* truth_muon_pt = NULL;
+   vector<float>* truth_muon_eta = NULL;
+   vector<float>* truth_muon_phi = NULL;
+   vector<int>* truth_muon_charge = NULL;
+   vector<unsigned int>* truth_muon_type = NULL;
+   vector<unsigned int>* truth_muon_origin = NULL;
    
    int electron_n = 0;
    vector<float>* electron_pt = NULL;
@@ -34,6 +50,16 @@ struct TreeVariables {
    vector<int>* electron_charge = NULL;
    vector<bool>* electron_loose = NULL;
    vector<bool>* electron_tight = NULL;
+   vector<float>* electron_d0sig = NULL;
+   vector<float>* electron_delta_z0_sin_theta = NULL;
+
+   int truth_electron_n = 0;
+   vector<float>* truth_electron_pt = NULL;
+   vector<float>* truth_electron_eta = NULL;
+   vector<float>* truth_electron_phi = NULL;
+   vector<int>* truth_electron_charge = NULL;
+   vector<unsigned int>* truth_electron_type = NULL;
+   vector<unsigned int>* truth_electron_origin = NULL;
    
    int photon_n = 0;
    vector<float>* photon_pt = NULL;
@@ -44,6 +70,13 @@ struct TreeVariables {
    vector<int>* photon_convFlag = NULL;
    vector<float>* photon_Rconv = NULL;
    vector<float>* photon_topoetcone40 = NULL;
+
+   int truth_photon_n = 0;
+   vector<float>* truth_photon_pt = NULL;
+   vector<float>* truth_photon_eta = NULL;
+   vector<float>* truth_photon_phi = NULL;
+   vector<unsigned int>* truth_photon_type = NULL;
+   vector<unsigned int>* truth_photon_origin = NULL;
 
    TreeVariables(TTree* t);
    ~TreeVariables();    
@@ -81,6 +114,11 @@ TreeVariables::~TreeVariables() {
   if (electron_charge) delete electron_charge;
   if (electron_loose) delete electron_loose;
   if (electron_tight) delete electron_tight;
+
+  if (truth_electron_pt) delete truth_electron_pt;
+  if (truth_electron_eta) delete truth_electron_eta;
+  if (truth_electron_phi) delete truth_electron_phi;
+  if (truth_electron_charge) delete truth_electron_charge;
 
   if (photon_pt) delete photon_pt;
   if (photon_eta) delete photon_eta;
@@ -124,6 +162,14 @@ void TreeVariables::SetBranchAddresses(const bool isMC) {
   tree->SetBranchAddress("electron_tight", &electron_tight);
   tree->SetBranchAddress("electron_loose", &electron_loose);
 
+  if (isMC) {
+   tree->SetBranchAddress("truth_electron_n", &truth_electron_n);
+   tree->SetBranchAddress("truth_electron_pt", &truth_electron_pt);
+   tree->SetBranchAddress("truth_electron_eta", &truth_electron_eta);
+   tree->SetBranchAddress("truth_electron_phi", &truth_electron_phi);
+   tree->SetBranchAddress("truth_electron_charge", &truth_electron_charge);
+  }
+
   tree->SetBranchAddress("muon_n", &muon_n);
   tree->SetBranchAddress("muon_pt", &muon_pt);
   tree->SetBranchAddress("muon_eta", &muon_eta);
@@ -132,6 +178,12 @@ void TreeVariables::SetBranchAddresses(const bool isMC) {
   tree->SetBranchAddress("muon_quality", &muon_quality);
   tree->SetBranchAddress("muon_tight", &muon_tight);
   tree->SetBranchAddress("muon_loose", &muon_loose);
+
+  //tree->SetBranchAddress("truth_muon_n", &muon_n);
+  //tree->SetBranchAddress("truth_muon_pt", &muon_pt);
+  //tree->SetBranchAddress("truth_muon_eta", &muon_eta);
+  //tree->SetBranchAddress("truth_muon_phi", &muon_phi);
+  //tree->SetBranchAddress("truth_muon_charge", &muon_charge);
 
   tree->SetBranchAddress("photon_n", &photon_n);
   tree->SetBranchAddress("photon_pt", &photon_pt);

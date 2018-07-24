@@ -8,7 +8,7 @@ static const bool runValidation = false; // Use validation (signal only) gamma+j
 
 static const double electron_pt_cut = 20; // Cut on electron pt
 static const double muon_pt_cut = 20; // Cut on muon pt
-static const double Z_pt_cut = 20; // Cut on Z pt
+static const double Z_pt_cut = 0; // Cut on Z pt
 static const double Z_mass_lower_cut = 25; // Cuts on invariant mass Z_mass +/- Z_mass_cut
 static const double Z_mass_upper_cut = 15;
 static const double isolationEnergyIntercept = 4.8; // Cut on photon isolation energy [GeV]

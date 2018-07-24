@@ -17,7 +17,7 @@ const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1";
 /**
  * Returns true iff trigName is already a trigger in triggerVec.
  */
-bool inTriggerVec(const string trigName) {
+bool InTriggerVec(const string trigName) {
   for (Trigger* trig : triggerVec) {
     if (trig->name == trigName) {
       return true;
@@ -31,7 +31,7 @@ bool inTriggerVec(const string trigName) {
  * Initializes triggers complete with momentum and pseudorapidity cutoffs.
  * Triggers are stored in a vector TriggerVec.
  */
-void setupTriggers (const int runNumber=0) {
+void SetupTriggers (const int runNumber=0) {
   const string triggerListTxt = "/Users/jeffouellette/Research/atlas-hi/pPbJetTriggerList.txt";
   ifstream triggerListFile (triggerListTxt.c_str());
   if (!triggerListFile.is_open()) {
@@ -66,7 +66,7 @@ void setupTriggers (const int runNumber=0) {
     *** disabled = [if this trigger is not an active physics trigger for the run]
     **/
 
-    if (!inTriggerVec(trigName)) {
+    if (!InTriggerVec(trigName)) {
       Trigger* newTrig = new Trigger(trigName, trigThresholdPt, trigLetaFloat, trigUetaFloat, !isPhysicsTrigger, trigLowerRunNumber, trigUpperRunNumber, trigThresholdPt+trigMinPt+trigThres);
       triggerVec.push_back(newTrig);
 

@@ -2,7 +2,7 @@
 #include "../../Initialization.C"
 #include "../RooZfit.C"
 
-//using namespace RooFit;
+using namespace RooFit;
 
 TH1D* GetProfileX(const TString name, TH2F* hist, const int nbinsx, const double* xbins, const bool useFit) {
   TH1D* prof = new TH1D(name, "", nbinsx, xbins);
@@ -106,10 +106,13 @@ void ZGammaJetCrossCheckHist () {
    gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
   vector<TString> zeeJetSampleIds(0);
-  for (short i = 0; i < 6; i++) {
-   zeeJetSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
-   zeeJetSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
-  }
+  //for (short i = 0; i < 6; i++) {
+  // zeeJetSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
+  // zeeJetSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
+  //}
+  zeeJetSampleIds.push_back(string("Pbp_ZeeJet_Overlay"));
+  zeeJetSampleIds.push_back(string("pPb_ZeeJet_Overlay"));
+
   vector<TString> zmumuJetSampleIds(0);
   zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
   zmumuJetSampleIds.push_back("pPb_ZmumuJet");
@@ -122,6 +125,8 @@ void ZGammaJetCrossCheckHist () {
   TH2F* gJetHistsSys[3][numetabins+1][2][3];
   TH1F* zMassSpectra[2][2][numetabins+1];
   TH1F* zMassSpectra_AllSigns[2][2][numetabins+1];
+  TH1F* electronEnergyScale = new TH1F("electronEnergyScale", ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 200, 0, 2.0);
+  electronEnergyScale->Sumw2();
 
   for (short etabin = 0; etabin <= numetabins; etabin++) {
 
@@ -157,8 +162,8 @@ void ZGammaJetCrossCheckHist () {
 
      zMassSpectra[spcType][dType][etabin] = new TH1F(Form("z%sMassSpectrum_%s_etabin%i", species.c_str(), dataType.c_str(), etabin), "", 50, 60, 110);
      zMassSpectra[spcType][dType][etabin]->Sumw2();
-     zMassSpectra_AllSigns[spcType][dType][etabin] = new TH1F(Form("z%sMassSpectrum_AllSigns_%s_etabin%i", species.c_str(), dataType.c_str(), etabin), "", 50, 60, 110);
-     zMassSpectra_AllSigns[spcType][dType][etabin]->Sumw2();
+     //zMassSpectra_AllSigns[spcType][dType][etabin] = new TH1F(Form("z%sMassSpectrum_AllSigns_%s_etabin%i", species.c_str(), dataType.c_str(), etabin), "", 50, 60, 110);
+     //zMassSpectra_AllSigns[spcType][dType][etabin]->Sumw2();
     }
    }
   }
@@ -184,23 +189,31 @@ void ZGammaJetCrossCheckHist () {
     fname = sysfile->GetName();
     if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
      if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data() << endl;
+
+     // do this if file is data
      for (int runNumber : runNumbers) { // check for data
-      if (fname.Contains(to_string(runNumber))) {
+      if (fname.Contains(to_string(runNumber))) { // if data, do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
+       const short periodType = (runNumber < 313500 ? 0 : 1);
        infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", runNumber));
 
+       Zee_n[periodType][0][numetabins] += (*infoVec)[2+numetabins];
+       Zee_n[2][0][numetabins] += (*infoVec)[2+numetabins];
+       Zmumu_n[periodType][0][numetabins] += (*infoVec)[2+(numetabins+1)+numetabins];
+       Zmumu_n[2][0][numetabins] += (*infoVec)[2+(numetabins+1)+numetabins];
        for (short etabin = 0; etabin < numetabins; etabin++) {
-        const short periodType = (runNumber < 313500 ? 0 : 1);
         const short act_etabin = (runNumber < 313500 ? (numetabins - etabin - 1) : etabin);
 
         Zee_n[periodType][0][etabin] += (*infoVec)[2+etabin];
-        Zee_n[2][0][act_etabin] += (*infoVec)[2+etabin];
-        Zmumu_n[periodType][0][etabin] += (*infoVec)[2+numetabins+etabin];
-        Zmumu_n[2][0][act_etabin] += (*infoVec)[2+numetabins+etabin];
-        g_n[periodType][0][etabin] += (*infoVec)[2+2*numetabins+etabin];
-        g_n[2][0][act_etabin] += (*infoVec)[2+2*numetabins+etabin];
+        Zee_n[2][0][etabin] += (*infoVec)[2+act_etabin];
+
+        Zmumu_n[periodType][0][etabin] += (*infoVec)[2+(numetabins+1)+etabin];
+        Zmumu_n[2][0][etabin] += (*infoVec)[2+(numetabins+1)+act_etabin];
+
+        g_n[periodType][0][etabin] += (*infoVec)[2+2*(numetabins+1)+etabin];
+        g_n[2][0][etabin] += (*infoVec)[2+2*(numetabins+1)+act_etabin];
 
         for (short errType = 0; errType < 3; errType++) {
          string error = "sys_lo";
@@ -244,10 +257,10 @@ void ZGammaJetCrossCheckHist () {
 
         for (short etabin = 0; etabin < numetabins; etabin++) {
          zMassSpectra[spcType][0][etabin]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_dataSet%i_data_etabin%i", species.c_str(), runNumber, etabin)));
-         zMassSpectra_AllSigns[spcType][0][etabin]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%i_data_etabin%i", species.c_str(), runNumber, etabin)));
+         //zMassSpectra_AllSigns[spcType][0][etabin]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%i_data_etabin%i", species.c_str(), runNumber, etabin)));
         }
         zMassSpectra[spcType][0][numetabins]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_dataSet%i_data", species.c_str(), runNumber)));
-        zMassSpectra_AllSigns[spcType][0][numetabins]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%i_data", species.c_str(), runNumber)));
+        //zMassSpectra_AllSigns[spcType][0][numetabins]->Add((TH1F*)thisFile->Get(Form("z%sMassSpectrum_AllSigns_dataSet%i_data", species.c_str(), runNumber)));
        }
 
        thisFile->Close();
@@ -255,8 +268,9 @@ void ZGammaJetCrossCheckHist () {
        break;
       }
      }
+     // do this if gamma jet MC sample
      for (TString gammaJetSampleId : gammaJetSampleIds) { // check for gamma jet MC
-      if (fname.Contains(gammaJetSampleId)) {
+      if (fname.Contains(gammaJetSampleId)) { // if gamma jet MC sample
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
@@ -266,8 +280,10 @@ void ZGammaJetCrossCheckHist () {
         const short periodType = (gammaJetSampleId.Contains("pPb") ? 0 : 1);
         const short act_etabin = (gammaJetSampleId.Contains("pPb") ? (numetabins - etabin - 1) : etabin); // period A condition
 
-        g_n[periodType][1][etabin] += (*infoVec)[2+2*numetabins+etabin];
-        g_n[2][1][act_etabin] += (*infoVec)[2+2*numetabins+etabin];
+        g_n[periodType][1][etabin] += (*infoVec)[4+2*numetabins+etabin];
+        g_n[2][1][etabin] += (*infoVec)[4+2*numetabins+act_etabin];
+        //g_n[periodType][1][numetabins] += (*infoVec)[2+2*(numetabins+1)+etabin];
+        //g_n[2][1][numetabins] += (*infoVec)[2+2*(numetabins+1)+act_etabin];
 
         // Only add the statistical error plots for MC (don't need to consider systematics)
         TH2F* temp = (TH2F*)thisFile->Get(Form("gJetPtRatio_dataSet%s_hist%i_mc_stat", gammaJetSampleId.Data(), etabin));
@@ -288,19 +304,23 @@ void ZGammaJetCrossCheckHist () {
        break;
       }
      }
+     // do this if Z->ee MC sample
      for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
-      if (fname.Contains(zeeJetSampleId)) {
+      if (fname.Contains(zeeJetSampleId)) { // if Z->ee MC do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
+       const short periodType = (zeeJetSampleId.Contains("pPb") ? 0 : 1);
        infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", zeeJetSampleId.Data()));
 
+       electronEnergyScale->Add((TH1F*)thisFile->Get(Form("electronEnergyScale_dataSet%s", zeeJetSampleId.Data())));
+       Zee_n[periodType][1][numetabins] += (*infoVec)[2+numetabins];
+       Zee_n[2][1][numetabins] += (*infoVec)[2+numetabins];
        for (short etabin = 0; etabin < numetabins; etabin++) {
-        const short periodType = (zeeJetSampleId.Contains("pPb") ? 0 : 1);
         const short act_etabin = (zeeJetSampleId.Contains("pPb") ? numetabins - etabin - 1 : etabin); // period A condition
 
         Zee_n[periodType][1][etabin] += (*infoVec)[2+etabin];
-        Zee_n[2][1][act_etabin] += (*infoVec)[2+etabin];
+        Zee_n[2][1][etabin] += (*infoVec)[2+act_etabin];
 
         // Only add the statistical error plots for MC (don't need to consider systematics)
         TH2F* temp = (TH2F*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_hist%i_mc_stat", zeeJetSampleId.Data(), etabin));
@@ -313,29 +333,32 @@ void ZGammaJetCrossCheckHist () {
 
        for (short etabin = 0; etabin < numetabins; etabin++) {
         zMassSpectra[1][1][etabin]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_dataSet%s_mc_etabin%i", zeeJetSampleId.Data(), etabin)));
-        zMassSpectra_AllSigns[1][1][etabin]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zeeJetSampleId.Data(), etabin)));
+        //zMassSpectra_AllSigns[1][1][etabin]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zeeJetSampleId.Data(), etabin)));
        }
        zMassSpectra[1][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_dataSet%s_mc", zeeJetSampleId.Data())));
-       zMassSpectra_AllSigns[1][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc", zeeJetSampleId.Data())));
+       //zMassSpectra_AllSigns[1][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zeeMassSpectrum_AllSigns_dataSet%s_mc", zeeJetSampleId.Data())));
 
        thisFile->Close();
        delete thisFile;
        break;
       }
      }
+     // do this if Z->mumu sample
      for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
-      if (fname.Contains(zmumuJetSampleId)) {
+      if (fname.Contains(zmumuJetSampleId)) { // if Z->mumu sample do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
+       const short periodType = (zmumuJetSampleId.Contains("pPb") ? 0 : 1);
        infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", zmumuJetSampleId.Data()));
 
+       Zmumu_n[periodType][1][numetabins] += (*infoVec)[3+2*numetabins];
+       Zmumu_n[2][1][numetabins] += (*infoVec)[3+2*numetabins];
        for (short etabin = 0; etabin < numetabins; etabin++) {
-        const short periodType = (zmumuJetSampleId.Contains("pPb") ? 0 : 1);
         const short act_etabin = (zmumuJetSampleId.Contains("pPb") ? numetabins - etabin - 1 : etabin); // period A condition
 
-        Zmumu_n[periodType][1][etabin] += (*infoVec)[2+numetabins+etabin];
-        Zmumu_n[2][1][act_etabin] += (*infoVec)[2+numetabins+etabin];
+        Zmumu_n[periodType][1][etabin] += (*infoVec)[2+(numetabins+1)+etabin];
+        Zmumu_n[2][1][etabin] += (*infoVec)[2+(numetabins+1)+act_etabin];
 
         // Only add the statistical error plots for MC (don't need to
         // consider systematics)
@@ -349,10 +372,10 @@ void ZGammaJetCrossCheckHist () {
 
        for (short etabin = 0; etabin < numetabins; etabin++) {
         zMassSpectra[0][1][etabin]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_dataSet%s_mc_etabin%i", zmumuJetSampleId.Data(), etabin)));
-        zMassSpectra_AllSigns[0][1][etabin]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zmumuJetSampleId.Data(), etabin)));
+        //zMassSpectra_AllSigns[0][1][etabin]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc_etabin%i", zmumuJetSampleId.Data(), etabin)));
        }
        zMassSpectra[0][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_dataSet%s_mc", zmumuJetSampleId.Data())));
-       zMassSpectra_AllSigns[0][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc", zmumuJetSampleId.Data())));
+       //zMassSpectra_AllSigns[0][1][numetabins]->Add((TH1F*)thisFile->Get(Form("zmumuMassSpectrum_AllSigns_dataSet%s_mc", zmumuJetSampleId.Data())));
 
        thisFile->Close();
        delete thisFile;
@@ -369,12 +392,12 @@ void ZGammaJetCrossCheckHist () {
   /**** Calculate total vector boson + jet counts ****/
   for (short periodType = 0; periodType < 3; periodType++) {
    for (short dType = 0; dType < 2; dType++) {
-    Zee_n[periodType][dType][numetabins] = 0;
-    Zmumu_n[periodType][dType][numetabins] = 0;
+    //Zee_n[periodType][dType][numetabins] = 0;
+    //Zmumu_n[periodType][dType][numetabins] = 0;
     g_n[periodType][dType][numetabins] = 0;
     for (short etabin = 0; etabin < numetabins; etabin++) {
-     Zee_n[periodType][dType][numetabins] += Zee_n[periodType][dType][etabin];
-     Zmumu_n[periodType][dType][numetabins] += Zmumu_n[periodType][dType][etabin];
+     //Zee_n[periodType][dType][numetabins] += Zee_n[periodType][dType][etabin];
+     //Zmumu_n[periodType][dType][numetabins] += Zmumu_n[periodType][dType][etabin];
      g_n[periodType][dType][numetabins] += g_n[periodType][dType][etabin];
     }
    }
@@ -387,21 +410,21 @@ void ZGammaJetCrossCheckHist () {
   //cout << Zmumu_n[1] << " Z(mumu)+jet candidate events in MC" << endl;
   //cout << g_n[1] << " gamma+jet candidate events in MC" << endl;
  
-  TLine* zlines[8] = {};
-  TLine* glines[8] = {};
-  TLine* xlines[8] = {};
-  for (short i = 0; i < 8; i++) {
+  TLine* zlines[5] = {};
+  TLine* glines[5] = {};
+  TLine* xlines[5] = {};
+  for (short i = 0; i < 5; i++) {
    const float dz = 0.1;
    const float dg = 0.1;
    const float dx = 0.2;
-   zlines[i] = new TLine(pzbins[0], 0.8+dz*i, pzbins[numpzbins], 0.8+dz*i);
-   glines[i] = new TLine(pgammabins[0], 0.8+dg*i, pgammabins[numpgammabins], 0.8+dg*i);
-   xlines[i] = new TLine(xjrefbins[0], 0.8+dx*i, xjrefbins[numxjrefbins], 0.8+dx*i);
-   if (0.8+dz*i == 1) zlines[i]->SetLineStyle(1);
+   zlines[i] = new TLine(pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
+   glines[i] = new TLine(pgammabins[0], 1.0-2*dg+dg*i, pgammabins[numpgammabins], 1.0-2*dg+dg*i);
+   xlines[i] = new TLine(xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
+   if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle(1);
    else zlines[i]->SetLineStyle(3);
-   if (0.8+dg*i == 1) glines[i]->SetLineStyle(1);
+   if (1.0-2*dg+dg*i == 1) glines[i]->SetLineStyle(1);
    else glines[i]->SetLineStyle(3);
-   if (0.8+dx*i == 1) xlines[i]->SetLineStyle(1);
+   if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle(1);
    else xlines[i]->SetLineStyle(3);
   }
 
@@ -560,7 +583,7 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_sys->Draw("2");
 
     myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 Data, Cross-Calib Insitu (%i events)", Zee_n[periodType][0][etabin]), 1.25, 0.04/uPadY);
-    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("MC Signal Only (%i events)", Zee_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("MC with Data Overlay (%i events)", Zee_n[periodType][1][etabin]), 1.25, 0.04/uPadY);
     if (etabin < numetabins) {
      if (periodType == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{Proton} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
      else myText(0.155, 0.1,kBlack, Form("%g < #eta_{jet}^{Lab} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
@@ -942,8 +965,8 @@ void ZGammaJetCrossCheckHist () {
 
 
   /**** delete objects ****/
-  TLine* lines[8] = {};
-  for (short i = 0; i < 8; i++) {
+  TLine* lines[5] = {};
+  for (short i = 0; i < 5; i++) {
    //if (glines[i]) delete glines[i];
    //if (zlines[i]) delete zlines[i];
    //if (xlines[i]) delete xlines[i];
@@ -956,8 +979,9 @@ void ZGammaJetCrossCheckHist () {
   /**** Plot mumu mass spectra ****/
   for (int etabin = 0; etabin <= numetabins; etabin++) {
    for (int species = 0; species < 2; species++) {
+    if (species == 1 && etabin != numetabins) continue;
     topPad->cd();
-    topPad->SetLogx();
+    topPad->SetLogx(0);
     double mean[2] = {};
     double mean_err[2] = {};
     double sigma[2] = {};
@@ -974,7 +998,7 @@ void ZGammaJetCrossCheckHist () {
      thisHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      thisHist->SetLineColor(color);
      thisHist->SetMarkerColor(color);
-     thisHist->GetXaxis()->SetNdivisions(50802, false);
+//     thisHist->GetXaxis()->SetNdivisions(50802, false);
      thisHist->Scale(1.0, "width");
 
      //TF1* gausFit = new TF1(Form("fit_guess_species%i_dType%i", species, dType), "gaus(0)", Z_mass - 10, Z_mass + 10);
@@ -983,7 +1007,7 @@ void ZGammaJetCrossCheckHist () {
      //double s = gausFit->GetParameter(2);
      //const double scale = 1.0 / thisHist->Integral(thisHist->FindBin(m-Z_mass_fitNsigma*s), thisHist->FindBin(m+Z_mass_fitNsigma*s));
      //thisHist->Scale(scale);
-     
+     //
      //RooZfit* fit = new RooZfit(thisHist, color);
      //fits[dType] = fit;
 
@@ -1017,8 +1041,9 @@ void ZGammaJetCrossCheckHist () {
     }
     for (short dType = 0; dType < 2; dType++) {
      TH1F* thisHist = zMassSpectra[species][dType][etabin];
-     if (dType == 0) thisHist->Draw("hist");
+     if (dType == 0) thisHist->Draw("p");
      else thisHist->Draw("hist same");
+     //fits[dType]->plot->Draw("same");
      fits[dType]->Draw("same");
      if (etabin < numetabins)
       myText(0.175, 0.15,kBlack, Form("%g < #eta_{jet} < %g", etabins[etabin], etabins[etabin+1]), 0.04/uPadY);
@@ -1031,7 +1056,7 @@ void ZGammaJetCrossCheckHist () {
     else if (species == 1) {
      myText(0.175, 0.88, kBlack, "Z (ee) + Jet", 0.04/uPadY);
      myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 Data (%i events)", Zee_n[2][0][etabin]), 1.25, 0.04/uPadY);
-     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("MC Signal Only (%i events)", Zee_n[2][1][etabin]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("MC with Data Overlay (%i events)", Zee_n[2][1][etabin]), 1.25, 0.04/uPadY);
     }
     myText(0.175, 0.72, kBlack, Form("m_{Z}^{data} = %.2f #pm %.2f GeV", mean[0], mean_err[0]), 0.04/uPadY);
     myText(0.175, 0.64, kBlack, Form("#sigma_{Z}^{data} = %.2f #pm %.2f GeV", sigma[0], sigma_err[0]), 0.04/uPadY);
@@ -1039,7 +1064,7 @@ void ZGammaJetCrossCheckHist () {
     myText(0.175, 0.39, kBlack, Form("#sigma_{Z}^{mc} = %.2f #pm %.2f GeV", sigma[1], sigma_err[1]), 0.04/uPadY);
 
     bottomPad->cd();
-    bottomPad->SetLogx();
+    bottomPad->SetLogx(0);
     TH1F* thisHist = (TH1F*)zMassSpectra[species][0][etabin]->Clone(Form("invMass_species%i_clone", species));
     thisHist->Divide(zMassSpectra[species][1][etabin]);
     thisHist->GetXaxis()->SetTitle("#font[12]{ll} Invariant Mass #left[GeV#right]");
@@ -1053,10 +1078,12 @@ void ZGammaJetCrossCheckHist () {
     thisHist->GetYaxis()->SetLabelSize(0.04/dPadY);
     thisHist->SetLineColor(kBlack);
     thisHist->SetMarkerColor(kBlack);
-    thisHist->SetAxisRange(0.6, 1.6, "Y");
+    //thisHist->SetAxisRange(0.6, 1.6, "Y");
+    thisHist->SetAxisRange(0.2, 2.2, "Y");
+
     thisHist->GetYaxis()->ChangeLabel(-1, -1, -1, -1, -1, -1, " ");
     thisHist->GetXaxis()->SetTickLength(0.08);
-    thisHist->GetXaxis()->SetNdivisions(50802, false);
+//    thisHist->GetXaxis()->SetNdivisions(50802, false);
     thisHist->GetYaxis()->SetNdivisions(405, false);
     thisHist->Draw("p");
     for (TLine* line : lines) line->Draw("same");
@@ -1141,6 +1168,28 @@ void ZGammaJetCrossCheckHist () {
     }
    }
   }
+
+  TCanvas* electronEnergyScaleCanvas = new TCanvas("electronEnergyScaleCanvas", "", 800, 600);
+  TH1F* thisHist = electronEnergyScale;
+  TF1* gausFit = new TF1("gausFit", "gaus(0)", 0, 2.0);
+  electronEnergyScaleCanvas->cd();
+  const float ncounts = thisHist->Integral();
+  thisHist->Scale(1./ncounts, "width");
+  thisHist->Fit(gausFit, "R", "L");
+  const float m = gausFit->GetParameter(1);
+  const float s = gausFit->GetParameter(2);
+  if (gausFit) delete gausFit;
+  gausFit = new TF1("gausFit2", "gaus(0)", m - 1.6*s, m + 1.6*s);
+  thisHist->Fit(gausFit, "R", "L");
+
+  thisHist->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+  //thisHist->SetMarkerStyle(6);
+  thisHist->Draw("e1 x0");
+  myText(0.18, 0.85, kBlack, "Electron energy scale");
+  myText(0.18, 0.78, kBlack, Form("%i electrons", (int)ncounts));
+  myText(0.18, 0.71, kBlack, Form("En. Scale = %.5f #pm %.5f", gausFit->GetParameter(1), gausFit->GetParError(1)));
+  myText(0.18, 0.64, kBlack, Form("En. Res. = %.5f #pm %.5f", gausFit->GetParameter(2), gausFit->GetParError(2)));
+  electronEnergyScaleCanvas->SaveAs(Form("%s/electronEnergyScale.pdf", plotPath.c_str()));
 
   return;
 }

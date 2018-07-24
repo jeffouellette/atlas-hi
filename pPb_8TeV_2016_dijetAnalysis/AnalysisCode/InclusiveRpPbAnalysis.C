@@ -145,8 +145,8 @@ TH1D** setupPPConfiguration() {
 }
 
 
-void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
-                       double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
+void InclusiveRpPbAnalysis(const int thisRunNumber, // Run number identifier.
+                           double luminosity) // Integrated luminosity for this run. Presumed constant over the run period.
 {
   if (skipRun(thisRunNumber)) return;
 
@@ -259,8 +259,8 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
   /**** Set branching addresses ****/
   // Create branching addresses:  
   // Create arrays to store trigger values for each event
-  //bool m_trig_bool[numtrigs];   // stores whether trigger was triggered
-  //float m_trig_prescale[numtrigs];      // stores the prescaling factor for the trigger
+  //bool trigBool[numtrigs];   // stores whether trigger was triggered
+  //float trigPrescale[numtrigs];      // stores the prescaling factor for the trigger
   // Create arrays to store jet data for each event
   int njet = 0;
   vector<float>* jet_pt = NULL;
@@ -284,7 +284,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
   tree->SetBranchAddress("nvert", &nvert);
   tree->SetBranchAddress("vert_type", &vert_type);
   for (Trigger* trig : (*triggerSubvector)) {
-    tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->m_trig_bool));
+    tree->SetBranchAddress(Form("%s", trig->name.c_str()), &(trig->trigBool));
   }
   /**** End set branch addresses ****/
 
@@ -327,7 +327,7 @@ void IdealRpPbAnalysis(const int thisRunNumber, // Run number identifier.
       if (pbin < 0 || etabin < 0 || pbin > numpbins || etabin > numetabins) continue; // this checks that the jets fall within the pt, eta bins
 
       bestTrigger = kinematicTriggerVec[pbin + etabin*numpbins];
-      if (bestTrigger == NULL || !bestTrigger->m_trig_bool) continue; // make sure we're not trying to look at a null trigger and that it actually fired, and that the jet met the minimum pt cut
+      if (bestTrigger == NULL || !bestTrigger->trigBool) continue; // make sure we're not trying to look at a null trigger and that it actually fired, and that the jet met the minimum pt cut
 
       // calculate rescaling factors to obtain a cross-section
       eff = (*triggerEfficiencyFunctions)[bestTrigger->index]->Eval(jpt);
