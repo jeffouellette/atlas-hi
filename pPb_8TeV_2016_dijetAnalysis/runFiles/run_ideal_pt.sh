@@ -44,7 +44,7 @@
 #wait
 
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (1, 1, true, true)'&
-#root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (2, 1, true, true)'&
+root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (2, 1, true, true)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (3, 1, true, true)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (4, 1, true, true)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (5, 1, true, true)'&
@@ -53,7 +53,7 @@ root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (6, 1, true, true)'&
 #wait
 
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (1, 1, true, false)'&
-#root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (2, 1, true, false)'&
+root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (2, 1, true, false)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (3, 1, true, false)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (4, 1, true, false)'&
 #root -l -b -q '../AnalysisCode/InclusiveJetAnalysis.C (5, 1, true, false)'&

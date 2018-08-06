@@ -35,7 +35,7 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
 
   /**** Set branching addresses ****/
   TreeVariables* t = new TreeVariables (tree);
-  std::set<TString> activeBranches = {"njet", "jet_pt", "jet_eta", "jet_phi", "jet_e", "truth_njet", "truth_jet_pt", "truth_jet_eta", "truth_jet_phi", "truth_jet_e", "nvert", "vert_type", "fcalA_et", "fcalC_et"};
+  std::set<TString> activeBranches = {"njet", "init_jet_pt", "init_jet_e", "xcalib_jet_pt", "xcalib_jet_eta", "xcalib_jet_phi", "xcalib_jet_e", "truth_njet", "truth_jet_pt", "truth_jet_eta", "truth_jet_phi", "truth_jet_e", "nvert", "vert_type", "fcalA_et", "fcalC_et"};
   t->SetBranchAddresses(isMC, activeBranches);
   if (!isMC) {
     for (Trigger* trig : (*triggerSubvector)) {
@@ -47,26 +47,33 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
 
 
   /**** Histogram initialization ****/
-  TString outFileName = Form("dataSet_%i_%s.root", dataSet, (isPeriodA?"Pbp":"pPb"));
+  TString outFileName = Form("dataSet_%i_%s.root", dataSet, (isPeriodA?"pPb":"Pbp"));
   TFile* outFile = new TFile(Form("%s%s", ptPath.c_str(), outFileName.Data()), "RECREATE");
   outFile->cd();
   TH1F* jetPtHistArr[numetabins];
   TH1F* fcalSumEt[2];
   for (short etabin = 0; etabin < numetabins; etabin++) {
-   const char* histName = Form("jetPtSpectrum_dSet%i_%s_etabin%i", dataSet, (isPeriodA?"Pbp":"pPb"), etabin);
+   const char* histName = Form("jetPtSpectrum_dSet%i_%s_etabin%i", dataSet, (isPeriodA?"pPb":"Pbp"), etabin);
    const char* labels = Form(";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]");
    jetPtHistArr[etabin] = new TH1F(histName, labels, numpbins, pbins);
    jetPtHistArr[etabin]->Sumw2(); // instruct each histogram to propagate errors
   }
   for (short dir = 0; dir < 2; dir++) {
-   fcalSumEt[dir] = new TH1F(Form("fcal%sSumEt_dSet%i_%s", (dir==0?"A":"C"), dataSet, (isPeriodA?"Pbp":"pPb")), ";#Sigma #it{E}_{T} #left[GeV#right];Counts", 100, -50, 250);
+   fcalSumEt[dir] = new TH1F(Form("fcal%sSumEt_dSet%i_%s", (dir==0?"A":"C"), dataSet, (isPeriodA?"pPb":"Pbp")), ";#Sigma #it{E}_{T} #left[GeV#right];Counts", 100, -50, 250);
    fcalSumEt[dir]->Sumw2();
   }
-  TH2F* jetEtaPhiHist = new TH2F(Form("etaPhiHist_dSet%i_%s", dataSet, (isPeriodA?"Pbp":"pPb")), ";#eta;#phi;", 98, -4.9, 4.9, 80, 0, 2*pi);
-  TH2F* subJetEtaPhiHist = new TH2F(Form("subJetEtaPhiHist_dSet%i_%s", dataSet, (isPeriodA?"Pbp":"pPb")), ";#eta;#phi;", 98, -4.9, 4.9, 80, 0, 2*pi);
-  TH2F* jetYPhiHist = new TH2F(Form("jetYPhiHist_dSet%i_%s", dataSet, (isPeriodA?"Pbp":"pPb")), ";#it{y};#phi;", 138, -3.5, 3.5, 80, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
-  TH1F* jetEnergyResponse = new TH1F(Form("jetEnergyResponse_dSet%i_%s", dataSet, (isPeriodA?"Pbp":"pPb")), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 50, 0, 2.0);
-  jetEnergyResponse->Sumw2();
+  TH2F* jetEtaPhiHist = new TH2F(Form("etaPhiHist_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";#eta;#phi;", 98, -4.9, 4.9, 80, 0, 2*pi);
+  TH2F* subJetEtaPhiHist = new TH2F(Form("subJetEtaPhiHist_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";#eta;#phi;", 98, -4.9, 4.9, 80, 0, 2*pi);
+  TH2F* jetYPhiHist = new TH2F(Form("jetYPhiHist_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";#it{y};#phi;", 138, -3.5, 3.5, 80, 0, 2*pi); // bins are spaced by 0.05 in y to match CoM boost exactly
+  TH1F* jetEnergyResponseCalib = new TH1F(Form("jetEnergyResponseCalib_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";Jet #it{E}^{reco} / #it{E}^{truth};", 50, 0, 1.4);
+  jetEnergyResponseCalib->Sumw2();
+  TH1F* jetEnergyResponseReco = new TH1F(Form("jetEnergyResponseReco_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";Jet #it{E}^{reco} / #it{E}^{truth};", 50, 0, 1.4);
+  jetEnergyResponseReco->Sumw2();
+  TH1F* jetPtResponseCalib = new TH1F(Form("jetPtResponseCalib_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";Jet #it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 50, 0, 1.4);
+  jetPtResponseCalib->Sumw2();
+  TH1F* jetPtResponseReco = new TH1F(Form("jetPtResponseReco_dSet%i_%s", dataSet, (isPeriodA?"pPb":"Pbp")), ";Jet #it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 50, 0, 1.4);
+  jetPtResponseReco->Sumw2();
+  
 
   /**** Iterate over each event ****/
   const int numentries = tree->GetEntries();
@@ -83,10 +90,10 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
    fcalSumEt[1]->Fill(t->fcalC_et); 
 
    for (int j = 0; j < t->njet; j++) {
-    jpt = (double)t->jet_pt->at(j);
-    jeta = (double)t->jet_eta->at(j);
-    jphi = (double)InTwoPi(t->jet_phi->at(j));
-    je = (double)t->jet_e->at(j);
+    jpt = (double)t->xcalib_jet_pt->at(j);
+    jeta = (double)t->xcalib_jet_eta->at(j);
+    jphi = (double)InTwoPi(t->xcalib_jet_phi->at(j));
+    je = (double)t->xcalib_jet_e->at(j);
 
     const short etabin = getEtabin(jeta);
     const short pbin = getPbin(jpt);
@@ -114,16 +121,19 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
     jetYPhiHist->Fill(tlv.Rapidity(), jphi);
 
     double minDeltaR = 100.;
-    int truthMatch = -1;
+    int truth_jet = -1;
     for (int tj = 0; tj < t->truth_njet; tj++) {
-     const dR = deltaR (jeta, t->truth_jet_eta->at(tj), jphi, t->truth_jet_phi->at(tj));
+     const float dR = DeltaR (jeta, t->truth_jet_eta->at(tj), jphi, t->truth_jet_phi->at(tj));
      if (dR < minDeltaR) {
       truth_jet = tj;
       minDeltaR = dR;
      }
     }
-    if (0 <= truth_jet && truth_jet < t->truth-njet && minDeltaR < 0.3) {
-     jetEnergyResponse->Fill(jpt / t->truth_jet_pt->at(truth_jet), scale);
+    if (0 <= truth_jet && truth_jet < t->truth_njet && minDeltaR < 0.3) {
+     jetEnergyResponseCalib->Fill(je / t->truth_jet_e->at(truth_jet), scale);
+     jetEnergyResponseReco->Fill(t->init_jet_e->at(j) / t->truth_jet_e->at(truth_jet), scale);
+     jetPtResponseCalib->Fill(jpt / t->truth_jet_pt->at(truth_jet), scale);
+     jetPtResponseReco->Fill(t->init_jet_pt->at(j) / t->truth_jet_pt->at(truth_jet), scale);
     }
     
    }
@@ -131,14 +141,14 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
    leadingj = 0;
    if (t->njet < 2) continue; // specialize to events with 2+ jets
    for (int j = 1; j < t->njet; j++) {
-    if (t->jet_pt->at(leadingj) < t->jet_pt->at(j)) leadingj = j;
+    if (t->xcalib_jet_pt->at(leadingj) < t->xcalib_jet_pt->at(j)) leadingj = j;
    }
    // fill eta-phi correlation with only non-leading jets
    for (int j = 0; j < t->njet; j++) {
     if (j == leadingj) continue;
-    jpt = (double)t->jet_pt->at(j);
-    jeta = (double)t->jet_eta->at(j);
-    jphi = (double)InTwoPi(t->jet_phi->at(j));
+    jpt = (double)t->xcalib_jet_pt->at(j);
+    jeta = (double)t->xcalib_jet_eta->at(j);
+    jphi = (double)InTwoPi(t->xcalib_jet_phi->at(j));
 
     const short etabin = getEtabin(jeta);
     const short pbin = getPbin(jpt);
@@ -172,8 +182,14 @@ void InclusiveJetAnalysis(const int dataSet, // Run number identifier.
   if (subJetEtaPhiHist) delete subJetEtaPhiHist;
   jetYPhiHist->Write();
   if (jetYPhiHist) delete jetYPhiHist;
-  jetEnergyResponse->Write();
-  if (jetEnergyResponse) delete jetEnergyResponse;
+  jetEnergyResponseCalib->Write();
+  if (jetEnergyResponseCalib) delete jetEnergyResponseCalib;
+  jetEnergyResponseReco->Write();
+  if (jetEnergyResponseReco) delete jetEnergyResponseReco;
+  jetPtResponseCalib->Write();
+  if (jetPtResponseCalib) delete jetPtResponseCalib;
+  jetPtResponseReco->Write();
+  if (jetPtResponseReco) delete jetPtResponseReco;
 
   TVectorD infoVec(5);
   infoVec[0] = dataSet;

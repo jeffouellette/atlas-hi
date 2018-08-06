@@ -44,10 +44,20 @@ struct TreeVariables {
    int clean_jets = 0; 
    
    int njet = 0; 
-   vector<float>* jet_pt = NULL;
-   vector<float>* jet_eta = NULL;
-   vector<float>* jet_phi = NULL;
-   vector<float>* jet_e = NULL;
+   vector<float>* init_jet_pt = NULL;
+   vector<float>* init_jet_eta = NULL;
+   vector<float>* init_jet_phi = NULL;
+   vector<float>* init_jet_e = NULL;
+
+   vector<float>* etajes_jet_pt = NULL;
+   vector<float>* etajes_jet_eta = NULL;
+   vector<float>* etajes_jet_phi = NULL;
+   vector<float>* etajes_jet_e = NULL;
+
+   vector<float>* xcalib_jet_pt = NULL;
+   vector<float>* xcalib_jet_eta = NULL;
+   vector<float>* xcalib_jet_phi = NULL;
+   vector<float>* xcalib_jet_e = NULL;
 
    int truth_njet = 0;
    vector<float>* truth_jet_pt = NULL;
@@ -88,10 +98,18 @@ TreeVariables::~TreeVariables() {
   if (trk_eta) delete trk_eta;
   if (trk_phi) delete trk_phi;
 
-  if (jet_pt) delete jet_pt;
-  if (jet_eta) delete jet_eta;
-  if (jet_phi) delete jet_phi;
-  if (jet_e) delete jet_e;
+  if (init_jet_pt) delete init_jet_pt;
+  if (init_jet_eta) delete init_jet_eta;
+  if (init_jet_phi) delete init_jet_phi;
+  if (init_jet_e) delete init_jet_e;
+  if (etajes_jet_pt) delete etajes_jet_pt;
+  if (etajes_jet_eta) delete etajes_jet_eta;
+  if (etajes_jet_phi) delete etajes_jet_phi;
+  if (etajes_jet_e) delete etajes_jet_e;
+  if (xcalib_jet_pt) delete xcalib_jet_pt;
+  if (xcalib_jet_eta) delete xcalib_jet_eta;
+  if (xcalib_jet_phi) delete xcalib_jet_phi;
+  if (xcalib_jet_e) delete xcalib_jet_e;
 
   if (truth_jet_pt) delete truth_jet_pt;
   if (truth_jet_eta) delete truth_jet_eta;
@@ -173,18 +191,28 @@ void TreeVariables::SetBranchAddresses (const bool isMC, const std::set<TString>
   BranchHelper (active, "clean_jets", &clean_jets);
 
   BranchHelper (active, "njet", &njet);
-  BranchHelper (active, "jet_pt", &jet_pt);
-  BranchHelper (active, "jet_eta", &jet_eta);
-  BranchHelper (active, "jet_phi", &jet_phi);
-  BranchHelper (active, "jet_e", &jet_e);
+  BranchHelper (active, "init_jet_pt", &init_jet_pt);
+  BranchHelper (active, "init_jet_eta", &init_jet_eta);
+  BranchHelper (active, "init_jet_phi", &init_jet_phi);
+  BranchHelper (active, "init_jet_e", &init_jet_e);
 
-  //if (isMC) {
-  // BranchHelper (active, "truth_njet", &truth_njet);
-  // BranchHelper (active, "truth_jet_pt", &truth_jet_pt);
-  // BranchHelper (active, "truth_jet_eta", &truth_jet_eta);
-  // BranchHelper (active, "truth_jet_phi", &truth_jet_phi);
-  // BranchHelper (active, "truth_jet_e", &truth_jet_e);
-  //}
+  BranchHelper (active, "etajes_jet_pt", &etajes_jet_pt);
+  BranchHelper (active, "etajes_jet_eta", &etajes_jet_eta);
+  BranchHelper (active, "etajes_jet_phi", &etajes_jet_phi);
+  BranchHelper (active, "etajes_jet_e", &etajes_jet_e);
+
+  BranchHelper (active, "xcalib_jet_pt", &xcalib_jet_pt);
+  BranchHelper (active, "xcalib_jet_eta", &xcalib_jet_eta);
+  BranchHelper (active, "xcalib_jet_phi", &xcalib_jet_phi);
+  BranchHelper (active, "xcalib_jet_e", &xcalib_jet_e);
+
+  if (isMC) {
+   BranchHelper (active, "truth_njet", &truth_njet);
+   BranchHelper (active, "truth_jet_pt", &truth_jet_pt);
+   BranchHelper (active, "truth_jet_eta", &truth_jet_eta);
+   BranchHelper (active, "truth_jet_phi", &truth_jet_phi);
+   BranchHelper (active, "truth_jet_e", &truth_jet_e);
+  }
   if (!isMC) {
    BranchHelper (active, "hlt_njet", &hlt_njet);
    BranchHelper (active, "hlt_jet_pt", &hlt_jet_pt);

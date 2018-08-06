@@ -18,10 +18,10 @@ static const double dijetMinimumPt = 20; // Minimum Pt required for jets in dije
 static const double thirdJetMaximumPt = 10; // Maximum Pt allowed for subsubleading jet
 static const bool highPtJetsOnly = false; // only use jets above 70GeV
 
-//const int run_list_v3[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170}; // full run list for future reference
 static const std::vector<int> runNumbers = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
 static const int& numruns = runNumbers.size();
-static const std::vector<TString> mcSamples = {"1_pPb", "1_Pbp", "2_pPb", "2_Pbp", "3_pPb", "3_Pbp", "4_pPb", "4_Pbp", "5_pPb", "5_Pbp", "6_pPb", "6_Pbp"};
+//static const std::vector<TString> mcSamples = {"1_pPb", "1_Pbp", "2_pPb", "2_Pbp", "3_pPb", "3_Pbp", "4_pPb", "4_Pbp", "5_pPb", "5_Pbp", "6_pPb", "6_Pbp"};
+static const std::vector<TString> mcSamples = {"1_pPb", "1_Pbp", "2_pPb", "2_Pbp", "3_pPb", "3_Pbp", "4_pPb", "4_Pbp", "5_pPb", "5_Pbp"};
 static const int& nummcs = mcSamples.size();
 
 

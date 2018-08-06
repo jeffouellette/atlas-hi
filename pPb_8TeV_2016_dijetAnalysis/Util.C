@@ -310,15 +310,15 @@ TString GetIdentifier (const int dataSet, const bool isMC, const bool pA) {
   if (!isMC) return TString(dataSet);
   else {
    if (dataSet == 6) { //then it is a JZ2 validation sample
-    if (pA) return "valid.JZ2R04.Pbp";
-    else return "valid.JZ2R04.pPb";
+    if (pA) return "jetjet.valid.JZ2R04.pPb";
+    else return "jetjet.valid.JZ2R04.Pbp";
    }
-   TString id = Form("JZ%iR04.", dataSet);
+   TString id = Form("jetjet.JZ%iR04.", dataSet);
    if (pA) {
-    id = id + "pPb";
+    id = id + "pPb"; // period A MC samples have Pbp in the file id
    }
    else {
-    id = id + "Pbp";
+    id = id + "Pbp"; // likewise period B MC samples have pPb in the file id
    }
    return id;
   }

@@ -11,8 +11,8 @@
 /** User defined parameters **/
 
 static const bool debugStatements = false; // Print out periodic statements to monitor code flow
-static const string homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
-static const string drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
+static const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
+static const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
 const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
 const double lowerPhiCut = TMath::Pi()-dR_HEC;
@@ -28,16 +28,16 @@ const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 3
 /** General (non-user defined) paramters **/
 
 // More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
-string workPath; // Home analysis directory, should be modified in code outside this path structure
-string externalWorkPath; // External drive storage directory, should be modified in code below
-string rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
-string dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
-string plotPath; // Where plots are stored.
-string ptPath; // Where the pt analysis module output is stored.
-string trigPath;  // Where the trigger fire count module output is stored.
-string effPath; // Where the trigger efficiency module output is stored.
-string xPath; // Where the xa/xp module output is stored.
-string RpPbPath; // Where the R_pPb module output is stored.
+TString workPath; // Home analysis directory, should be modified in code outside this path structure
+TString externalWorkPath; // External drive storage directory, should be modified in code below
+TString rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
+TString dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
+TString plotPath; // Where plots are stored.
+TString ptPath; // Where the pt analysis module output is stored.
+TString trigPath;  // Where the trigger fire count module output is stored.
+TString effPath; // Where the trigger efficiency module output is stored.
+TString xPath; // Where the xa/xp module output is stored.
+TString RpPbPath; // Where the R_pPb module output is stored.
 
 // Transverse momentum and pseudorapidity binning
 static const int MAX_PT = 6000; // Maximum transverse momentum
@@ -61,11 +61,94 @@ static const double pi = TMath::Pi();
 
 
 /**
+ * Returns a TString summarizing a measurement.
+ * By default, there is only 1 significant digit in the error.
+ * E.g., FormatMeasurement (40.58, 1.29) returns "40#pm1".
+ * Or, FormatMeasurement (40.58, 1.29, 2) returns "40.6#pm1.3".
+ */
+const char* FormatMeasurement (double val, double err, const int n=1) {
+  assert (n < 0);
+  assert (err < 0); // sanity checks
+  TString out = "";
+
+  string valStr = Form ("%g", val);
+  string errStr = Form ("%g", err);
+
+  if (err < 1) {
+   // find the first significant digit
+   short errStart = 0;
+   while (errStr[errStart] == '0' || errStr[errStart] == '.')
+    errStart++;
+   errStart = errStart - 2; // first 2 characters are necessarly "0."
+
+   // find where the decimal place is, append it if it's not present
+   short valDec = 0;
+   while (valDec < valStr.length() && valStr[valDec] != '.')
+    valDec++;
+   if (valDec == valStr.length()) {
+    valStr = valStr + ".";
+   }
+
+   // round the value and error to the appropriate decimal place
+   const double factorOfTen = pow(10, errStart+n);
+   val = floor (factorOfTen * val + 0.5) / factorOfTen;
+   err = floor (factorOfTen * err + 0.5) / factorOfTen;
+
+   // pad with zeroes
+
+   // recast to string
+   valStr = Form ("%g", val);
+   errStr = Form ("%g", err);
+
+   // pad with zeroes
+   while (valStr.length() < valDec + errStart + 1 + n)
+    valStr = valStr + "0";
+   while (errStr.length() < errStart + 2 + n)
+    errStr = errStr + "0";
+
+   //// find where we are truncating the value
+   //const short valCut = valDec + errStart + 2 + n;
+
+   //// now truncate
+   //valStr = valStr.substr (0, valCut);
+   //errStr = errStr.substr (0, errStart + 2 + n);
+  }
+  else { // now if err>1
+   // find the decimal place
+   short errDec = 0;
+   while (errDec < errStr.length() && errStr[errDec] != '.')
+    errDec++;
+
+   // round the value and error to the appropriate decimal place
+   if (errDec < errStr.length() - 1) {
+    const double factorOfTen = pow (10., n - errDec);
+    if (n - errDec >= 0) {
+     val = floor (factorOfTen * val + 0.5) / factorOfTen;
+     err = floor (factorOfTen * err + 0.5) / factorOfTen;
+    } else {
+     val = floor (factorOfTen * val) / factorOfTen;
+     err = floor (factorOfTen * err) / factorOfTen;
+    }
+   }
+
+   // recast to string
+   valStr = Form ("%g", val);
+   errStr = Form ("%g", err);
+  }
+
+  // now save the value string to the output
+  out = valStr + " #pm " + errStr + "";
+
+  return out.Data();
+}
+
+
+/**
  * Modifies the directory strings to point to the correct locations.
  */
-void setupDirectories (const string dataSubDir, const string thisWorkPath) {
+void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
 
-  if (thisWorkPath.at(thisWorkPath.length()-1) != '/') {
+  if (thisWorkPath[thisWorkPath.Length()-1] != '/') {
     workPath = homePath + thisWorkPath + "/";
     externalWorkPath = drivePath + thisWorkPath + "/";
   } else {
@@ -158,8 +241,12 @@ static double DeltaR (const double eta1, const double eta2, const double phi1, c
 /**
  * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
  */
-static bool InDisabledHEC (const float eta, const float phi) {
-  return (lowerEtaCut < eta && eta < upperEtaCut) && (lowerPhiCut < phi && phi < upperPhiCut);
+static bool InDisabledHEC (const double eta, double phi) {
+  phi = InTwoPi (phi);
+  return lowerEtaCut < eta &&
+         eta < upperEtaCut &&
+         lowerPhiCut < phi &&
+         phi < upperPhiCut;
 }
 
 
@@ -168,6 +255,14 @@ static bool InDisabledHEC (const float eta, const float phi) {
  */
 static bool InEMCal (const float eta) {
   return TMath::Abs(eta) < 1.37 || (1.52 < TMath::Abs(eta) && TMath::Abs(eta) < 2.37);
+}
+
+
+/**
+ * Returns true iff this object is within a given radius in the HCal.
+ */
+static bool InHadCal (const float eta, const float R = 0.4) {
+  return TMath::Abs(eta) <= 4.9 - R;
 }
 
 

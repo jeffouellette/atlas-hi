@@ -34,6 +34,14 @@ void InclusiveJetAnalysisHist() {
    fcalSumEt[dir] = new TH1F(Form("fcal%sSumEt", (dir==0?"A":"C")), ";#Sigma #it{E}_{T} #left[GeV#right];Counts", 100, -50, 250);
    fcalSumEt[dir]->Sumw2();
   }
+  TH1F* jetPtResponseCalib = new TH1F("jetPtResponseCalib", ";Jet #it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 50, 0, 1.4);
+  jetPtResponseCalib->Sumw2();
+  TH1F* jetPtResponseReco = new TH1F("jetPtResponseReco", ";Jet #it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 50, 0, 1.4);
+  jetPtResponseReco->Sumw2();
+  TH1F* jetEnergyResponseCalib = new TH1F("jetEnergyResponseCalib", ";Jet #it{E}^{reco} / #it{E}^{truth};", 50, 0, 1.4);
+  jetEnergyResponseCalib->Sumw2();
+  TH1F* jetEnergyResponseReco = new TH1F("jetEnergyResponseReco", ";Jet #it{E}^{reco} / #it{E}^{truth};", 50, 0, 1.4);
+  jetEnergyResponseReco->Sumw2();
 
   for (short pType = 0; pType < 3; pType++) {
    const char* periodStr = GetPeriodStr(pType); 
@@ -41,7 +49,8 @@ void InclusiveJetAnalysisHist() {
     const char* dataStr = GetDataStr(dType);
     for (int etabin = 0; etabin < numetabins; etabin++) {
      const TString name = Form("jetpt_etabin%i_dType%s_%s", etabin, dataStr, periodStr);
-     jetPtHistArr[etabin][dType][pType] = new TH1F(name, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
+     //jetPtHistArr[etabin][dType][pType] = new TH1F(name, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}#sigma/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
+     jetPtHistArr[etabin][dType][pType] = new TH1F(name, ";#it{p}_{T}^{jet} #left[GeV#right];d^{2}N/Ad#it{p}_{T}d#eta #left[nb GeV^{-1}#right]", numpbins, pbins);
      jetPtHistArr[etabin][dType][pType]->Sumw2();
      //numeratorHistArr[etabin][dType] = new TH1F(Form("numerator_etabin%i_%s", etabin, dataStr.c_str()), ";#it{p}_{T}^{jet} #left[GeV#right];d#sigma_{A}/d#sigma_{B}", numpbins, pbins);
      //numeratorHistArr[etabin][dType]->Sumw2();
@@ -82,9 +91,9 @@ void InclusiveJetAnalysisHist() {
         // quickly check the parameters stored in this root file
         infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i_per%s", runNumber, (pA?"A":"B")));
 
-        histName = Form("etaPhiHist_dSet%i_%s", runNumber, (pA?"Pbp":"pPb"));
+        histName = Form("etaPhiHist_dSet%i_%s", runNumber, (pA?"pPb":"Pbp"));
         jetEtaPhiHist->Add((TH2F*)thisFile->Get(histName));
-        histName = Form("subJetEtaPhiHist_dSet%i_%s", runNumber, (pA?"Pbp":"pPb"));
+        histName = Form("subJetEtaPhiHist_dSet%i_%s", runNumber, (pA?"pPb":"Pbp"));
         subJetEtaPhiHist->Add((TH2F*)thisFile->Get(histName));
 
         thisFile->Close();
@@ -93,7 +102,7 @@ void InclusiveJetAnalysisHist() {
        }
       }
       for (TString mcSample : mcSamples) {
-       const bool pA = mcSample.Contains("Pbp");
+       const bool pA = mcSample.Contains("pPb");
        if (SkipMC(pA)) continue; 
        if (fname.Contains(mcSample)) {
         TFile* thisFile = new TFile(ptPath + fname, "READ");
@@ -222,7 +231,7 @@ void InclusiveJetAnalysisHist() {
         for (int etabin = 0; etabin < numetabins; etabin++) {
          if (pA) actetabin = numetabins - etabin - 1;
          else actetabin = etabin;
-         histName = Form("jetPtSpectrum_dSet%i_%s_etabin%i", runNumber, (pA?"Pbp":"pPb"), actetabin);
+         histName = Form("jetPtSpectrum_dSet%i_%s_etabin%i", runNumber, (pA?"pPb":"Pbp"), actetabin);
          thisHist = (TH1F*)thisFile->Get(histName);
 
          //if (scaleBackHEC) {
@@ -251,7 +260,7 @@ void InclusiveJetAnalysisHist() {
 
         }
         for (short dir = 0; dir < 2; dir++) {
-         histName = Form("fcal%sSumEt_dSet%i_%s", (dir==0?"A":"C"), runNumber, (pA?"Pbp":"pPb"));
+         histName = Form("fcal%sSumEt_dSet%i_%s", (dir==0?"A":"C"), runNumber, (pA?"pPb":"Pbp"));
          thisHist = (TH1F*)thisFile->Get(histName);
          if (pA)
           fcalSumEt[(dir+1)%2]->Add(thisHist);
@@ -265,7 +274,7 @@ void InclusiveJetAnalysisHist() {
       }
 
       for (TString mcSample : mcSamples) {
-       const bool pA = mcSample.Contains("Pbp");
+       const bool pA = mcSample.Contains("pPb");
        if (SkipMC(pA)) continue;
 
        if (fname.Contains(mcSample)) {
@@ -274,6 +283,11 @@ void InclusiveJetAnalysisHist() {
         // quickly check the parameters stored in this root file
         infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", mcSample.Data()));
         //totalLuminosity += (*infoVec)[4];
+
+        jetEnergyResponseCalib->Add((TH1F*)thisFile->Get(Form("jetEnergyResponseCalib_dSet%s", mcSample.Data())));
+        jetEnergyResponseReco->Add((TH1F*)thisFile->Get(Form("jetEnergyResponseReco_dSet%s", mcSample.Data())));
+        jetPtResponseCalib->Add((TH1F*)thisFile->Get(Form("jetPtResponseCalib_dSet%s", mcSample.Data())));
+        jetPtResponseReco->Add((TH1F*)thisFile->Get(Form("jetPtResponseReco_dSet%s", mcSample.Data())));
 
         int actetabin; // used to flip period A pseudorapidities
         for (int etabin = 0; etabin < numetabins; etabin++) {
@@ -419,12 +433,119 @@ void InclusiveJetAnalysisHist() {
     //fcalSumEt[dir]->SetMarkerStyle(kFullDotMedium);
     if (dir == 0) fcalSumEt[dir]->Draw("e1 x0");
     else fcalSumEt[dir]->Draw("same e1 x0");
-    const char* text = (dir==0?"Lead-going direction":"Proton-going direction");
+    const char* text = (dir==0?"Proton-going direction":"Lead-going direction");
     myMarkerText(0.6, 0.85 - dir*0.08, fcalColors[dir], kFullCircle, text);
    }
    canvas->SaveAs((plotPath + "mc_fcal_distributions.pdf").c_str());
   }
 
+
+  /**** Plot jet energy response ****/
+  {
+   gPad->SetLogx(false);
+   gPad->SetLogy(true);
+
+   float ncounts = jetEnergyResponseCalib->Integral();
+   jetEnergyResponseCalib->SetLineColor(kBlue);
+   jetEnergyResponseCalib->SetMarkerColor(kBlue);
+   jetEnergyResponseCalib->Scale(1./ncounts, "width");
+
+   TF1* calibFit = new TF1("calibFit", "gaus(0)", 0, 2.0);
+   jetEnergyResponseCalib->Fit(calibFit, "RLN");
+   float m = calibFit->GetParameter(1);
+   float s = calibFit->GetParameter(2);
+   if (calibFit) delete calibFit;
+
+   calibFit = new TF1("calibFit2", "gaus(0)", m-1.5*s, m+1.5*s);
+   jetEnergyResponseCalib->Fit(calibFit, "RLN");
+
+   jetEnergyResponseCalib->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+   jetEnergyResponseCalib->GetYaxis()->SetRangeUser(1e-4, 20);
+   jetEnergyResponseCalib->Draw("e1 x0");
+   calibFit->SetLineColor(kBlue);
+   calibFit->Draw("same");
+
+   ncounts = jetEnergyResponseReco->Integral();
+   jetEnergyResponseReco->SetLineColor(kBlack);
+   jetEnergyResponseReco->SetMarkerColor(kBlack);
+   jetEnergyResponseReco->Scale(1./ncounts, "width");
+
+   TF1* recoFit = new TF1("recoFit", "gaus(0)", 0, 2.0);
+   jetEnergyResponseReco->Fit(recoFit, "RLN");
+   m = recoFit->GetParameter(1);
+   s = recoFit->GetParameter(2);
+   if (recoFit) delete recoFit;
+
+   recoFit = new TF1("recoFit2", "gaus(0)", m-1.5*s, m+1.5*s);
+   jetEnergyResponseReco->Fit(recoFit, "RLN");
+
+   jetEnergyResponseReco->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+   jetEnergyResponseReco->GetYaxis()->SetRangeUser(1e-4, 20);
+   jetEnergyResponseReco->Draw("same e1 x0");
+   recoFit->SetLineColor(kBlack);
+   recoFit->Draw("same");
+
+   myText(0.19, 0.89, kBlack, "Jet energy response");
+   myText(0.19, 0.83, kBlack, Form("%i jets", (int)ncounts));
+   myText(0.19, 0.77, kBlack, Form("JES = %.2f #pm %.2f", calibFit->GetParameter(1), calibFit->GetParError(1)));
+   myText(0.19, 0.71, kBlack, Form("JER = %.2f #pm %.2f", calibFit->GetParameter(2), calibFit->GetParError(2)));
+   canvas->SaveAs(Form("%s/jetEnergyResponse.pdf", plotPath.c_str()));
+   if (calibFit) delete calibFit;
+   if (recoFit) delete recoFit;
+  }
+
+
+  /**** Plots jet momentum response ****/
+  {
+   gPad->SetLogx(false);
+   gPad->SetLogy(true);
+
+   float ncounts = jetPtResponseCalib->Integral();
+   jetPtResponseCalib->SetLineColor(kBlue);
+   jetPtResponseCalib->SetMarkerColor(kBlue);
+   jetPtResponseCalib->Scale(1./ncounts, "width");
+
+   TF1* calibFit = new TF1("calibFit", "gaus(0)", 0, 2.0);
+   jetPtResponseCalib->Fit(calibFit, "RLN");
+   float m = calibFit->GetParameter(1);
+   float s = calibFit->GetParameter(2);
+   if (calibFit) delete calibFit;
+
+   calibFit = new TF1("calibFit2", "gaus(0)", m-1.5*s, m+1.5*s);
+   jetPtResponseCalib->Fit(calibFit, "RLN");
+   
+   jetPtResponseCalib->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+   jetPtResponseCalib->GetYaxis()->SetRangeUser(1e-4, 20);
+   jetPtResponseCalib->Draw("e1 x0");
+   calibFit->SetLineColor(kBlue);
+   calibFit->Draw("same");
+
+   ncounts = jetPtResponseReco->Integral();
+   jetPtResponseReco->SetLineColor(kBlack);
+   jetPtResponseReco->SetMarkerColor(kBlack);
+   jetPtResponseReco->Scale(1./ncounts, "width");
+
+   TF1* recoFit = new TF1("recoFit", "gaus(0)", 0, 2.0);
+   jetPtResponseReco->Fit(recoFit, "RLN");
+   m = recoFit->GetParameter(1);
+   s = recoFit->GetParameter(2);
+   if (recoFit) delete recoFit;
+
+   recoFit = new TF1("recoFit2", "gaus(0)", m-1.5*s, m+1.5*s);
+   jetPtResponseReco->Fit(recoFit, "RLN");
+
+   jetPtResponseReco->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+   jetPtResponseReco->GetYaxis()->SetRangeUser(1e-4, 20);
+   jetPtResponseReco->Draw("same e1 x0");
+   recoFit->SetLineColor(kBlack);
+   recoFit->Draw("same");
+
+   myText(0.19, 0.89, kBlack, "Jet momentum response");
+   myText(0.19, 0.83, kBlack, Form("%i jets", (int)ncounts));
+   myText(0.19, 0.77, kBlack, Form("JES = %.2f #pm %.2f", calibFit->GetParameter(1), calibFit->GetParError(1)));
+   myText(0.19, 0.71, kBlack, Form("JER = %.2f #pm %.2f", calibFit->GetParameter(2), calibFit->GetParError(2)));
+   canvas->SaveAs(Form("%s/jetPtResponse.pdf", plotPath.c_str()));
+  }
 
   /**** Plot pt spectrum ratios ****/
   if (runPeriodA && runPeriodB) {
