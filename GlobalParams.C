@@ -11,7 +11,7 @@
 /** User defined parameters **/
 
 static const bool debugStatements = false; // Print out periodic statements to monitor code flow
-static const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
+static const TString homePath = "/Users/nagle_lab/Jeff/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
 static const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
 const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
@@ -81,6 +81,15 @@ const char* FormatMeasurement (double val, double err, const int n=1) {
     errStart++;
    errStart = errStart - 2; // first 2 characters are necessarly "0."
 
+   // round the value and error to the appropriate decimal place
+   const double factorOfTen = pow(10, errStart+n);
+   val = floor (factorOfTen * val + 0.5) / factorOfTen;
+   err = floor (factorOfTen * err + 0.5) / factorOfTen;
+
+   // recast to string
+   valStr = Form ("%g", val);
+   errStr = Form ("%g", err);
+
    // find where the decimal place is, append it if it's not present
    short valDec = 0;
    while (valDec < valStr.length() && valStr[valDec] != '.')
@@ -88,17 +97,6 @@ const char* FormatMeasurement (double val, double err, const int n=1) {
    if (valDec == valStr.length()) {
     valStr = valStr + ".";
    }
-
-   // round the value and error to the appropriate decimal place
-   const double factorOfTen = pow(10, errStart+n);
-   val = floor (factorOfTen * val + 0.5) / factorOfTen;
-   err = floor (factorOfTen * err + 0.5) / factorOfTen;
-
-   // pad with zeroes
-
-   // recast to string
-   valStr = Form ("%g", val);
-   errStr = Form ("%g", err);
 
    // pad with zeroes
    while (valStr.length() < valDec + errStart + 1 + n)
@@ -254,7 +252,7 @@ static bool InDisabledHEC (const double eta, double phi) {
  * Returns true iff this eta lies within the EMCal.
  */
 static bool InEMCal (const float eta) {
-  return TMath::Abs(eta) < 1.37 || (1.52 < TMath::Abs(eta) && TMath::Abs(eta) < 2.37);
+  return TMath::Abs(eta) < 1.37 || (1.56 < TMath::Abs(eta) && TMath::Abs(eta) < 2.37);
 }
 
 
@@ -272,13 +270,8 @@ static bool InHadCal (const float eta, const float R = 0.4) {
 static void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo) {
   for (int xbin = 1; xbin <= optimal->GetNbinsX(); xbin++) {
    const double content = optimal->GetBinContent(xbin);
-   const double diff_lo = content - sys_lo->GetBinContent(xbin);
-   const double diff_hi = sys_hi->GetBinContent(xbin) - content;
-   double err_lo = diff_lo;
-   double err_hi = diff_hi;
-
-   //if (diff_lo == 0 && diff_hi != 0) err_lo = diff_hi;
-   //else if (diff_lo != 0 && diff_hi == 0) err_hi = diff_lo;
+   const double err_lo = content - sys_lo->GetBinContent(xbin);
+   const double err_hi = sys_hi->GetBinContent(xbin) - content;
 
    graph->SetPoint(xbin-1, optimal->GetBinCenter(xbin), content);
    graph->SetPointEYlow(xbin-1, err_lo);

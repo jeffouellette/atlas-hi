@@ -65,9 +65,19 @@ void electronContaminationStudy (const int dataSet,
   t->SetBranchAddresses(true);
 
   // initialize histograms
-  TH2D* electronContamination = new TH2D(Form("electronContamination_dataSet%s", identifier.Data()), ";#it{p}_{T}^{e} #left[GeV#right];#eta;", numpebins, pebins,  numeetabins, eetabins);
-  electronContamination->Sumw2();
-  TH2D* electronSpectrum = new TH2D (Form("electronSpectrum_dataSet%s", identifier.Data()), ";#it{p}_{T}^{e} #left[GeV#right];#eta;", numpebins, pebins, numeetabins, eetabins);
+  TH2D* fakePhotonSpectrum = new TH2D(Form("fakePhotonSpectrum_dataSet%s", identifier.Data()), "", numpebins, pebins,  numeetabins, eetabins);
+  fakePhotonSpectrum->Sumw2();
+
+  TH2D* fakePhotonCounts = new TH2D (Form("fakePhotonCounts_dataSet%s", identifier.Data()), "", numpebins, pebins, numeetabins, eetabins);
+  fakePhotonCounts->Sumw2();
+
+  TH2D* allElectronCounts = new TH2D (Form("allElectronCounts_dataSet%s", identifier.Data()), "", numpebins, pebins, numeetabins, eetabins);
+  allElectronCounts->Sumw2();
+
+  TH2D* allGammaCounts = new TH2D (Form("allGammaCounts_dataSet%s", identifier.Data()), "", numpebins, pebins, numeetabins, eetabins);
+  allGammaCounts->Sumw2();
+
+  TH2D* electronSpectrum = new TH2D (Form("electronSpectrum_dataSet%s", identifier.Data()), "", numpebins, pebins, numeetabins, eetabins);
   electronSpectrum->Sumw2();
 
 
@@ -107,6 +117,13 @@ void electronContaminationStudy (const int dataSet,
     if (!InEMCal (photon_eta) || InDisabledHEC (photon_eta, photon_phi))
      continue; // require photon to be in EMCal
 
+    if (!isPeriodA) {
+     allGammaCounts->Fill (photon_pt, photon_eta);
+    }
+    else {
+     allGammaCounts->Fill (photon_pt, -photon_eta);
+    }
+
     double minDeltaR = 1000;
     int truth_electron = -1;
     for (int te = 0; te < t->truth_electron_n; te++) {
@@ -119,27 +136,41 @@ void electronContaminationStudy (const int dataSet,
     if (truth_electron == -1 || minDeltaR > 0.4)
      continue; // unable to truth match to an electron
 
-    electronContamination->Fill (t->truth_electron_pt->at(truth_electron), t->truth_electron_eta->at(truth_electron));
+    if (!isPeriodA) {
+     fakePhotonSpectrum->Fill (photon_pt, photon_eta, t->eventWeight);
+     fakePhotonCounts->Fill (photon_pt, photon_eta);
+    }
+    else {
+     fakePhotonSpectrum->Fill (photon_pt, -photon_eta, t->eventWeight);
+     fakePhotonCounts->Fill (photon_pt, -photon_eta);
+    }
 
    }
 
    /////////////////////////////////////////////////////////////////////////////
    // events with electrons
    /////////////////////////////////////////////////////////////////////////////
-   for (int e = 0; e < t->electron_n; e++) {
+   for (int e = 0; e < t->truth_electron_n; e++) {
     // electron cuts
-    if (t->electron_pt->at(e) < electron_pt_cut)
-     continue; // basic electron pT cuts
-    if (!InEMCal (t->electron_eta->at(e)))
-     continue; // reject electrons reconstructed outside EMCal
-    if (!t->electron_loose->at(e))
-     continue; // reject non-loose electrons
-    if (t->electron_d0sig->at(e) > 5)
-     continue; // d0 (transverse impact parameter) significance cut
-    if (t->electron_delta_z0_sin_theta->at(e) > 0.5)
-     continue; // z0 (longitudinal impact parameter) vertex compatibility cut
+    //if (t->electron_pt->at(e) < electron_pt_cut)
+    // continue; // basic electron pT cuts
+    //if (!InEMCal (t->electron_eta->at(e)))
+    // continue; // reject electrons reconstructed outside EMCal
+    //if (!t->electron_loose->at(e))
+    // continue; // reject non-loose electrons
+    //if (t->electron_d0sig->at(e) > 5)
+    // continue; // d0 (transverse impact parameter) significance cut
+    //if (t->electron_delta_z0_sin_theta->at(e) > 0.5)
+    // continue; // z0 (longitudinal impact parameter) vertex compatibility cut
 
-    electronSpectrum->Fill (t->electron_pt->at(e), t->electron_eta->at(e), t->eventWeight);
+    if (!isPeriodA) {
+     allElectronCounts->Fill (t->truth_electron_pt->at(e), t->truth_electron_eta->at(e));
+     electronSpectrum->Fill (t->truth_electron_pt->at(e), t->truth_electron_eta->at(e), t->eventWeight);
+    }
+    else {
+     allElectronCounts->Fill (t->truth_electron_pt->at(e), -t->truth_electron_eta->at(e));
+     electronSpectrum->Fill (t->truth_electron_pt->at(e), -t->truth_electron_eta->at(e), t->eventWeight);
+    }
    }
     
   } // end loop over events
@@ -152,8 +183,14 @@ void electronContaminationStudy (const int dataSet,
   const char* outFileName = Form("%s/electronContamination/dataSet_%s.root", rootPath.Data(), identifier.Data());
   TFile* outFile = new TFile(outFileName, "RECREATE");
 
-  electronContamination->Write();
-  if (electronContamination) delete electronContamination;
+  fakePhotonSpectrum->Write();
+  if (fakePhotonSpectrum) delete fakePhotonSpectrum;
+  fakePhotonCounts->Write();
+  if (fakePhotonCounts) delete fakePhotonCounts;
+  allElectronCounts->Write();
+  if (allElectronCounts) delete allElectronCounts;
+  allGammaCounts->Write();
+  if (allGammaCounts) delete allGammaCounts;
   electronSpectrum->Write();
   if (electronSpectrum) delete electronSpectrum;
 

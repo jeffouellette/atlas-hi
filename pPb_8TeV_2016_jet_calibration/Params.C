@@ -22,7 +22,7 @@ static const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass
 
 static const bool useGaussian = false; // 
 
-static const bool plot_xjref = true; // whether to plot xjref distributions
+static const bool plot_xjref = false; // whether to plot xjref distributions
 
 /** End user defined parameters **/
 

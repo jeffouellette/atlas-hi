@@ -517,7 +517,7 @@ void ZGammaJetCrossCheckHist () {
     topPad->SetLogx();
     vJetHist = GetProfileX("vJetHist", zmumuJetHists[pType][etabin][0][1], numpzbins, pzbins, false);
     vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
-    vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
+    vJetHist->SetYTitle("#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
     vJetHist->SetAxisRange(0.75, 2.15, "Y");
     vJetHist->SetMarkerColor(data_color);
     vJetHist->SetLineColor(data_color);
@@ -566,8 +566,8 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_rat_sys->SetFillStyle(3001);
 
     vJetHist_rat->SetYTitle("Data / MC");
-    //vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
-    vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
+    vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
+    //vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
     vJetHist_rat->GetYaxis()->SetNdivisions(405);
     vJetHist_rat->GetXaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
@@ -609,7 +609,7 @@ void ZGammaJetCrossCheckHist () {
     topPad->SetLogx();
     vJetHist = GetProfileX("vJetHist", zeeJetHists[pType][etabin][0][1], numpzbins, pzbins, false);
     vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
-    vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
+    vJetHist->SetYTitle("#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
     vJetHist->SetAxisRange(0.75, 2.15, "Y");
     vJetHist->SetMarkerColor(data_color);
     vJetHist->SetLineColor(data_color);
@@ -658,8 +658,8 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_rat_sys->SetFillStyle(3001);
 
     vJetHist_rat->SetYTitle("Data / MC");
-    //vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
-    vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
+    vJetHist_rat->SetAxisRange(0.85, 1.15, "Y");
+    //vJetHist_rat->SetAxisRange(0.75, 1.35, "Y");
     vJetHist_rat->GetYaxis()->SetNdivisions(405);
     vJetHist_rat->GetXaxis()->SetTitleSize(0.04/dPadY);
     vJetHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
@@ -698,7 +698,7 @@ void ZGammaJetCrossCheckHist () {
     topPad->SetLogx();
     vJetHist = GetProfileX("vJetHist", gJetHists[pType][etabin][0][1], numpbins, pbins, true);
     vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
-    vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
+    vJetHist->SetYTitle("#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
     vJetHist->SetAxisRange(0.75, 2.15, "Y");
     vJetHist->SetMarkerColor(data_color);
     vJetHist->SetLineColor(data_color);
@@ -1253,9 +1253,12 @@ void ZGammaJetCrossCheckHist () {
 
 
   /**** Plots the jet energy response ****/
-  energyScaleCanvas->cd();
   for (int etabin = 0; etabin <= numetabins; etabin++) {
-   for (int pbin = 0; pbin <= numpbins; pbin++) {
+   TCanvas* jesCanvas = new TCanvas (Form ("jetEnergyScalePad_%i", etabin), "", 800, 600);
+   jesCanvas->cd();
+   jesCanvas->Divide(4, 3);
+   for (int pbin = 0; pbin <= 11; pbin++) {
+    jesCanvas->cd(pbin+1);
     TH1D* thisHist = jetEnergyResponseReco[pbin][etabin];
     int nJets = nJet[pbin][etabin];
 
@@ -1302,38 +1305,45 @@ void ZGammaJetCrossCheckHist () {
 
     thisHist->SetLineColor(kBlue);
     thisHist->SetMarkerColor(kBlue);
-    thisHist->GetYaxis()->SetTitle(Form("Fractional counts / %.2f GeV", thisHist->GetBinWidth(1)));
+    //thisHist->GetYaxis()->SetTitle(Form("Fractional counts / %.2f GeV", thisHist->GetBinWidth(1)));
     thisHist->Draw("same e1 x0");
     calibFit->SetLineColor(kBlue);
     calibFit->Draw("same");
 
-    myText(0.18, 0.9, kBlack, "Jet energy response");
-    myText(0.18, 0.83, kBlack, Form("%i jets", nJets));
-    myText(0.18, 0.76, kBlack, Form("#mu = %s", FormatMeasurement (calibFit->GetParameter(1), calibFit->GetParError(1), 2)));
-    myText(0.18, 0.69, kBlack, Form("#sigma = %s", FormatMeasurement (calibFit->GetParameter(2), calibFit->GetParError(2), 2)));
-    myMarkerText(0.58, 0.9, kBlack, kFullCircle, "Uncalibrated (EM scale)", 1.25, 0.04);
-    myMarkerText(0.58, 0.83, kBlue, kFullCircle, "Calibrated", 1.25, 0.04);
+    //myText(0.18, 0.9, kBlack, "Jet energy response");
+    //myText(0.18, 0.83, kBlack, Form("%i jets", nJets));
+    myText(0.18, 0.90, kBlack, Form("#mu = %s", FormatMeasurement (calibFit->GetParameter(1), calibFit->GetParError(1), 1)), 0.04 * 2);
+    myText(0.18, 0.80, kBlack, Form("#sigma = %s", FormatMeasurement (calibFit->GetParameter(2), calibFit->GetParError(2), 1)), 0.04 * 2);
+    //myMarkerText(0.58, 0.9, kBlack, kFullCircle, "Uncalibrated (EM scale)", 1.25, 0.04 * 4);
+    //myMarkerText(0.58, 0.83, kBlue, kFullCircle, "Calibrated", 1.25, 0.04 * 4);
 
-    if (etabin < numetabins) {
-     myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{Jet} < %g", etabins[etabin], etabins[etabin+1]));
-    }
+    //if (etabin < numetabins) {
+    // myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{Jet} < %g", etabins[etabin], etabins[etabin+1]));
+    //}
     if (pbin < numpbins) {
-     myText (0.18, 0.55, kBlack, Form("%g < #it{p}_{T}^{reco} < %g", pbins[pbin], pbins[pbin+1]));
+     myText (0.18, 0.70, kBlack, Form("%g < #it{p}_{T}^{J} < %g", pbins[pbin], pbins[pbin+1]), 0.04 * 2);
     }
 
-    energyScaleCanvas->SaveAs(Form("%s/jetEnergyResponse/pbin%i_etabin%i.pdf", plotPath.Data(), pbin, etabin));
+    //energyScaleCanvas->SaveAs(Form("%s/jetEnergyResponse/pbin%i_etabin%i.pdf", plotPath.Data(), pbin, etabin));
 
     if (calibFit) delete calibFit;
     if (recoFit) delete recoFit;
    }
+   jesCanvas->SaveAs(Form("%s/jetEnergyResponse/etabin%i.pdf", plotPath.Data(), etabin));
+   if (jesCanvas) delete jesCanvas;
   }
 
 
   /**** Plots the photon energy response ****/
-  energyScaleCanvas->cd();
-  gPad->SetLogy(true);
+  //energyScaleCanvas->cd();
+  //gPad->SetLogy(true);
   for (short etabin = 0; etabin <= numetabins; etabin++) {
-   for (short pbin = 0; pbin <= numpbins; pbin++) {
+   TCanvas* jesCanvas = new TCanvas (Form ("photonEnergyScalePad_%i", etabin), "", 800, 600);
+   jesCanvas->cd();
+   jesCanvas->Divide(4, 3);
+   for (short pbin = 0; pbin <= 11; pbin++) {
+    jesCanvas->cd(pbin+1);
+    gPad->SetLogy(true);
     TH1D* thisHist = photonEnergyResponse[pbin][etabin];
     int nGammas = nGamma[pbin][etabin];
     thisHist->Scale(1./thisHist->Integral(), "width");
@@ -1361,22 +1371,24 @@ void ZGammaJetCrossCheckHist () {
     calibFit->SetLineColor(kBlue);
     calibFit->Draw("same");
 
-    myText(0.18, 0.9, kBlack, "Photon energy response");
-    myText(0.18, 0.83, kBlack, Form("%i photons", nGammas));
-    myText(0.18, 0.76, kBlack, Form("#mu = %.5f #pm %.5f", calibFit->GetParameter(1), calibFit->GetParError(1)));
-    myText(0.18, 0.69, kBlack, Form("#sigma = %.5f #pm %.5f", calibFit->GetParameter(2), calibFit->GetParError(2)));
+    //myText(0.18, 0.9, kBlack, "Photon energy response");
+    //myText(0.18, 0.83, kBlack, Form("%i photons", nGammas));
+    myText(0.18, 0.90, kBlack, Form("#mu = %s", FormatMeasurement (calibFit->GetParameter(1), calibFit->GetParError(1), 1)), 0.04 * 2);
+    myText(0.18, 0.80, kBlack, Form("#sigma = %s", FormatMeasurement (calibFit->GetParameter(2), calibFit->GetParError(2), 1)), 0.04 * 2);
 
-    if (etabin < numetabins) {
-     myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[etabin], etabins[etabin+1]));
-    }
+    //if (etabin < numetabins) {
+    // myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[etabin], etabins[etabin+1]));
+    //}
     if (pbin < numpbins) {
-     myText (0.18, 0.55, kBlack, Form("%g < #it{p}_{T}^{reco} < %g", pbins[pbin], pbins[pbin+1]));
+     myText (0.18, 0.70, kBlack, Form("%g < #it{p}_{T}^{reco} < %g", pbins[pbin], pbins[pbin+1]), 0.04 * 2);
     }
 
-    energyScaleCanvas->SaveAs(Form("%s/photonEnergyResponse/pbin%i_etabin%i.pdf", plotPath.Data(), pbin, etabin));
+    //energyScaleCanvas->SaveAs(Form("%s/photonEnergyResponse/pbin%i_etabin%i.pdf", plotPath.Data(), pbin, etabin));
 
     if (calibFit) delete calibFit;
    }
+   jesCanvas->SaveAs(Form("%s/photonEnergyResponse/etabin%i.pdf", plotPath.Data(), etabin));
+   if (jesCanvas) delete jesCanvas;
   }
 
 

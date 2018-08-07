@@ -18,9 +18,15 @@ void electronContaminationStudyHist () {
   zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
   zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
 
-  TH2D* electronContamination = new TH2D ("electronContamination", ";#it{p}_{T}^{e} #left[GeV#right];#eta;Misidentified photon count", numpebins, pebins, numeetabins, eetabins);
-  electronContamination->Sumw2();
-  TH2D* electronSpectrum = new TH2D ("electronSpectrum", ";#it{p}_{T}^{e} #left[GeV#right];#eta;#sigma_{Z#rightarrow ee} #times N_{e} / N_{evt} #left[mb#right]", numpebins, pebins, numeetabins, eetabins);
+  TH2D* fakePhotonSpectrum = new TH2D ("fakePhotonSpectrum", ";#it{p}_{T}^{e} #left[GeV#right];#eta;#sigma_{Z#rightarrow ee} #times N_{fake #gamma} / N_{evt} #left[#mub#right]", numpebins, pebins, numeetabins, eetabins);
+  fakePhotonSpectrum->Sumw2();
+  TH2D* fakePhotonCounts = new TH2D ("fakePhotonCounts", ";#it{p}_{T}^{e} #left[GeV#right];#eta;# fake photons", numpebins, pebins, numeetabins, eetabins);
+  fakePhotonCounts->Sumw2();
+  TH2D* allElectronCounts = new TH2D ("allElectronCounts", ";#it{p}_{T}^{e} #left[GeV#right];#eta;# truth electrons", numpebins, pebins, numeetabins, eetabins);
+  allElectronCounts->Sumw2();
+  TH2D* allGammaCounts = new TH2D ("allGammaCounts", ";#it{p}_{T}^{e} #left[GeV#right];#eta;# total photons", numpebins, pebins, numeetabins, eetabins);
+  allGammaCounts->Sumw2();
+  TH2D* electronSpectrum = new TH2D ("electronSpectrum", ";#it{p}_{T}^{e} #left[GeV#right];#eta;#sigma_{Z#rightarrow ee} #times N_{e} / N_{evt} #left[#mub#right]", numpebins, pebins, numeetabins, eetabins);
   electronSpectrum->Sumw2();
   
 
@@ -48,7 +54,10 @@ void electronContaminationStudyHist () {
        cout << "Reading in " << contpath+fname << endl;
        TFile* thisFile = new TFile(contpath + fname, "READ");
 
-       electronContamination->Add((TH2D*)thisFile->Get(Form("electronContamination_dataSet%s", zeeJetSampleId.Data())));
+       fakePhotonSpectrum->Add((TH2D*)thisFile->Get(Form("fakePhotonSpectrum_dataSet%s", zeeJetSampleId.Data())));
+       fakePhotonCounts->Add((TH2D*)thisFile->Get(Form("fakePhotonCounts_dataSet%s", zeeJetSampleId.Data())));
+       allElectronCounts->Add((TH2D*)thisFile->Get(Form("allElectronCounts_dataSet%s", zeeJetSampleId.Data())));
+       allGammaCounts->Add((TH2D*)thisFile->Get(Form("allGammaCounts_dataSet%s", zeeJetSampleId.Data())));
        electronSpectrum->Add((TH2D*)thisFile->Get(Form("electronSpectrum_dataSet%s", zeeJetSampleId.Data())));
 
        thisFile->Close();
@@ -72,14 +81,33 @@ void electronContaminationStudyHist () {
   gROOT->ForceStyle();
 
   TCanvas* canvas = new TCanvas("canvas", "", 800, 600);
-  TPad* pad = new TPad("pad", "", 0, 0, 1, 1);
+  gPad->SetLogx(true);
 
-  pad->SetLogz(true);
+  gPad->SetLogz(true);
 
-  electronContamination->Draw("colz");
-  electronContamination->GetZaxis()->SetTitleOffset(1.3);
-  canvas->SaveAs(Form("%s/electronContamination.pdf", plotPath.Data()));
+  fakePhotonSpectrum->Draw("colz");
+  fakePhotonSpectrum->GetZaxis()->SetTitleOffset(1.3);
+  canvas->SaveAs (Form ("%s/fakePhotonSpectrum.pdf", plotPath.Data()));
 
+  gPad->SetLogz(true); 
+  fakePhotonCounts->Draw("colz");
+  fakePhotonCounts->GetZaxis()->SetTitleOffset(1.3);
+  canvas->SaveAs (Form ("%s/fakePhotonCounts.pdf", plotPath.Data()));
+
+  gPad->SetLogz(false);
+  TH2D* fakePhotonRate = new TH2D("fakePhotonRate", ";#it{p}_{T}^{#gamma} #left[GeV#right];#eta^{#gamma};# fake photons / # truth electron", numpebins, pebins, numeetabins, eetabins);
+  for (int pebin = 1; pebin <= numpebins; pebin++) {
+   for (int eetabin = 1; eetabin <= numeetabins; eetabin++) {
+    if (allElectronCounts->GetBinContent (pebin, eetabin) != 0) {
+     fakePhotonRate->SetBinContent (pebin, eetabin, fakePhotonCounts->GetBinContent (pebin, eetabin) / allElectronCounts->GetBinContent (pebin, eetabin));
+    }
+   }
+  }
+  fakePhotonRate->Draw("colz");
+  fakePhotonRate->GetZaxis()->SetTitleOffset(1.3);
+  canvas->SaveAs(Form ("%s/fakePhotonRate.pdf", plotPath.Data()));
+
+  gPad->SetLogz(true);
   electronSpectrum->Draw("colz");
   electronSpectrum->GetZaxis()->SetTitleOffset(1.3);
   canvas->SaveAs(Form("%s/electronSpectrum.pdf", plotPath.Data()));
@@ -87,8 +115,16 @@ void electronContaminationStudyHist () {
 
   TFile* outFile = new TFile(TString(rootPath) + "electronContaminationStudy.root", "recreate");
 
-  electronContamination->Write();
-  if (electronContamination) delete electronContamination;
+  fakePhotonCounts->Write();
+  if (fakePhotonCounts) delete fakePhotonCounts;
+  fakePhotonSpectrum->Write();
+  if (fakePhotonSpectrum) delete fakePhotonSpectrum;
+  allElectronCounts->Write();
+  if (allElectronCounts) delete allElectronCounts;
+  allGammaCounts->Write();
+  if (allGammaCounts) delete allGammaCounts;
+  fakePhotonRate->Write();
+  if (fakePhotonRate) delete fakePhotonRate;
   electronSpectrum->Write();
   if (electronSpectrum) delete electronSpectrum;
 

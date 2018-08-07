@@ -567,7 +567,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double dPhi = DeltaPhi (ljet_phi, Z_phi);
 
      // Calculate systematics on jet pT
-     const double ljet_pt_err = GetXCalibSystematicError (ljet_pt, ljet_eta);
+     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
 
      // Calculate ptref and xjrefs
      const double ptref = Z_pt * TMath::Cos(pi - dPhi);
@@ -746,7 +746,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double dPhi = DeltaPhi (ljet_phi, Z_phi);
 
      // Calculate systematics on jet pT
-     const double ljet_pt_err = GetXCalibSystematicError (ljet_pt, ljet_eta);
+     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
 
      // Calculate ptref and xjrefs
      const double ptref = Z_pt * TMath::Cos(pi - dPhi);
@@ -964,7 +964,7 @@ void ZGammaJetCrossCheck (const int dataSet,
     const double dPhi = DeltaPhi (ljet_phi, this_photon_phi);
 
     // Calculate systematics
-    const double ljet_pt_err = GetXCalibSystematicError(ljet_pt, ljet_eta);
+    const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError(ljet_pt, ljet_eta));
 
     // Calculate ptref and xjrefs
     const double ptref = this_photon_pt * TMath::Cos(pi - dPhi);
