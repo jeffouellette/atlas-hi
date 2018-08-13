@@ -38,20 +38,12 @@ static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 4
 
 
 /**
- * Calculates the delta R between two 4-vectors given their eta, phi coordinates.
- * eta1: eta of 1st vector
- * eta2: eta of 2nd vector
- * phi1: phi of 1st vector
- * phi2: phi of 2nd vector
- */
-double deltaR (const double eta1, const double eta2, const double phi1, const double phi2 );
-
-/**
  * Calculates the original systematic error on this jet from the cross calib.
  * jpt: pt of the jet
  * jeta: eta of the jet
  */
 double GetXCalibSystematicError(const double jpt, const double jeta);
+
 
 /**
  * Calculates the additional systematic on jet pt given the jet eta and the
@@ -60,6 +52,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta);
  * refpt: reference pt of the vector boson
  */
 double GetNewXCalibSystematicError(TFile* file, const double jeta, const double refpt);
+
 
 /**
  * Primary macro.

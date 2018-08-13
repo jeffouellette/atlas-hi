@@ -40,7 +40,9 @@ static const short numpbins = sizeof(pbins)/sizeof(pbins[0]) - 1;
 static const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 220., 300.};
 static const short numpzbins = sizeof(pzbins)/sizeof(pzbins[0]) - 1;
 
-static const double etabins[7] = {-2.5, -1.3, -0.5, 0, 0.5, 1.3, 2.5};
+//static const double etabins[7] = {-2.5, -1.3, -0.5, 0, 0.5, 1.3, 2.5};
+//static const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
+static const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
 static const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 
 static const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};

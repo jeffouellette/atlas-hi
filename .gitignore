@@ -21,10 +21,15 @@ pp_5TeV_2017_offlineElectronAnalysis/Data/
 # 2016 8TeV pPb jet calibration
 pPb_8TeV_2016_jet_calibration/data/*
 pPb_8TeV_2016_jet_calibration/rootFiles/*
+pPb_8TeV_2016_jet_calibration/old_calib
 pPb_8TeV_2016_jet_calibration/pPb_dR2
 pPb_8TeV_2016_jet_calibration/pPb_dR4
 pPb_8TeV_2016_jet_calibration/Pbp_dR2
 pPb_8TeV_2016_jet_calibration/Pbp_dR4
+pPb_8TeV_2016_jet_calibration/pPb_R4_dR2
+pPb_8TeV_2016_jet_calibration/pPb_R4_dR4
+pPb_8TeV_2016_jet_calibration/Pbp_R4_dR2
+pPb_8TeV_2016_jet_calibration/Pbp_R4_dR4
 pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
 pPb_8TeV_2016_jet_calibration/Plots
 pPb_8TeV_2016_jet_calibration/Slides*

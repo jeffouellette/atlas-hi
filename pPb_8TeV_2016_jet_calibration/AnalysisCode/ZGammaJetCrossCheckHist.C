@@ -242,7 +242,8 @@ void ZGammaJetCrossCheckHist () {
        nGammaJetVec = (TVectorD*)thisFile->Get(Form("nGammaJetVec_%i", runNumber));
 
        for (short etabin = 0; etabin <= numetabins; etabin++) {
-        const bool flipEta = runNumber < 313500 && etabin < numetabins;
+        //const bool flipEta = runNumber < 313500 && etabin < numetabins;
+        const bool flipEta = false;
         const short act_etabin = (flipEta ? (numetabins - etabin - 1) : etabin);
 
         nZeeMass[pType][0][etabin] += (*nZeeMassVec)[etabin];
@@ -319,7 +320,8 @@ void ZGammaJetCrossCheckHist () {
        jetSpectrum->Add((TH1D*)thisFile->Get(Form("jetPt_dataSet%s", gammaJetSampleId.Data())));
 
        for (short etabin = 0; etabin <= numetabins; etabin++) {
-        const bool flipEta = gammaJetSampleId.Contains("pPb") && etabin < numetabins;
+        //const bool flipEta = gammaJetSampleId.Contains("pPb") && etabin < numetabins;
+        const bool flipEta = false;
         const short act_etabin = (flipEta ? (numetabins - etabin - 1) : etabin); // period A condition
 
         nGammaJet[pType][1][etabin] += (*nGammaJetVec)[etabin];
@@ -367,7 +369,8 @@ void ZGammaJetCrossCheckHist () {
 
        electronEnergyScale->Add((TH1D*)thisFile->Get(Form("electronEnergyScale_dataSet%s", zeeJetSampleId.Data())));
        for (short etabin = 0; etabin <= numetabins; etabin++) {
-        const bool flipEta = zeeJetSampleId.Contains("pPb") && etabin < numetabins;
+        //const bool flipEta = zeeJetSampleId.Contains("pPb") && etabin < numetabins;
+        const bool flipEta = false;
         const short act_etabin = (flipEta ? numetabins - etabin - 1 : etabin); // period A condition
 
         nZeeMass[pType][1][etabin] += (*nZeeMassVec)[etabin];
@@ -416,7 +419,8 @@ void ZGammaJetCrossCheckHist () {
        //jetSpectrum->Add((TH1D*)thisFile->Get(Form("jetPt_dataSet%s", zmumuJetSampleId.Data())));
 
        for (short etabin = 0; etabin <= numetabins; etabin++) {
-        const bool flipEta = zmumuJetSampleId.Contains("pPb") && etabin < numetabins;
+        //const bool flipEta = zmumuJetSampleId.Contains("pPb") && etabin < numetabins;
+        const bool flipEta = false;
         const short act_etabin = (flipEta ? numetabins - etabin - 1 : etabin); // period A condition
 
         nZmumuMass[pType][1][etabin] += (*nZmumuMassVec)[etabin];

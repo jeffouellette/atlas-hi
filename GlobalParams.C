@@ -11,7 +11,7 @@
 /** User defined parameters **/
 
 static const bool debugStatements = false; // Print out periodic statements to monitor code flow
-static const TString homePath = "/Users/nagle_lab/Jeff/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
+static const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
 static const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
 const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
@@ -252,7 +252,7 @@ static bool InDisabledHEC (const double eta, double phi) {
  * Returns true iff this eta lies within the EMCal.
  */
 static bool InEMCal (const float eta) {
-  return TMath::Abs(eta) < 1.37 || (1.56 < TMath::Abs(eta) && TMath::Abs(eta) < 2.37);
+  return TMath::Abs(eta) < 1.37 || (1.56 < TMath::Abs(eta) && TMath::Abs(eta) < 2.47);
 }
 
 
@@ -270,12 +270,24 @@ static bool InHadCal (const float eta, const float R = 0.4) {
 static void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo) {
   for (int xbin = 1; xbin <= optimal->GetNbinsX(); xbin++) {
    const double content = optimal->GetBinContent(xbin);
-   const double err_lo = content - sys_lo->GetBinContent(xbin);
-   const double err_hi = sys_hi->GetBinContent(xbin) - content;
+   const double lo = sys_lo->GetBinContent(xbin);
+   const double hi = sys_hi->GetBinContent(xbin);
+
+   const double err_lo = content - lo;
+   const double err_hi = hi - content;
 
    graph->SetPoint(xbin-1, optimal->GetBinCenter(xbin), content);
-   graph->SetPointEYlow(xbin-1, err_lo);
-   graph->SetPointEYhigh(xbin-1, err_hi);
+   graph->SetPointEXlow(xbin-1, optimal->GetBinCenter(xbin) - optimal->GetBinLowEdge(xbin));
+   graph->SetPointEXhigh(xbin-1, optimal->GetBinLowEdge(xbin+1) - optimal->GetBinCenter(xbin));
+
+   if (err_lo < 0 && err_hi < 0) {
+    graph->SetPointEYlow(xbin-1, -err_hi);
+    graph->SetPointEYhigh(xbin-1, -err_lo);
+   }
+   else {
+    graph->SetPointEYlow(xbin-1, err_lo);
+    graph->SetPointEYhigh(xbin-1, err_hi);
+   }
   }
   return;
 }

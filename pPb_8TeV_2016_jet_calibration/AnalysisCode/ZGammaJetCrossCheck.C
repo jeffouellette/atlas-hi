@@ -32,6 +32,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 
 
 double GetNewXCalibSystematicError(const double jeta, const double refpt) {
+  return 0;
   TFile* file = dataOverMCFile;
   if (!file || !file->IsOpen())
    return 0;
@@ -488,7 +489,7 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      // Put the Z in the right eta bin
      short etabin = 0;
-     if (etabins[0] < Z_eta ||
+     if (etabins[0] < Z_eta &&
          Z_eta < etabins[numetabins]) {
       while (etabins[etabin] < Z_eta) etabin++;
      }
@@ -549,12 +550,19 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double sjet_pt = ((0 <= sj && sj < t->jet_n) ? t->jet_pt->at(sj) : 0);
      const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
+     // Put the jet in the right eta bin
+     etabin = 0;
+     if (etabins[0] < ljet_eta &&
+         ljet_eta < etabins[numetabins]) {
+      while (etabins[etabin] < ljet_eta) etabin++;
+     }
+     etabin--;
+
      // jet cuts
+     if (etabin == -1)
+      continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
-     //if (ljet_eta < etabins[0] ||
-     //    ljet_eta > etabins[numetabins])
-     // continue; // Make sure jet is in eta bounds
      if (sjet_pt > 12) {
       const double subleading_dPhi = DeltaPhi (sjet_phi, Z_phi);
       //if (sjet_pt / Z_pt > 0.3)
@@ -562,6 +570,17 @@ void ZGammaJetCrossCheck (const int dataSet,
       //if (sjet_pt * TMath::Cos(pi - subleading_dPhi) / Z_pt > 0.2)
        continue; // suppress dijets by requiring leading jet to dominate ptref
      }
+
+     // Put the jet in the right eta bin
+     etabin = 0;
+     if (etabins[0] < ljet_eta ||
+         ljet_eta < etabins[numetabins]) {
+      while (etabins[etabin] < ljet_eta) etabin++;
+     }
+     etabin--;
+
+     if (etabin == -1)
+      continue;
 
      // Calculate opening angle in the transverse plane
      const double dPhi = DeltaPhi (ljet_phi, Z_phi);
@@ -671,7 +690,7 @@ void ZGammaJetCrossCheck (const int dataSet,
 
      // Put the Z boson in the right eta bin
      short etabin = 0;
-     if (etabins[0] < Z_eta ||
+     if (etabins[0] < Z_eta &&
          Z_eta < etabins[numetabins]) {
       while (etabins[etabin] < Z_eta) etabin++;
      }
@@ -728,12 +747,19 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double sjet_pt = ((0 <= sj && sj < t->jet_n) ? t->jet_pt->at(sj) : 0);
      const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
+     // Put the jet in the right eta bin
+     etabin = 0;
+     if (etabins[0] < ljet_eta &&
+         ljet_eta < etabins[numetabins]) {
+      while (etabins[etabin] < ljet_eta) etabin++;
+     }
+     etabin--;
+
      // jet cuts
+     if (etabin == -1)
+      continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
-     //if (ljet_eta < etabins[0] ||
-     //    ljet_eta > etabins[numetabins])
-     // continue; // Make sure the jet is within the relevant bounds
      if (sjet_pt > 12) {
       const double subleading_dPhi = DeltaPhi (sjet_phi, Z_phi);
       //if (sjet_pt / Z_pt > 0.3)
@@ -807,15 +833,15 @@ void ZGammaJetCrossCheck (const int dataSet,
      if (minDeltaR >= 0.4)
       continue; // reco photons not matched to a truth photon within dR=0.4 are skipped
 
-     // Put the jet in the right eta, pt bin
+     // Put the photon in the right eta, pt bin
      short etabin = 0;
-     if (etabins[0] < this_photon_eta ||
+     if (etabins[0] < this_photon_eta &&
          this_photon_eta < etabins[numetabins]) {
       while (etabins[etabin] < this_photon_eta) etabin++;
      }
      etabin--;
      short pbin = 0;
-     if (pbins[0] < this_photon_pt ||
+     if (pbins[0] < this_photon_pt &&
          this_photon_pt < pbins[numpbins]) {
       while (pbins[pbin] < this_photon_pt) pbin++;
      }
@@ -928,12 +954,19 @@ void ZGammaJetCrossCheck (const int dataSet,
     const double sjet_pt = ((0 <= sj && sj < t->jet_n) ? t->jet_pt->at(sj) : 0);
     const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
-    // cuts on jets
+    // Put the jet in the right eta bin
+    etabin = 0;
+    if (etabins[0] < ljet_eta &&
+        ljet_eta < etabins[numetabins]) {
+     while (etabins[etabin] < ljet_eta) etabin++;
+    }
+    etabin--;
+
+    // jet cuts
+    if (etabin == -1)
+     continue; // Reject jets outside eta bounds
     if (InDisabledHEC (ljet_eta, ljet_phi))
      continue; // require jet to be outside of disabled HEC
-    //if (ljet_eta < etabins[0] ||
-    //    ljet_eta > etabins[numetabins])
-    // continue; // Make sure jet is in eta bounds
     bool hasOtherJet = false;
     for (int j = 0; j < t->jet_n; j++) {
      if (j == lj)

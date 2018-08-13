@@ -1,11 +1,14 @@
 struct TreeVariables {
   private:
    TTree* tree;
-   bool testTree;
+   bool allJetBranches;
 
   public:
    int eventNumber = 0;
-   double eventWeight = 0;
+
+   int numberEvents = 0;
+   double crossSection_microbarns = 0;
+   double filterEfficiency = 0;
 
    int nvert = 0;
    vector<float>* vert_z = NULL;
@@ -52,6 +55,50 @@ struct TreeVariables {
    vector<float>* constit_jet_eta = NULL;
    vector<float>* constit_jet_phi = NULL;
    vector<float>* constit_jet_e = NULL;
+
+   int akt4hi_jet_n = 0;
+
+   vector<float>* akt4hi_em_xcalib_jet_pt = NULL;
+   vector<float>* akt4hi_em_xcalib_jet_eta = NULL;
+   vector<float>* akt4hi_em_xcalib_jet_phi = NULL;
+   vector<float>* akt4hi_em_xcalib_jet_e = NULL;
+
+   vector<float>* akt4hi_em_etajes_jet_pt = NULL;
+   vector<float>* akt4hi_em_etajes_jet_eta = NULL;
+   vector<float>* akt4hi_em_etajes_jet_phi = NULL;
+   vector<float>* akt4hi_em_etajes_jet_e = NULL;
+
+   vector<float>* akt4hi_em_jet_pt = NULL;
+   vector<float>* akt4hi_em_jet_eta = NULL;
+   vector<float>* akt4hi_em_jet_phi = NULL;
+   vector<float>* akt4hi_em_jet_e = NULL;
+
+   vector<float>* akt4hi_constit_xcalib_jet_pt = NULL;
+   vector<float>* akt4hi_constit_xcalib_jet_eta = NULL;
+   vector<float>* akt4hi_constit_xcalib_jet_phi = NULL;
+   vector<float>* akt4hi_constit_xcalib_jet_e = NULL;
+
+   vector<float>* akt4hi_constit_etajes_jet_pt = NULL;
+   vector<float>* akt4hi_constit_etajes_jet_eta = NULL;
+   vector<float>* akt4hi_constit_etajes_jet_phi = NULL;
+   vector<float>* akt4hi_constit_etajes_jet_e = NULL;
+
+   vector<float>* akt4hi_constit_jet_pt = NULL;
+   vector<float>* akt4hi_constit_jet_eta = NULL;
+   vector<float>* akt4hi_constit_jet_phi = NULL;
+   vector<float>* akt4hi_constit_jet_e = NULL;
+
+   int akt4emtopo_jet_n = 0;
+
+   vector<float>* akt4emtopo_em_jet_pt = NULL;
+   vector<float>* akt4emtopo_em_jet_eta = NULL;
+   vector<float>* akt4emtopo_em_jet_phi = NULL;
+   vector<float>* akt4emtopo_em_jet_e = NULL;
+
+   vector<float>* akt4emtopo_calib_jet_pt = NULL;
+   vector<float>* akt4emtopo_calib_jet_eta = NULL;
+   vector<float>* akt4emtopo_calib_jet_phi = NULL;
+   vector<float>* akt4emtopo_calib_jet_e = NULL;
 
    int truth_jet_n = 0;
    vector<float>* truth_jet_pt = NULL;
@@ -122,7 +169,7 @@ struct TreeVariables {
 
 TreeVariables::TreeVariables(TTree* t, const bool test = false) {
   tree = t;
-  testTree = test;
+  allJetBranches = test;
 }
 
 
@@ -190,78 +237,154 @@ TreeVariables::~TreeVariables() {
 
 
 void TreeVariables::SetBranchAddresses(const bool isMC) {
-  if (!isMC) tree->SetBranchAddress("eventNumber", &eventNumber);
-  else tree->SetBranchAddress("EventWeight", &eventWeight);
+  if (isMC) {
+   tree->SetBranchAddress("eventNumber", &eventNumber);
+   tree->SetBranchAddress("NumberEvents", &numberEvents);
+   tree->SetBranchAddress("CrossSection_microbarns", &crossSection_microbarns);
+   tree->SetBranchAddress("FilterEfficiency", &filterEfficiency);
+  }
+  else tree->SetBranchAddress("eventNumber", &eventNumber);
 
   tree->SetBranchAddress("nvert", &nvert);
   tree->SetBranchAddress("vert_z", &vert_z);
   tree->SetBranchAddress("vert_ntrk", &vert_ntrk);
   tree->SetBranchAddress("vert_type", &vert_type);
 
-  tree->SetBranchAddress("jet_n", &jet_n);
 
-  if (testTree) {
+  if (allJetBranches) {
 
-   tree->SetBranchAddress("em_xcalib_jet_pt", &em_xcalib_jet_pt);
-   tree->SetBranchAddress("em_xcalib_jet_eta", &em_xcalib_jet_eta);
-   tree->SetBranchAddress("em_xcalib_jet_phi", &em_xcalib_jet_phi);
-   tree->SetBranchAddress("em_xcalib_jet_e", &em_xcalib_jet_e);
+   if (!isMC) {
+    tree->SetBranchAddress("jet_n", &jet_n);
 
-   tree->SetBranchAddress("em_etajes_jet_pt", &em_etajes_jet_pt);
-   tree->SetBranchAddress("em_etajes_jet_eta", &em_etajes_jet_eta);
-   tree->SetBranchAddress("em_etajes_jet_phi", &em_etajes_jet_phi);
-   tree->SetBranchAddress("em_etajes_jet_e", &em_etajes_jet_e);
+    tree->SetBranchAddress("em_xcalib_jet_pt", &em_xcalib_jet_pt);
+    tree->SetBranchAddress("em_xcalib_jet_eta", &em_xcalib_jet_eta);
+    tree->SetBranchAddress("em_xcalib_jet_phi", &em_xcalib_jet_phi);
+    tree->SetBranchAddress("em_xcalib_jet_e", &em_xcalib_jet_e);
 
-   tree->SetBranchAddress("emscale_jet_pt", &emscale_jet_pt);
-   tree->SetBranchAddress("emscale_jet_eta", &emscale_jet_eta);
-   tree->SetBranchAddress("emscale_jet_phi", &emscale_jet_phi);
-   tree->SetBranchAddress("emscale_jet_e", &emscale_jet_e);
+    tree->SetBranchAddress("em_etajes_jet_pt", &em_etajes_jet_pt);
+    tree->SetBranchAddress("em_etajes_jet_eta", &em_etajes_jet_eta);
+    tree->SetBranchAddress("em_etajes_jet_phi", &em_etajes_jet_phi);
+    tree->SetBranchAddress("em_etajes_jet_e", &em_etajes_jet_e);
 
-   tree->SetBranchAddress("constit_xcalib_jet_pt", &constit_xcalib_jet_pt);
-   tree->SetBranchAddress("constit_xcalib_jet_eta", &constit_xcalib_jet_eta);
-   tree->SetBranchAddress("constit_xcalib_jet_phi", &constit_xcalib_jet_phi);
-   tree->SetBranchAddress("constit_xcalib_jet_e", &constit_xcalib_jet_e);
+    tree->SetBranchAddress("emscale_jet_pt", &emscale_jet_pt);
+    tree->SetBranchAddress("emscale_jet_eta", &emscale_jet_eta);
+    tree->SetBranchAddress("emscale_jet_phi", &emscale_jet_phi);
+    tree->SetBranchAddress("emscale_jet_e", &emscale_jet_e);
 
-   tree->SetBranchAddress("constit_etajes_jet_pt", &constit_etajes_jet_pt);
-   tree->SetBranchAddress("constit_etajes_jet_eta", &constit_etajes_jet_eta);
-   tree->SetBranchAddress("constit_etajes_jet_phi", &constit_etajes_jet_phi);
-   tree->SetBranchAddress("constit_etajes_jet_e", &constit_etajes_jet_e);
+    tree->SetBranchAddress("constit_xcalib_jet_pt", &constit_xcalib_jet_pt);
+    tree->SetBranchAddress("constit_xcalib_jet_eta", &constit_xcalib_jet_eta);
+    tree->SetBranchAddress("constit_xcalib_jet_phi", &constit_xcalib_jet_phi);
+    tree->SetBranchAddress("constit_xcalib_jet_e", &constit_xcalib_jet_e);
 
-   tree->SetBranchAddress("constit_jet_pt", &constit_jet_pt);
-   tree->SetBranchAddress("constit_jet_eta", &constit_jet_eta);
-   tree->SetBranchAddress("constit_jet_phi", &constit_jet_phi);
-   tree->SetBranchAddress("constit_jet_e", &constit_jet_e);
+    tree->SetBranchAddress("constit_etajes_jet_pt", &constit_etajes_jet_pt);
+    tree->SetBranchAddress("constit_etajes_jet_eta", &constit_etajes_jet_eta);
+    tree->SetBranchAddress("constit_etajes_jet_phi", &constit_etajes_jet_phi);
+    tree->SetBranchAddress("constit_etajes_jet_e", &constit_etajes_jet_e);
+
+    tree->SetBranchAddress("constit_jet_pt", &constit_jet_pt);
+    tree->SetBranchAddress("constit_jet_eta", &constit_jet_eta);
+    tree->SetBranchAddress("constit_jet_phi", &constit_jet_phi);
+    tree->SetBranchAddress("constit_jet_e", &constit_jet_e);
+   }
+   else {
+    tree->SetBranchAddress("akt4hi_jet_n", &akt4hi_jet_n);
+
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_pt", &akt4hi_em_xcalib_jet_pt);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_eta", &akt4hi_em_xcalib_jet_eta);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_phi", &akt4hi_em_xcalib_jet_phi);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_e", &akt4hi_em_xcalib_jet_e);
+
+    tree->SetBranchAddress("akt4hi_em_etajes_jet_pt", &akt4hi_em_etajes_jet_pt);
+    tree->SetBranchAddress("akt4hi_em_etajes_jet_eta", &akt4hi_em_etajes_jet_eta);
+    tree->SetBranchAddress("akt4hi_em_etajes_jet_phi", &akt4hi_em_etajes_jet_phi);
+    tree->SetBranchAddress("akt4hi_em_etajes_jet_e", &akt4hi_em_etajes_jet_e);
+
+    tree->SetBranchAddress("akt4hi_em_jet_pt", &akt4hi_em_jet_pt);
+    tree->SetBranchAddress("akt4hi_em_jet_eta", &akt4hi_em_jet_eta);
+    tree->SetBranchAddress("akt4hi_em_jet_phi", &akt4hi_em_jet_phi);
+    tree->SetBranchAddress("akt4hi_em_jet_e", &akt4hi_em_jet_e);
+
+    tree->SetBranchAddress("akt4hi_constit_xcalib_jet_pt", &akt4hi_constit_xcalib_jet_pt);
+    tree->SetBranchAddress("akt4hi_constit_xcalib_jet_eta", &akt4hi_constit_xcalib_jet_eta);
+    tree->SetBranchAddress("akt4hi_constit_xcalib_jet_phi", &akt4hi_constit_xcalib_jet_phi);
+    tree->SetBranchAddress("akt4hi_constit_xcalib_jet_e", &akt4hi_constit_xcalib_jet_e);
+
+    tree->SetBranchAddress("akt4hi_constit_etajes_jet_pt", &akt4hi_constit_etajes_jet_pt);
+    tree->SetBranchAddress("akt4hi_constit_etajes_jet_eta", &akt4hi_constit_etajes_jet_eta);
+    tree->SetBranchAddress("akt4hi_constit_etajes_jet_phi", &akt4hi_constit_etajes_jet_phi);
+    tree->SetBranchAddress("akt4hi_constit_etajes_jet_e", &akt4hi_constit_etajes_jet_e);
+
+    tree->SetBranchAddress("akt4hi_constit_jet_pt", &akt4hi_constit_jet_pt);
+    tree->SetBranchAddress("akt4hi_constit_jet_eta", &akt4hi_constit_jet_eta);
+    tree->SetBranchAddress("akt4hi_constit_jet_phi", &akt4hi_constit_jet_phi);
+    tree->SetBranchAddress("akt4hi_constit_jet_e", &akt4hi_constit_jet_e);
+
+    tree->SetBranchAddress("akt4emtopo_jet_n" &akt4emtopo_jet_n);
+
+    tree->SetBranchAddress("akt4emtopo_em_jet_pt", &akt4emtopo_em_jet_pt);
+    tree->SetBranchAddress("akt4emtopo_em_jet_eta", &akt4emtopo_em_jet_eta);
+    tree->SetBranchAddress("akt4emtopo_em_jet_phi", &akt4emtopo_em_jet_phi);
+    tree->SetBranchAddress("akt4emtopo_em_jet_e", &akt4emtopo_em_jet_e);
+
+    tree->SetBranchAddress("akt4emtopo_calib_jet_pt", &akt4emtopo_em_xcalib_jet_pt);
+    tree->SetBranchAddress("akt4emtopo_calib_jet_eta", &akt4emtopo_em_xcalib_jet_eta);
+    tree->SetBranchAddress("akt4emtopo_calib_jet_phi", &akt4emtopo_em_xcalib_jet_phi);
+    tree->SetBranchAddress("akt4emtopo_calib_jet_e", &akt4emtopo_em_xcalib_jet_e);
+
+   }
   }
   else {
-   tree->SetBranchAddress("em_xcalib_jet_pt", &jet_pt);
-   tree->SetBranchAddress("em_xcalib_jet_eta", &jet_eta);
-   tree->SetBranchAddress("em_xcalib_jet_phi", &jet_phi);
-   tree->SetBranchAddress("em_xcalib_jet_e", &jet_e);
+   if (isMC) {
+    tree->SetBranchAddress("akt4hi_jet_n", &jet_n);
 
-   //tree->SetBranchAddress("em_etajes_jet_pt", &jet_pt);
-   //tree->SetBranchAddress("em_etajes_jet_eta", &jet_eta);
-   //tree->SetBranchAddress("em_etajes_jet_phi", &jet_phi);
-   //tree->SetBranchAddress("em_etajes_jet_e", &jet_e);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_pt", &jet_pt);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_eta", &jet_eta);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_phi", &jet_phi);
+    tree->SetBranchAddress("akt4hi_em_xcalib_jet_e", &jet_e);
 
-   tree->SetBranchAddress("emscale_jet_pt", &precalib_jet_pt);
-   tree->SetBranchAddress("emscale_jet_eta", &precalib_jet_eta);
-   tree->SetBranchAddress("emscale_jet_phi", &precalib_jet_phi);
-   tree->SetBranchAddress("emscale_jet_e", &precalib_jet_e);
+    //tree->SetBranchAddress("akt4hi_em_etajes_jet_pt", &jet_pt);
+    //tree->SetBranchAddress("akt4hi_em_etajes_jet_eta", &jet_eta);
+    //tree->SetBranchAddress("akt4hi_em_etajes_jet_phi", &jet_phi);
+    //tree->SetBranchAddress("akt4hi_em_etajes_jet_e", &jet_e);
 
-   //tree->SetBranchAddress("constit_xcalib_jet_pt", &jet_pt);
-   //tree->SetBranchAddress("constit_xcalib_jet_eta", &jet_eta);
-   //tree->SetBranchAddress("constit_xcalib_jet_phi", &jet_phi);
-   //tree->SetBranchAddress("constit_xcalib_jet_e", &jet_e);
+    tree->SetBranchAddress("akt4hi_em_jet_pt", &precalib_jet_pt);
+    tree->SetBranchAddress("akt4hi_em_jet_eta", &precalib_jet_eta);
+    tree->SetBranchAddress("akt4hi_em_jet_phi", &precalib_jet_phi);
+    tree->SetBranchAddress("akt4hi_em_jet_e", &precalib_jet_e);
+   }
+   else {
+    tree->SetBranchAddress("jet_n", &jet_n);
 
-   ////tree->SetBranchAddress("constit_etajes_jet_pt", &jet_pt);
-   ////tree->SetBranchAddress("constit_etajes_jet_eta", &jet_eta);
-   ////tree->SetBranchAddress("constit_etajes_jet_phi", &jet_phi);
-   ////tree->SetBranchAddress("constit_etajes_jet_e", &jet_e);
+    tree->SetBranchAddress("em_xcalib_jet_pt", &jet_pt);
+    tree->SetBranchAddress("em_xcalib_jet_eta", &jet_eta);
+    tree->SetBranchAddress("em_xcalib_jet_phi", &jet_phi);
+    tree->SetBranchAddress("em_xcalib_jet_e", &jet_e);
 
-   //tree->SetBranchAddress("constit_jet_pt", &precalib_jet_pt);
-   //tree->SetBranchAddress("constit_jet_eta", &precalib_jet_eta);
-   //tree->SetBranchAddress("constit_jet_phi", &precalib_jet_phi);
-   //tree->SetBranchAddress("constit_jet_e", &precalib_jet_e);
+    //tree->SetBranchAddress("em_etajes_jet_pt", &jet_pt);
+    //tree->SetBranchAddress("em_etajes_jet_eta", &jet_eta);
+    //tree->SetBranchAddress("em_etajes_jet_phi", &jet_phi);
+    //tree->SetBranchAddress("em_etajes_jet_e", &jet_e);
+
+    tree->SetBranchAddress("emscale_jet_pt", &precalib_jet_pt);
+    tree->SetBranchAddress("emscale_jet_eta", &precalib_jet_eta);
+    tree->SetBranchAddress("emscale_jet_phi", &precalib_jet_phi);
+    tree->SetBranchAddress("emscale_jet_e", &precalib_jet_e);
+
+    //tree->SetBranchAddress("constit_xcalib_jet_pt", &jet_pt);
+    //tree->SetBranchAddress("constit_xcalib_jet_eta", &jet_eta);
+    //tree->SetBranchAddress("constit_xcalib_jet_phi", &jet_phi);
+    //tree->SetBranchAddress("constit_xcalib_jet_e", &jet_e);
+
+    ////tree->SetBranchAddress("constit_etajes_jet_pt", &jet_pt);
+    ////tree->SetBranchAddress("constit_etajes_jet_eta", &jet_eta);
+    ////tree->SetBranchAddress("constit_etajes_jet_phi", &jet_phi);
+    ////tree->SetBranchAddress("constit_etajes_jet_e", &jet_e);
+
+    //tree->SetBranchAddress("constit_jet_pt", &precalib_jet_pt);
+    //tree->SetBranchAddress("constit_jet_eta", &precalib_jet_eta);
+    //tree->SetBranchAddress("constit_jet_phi", &precalib_jet_phi);
+    //tree->SetBranchAddress("constit_jet_e", &precalib_jet_e);
+   }
   }
 
   if (isMC) {
@@ -327,8 +450,8 @@ void TreeVariables::PrintAll (const long long entry) {
   cout << "// Getting event " << entry << "..." << endl;
   cout << "////////////////////////////////////////////////////////////////////////////////" << endl;
 
-  if (testTree) {
-   cout << endl << "Calibrated jets (EM scale):" << endl;
+  if (allJetBranches) {
+   cout << endl << "Insitu/xCalib + EtaJES jets (EM scale):" << endl;
    cout << setw(2) << "#"
         << setw(10) << "Pt"
         << setw(10) << "Eta"
@@ -342,7 +465,7 @@ void TreeVariables::PrintAll (const long long entry) {
           << setw(10) << em_xcalib_jet_e->at(j) << endl;
    }
 
-   cout << endl << "Calibrated jets (EtaJES scale):" << endl;
+   cout << endl << "EtaJES jets (EM scale):" << endl;
    cout << setw(2) << "#"
         << setw(10) << "Pt"
         << setw(10) << "Eta"
@@ -370,7 +493,7 @@ void TreeVariables::PrintAll (const long long entry) {
           << setw(10) << emscale_jet_e->at(j) << endl;
    }
 
-   cout << "Calibrated jets (Constit scale):" << endl;
+   cout << "Insitu/xCalib + EtaJES jets (Constit scale):" << endl;
    cout << setw(2) << "#"
         << setw(10) << "Pt"
         << setw(10) << "Eta"
@@ -384,7 +507,7 @@ void TreeVariables::PrintAll (const long long entry) {
           << setw(10) << constit_xcalib_jet_e->at(j) << endl;
    }
 
-   cout << endl << "Calibrated jets (Constit-EtaJES scale):" << endl;
+   cout << endl << "EtaJES jets (Constit scale):" << endl;
    cout << setw(2) << "#"
         << setw(10) << "Pt"
         << setw(10) << "Eta"
@@ -460,60 +583,81 @@ void TreeVariables::PrintAll (const long long entry) {
   cout << setw(2) << "#"
        << setw(10) << "Pt"
        << setw(10) << "Eta"
-       << setw(10) << "Phi" << endl;
+       << setw(10) << "Phi"
+       << setw(10) << "Charge"
+       << setw(10) << "LHLoose?"
+       << setw(10) << "d0sig"
+       << setw(15) << "dz0_sin_theta" << endl;
   for (int j = 0; j < electron_n; j++) {
     cout << setw(2) << j
          << setw(10) << electron_pt->at(j)
          << setw(10) << electron_eta->at(j)
-         << setw(10) << electron_phi->at(j) << endl;
+         << setw(10) << electron_phi->at(j)
+         << setw(10) << electron_charge->at(j)
+         << setw(10) << electron_loose->at(j)
+         << setw(10) << electron_d0sig->at(j)
+         << setw(15) << electron_delta_z0_sin_theta->at(j) << endl;
   }
 
   cout << "Truth electrons:" << endl;
   cout << setw(2) << "#"
        << setw(10) << "Pt"
        << setw(10) << "Eta"
-       << setw(10) << "Phi" << endl;
+       << setw(10) << "Phi"
+       << setw(10) << "Charge" << endl;
   for (int j = 0; j < truth_electron_n; j++) {
     cout << setw(2) << j
          << setw(10) << truth_electron_pt->at(j)
          << setw(10) << truth_electron_eta->at(j)
-         << setw(10) << truth_electron_phi->at(j) << endl;
+         << setw(10) << truth_electron_phi->at(j)
+         << setw(10) << truth_electron_charge->at(j) << endl;
   }
 
   cout << endl << "Calibrated muons:" << endl;
   cout << setw(2) << "#"
        << setw(10) << "Pt"
        << setw(10) << "Eta"
-       << setw(10) << "Phi" << endl;
+       << setw(10) << "Phi"
+       << setw(10) << "Charge"
+       << setw(10) << "Loose?" << endl;
+
   for (int j = 0; j < muon_n; j++) {
     cout << setw(2) << j
          << setw(10) << muon_pt->at(j)
          << setw(10) << muon_eta->at(j)
-         << setw(10) << muon_phi->at(j) << endl;
+         << setw(10) << muon_phi->at(j)
+         << setw(10) << muon_charge->at(j)
+         << setw(10) << muon_loose->at(j) << endl;
   }
 
   cout << "Truth muons:" << endl;
   cout << setw(2) << "#"
        << setw(10) << "Pt"
        << setw(10) << "Eta"
-       << setw(10) << "Phi" << endl;
+       << setw(10) << "Phi"
+       << setw(10) << "Charge" << endl;
   for (int j = 0; j < truth_muon_n; j++) {
     cout << setw(2) << j
          << setw(10) << truth_muon_pt->at(j)
          << setw(10) << truth_muon_eta->at(j)
-         << setw(10) << truth_muon_phi->at(j) << endl;
+         << setw(10) << truth_muon_phi->at(j)
+         << setw(10) << truth_muon_charge->at(j) << endl;
   }
 
   cout << endl << "Calibrated photons:" << endl;
   cout << setw(2) << "#"
        << setw(10) << "Pt"
        << setw(10) << "Eta"
-       << setw(10) << "Phi" << endl;
+       << setw(10) << "Phi"
+       << setw(10) << "Tight?"
+       << setw(10) << "IsoET" << endl;
   for (int j = 0; j < photon_n; j++) {
     cout << setw(2) << j
          << setw(10) << photon_pt->at(j)
          << setw(10) << photon_eta->at(j)
-         << setw(10) << photon_phi->at(j) << endl;
+         << setw(10) << photon_phi->at(j)
+         << setw(10) << photon_tight->at(j)
+         << setw(10) << photon_topoetcone40->at(j) << endl;
   }
 
   cout << "Truth photons:" << endl;

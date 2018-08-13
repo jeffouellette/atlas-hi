@@ -133,27 +133,37 @@ void electronContaminationStudyHist () {
   electronSpectrum->GetZaxis()->SetTitleOffset(1.3);
   canvas->SaveAs(Form("%s/electronSpectrum.pdf", plotPath.Data()));
 
-  
-  FormatTH2Canvas (canvas, false);
-  gPad->SetLogy(true);
+
+  TCanvas* truthElectronCanvas = new TCanvas ("truthElectronCanvas", "", 800, 600);
+  truthElectronCanvas->Divide (3, 2, -1);  
+//  FormatTH2Canvas (truthElectronCanvas, false);
 
   truthElectronRecoElectronCounts->GetXaxis()->SetTitle("Truth #it{E}_{T} #left[GeV#right]");
   truthElectronRecoElectronCounts->GetYaxis()->SetTitle("Reco. counts / #SigmaN_{evt}");
   truthElectronRecoPhotonCounts->GetXaxis()->SetTitle("Truth #it{E}_{T} #left[GeV#right]");
   truthElectronRecoPhotonCounts->GetYaxis()->SetTitle("Reco. counts / #SigmaN_{evt}");
 
+  int padnum = 1;
   for (int eetabin = 0; eetabin < numeetabins; eetabin++) {
    if (eetabin == 1 || eetabin == 3) continue;
+
+   truthElectronCanvas->cd(padnum);
+   gPad->SetLogy(true);
+   gPad->SetLogx(true);
+
    TH1D* recoElectronSlice = truthElectronRecoElectronCounts->ProjectionX(Form("electron_%i",eetabin), eetabin, eetabin+1);
    TH1D* recoPhotonSlice = truthElectronRecoPhotonCounts->ProjectionX(Form("photon_%i",eetabin), eetabin, eetabin+1);
 
-   recoElectronSlice->GetYaxis()->SetTitle("Counts / #SigmaN_{evt} / GeV");
+   recoElectronSlice->GetYaxis()->SetTitle("Counts / Event / GeV");
    recoElectronSlice->GetYaxis()->SetTitleOffset(1.1);
-   recoPhotonSlice->GetYaxis()->SetTitle("Counts / #SigmaN_{evt} / GeV");
+   recoPhotonSlice->GetYaxis()->SetTitle("Counts / Event / GeV");
    recoPhotonSlice->GetYaxis()->SetTitleOffset(1.1);
 
    recoElectronSlice->Scale(1, "width");
    recoPhotonSlice->Scale(1, "width");
+
+   recoElectronSlice->SetAxisRange(1e-7, 1, "Y");
+   recoPhotonSlice->SetAxisRange(1e-7, 1, "Y");
 
    recoElectronSlice->SetLineColor(kBlack);
    recoElectronSlice->SetMarkerColor(kBlack);
@@ -165,8 +175,27 @@ void electronContaminationStudyHist () {
    recoPhotonSlice->Draw("e1 same");
 
    myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[eetabin], eetabins[eetabin+1]));
-   canvas->SaveAs(Form("%s/truthElectronRecoCounts_etabin%i.pdf", plotPath.Data(), eetabin));
+   //canvas->SaveAs(Form("%s/truthElectronRecoCounts_etabin%i.pdf", plotPath.Data(), eetabin));
+
+   truthElectronCanvas->cd(padnum+3);
+   gPad->SetLogy(false);
+   gPad->SetLogx(true);
+
+   TH1D* ratio = truthElectronRecoPhotonCounts->ProjectionX(Form("ratio_%i", eetabin), eetabin, eetabin+1);
+   ratio->Scale(1, "width"); // necessary since denominator has width divided
+   ratio->Divide(recoElectronSlice);
+   ratio->GetYaxis()->SetTitle("N^{e#rightarrow#gamma} / N^{e#rightarrowe}");
+   ratio->GetYaxis()->SetTitleOffset(1.1);
+   ratio->SetAxisRange(0, 0.12, "Y");
+
+   ratio->Draw("e1");
+   myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[eetabin], eetabins[eetabin+1]));
+   //canvas->SaveAs(Form("%s/electronMisIdRate_etabin%i.pdf", plotPath.Data(), eetabin));
+
+   padnum++;
+
   }
+  truthElectronCanvas->SaveAs(Form("%s/truthElectronReco.pdf", plotPath.Data()));
   
 
   TFile* outFile = new TFile(TString(rootPath) + "electronContaminationStudy.root", "recreate");
@@ -187,6 +216,8 @@ void electronContaminationStudyHist () {
   if (truthElectronRecoElectronCounts) delete truthElectronRecoElectronCounts;
   truthElectronRecoPhotonCounts->Write();
   if (truthElectronRecoPhotonCounts) delete truthElectronRecoPhotonCounts;
+  truthElectronCanvas->Write();
+  if (truthElectronCanvas) delete truthElectronCanvas;
 
   outFile->Write();
   if (outFile) delete outFile;
