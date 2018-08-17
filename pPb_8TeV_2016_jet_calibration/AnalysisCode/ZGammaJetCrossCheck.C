@@ -20,11 +20,11 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
    return 0;
   }
 
-  short etabin = 0;
-  while (xcalibEtabins[etabin] < TMath::Abs(jeta)) etabin++;
-  etabin--;
+  short iEta = 0;
+  while (xcalibEtabins[iEta] < TMath::Abs(jeta)) iEta++;
+  iEta--;
 
-  const TString hname = TString("fsys_rel_") + Form("%i", etabin);
+  const TString hname = TString("fsys_rel_") + Form("%i", iEta);
   TH1D* fsys_rel = (TH1D*)file->Get(hname.Data());
 
   return TMath::Abs(fsys_rel->GetBinContent(fsys_rel->FindBin(jpt)) - 1) * jpt;
@@ -81,7 +81,6 @@ TString GetIdentifier (const int dataSet, const bool isMC, const bool isValidati
 
 void ZGammaJetCrossCheck (const int dataSet,
                           const double luminosity,
-                          const double weight,
                           const bool isMC, 
                           const bool isMCperiodAflag,
                           const TString inFileName)
@@ -119,7 +118,7 @@ void ZGammaJetCrossCheck (const int dataSet,
    while ((sysfile = (TSystemFile*)next())) {
     fname = sysfile->GetName();
     if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-     if (debugStatements) cout << "Status: In DijetAnalysis.C (breakpoint B): Found " << fname.Data() << endl;
+     if (debugStatements) cout << "Status: In ZGammaJetCrossCheck.C (breakpoint B): Found " << fname.Data() << endl;
      
      if (fname.Contains(fileIdentifier)) {
       file = new TFile(dataPath+fname, "READ");
@@ -135,7 +134,7 @@ void ZGammaJetCrossCheck (const int dataSet,
   }
   /**** End find TTree ****/
 
-  TreeVariables* t = new TreeVariables(tree);
+  TreeVariables* t = new TreeVariables(tree, false);
   t->SetBranchAddresses(isMC);
 
   if (!isMC) {
@@ -175,72 +174,39 @@ void ZGammaJetCrossCheck (const int dataSet,
   TH2D* gJetHists[3][numetabins+1];
   TH2D* gJetHistsSys[3][numetabins+1];
   TH1D* zMassSpectra[2][numetabins+1];
-  TH2D* lowResponseEtaPhi = new TH2D(Form("lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  TH2D* highResponseEtaPhi = new TH2D(Form("highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  TH2D* lowResponseEtaPt = new TH2D(Form("lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-  TH2D* highResponseEtaPt = new TH2D(Form("highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-  TH2D* responsePt = new TH2D(Form("responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
-  TH1D* jetSpectrum = new TH1D(Form("jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
-  TH1D* jetEnergyResponseCalib[numpbins+1][numetabins+1];
-  TH1D* jetEnergyResponseReco[numpbins+1][numetabins+1];
-  TH1D* photonEnergyResponse[numpbins+1][numetabins+1];
-  TH1D* electronEnergyScale = new TH1D(Form("electronEnergyScale_dataSet%s", identifier.Data()), "", 200, 0, 2);
-  electronEnergyScale->Sumw2();
 
-
-  for (short etabin = 0; etabin <= numetabins; etabin++) {
-   for (short errType = 0; errType < 3; errType++) {
+  for (short iEta = 0; iEta <= numetabins; iEta++) {
+   for (short iErr = 0; iErr < 3; iErr++) {
     TString error = "sys_lo";
-    if (errType == 1) error = "stat";
-    else if (errType == 2) error = "sys_hi";
+    if (iErr == 1) error = "stat";
+    else if (iErr == 2) error = "sys_hi";
 
-    zeeJetHists[errType][etabin] = new TH2D(Form("zeeJetPtRatio_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    zeeJetHists[errType][etabin]->Sumw2();
-    //zeeJetHistsSys[errType][etabin] = new TH2D(Form("zeeJetPtRatioSys_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    //zeeJetHistsSys[errType][etabin]->Sumw2();
+    zeeJetHists[iErr][iEta] = new TH2D(Form("zeeJetPtRatio_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    zeeJetHists[iErr][iEta]->Sumw2();
+    //zeeJetHistsSys[iErr][iEta] = new TH2D(Form("zeeJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    //zeeJetHistsSys[iErr][iEta]->Sumw2();
 
-    zmumuJetHists[errType][etabin] = new TH2D(Form("zmumuJetPtRatio_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    zmumuJetHists[errType][etabin]->Sumw2();
-    //zmumuJetHistsSys[errType][etabin] = new TH2D(Form("zmumuJetPtRatioSys_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    //zmumuJetHistsSys[errType][etabin]->Sumw2();
+    zmumuJetHists[iErr][iEta] = new TH2D(Form("zmumuJetPtRatio_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iErr][iEta]->Sumw2();
+    //zmumuJetHistsSys[iErr][iEta] = new TH2D(Form("zmumuJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    //zmumuJetHistsSys[iErr][iEta]->Sumw2();
 
-    gJetHists[errType][etabin] = new TH2D(Form("gJetPtRatio_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpbins, pbins, numxjrefbins, xjrefbins);
-    gJetHists[errType][etabin]->Sumw2();
-    if (errType == 1) {
-     gJetHistsSys[errType][etabin] = new TH2D(Form("gJetPtRatioSys_dataSet%s_etabin%i_%s_%s", identifier.Data(), etabin, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
-     gJetHistsSys[errType][etabin]->Sumw2();
+    gJetHists[iErr][iEta] = new TH2D(Form("gJetPtRatio_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpbins, pbins, numxjrefbins, xjrefbins);
+    gJetHists[iErr][iEta]->Sumw2();
+    if (iErr == 1) {
+     gJetHistsSys[iErr][iEta] = new TH2D(Form("gJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
+     gJetHistsSys[iErr][iEta]->Sumw2();
     }
    }
 
    for (short spcType = 0; spcType < 2; spcType++) {
     const TString species = (spcType == 0 ? "mumu":"ee");
 
-    zMassSpectra[spcType][etabin] = new TH1D(Form("z%sMassSpectrum_dataSet%s_%s_etabin%i", species.Data(), identifier.Data(), (isMC ? "mc":"data"), etabin), "", 50, 60, 110);
-    zMassSpectra[spcType][etabin]->Sumw2();
+    zMassSpectra[spcType][iEta] = new TH1D(Form("z%sMassSpectrum_dataSet%s_%s_iEta%i", species.Data(), identifier.Data(), (isMC ? "mc":"data"), iEta), "", 50, 60, 110);
+    zMassSpectra[spcType][iEta]->Sumw2();
    }
   }
 
-  for (short pbin = 0; pbin <= numpbins; pbin++) {
-   for (short etabin = 0; etabin <= numetabins; etabin++) {
-    jetEnergyResponseCalib[pbin][etabin] = new TH1D(Form("jetEnergyResponseCalib_dataSet%s_pbin%i_etabin%i", identifier.Data(), pbin, etabin), "", 50, 0, 2);
-    jetEnergyResponseCalib[pbin][etabin]->Sumw2();
-    jetEnergyResponseReco[pbin][etabin] = new TH1D(Form("jetEnergyResponseReco_dataSet%s_pbin%i_etabin%i", identifier.Data(), pbin, etabin), "", 50, 0, 2);
-    jetEnergyResponseReco[pbin][etabin]->Sumw2();
-    photonEnergyResponse[pbin][etabin] = new TH1D(Form("photonEnergyResponse_dataSet%s_pbin%i_etabin%i", identifier.Data(), pbin, etabin), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};Counts", 50, 0, 2);
-    photonEnergyResponse[pbin][etabin]->Sumw2();
-   }
-  }
-
-  int* nJet[numpbins+1] = {};
-  int* nGamma[numpbins+1] = {};
-  for (short pbin = 0; pbin <= numpbins; pbin++) {
-   nJet[pbin] = new int[numetabins+1];
-   nGamma[pbin] = new int[numetabins+1];
-   for (short etabin = 0; etabin <= numetabins; etabin++) {
-    nJet[pbin][etabin] = 0;
-    nGamma[pbin][etabin] = 0;
-   }
-  }
   int nZeeMass[numetabins+1] = {};
   int nZeeJet[numetabins+1] = {};
   int nZmumuMass[numetabins+1] = {};
@@ -266,117 +232,6 @@ void ZGammaJetCrossCheck (const int dataSet,
 
 
    /////////////////////////////////////////////////////////////////////////////
-   // if MC, fill jet energy response
-   /////////////////////////////////////////////////////////////////////////////
-   if (isMC) {
-    for (int j = 0; j < t->jet_n; j++) {
-     if (t->jet_pt->at(j) < jet_pt_cut)
-      continue; // basic jet pT cut
-     if (InDisabledHEC (t->jet_eta->at(j), t->jet_phi->at(j)))
-      continue; // only truth match jets outside disabled HEC
-     if (!InHadCal (t->jet_eta->at(j)))
-      continue; // reject jets reconstructed outside reasonable HCal bounds.
-
-     double minDeltaR = 1000;
-     // loop over truth+reco electrons, muons, and photons
-     for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
-      //if (t->truth_electron_pt->at(e) < electron_pt_cut) continue;
-      const double dR = DeltaR (t->jet_eta->at(j), t->truth_electron_eta->at(e), t->jet_phi->at(j), t->truth_electron_phi->at(e));
-      if (dR < minDeltaR) minDeltaR = dR;
-     }
-     //for (int e = 0; e < t->electron_n; e++) { // reco electrons
-     // if (t->electron_pt->at(e) < electron_pt_cut) continue;
-     // const double dR = DeltaR (t->jet_eta->at(j), t->electron_eta->at(e), t->jet_phi->at(j), t->electron_phi->at(e));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     //for (int m = 0; m < t->truth_muon_n; m++) { // truth muons
-     // const double dR = DeltaR (t->jet_eta->at(j), t->truth_muon_eta->at(m), t->jet_phi->at(j), t->truth_muon_phi->at(m));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     //for (int m = 0; m < t->muon_n; m++) { // reco muons
-     // const double dR = DeltaR (t->jet_eta->at(j), t->muon_eta->at(m), t->jet_phi->at(j), t->muon_phi->at(m));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
-      //if (t->truth_photon_pt->at(p) < photon_pt_cut) continue;
-      const double dR = DeltaR (t->jet_eta->at(j), t->truth_photon_eta->at(p), t->jet_phi->at(j), t->truth_photon_phi->at(p));
-      if (dR < minDeltaR) minDeltaR = dR;
-     }
-     //for (int p = 0; p < t->photon_n; p++) { // photons
-     // if (t->photon_pt->at(p) < photon_pt_cut) continue;
-     // const double dR = DeltaR (t->jet_eta->at(j), t->photon_eta->at(p), t->jet_phi->at(j), t->photon_phi->at(p));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     if (minDeltaR < 0.4)
-      continue; // reject jets close to some other lepton or photon
-
-     jetSpectrum->Fill (t->jet_pt->at(j), t->eventWeight / weight / weight);
-
-     minDeltaR = 1000;
-     int truth_jet = -1;
-     for (int tj = 0; tj < t->truth_jet_n; tj++) {
-      double dR = DeltaR (t->jet_eta->at(j), t->truth_jet_eta->at(tj), t->jet_phi->at(j), t->truth_jet_phi->at(tj));
-      if (dR < minDeltaR) {
-       minDeltaR = dR;
-       truth_jet = tj;
-      }
-     }
-     if (0 <= truth_jet && truth_jet < t->truth_jet_n && minDeltaR < 0.4) {
-
-      // Put the jet in the right eta bin
-      short etabin = 0;
-      // Make sure jet is in eta bounds
-      if (etabins[0] < t->jet_eta->at(j) ||
-          t->jet_eta->at(j) < etabins[numetabins]) {
-       while (etabins[etabin] < t->jet_eta->at(j)) etabin++;
-      }
-      etabin--;
-      short pbin = 0;
-      if (pbins[0] < t->jet_pt->at(j) ||
-          t->jet_pt->at(j) < pbins[numpbins]) {
-       while (pbins[pbin] < t->jet_pt->at(j)) pbin++;
-      }
-      pbin--;
-
-      const double jer = t->jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
-      const double pjer = t->precalib_jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
-      if (0 <= pbin && pbin < numpbins &&
-          0 <= etabin && etabin < numetabins) {
-       nJet[pbin][etabin]++;
-       jetEnergyResponseCalib[pbin][etabin]->Fill (jer, t->eventWeight / weight / weight);
-       jetEnergyResponseReco[pbin][etabin]->Fill (pjer, t->eventWeight / weight / weight);
-      }
-      if (0 <= pbin && pbin < numpbins) {
-       nJet[pbin][numetabins]++;
-       jetEnergyResponseCalib[pbin][numetabins]->Fill (jer, t->eventWeight / weight / weight);
-       jetEnergyResponseReco[pbin][numetabins]->Fill (pjer, t->eventWeight / weight / weight);
-      }
-      if (0 <= etabin && etabin < numetabins) {
-       nJet[numpbins][etabin]++;
-       jetEnergyResponseCalib[numpbins][etabin]->Fill (jer, t->eventWeight / weight / weight);
-       jetEnergyResponseReco[numpbins][etabin]->Fill (pjer, t->eventWeight / weight / weight);
-      }
-      nJet[numpbins][numetabins]++;
-      jetEnergyResponseCalib[numpbins][numetabins]->Fill (jer, t->eventWeight / weight / weight);
-      jetEnergyResponseReco[numpbins][numetabins]->Fill (pjer, t->eventWeight / weight / weight);
-
-      // Extra plots
-      if (t->jet_pt->at(j) / t->truth_jet_pt->at(truth_jet) < 1.18) {
-       lowResponseEtaPhi->Fill (t->jet_eta->at(j), t->jet_phi->at(j), t->eventWeight / weight / weight);
-       lowResponseEtaPt->Fill (t->jet_eta->at(j), t->jet_pt->at(j), t->eventWeight / weight / weight);
-      }
-      else {
-       highResponseEtaPhi->Fill (t->jet_eta->at(j), t->jet_phi->at(j), t->eventWeight / weight / weight);
-       highResponseEtaPt->Fill (t->jet_eta->at(j), t->jet_pt->at(j), t->eventWeight / weight / weight);
-      }
-      responsePt->Fill (jer, t->jet_pt->at(j), t->eventWeight / weight / weight);
-
-     }
-    }
-   }// end jet energy response
-
-
-   /////////////////////////////////////////////////////////////////////////////
    // now reject events with less than 2 muons, 2 electrons AND 1 photon
    /////////////////////////////////////////////////////////////////////////////
    if (t->photon_n < 1 && t->muon_n < 2 && t->electron_n < 2) continue;
@@ -398,24 +253,6 @@ void ZGammaJetCrossCheck (const int dataSet,
      continue; // d0 (transverse impact parameter) significance cut
     if (t->electron_delta_z0_sin_theta->at(e1) > 0.5)
      continue; // z0 (longitudinal impact parameter) vertex compatibility cut
-
-    // fill the electron energy scale plot first, finding the truth-reco pair
-    if (isMC && t->truth_electron_n > 0) {
-     int closestEl = (e1 < t->truth_electron_n ? e1:t->truth_electron_n-1); // best initial guess
-     
-     double minDeltaR = DeltaR (t->electron_eta->at(e1), t->truth_electron_eta->at(closestEl), t->electron_phi->at(e1), t->truth_electron_phi->at(closestEl));
-     for (int te = 0; te < t->truth_electron_n; te++) {
-      if (t->truth_electron_pt->at(te) < electron_pt_cut) continue;
-      if (t->electron_charge->at(e1) != t->truth_electron_charge->at(te)) continue;
-      const double dR = DeltaR (t->electron_eta->at(e1), t->truth_electron_eta->at(te), t->electron_phi->at(e1), t->truth_electron_phi->at(te));
-      if (dR < minDeltaR) {
-       closestEl = te;
-       minDeltaR = dR;
-      }
-     }
-     if (minDeltaR < 0.4)
-      electronEnergyScale->Fill (t->electron_pt->at(e1) / t->truth_electron_pt->at(closestEl));//, t->eventWeight);
-    }
 
     for (int e2 = 0; e2 < e1; e2++) { // loop over secondary electron
      // electron cuts
@@ -439,7 +276,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double leading_electron_eta = t->electron_eta->at(le);
 
      // triggering and event weighting
-     float prescale = 1;
+     double weight = 1;
      if (!isMC) {
       Trigger* electronTrigger = NULL;
       for (Trigger* trig : electronTriggers) {
@@ -463,10 +300,9 @@ void ZGammaJetCrossCheck (const int dataSet,
       //}
       //if (nonElectronTrigger)
       // continue; // reject events where a non-electron trigger also fired.
-      prescale = electronTrigger->trigPrescale;
+      weight = electronTrigger->trigPrescale;
      }
-     else prescale = t->eventWeight;
-     prescale = prescale / weight / weight;
+     else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
 
      // Reco ee invariant 4-momentum (best guess for Z boson)
      const TLorentzVector Z = electron1 + electron2;
@@ -482,25 +318,25 @@ void ZGammaJetCrossCheck (const int dataSet,
       continue; // opposite charge requirement
 
      // Fill dielectron mass spectra
-     zMassSpectra[1][numetabins]->Fill (Z_m, prescale);
+     zMassSpectra[1][numetabins]->Fill (Z_m, weight);
 
      // Increment total Z count
      nZeeMass[numetabins]++;
 
      // Put the Z in the right eta bin
-     short etabin = 0;
+     short iEta = 0;
      if (etabins[0] < Z_eta &&
          Z_eta < etabins[numetabins]) {
-      while (etabins[etabin] < Z_eta) etabin++;
+      while (etabins[iEta] < Z_eta) iEta++;
      }
-     etabin--;
+     iEta--;
 
-     if (etabin != -1) {
+     if (iEta != -1) {
       // Fill additional dielectron mass spectrum
-      zMassSpectra[1][etabin]->Fill (Z_m, prescale);
+      zMassSpectra[1][iEta]->Fill (Z_m, weight);
 
       // Fill appropriate Z counter
-      nZeeMass[etabin]++;
+      nZeeMass[iEta]++;
      }
 
      // additional Z boson cuts
@@ -551,15 +387,15 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
      // Put the jet in the right eta bin
-     etabin = 0;
+     iEta = 0;
      if (etabins[0] < ljet_eta &&
          ljet_eta < etabins[numetabins]) {
-      while (etabins[etabin] < ljet_eta) etabin++;
+      while (etabins[iEta] < ljet_eta) iEta++;
      }
-     etabin--;
+     iEta--;
 
      // jet cuts
-     if (etabin == -1)
+     if (iEta == -1)
       continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
@@ -570,17 +406,6 @@ void ZGammaJetCrossCheck (const int dataSet,
       //if (sjet_pt * TMath::Cos(pi - subleading_dPhi) / Z_pt > 0.2)
        continue; // suppress dijets by requiring leading jet to dominate ptref
      }
-
-     // Put the jet in the right eta bin
-     etabin = 0;
-     if (etabins[0] < ljet_eta ||
-         ljet_eta < etabins[numetabins]) {
-      while (etabins[etabin] < ljet_eta) etabin++;
-     }
-     etabin--;
-
-     if (etabin == -1)
-      continue;
 
      // Calculate opening angle in the transverse plane
      const double dPhi = DeltaPhi (ljet_phi, Z_phi);
@@ -593,18 +418,18 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double ptratio[3] = {(ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
      // Fill xjref histograms 
-     //for (short errType = 0; errType < 3; errType++) zeeJetHists[errType][etabin]->Fill (Z_pt, ptratio[errType]/ptref, prescale);
-     for (short errType = 0; errType < 3; errType++) {
-      if (etabin != -1) zeeJetHists[errType][etabin]->Fill (Z_pt, ptratio[errType], prescale);
-      zeeJetHists[errType][numetabins]->Fill (Z_pt, ptratio[errType], prescale);
+     //for (short iErr = 0; iErr < 3; iErr++) zeeJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr]/ptref, weight);
+     for (short iErr = 0; iErr < 3; iErr++) {
+      if (iEta != -1) zeeJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr], weight);
+      zeeJetHists[iErr][numetabins]->Fill (Z_pt, ptratio[iErr], weight);
      }
 
      // Increment Z+jet counters
-     if (etabin != -1) nZeeJet[etabin]++;
+     if (iEta != -1) nZeeJet[iEta]++;
      nZeeJet[numetabins]++;
 
      // Fill additional systematics histograms
-     //for (short errType = 0; errType < 3; errType++) zeeJetHistsSys[errType][etabin]->Fill (ljet_pt, ptratio[errType]/ptref, prescale);
+     //for (short iErr = 0; iErr < 3; iErr++) zeeJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
     }
    } // end loop over electron pairs
    // end Z->ee type events
@@ -640,7 +465,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double leading_muon_eta = t->muon_eta->at(lm);
 
      // triggering and event weighting
-     double prescale = 1;
+     double weight = 1;
      if (!isMC) {
       Trigger* muonTrigger = NULL;
       for (Trigger* trig : muonTriggers) {
@@ -664,10 +489,9 @@ void ZGammaJetCrossCheck (const int dataSet,
       }
       if (nonMuonTrigger)
        continue; // reject events where a non-electron trigger also fired.
-      prescale = muonTrigger->trigPrescale;
+      weight = muonTrigger->trigPrescale;
      }
-     else prescale = t->eventWeight;
-     prescale = prescale / weight / weight;
+     else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
 
      // Reco mumu invariant 4-momentum (best guess for Z boson)
      const TLorentzVector Z = muon1 + muon2;
@@ -683,25 +507,25 @@ void ZGammaJetCrossCheck (const int dataSet,
       continue; // require oppositely charged muons
 
      // Fill dimuon mass spectrum
-     zMassSpectra[0][numetabins]->Fill (Z_m, prescale);
+     zMassSpectra[0][numetabins]->Fill (Z_m, weight);
 
      // Increment total Z counter
      nZmumuMass[numetabins]++;
 
      // Put the Z boson in the right eta bin
-     short etabin = 0;
+     short iEta = 0;
      if (etabins[0] < Z_eta &&
          Z_eta < etabins[numetabins]) {
-      while (etabins[etabin] < Z_eta) etabin++;
+      while (etabins[iEta] < Z_eta) iEta++;
      }
-     etabin--;
+     iEta--;
 
-     if (etabin != -1) {
+     if (iEta != -1) {
       // Fill additional dimuon mass spectrum specific to opposite jet
-      zMassSpectra[0][etabin]->Fill (Z_m, prescale);
+      zMassSpectra[0][iEta]->Fill (Z_m, weight);
 
       // Increment appropriate Z counter
-      nZmumuMass[etabin]++;
+      nZmumuMass[iEta]++;
      }
 
      // additional Z boson cuts
@@ -748,15 +572,15 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
      // Put the jet in the right eta bin
-     etabin = 0;
+     iEta = 0;
      if (etabins[0] < ljet_eta &&
          ljet_eta < etabins[numetabins]) {
-      while (etabins[etabin] < ljet_eta) etabin++;
+      while (etabins[iEta] < ljet_eta) iEta++;
      }
-     etabin--;
+     iEta--;
 
      // jet cuts
-     if (etabin == -1)
+     if (iEta == -1)
       continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
@@ -779,20 +603,20 @@ void ZGammaJetCrossCheck (const int dataSet,
      const double ptratio[3] = {(ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
      // Fill dimuon xjref histograms
-     //for (short errType = 0; errType < 3; errType++)
-     // zmumuJetHists[errType][etabin]->Fill (Z_pt, ptratio[errType]/ptref, prescale);
-     for (short errType = 0; errType < 3; errType++) {
-      if (etabin != -1) zmumuJetHists[errType][etabin]->Fill (Z_pt, ptratio[errType], prescale);
-      zmumuJetHists[errType][numetabins]->Fill (Z_pt, ptratio[errType], prescale);
+     //for (short iErr = 0; iErr < 3; iErr++)
+     // zmumuJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr]/ptref, weight);
+     for (short iErr = 0; iErr < 3; iErr++) {
+      if (iEta != -1) zmumuJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr], weight);
+      zmumuJetHists[iErr][numetabins]->Fill (Z_pt, ptratio[iErr], weight);
      }
 
      // Increment Z+jet counters
-     if (etabin != -1) nZmumuJet[etabin]++;
+     if (iEta != -1) nZmumuJet[iEta]++;
      nZmumuJet[numetabins]++;
 
      // Fill additional systematics histograms
-     //for (short errType = 0; errType < 3; errType++)
-     // zmumuJetHistsSys[errType][etabin]->Fill (ljet_pt, ptratio[errType]/ptref, prescale);
+     //for (short iErr = 0; iErr < 3; iErr++)
+     // zmumuJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
     }
    } // end loop over muon pairs
    // end Z->mumu type events
@@ -804,81 +628,35 @@ void ZGammaJetCrossCheck (const int dataSet,
    for (int p = 0; p < t->photon_n; p++) { // loop over all photons
     // relevant photon kinematic data
     TLorentzVector photon;
-    const double this_photon_pt = t->photon_pt->at(p);
-    const double this_photon_eta = t->photon_eta->at(p);
-    const double this_photon_phi = t->photon_phi->at(p);
-    photon.SetPtEtaPhiM (this_photon_pt, this_photon_eta, this_photon_phi, 0);
+    const double photon_pt = t->photon_pt->at(p);
+    const double photon_eta = t->photon_eta->at(p);
+    const double photon_phi = t->photon_phi->at(p);
+    photon.SetPtEtaPhiM (photon_pt, photon_eta, photon_phi, 0);
 
     // photon cuts
-    if (this_photon_pt < photon_pt_cut)
+    if (photon_pt < photon_pt_cut)
      continue; // basic pT cut on photons
     if (!t->photon_tight->at(p))
      continue; // require tight cuts on photons
-    if (t->photon_topoetcone40->at(p) > isolationEnergyIntercept + isolationEnergySlope*this_photon_pt)
+    if (t->photon_topoetcone40->at(p) > isolationEnergyIntercept + isolationEnergySlope*photon_pt)
      continue; // require maximum isolation energy on gammas
-    if (!InEMCal (this_photon_eta) || InDisabledHEC (this_photon_eta, this_photon_phi))
+    if (!InEMCal (photon_eta) || InDisabledHEC (photon_eta, photon_phi))
      continue; // require photon to be in EMCal
 
-    // do photon truth matching to estimate photon energy scale
-    if (isMC) {
-     int truth_photon = (p < t->truth_photon_n ? p : t->truth_photon_n-1); // best initial guess
-     double minDeltaR = 1000;
-     for (int tp = 0; tp < t->truth_photon_n; tp++) {
-      const double dR = DeltaR (this_photon_eta, t->truth_photon_eta->at(tp), this_photon_phi, t->truth_photon_phi->at(tp));
-      if (dR < minDeltaR) {
-       truth_photon = tp;
-       minDeltaR = tp;
-      }
-     }
-     if (minDeltaR >= 0.4)
-      continue; // reco photons not matched to a truth photon within dR=0.4 are skipped
-
-     // Put the photon in the right eta, pt bin
-     short etabin = 0;
-     if (etabins[0] < this_photon_eta &&
-         this_photon_eta < etabins[numetabins]) {
-      while (etabins[etabin] < this_photon_eta) etabin++;
-     }
-     etabin--;
-     short pbin = 0;
-     if (pbins[0] < this_photon_pt &&
-         this_photon_pt < pbins[numpbins]) {
-      while (pbins[pbin] < this_photon_pt) pbin++;
-     }
-     pbin--;
-
-     const double per = this_photon_pt / t->truth_photon_pt->at(truth_photon);
-     if (0 <= pbin && pbin < numpbins &&
-         0 <= etabin && etabin < numetabins) {
-      photonEnergyResponse[pbin][etabin]->Fill (per, t->eventWeight / weight / weight);
-      nGamma[pbin][etabin]++;
-     }
-     if (0 <= pbin && pbin < numpbins) {
-      photonEnergyResponse[pbin][numetabins]->Fill (per, t->eventWeight / weight / weight);
-      nGamma[pbin][numetabins]++;
-     }
-     if (0 <= etabin && etabin < numetabins) {
-      photonEnergyResponse[numpbins][etabin]->Fill (per, t->eventWeight / weight / weight);
-      nGamma[numpbins][etabin]++;
-     }
-     photonEnergyResponse[numpbins][numetabins]->Fill (per, t->eventWeight / weight / weight);
-     nGamma[numpbins][numetabins]++;
-    }
-
     // triggering and event weighting
-    float prescale = 1;
+    double weight = 1;
     if (!isMC) {
      Trigger* photonTrigger = NULL;
      for (Trigger* trig : photonTriggers) {
       if (trig->trigPrescale > 0 &&
           (photonTrigger == NULL ||
            (trig->trigPrescale < photonTrigger->trigPrescale &&
-            trig->min_pt <= this_photon_pt &&
-            this_photon_pt <= trig->max_pt)))
+            trig->min_pt <= photon_pt &&
+            photon_pt <= trig->max_pt)))
        photonTrigger = trig;
       //if (trig->trigPrescale > 0 &&
-      //    trig->min_pt <= this_photon_pt &&
-      //    this_photon_pt <= trig->max_pt)
+      //    trig->min_pt <= photon_pt &&
+      //    photon_pt <= trig->max_pt)
       // photonTrigger = trig;
      }
      if (photonTrigger == NULL ||
@@ -893,18 +671,17 @@ void ZGammaJetCrossCheck (const int dataSet,
      }
      if (nonPhotonTrigger)
       continue; // reject events where a non-electron trigger also fired.
-     prescale = photonTrigger->trigPrescale;
+     weight = photonTrigger->trigPrescale;
     }
-    else prescale = t->eventWeight;
-    prescale = prescale / weight / weight;
+    else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
 
     // Put the jet in the right eta bin
-    short etabin = 0;
-    if (etabins[0] < this_photon_eta ||
-        this_photon_eta < etabins[numetabins]) {
-     while (etabins[etabin] < this_photon_eta) etabin++;
+    short iEta = 0;
+    if (etabins[0] < photon_eta ||
+        photon_eta < etabins[numetabins]) {
+     while (etabins[iEta] < photon_eta) iEta++;
     }
-    etabin--;
+    iEta--;
 
     // jet finding
     int lj = -1; // allowed to be in HEC when finding
@@ -925,7 +702,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      }
      if (minDeltaR < 0.4)
       continue; // require jet is not reconstructed as a photon
-     if (DeltaPhi (this_photon_phi, t->jet_phi->at(j)) < 3*pi/4)
+     if (DeltaPhi (photon_phi, t->jet_phi->at(j)) < 3*pi/4)
       continue; // cut on gamma+jet samples not back-to-back in the transverse plane
 
      // compare to the leading jet
@@ -955,15 +732,15 @@ void ZGammaJetCrossCheck (const int dataSet,
     const double sjet_phi = ((0 <= sj && sj < t->jet_n) ? t->jet_phi->at(sj) : 0);
 
     // Put the jet in the right eta bin
-    etabin = 0;
+    iEta = 0;
     if (etabins[0] < ljet_eta &&
         ljet_eta < etabins[numetabins]) {
-     while (etabins[etabin] < ljet_eta) etabin++;
+     while (etabins[iEta] < ljet_eta) iEta++;
     }
-    etabin--;
+    iEta--;
 
     // jet cuts
-    if (etabin == -1)
+    if (iEta == -1)
      continue; // Reject jets outside eta bounds
     if (InDisabledHEC (ljet_eta, ljet_phi))
      continue; // require jet to be outside of disabled HEC
@@ -971,12 +748,12 @@ void ZGammaJetCrossCheck (const int dataSet,
     for (int j = 0; j < t->jet_n; j++) {
      if (j == lj)
       continue; // don't look at the leading jet, its our candidate :)
-     if (DeltaR (t->jet_eta->at(j), this_photon_eta, t->jet_phi->at(j), this_photon_phi) < 0.4)
+     if (DeltaR (t->jet_eta->at(j), photon_eta, t->jet_phi->at(j), photon_phi) < 0.4)
       continue; // reject jets that are just this photon
      if (t->jet_pt->at(j) < 12 || InDisabledHEC (t->jet_eta->at(j), t->jet_phi->at(j)))
       continue; // basic jet pT cut, also reject on the disabled HEC
-     const double s_dphi = DeltaPhi (t->jet_phi->at(j), this_photon_phi);
-     const double s_xjref = t->jet_pt->at(j) / (this_photon_pt);// * TMath::Cos(pi - s_dphi));
+     const double s_dphi = DeltaPhi (t->jet_phi->at(j), photon_phi);
+     const double s_xjref = t->jet_pt->at(j) / (photon_pt);// * TMath::Cos(pi - s_dphi));
      if (0.1 < s_xjref) {
       hasOtherJet = true;
       break;
@@ -985,40 +762,40 @@ void ZGammaJetCrossCheck (const int dataSet,
     if (hasOtherJet)
      continue; // cut on other jets that look back-to-back with gamma
     //if (sjet_pt > 12) {
-    // const double subleading_dPhi = DeltaPhi (sjet_phi, this_photon_phi);
-    // //if (sjet_pt / this_photon_pt > 0.1)
-    // if (sjet_pt / (this_photon_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
-    // //if (sjet_pt * TMath::Cos(pi - subleading_dPhi) / this_photon_pt > 0.2)
-    // //if (sjet_pt / this_photon_pt > 0.02)
+    // const double subleading_dPhi = DeltaPhi (sjet_phi, photon_phi);
+    // //if (sjet_pt / photon_pt > 0.1)
+    // if (sjet_pt / (photon_pt * TMath::Cos(pi - subleading_dPhi)) > 0.2)
+    // //if (sjet_pt * TMath::Cos(pi - subleading_dPhi) / photon_pt > 0.2)
+    // //if (sjet_pt / photon_pt > 0.02)
     //  continue; // suppress dijets by requiring leading jet to dominate ptref
     //}
 
     // Calculate opening angle in the transverse plane
-    const double dPhi = DeltaPhi (ljet_phi, this_photon_phi);
+    const double dPhi = DeltaPhi (ljet_phi, photon_phi);
 
     // Calculate systematics
     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError(ljet_pt, ljet_eta));
 
     // Calculate ptref and xjrefs
-    const double ptref = this_photon_pt * TMath::Cos(pi - dPhi);
+    const double ptref = photon_pt * TMath::Cos(pi - dPhi);
     const double ptratio[3] = {(ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
     // Fill xjref histograms
-    for (short errType = 0; errType < 3; errType++) {
-     if (etabin != -1) gJetHists[errType][etabin]->Fill (this_photon_pt, ptratio[errType], prescale);
-     gJetHists[errType][numetabins]->Fill (this_photon_pt, ptratio[errType], prescale);
+    for (short iErr = 0; iErr < 3; iErr++) {
+     if (iEta != -1) gJetHists[iErr][iEta]->Fill (photon_pt, ptratio[iErr], weight);
+     gJetHists[iErr][numetabins]->Fill (photon_pt, ptratio[iErr], weight);
     }
 
     // if data, calculate additional systematics for this jet
     if (!isMC) {
-     const double newJetPtSys = GetNewXCalibSystematicError (ljet_eta, this_photon_pt) / ljet_pt;
-     if (etabin != -1) gJetHistsSys[1][etabin]->Fill (ljet_pt, newJetPtSys, prescale);
-     gJetHistsSys[1][numetabins]->Fill (ljet_pt, newJetPtSys, prescale);
+     const double newJetPtSys = GetNewXCalibSystematicError (ljet_eta, photon_pt) / ljet_pt;
+     if (iEta != -1) gJetHistsSys[1][iEta]->Fill (ljet_pt, newJetPtSys, weight);
+     gJetHistsSys[1][numetabins]->Fill (ljet_pt, newJetPtSys, weight);
     }
 
     // Increment gamma+jet counters
-    if (etabin != -1)
-     nGammaJet[etabin]++;
+    if (iEta != -1)
+     nGammaJet[iEta]++;
     nGammaJet[numetabins]++;
 
     //if (90 < ptref && ptref < 110 && 0.6 < ptratio[1] && ptratio[1] < 0.8) {
@@ -1044,53 +821,28 @@ void ZGammaJetCrossCheck (const int dataSet,
 
 
   // Write histograms to output and clean memory
-  for (short etabin = 0; etabin <= numetabins; etabin++) {
-   for (short errType = 0; errType < 3; errType++) {
-    zmumuJetHists[errType][etabin]->Write();
-    if (zmumuJetHists[errType][etabin]) delete zmumuJetHists[errType][etabin];
-    //zmumuJetHistsSys[errType][etabin]->Write();
-    //if (zmumuJetHistsSys[errType][etabin]) delete zmumuJetHistsSys[errType][etabin];
+  for (short iEta = 0; iEta <= numetabins; iEta++) {
+   for (short iErr = 0; iErr < 3; iErr++) {
+    zmumuJetHists[iErr][iEta]->Write();
+    if (zmumuJetHists[iErr][iEta]) delete zmumuJetHists[iErr][iEta];
+    //zmumuJetHistsSys[iErr][iEta]->Write();
+    //if (zmumuJetHistsSys[iErr][iEta]) delete zmumuJetHistsSys[iErr][iEta];
 
-    zeeJetHists[errType][etabin]->Write();
-    if (zeeJetHists[errType][etabin]) delete zeeJetHists[errType][etabin];
-    //zeeJetHistsSys[errType][etabin]->Write();
-    //if (zeeJetHistsSys[errType][etabin]) delete zeeJetHistsSys[errType][etabin];
+    zeeJetHists[iErr][iEta]->Write();
+    if (zeeJetHists[iErr][iEta]) delete zeeJetHists[iErr][iEta];
+    //zeeJetHistsSys[iErr][iEta]->Write();
+    //if (zeeJetHistsSys[iErr][iEta]) delete zeeJetHistsSys[iErr][iEta];
 
-    gJetHists[errType][etabin]->Write();
-    if (gJetHists[errType][etabin]) delete gJetHists[errType][etabin];
+    gJetHists[iErr][iEta]->Write();
+    if (gJetHists[iErr][iEta]) delete gJetHists[iErr][iEta];
    }
 
-   gJetHistsSys[1][etabin]->Write();
-   if (gJetHistsSys[1][etabin]) delete gJetHistsSys[1][etabin];
+   gJetHistsSys[1][iEta]->Write();
+   if (gJetHistsSys[1][iEta]) delete gJetHistsSys[1][iEta];
 
    for (short spcType = 0; spcType < 2; spcType++) {
-    zMassSpectra[spcType][etabin]->Write();
-    if (zMassSpectra[spcType][etabin]) delete zMassSpectra[spcType][etabin];
-   }
-  }
-  electronEnergyScale->Write();
-  if (electronEnergyScale) delete electronEnergyScale;
-  lowResponseEtaPhi->Write();
-  if (lowResponseEtaPhi) delete lowResponseEtaPhi;
-  highResponseEtaPhi->Write();
-  if (highResponseEtaPhi) delete highResponseEtaPhi;
-  lowResponseEtaPt->Write();
-  if (lowResponseEtaPt) delete lowResponseEtaPt;
-  highResponseEtaPt->Write();
-  if (highResponseEtaPt) delete highResponseEtaPt;
-  responsePt->Write();
-  if (responsePt) delete responsePt;
-  jetSpectrum->Write();
-  if (jetSpectrum) delete jetSpectrum;
-
-  for (short pbin = 0; pbin <= numpbins; pbin++) {
-   for (short etabin = 0; etabin <= numetabins; etabin++) {
-    jetEnergyResponseCalib[pbin][etabin]->Write();
-    if (jetEnergyResponseCalib[pbin][etabin]) delete jetEnergyResponseCalib[pbin][etabin];
-    jetEnergyResponseReco[pbin][etabin]->Write();
-    if (jetEnergyResponseReco[pbin][etabin]) delete jetEnergyResponseReco[pbin][etabin];
-    photonEnergyResponse[pbin][etabin]->Write();
-    if (photonEnergyResponse[pbin][etabin]) delete photonEnergyResponse[pbin][etabin];
+    zMassSpectra[spcType][iEta]->Write();
+    if (zMassSpectra[spcType][iEta]) delete zMassSpectra[spcType][iEta];
    }
   }
 
@@ -1099,26 +851,18 @@ void ZGammaJetCrossCheck (const int dataSet,
   infoVec[1] = dataSet;
   infoVec.Write(Form("infoVec_%s", identifier.Data()));
 
-  TVectorD nJetVec((numpbins+1)*(numetabins+1));
-  TVectorD nGammaVec((numpbins+1)*(numetabins+1));
   TVectorD nZeeMassVec(numetabins+1);
   TVectorD nZeeJetVec(numetabins+1);
   TVectorD nZmumuMassVec(numetabins+1);
   TVectorD nZmumuJetVec(numetabins+1);
   TVectorD nGammaJetVec(numetabins+1);
-  for (short etabin = 0; etabin <= numetabins; etabin++) {
-   for (short pbin = 0; pbin <= numpbins; pbin++) {
-    nJetVec[pbin + (numpbins+1)*etabin] = (double)nJet[pbin][etabin];
-    nGammaVec[pbin + (numpbins+1)*etabin] = (double)nGamma[pbin][etabin];
-   }
-   nZeeMassVec[etabin] = (double)nZeeMass[etabin];
-   nZeeJetVec[etabin] = (double)nZeeJet[etabin];
-   nZmumuMassVec[etabin] = (double)nZmumuMass[etabin];
-   nZmumuJetVec[etabin] = (double)nZmumuJet[etabin];
-   nGammaJetVec[etabin] = (double)nGammaJet[etabin];
+  for (short iEta = 0; iEta <= numetabins; iEta++) {
+   nZeeMassVec[iEta] = (double)nZeeMass[iEta];
+   nZeeJetVec[iEta] = (double)nZeeJet[iEta];
+   nZmumuMassVec[iEta] = (double)nZmumuMass[iEta];
+   nZmumuJetVec[iEta] = (double)nZmumuJet[iEta];
+   nGammaJetVec[iEta] = (double)nGammaJet[iEta];
   }
-  nJetVec.Write(Form("nJetVec_%s", identifier.Data()));
-  nGammaVec.Write(Form("nGammaVec_%s", identifier.Data()));
   nZeeMassVec.Write(Form("nZeeMassVec_%s", identifier.Data()));
   nZeeJetVec.Write(Form("nZeeJetVec_%s", identifier.Data()));
   nZmumuMassVec.Write(Form("nZmumuMassVec_%s", identifier.Data()));

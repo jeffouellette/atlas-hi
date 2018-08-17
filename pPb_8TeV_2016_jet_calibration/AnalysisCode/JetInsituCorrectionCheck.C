@@ -17,11 +17,11 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
    return 0;
   }
 
-  short etabin = 0;
-  while (xcalibEtabins[etabin] < TMath::Abs(jeta)) etabin++;
-  etabin--;
+  short iEta = 0;
+  while (xcalibEtabins[iEta] < TMath::Abs(jeta)) iEta++;
+  iEta--;
 
-  const TString hname = TString("fsys_rel_") + Form("%i", etabin);
+  const TString hname = TString("fsys_rel_") + Form("%i", iEta);
   TH1D* fsys_rel = (TH1D*)file->Get(hname.Data());
 
   return TMath::Abs(fsys_rel->GetBinContent(fsys_rel->FindBin(jpt)) - 1) * jpt;
@@ -90,14 +90,14 @@ void JetInsituCorrectionCheck (const int dataSet,
   TH2D* jetInsituResponseSysHi[numpbins];
   TH2D* jetInsituResponseSysLo[numpbins];
 
-  for (int pbin = 0; pbin < numpbins; pbin++) {
+  for (int iP = 0; iP < numpbins; iP++) {
 
-   jetInsituResponse[pbin] = new TH2D (Form ("jetInsituResponse_dataSet%s_pbin%i", identifier.Data(), pbin), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponse[pbin]->Sumw2();
-   jetInsituResponseSysHi[pbin] = new TH2D (Form ("jetInsituResponseSysHi_dataSet%s_pbin%i", identifier.Data(), pbin), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponseSysHi[pbin]->Sumw2();
-   jetInsituResponseSysLo[pbin] = new TH2D (Form ("jetInsituResponseSysLo_dataSet%s_pbin%i", identifier.Data(), pbin), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponseSysLo[pbin]->Sumw2();
+   jetInsituResponse[iP] = new TH2D (Form ("jetInsituResponse_dataSet%s_iP%i", identifier.Data(), iP), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponse[iP]->Sumw2();
+   jetInsituResponseSysHi[iP] = new TH2D (Form ("jetInsituResponseSysHi_dataSet%s_iP%i", identifier.Data(), iP), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponseSysHi[iP]->Sumw2();
+   jetInsituResponseSysLo[iP] = new TH2D (Form ("jetInsituResponseSysLo_dataSet%s_iP%i", identifier.Data(), iP), ";#it{p}_{T}^{Calib} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponseSysLo[iP]->Sumw2();
   }
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
@@ -173,17 +173,17 @@ void JetInsituCorrectionCheck (const int dataSet,
     jetPostInsituSpectrumSysHi->Fill (t->em_xcalib_jet_pt->at(j) + insituSys, etaPlot);
     jetPostInsituSpectrumSysLo->Fill (t->em_xcalib_jet_pt->at(j) - insituSys, etaPlot);
 
-    short pbin = 0;
-    while (pbin < numpbins && pbins[pbin] < t->em_etajes_jet_pt->at(j)) pbin++;
-    pbin--;
+    short iP = 0;
+    while (iP < numpbins && pbins[iP] < t->em_etajes_jet_pt->at(j)) iP++;
+    iP--;
 
-    if (0 <= pbin && pbin < numpbins) {
+    if (0 <= iP && iP < numpbins) {
      const double ratio = t->em_xcalib_jet_pt->at(j) / t->em_etajes_jet_pt->at(j);
      const double ratiohi = (t->em_xcalib_jet_pt->at(j) + insituSys) / t->em_etajes_jet_pt->at(j);
      const double ratiolo = (t->em_xcalib_jet_pt->at(j) - insituSys) / t->em_etajes_jet_pt->at(j);
-     jetInsituResponse[pbin]->Fill (ratio, etaPlot);
-     jetInsituResponseSysHi[pbin]->Fill (ratiohi, etaPlot);
-     jetInsituResponseSysLo[pbin]->Fill (ratiolo, etaPlot);
+     jetInsituResponse[iP]->Fill (ratio, etaPlot);
+     jetInsituResponseSysHi[iP]->Fill (ratiohi, etaPlot);
+     jetInsituResponseSysLo[iP]->Fill (ratiolo, etaPlot);
      if (-1.3 < etaPlot && etaPlot < -0.5 &&
          0.94 < ratio && ratio < 0.97) {
       cout << "Found a weird event! Run: " << dataSet << ", Entry: " << entry << endl;
@@ -216,13 +216,13 @@ void JetInsituCorrectionCheck (const int dataSet,
   jetPostInsituSpectrumSysLo->Write();
   if (jetPostInsituSpectrumSysLo) delete jetPostInsituSpectrumSysLo;
 
-  for (short pbin = 0; pbin < numpbins; pbin++) {
-   jetInsituResponse[pbin]->Write();
-   if (jetInsituResponse[pbin]) delete jetInsituResponse[pbin];
-   jetInsituResponseSysHi[pbin]->Write();
-   if (jetInsituResponseSysHi[pbin]) delete jetInsituResponseSysHi[pbin];
-   jetInsituResponseSysLo[pbin]->Write();
-   if (jetInsituResponseSysLo[pbin]) delete jetInsituResponseSysLo[pbin];
+  for (short iP = 0; iP < numpbins; iP++) {
+   jetInsituResponse[iP]->Write();
+   if (jetInsituResponse[iP]) delete jetInsituResponse[iP];
+   jetInsituResponseSysHi[iP]->Write();
+   if (jetInsituResponseSysHi[iP]) delete jetInsituResponseSysHi[iP];
+   jetInsituResponseSysLo[iP]->Write();
+   if (jetInsituResponseSysLo[iP]) delete jetInsituResponseSysLo[iP];
   }
 
   outFile->Close();

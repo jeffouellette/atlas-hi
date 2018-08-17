@@ -35,7 +35,7 @@ static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};
 //static const float muonTriggerMinPtCuts[muonTrigLength] = {15, 18, 20};
 //static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000, 100000, 100000};
 
-static const short photonTrigLength = 7;
+static const short photonTrigLength = 6;//7;
 static const char* photonTriggerNames[photonTrigLength] = {
  "HLT_g10_loose",
  "HLT_g15_loose",
@@ -43,10 +43,18 @@ static const char* photonTriggerNames[photonTrigLength] = {
  "HLT_g25_loose",
  "HLT_g30_loose",
  "HLT_g35_loose",
- "HLT_g60_loose"
+ //"HLT_g60_loose"
 };
 static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40};//40, 65};
 static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 100000};//65, 100000};
+
+
+/**
+ * Calculates the original systematic error on this jet from the cross calib.
+ * jpt: pt of the jet
+ * jeta: eta of the jet
+ */
+double GetXCalibSystematicError(const double jpt, const double jeta);
 
 
 /**
@@ -57,10 +65,9 @@ static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 4
  * isMCperiodAflag: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */
-void electronContaminationStudy (const int dataSet,
-                                 const double luminosity = 0, 
-                                 const double weight = 1,
-                                 const bool isMC = false,
-                                 const bool isMCperiodAflag = false, 
-                                 const TString inFileName = "");
+void EMTopoComparison (const int dataSet,
+                       const double luminosity = 0, 
+                       const bool isMC = false,
+                       const bool isMCperiodAflag = false, 
+                       const TString inFileName = "");
 

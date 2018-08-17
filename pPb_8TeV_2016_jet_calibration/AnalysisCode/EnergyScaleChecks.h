@@ -18,7 +18,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta);
  * isMCperiodAflag: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */
-void JetEnergyScaleCheck (const int dataSet,
-                          const bool isPeriodAflag = false, 
-                          const TString inFileName = "");
+void EnergyScaleChecks (const int dataSet,
+                        const bool isPeriodAflag = false, 
+                        const TString inFileName = "");
 

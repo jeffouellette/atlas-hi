@@ -24,13 +24,13 @@ void JetInsituCorrectionCheckHist () {
   TH2D* jetInsituResponseSysHi[numpbins];
   TH2D* jetInsituResponseSysLo[numpbins];
 
-  for (short pbin = 0; pbin < numpbins; pbin++) {
-   jetInsituResponse[pbin] = new TH2D (Form ("jetInsituResponse_pbin%i", pbin), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponse[pbin]->Sumw2();
-   jetInsituResponseSysHi[pbin] = new TH2D (Form ("jetInsituResponseSysHi_pbin%i", pbin), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponseSysHi[pbin]->Sumw2();
-   jetInsituResponseSysLo[pbin] = new TH2D (Form ("jetInsituResponseSysLo_pbin%i", pbin), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
-   jetInsituResponseSysLo[pbin]->Sumw2();
+  for (short iP = 0; iP < numpbins; iP++) {
+   jetInsituResponse[iP] = new TH2D (Form ("jetInsituResponse_iP%i", iP), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponse[iP]->Sumw2();
+   jetInsituResponseSysHi[iP] = new TH2D (Form ("jetInsituResponseSysHi_iP%i", iP), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponseSysHi[iP]->Sumw2();
+   jetInsituResponseSysLo[iP] = new TH2D (Form ("jetInsituResponseSysLo_iP%i", iP), ";#it{p}_{T}^{Insitu} / #it{p}_{T}^{EtaJES};#eta;", 200, 0.9, 1.1, numetabins, etabins);
+   jetInsituResponseSysLo[iP]->Sumw2();
   }
  
 
@@ -63,10 +63,10 @@ void JetInsituCorrectionCheckHist () {
        jetPostInsituSpectrumSysHi->Add ((TH2D*)thisFile->Get(Form("jetPostInsituSpectrumSysHi_dataSet%i", runNumber)));
        jetPostInsituSpectrumSysLo->Add ((TH2D*)thisFile->Get(Form("jetPostInsituSpectrumSysLo_dataSet%i", runNumber)));
 
-       for (short pbin = 0; pbin < numpbins; pbin++) {
-        jetInsituResponse[pbin]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponse_dataSet%i_pbin%i", runNumber, pbin)));
-        jetInsituResponseSysHi[pbin]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponseSysHi_dataSet%i_pbin%i", runNumber, pbin)));
-        jetInsituResponseSysLo[pbin]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponseSysLo_dataSet%i_pbin%i", runNumber, pbin)));
+       for (short iP = 0; iP < numpbins; iP++) {
+        jetInsituResponse[iP]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponse_dataSet%i_iP%i", runNumber, iP)));
+        jetInsituResponseSysHi[iP]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponseSysHi_dataSet%i_iP%i", runNumber, iP)));
+        jetInsituResponseSysLo[iP]->Add ((TH2D*)thisFile->Get(Form("jetInsituResponseSysLo_dataSet%i_iP%i", runNumber, iP)));
        }
 
        thisFile->Close();
@@ -86,25 +86,39 @@ void JetInsituCorrectionCheckHist () {
 
 
   /**** Canvas definitions ****/
-  TCanvas* jetInsituSpectrumCanvas = new TCanvas("jetInsituSpectrumCanvas", "", 1600, 1200);
+  TCanvas* jetInsituSpectrumCanvas = new TCanvas("jetInsituSpectrumCanvas", "", 530 * (numetabins/2), 1200);
   jetInsituSpectrumCanvas->Draw();
 
   const double padYwidth = 0.5;
   const double padRatio = 1.8; // ratio of size of upper pad to lower pad
-  const double lPadXbounds[3] = {0, 0.39, 0.69};
-  const double uPadXbounds[3] = {0.39, 0.69, 1.0};
+  const int nx = numetabins/2;
+  const int ny = 4;
+  double lPadXbounds[nx] = {};
+  double uPadXbounds[nx] = {};
+  for (short i = 0; i < nx-1; i++) {
+   lPadXbounds[i+1] = 0.04 + (0.955/nx) * (i+1); 
+   uPadXbounds[i] = 0.04 + (0.955/nx) * (i+1);
+  }
+  lPadXbounds[0] = 0;
+  uPadXbounds[nx-1] = 1.;
+
+  double padLeftMargins[nx] = {};
+  double padRightMargins[nx] = {};
+  padLeftMargins[0] = 0.04/lPadXbounds[1];
+  padRightMargins[nx-1] = 0.005/(1.-lPadXbounds[nx-1]);
+
+//  const double lPadXbounds[3] = {0, 0.39, 0.69};
+//  const double uPadXbounds[3] = {0.39, 0.69, 1.0};
   const double lPadYbounds[4] = {1-padYwidth/padRatio, 1-padYwidth, padYwidth*(1-1/padRatio), 0};
   const double uPadYbounds[4] = {1, 1-padYwidth/padRatio, padYwidth, padYwidth*(1-1/padRatio)};
-  const double padLeftMargins[3] = {0.09/0.39, 0, 0};
-  const double padRightMargins[3] = {0, 0, 0.01/0.31};
   const double padTopMargins[4] = {0.02, 0, 0.02, 0};
   const double padBottomMargins[4] = {0, 0.32, 0, 0.32};
 
-  TPad* pads[3][4] = {{}, {}, {}};
-  for (int ix = 0; ix < 3; ix++) {
+  TPad* pads[nx][4] = {{}, {}, {}};
+  for (int ix = 0; ix < nx; ix++) {
    const double lPadX = lPadXbounds[ix];
    const double uPadX = uPadXbounds[ix];
-   for (int iy = 0; iy < 4; iy++) {
+   for (int iy = 0; iy < ny; iy++) {
     const double lPadY = lPadYbounds[iy];
     const double uPadY = uPadYbounds[iy];
     pads[ix][iy] = new TPad (Form ("pad_%i_%i", ix, iy), "", lPadX, lPadY, uPadX, uPadY);
@@ -130,18 +144,18 @@ void JetInsituCorrectionCheckHist () {
    }
   }
 
-  for (int etabin = 0; etabin < numetabins; etabin++) {
-   const int ix = (etabin < numetabins/2 ? 2 - etabin : etabin - 3);
-   const int iy = 2*(etabin/3);
+  for (int iEta = 0; iEta < numetabins; iEta++) {
+   const int ix = (iEta < nx ? (nx-iEta-1) : (iEta-nx));
+   const int iy = 2*(iEta/nx);
 
    pads[ix][iy]->cd();
    pads[ix][iy]->SetLogy(true);
    pads[ix][iy]->SetLogx(true);
 
-   TH1D* preSpectrum = jetPreInsituSpectrum->ProjectionX (Form ("preSpectrumProjX_%i", etabin), etabin+1, etabin+1);
-   TH1D* postSpectrum = jetPostInsituSpectrum->ProjectionX (Form ("postSpectrumProjX_%i", etabin), etabin+1, etabin+1);
-   TH1D* postSpectrumSysHi = jetPostInsituSpectrumSysHi->ProjectionX (Form ("postSpectrumSysHiProjX_%i", etabin), etabin+1, etabin+1);
-   TH1D* postSpectrumSysLo = jetPostInsituSpectrumSysLo->ProjectionX (Form ("postSpectrumSysLoProjX_%i", etabin), etabin+1, etabin+1);
+   TH1D* preSpectrum = jetPreInsituSpectrum->ProjectionX (Form ("preSpectrumProjX_%i", iEta), iEta+1, iEta+1);
+   TH1D* postSpectrum = jetPostInsituSpectrum->ProjectionX (Form ("postSpectrumProjX_%i", iEta), iEta+1, iEta+1);
+   TH1D* postSpectrumSysHi = jetPostInsituSpectrumSysHi->ProjectionX (Form ("postSpectrumSysHiProjX_%i", iEta), iEta+1, iEta+1);
+   TH1D* postSpectrumSysLo = jetPostInsituSpectrumSysLo->ProjectionX (Form ("postSpectrumSysLoProjX_%i", iEta), iEta+1, iEta+1);
    preSpectrum->Rebin(2);
    postSpectrum->Rebin(2);
    postSpectrumSysHi->Rebin(2);
@@ -175,9 +189,8 @@ void JetInsituCorrectionCheckHist () {
    postSpectrum->DrawCopy ("same e1 x0");
    postSys->Draw ("3");
 
-   const double dx = uPadXbounds[ix] - lPadXbounds[ix];
-   const double textx = dx*padLeftMargins[ix] + 0.4*dx/(0.3*(1+padLeftMargins[ix]+padRightMargins[ix]));
-   myText (textx, 0.85, kBlack, Form ("%g < #eta_{Lab} < %g", etabins[etabin], etabins[etabin+1]), 0.03*3);
+   const double textx = padLeftMargins[ix] + 0.5*(1.-padLeftMargins[ix]-padRightMargins[ix]);
+   myText (textx, 0.85, kBlack, Form ("%g < #eta_{Lab} < %g", etabins[iEta], etabins[iEta+1]), 0.03*3);
    
    pads[ix][iy+1]->cd();
    pads[ix][iy+1]->SetLogx(true);
@@ -227,24 +240,24 @@ void JetInsituCorrectionCheckHist () {
   //const double lPadYbounds[4] = {1-padYwidth/padRatio, 1-padYwidth, padYwidth*(1-1/padRatio), 0};
   //const double uPadYbounds[4] = {1, 1-padYwidth/padRatio, padYwidth, padYwidth*(1-1/padRatio)};
 
-  for (short pbin = 0; pbin < numpbins; pbin++) {
-   jetInsituResponse[pbin]->Write();
-   jetInsituResponseSysHi[pbin]->Write();
-   jetInsituResponseSysLo[pbin]->Write();
+  for (short iP = 0; iP < numpbins; iP++) {
+   jetInsituResponse[iP]->Write();
+   jetInsituResponseSysHi[iP]->Write();
+   jetInsituResponseSysLo[iP]->Write();
   }
 
-  for (short etabin = 0; etabin < numetabins; etabin++) {
+  for (short iEta = 0; iEta < numetabins; iEta++) {
 
-   for (short pbin = 0; pbin < numpbins; pbin++) {
-    if (pbin <= 0 || pbin > 12) continue;
-    jetInsituResponseCanvas->cd(pbin);
-    TPad* thisPad = (TPad*)jetInsituResponseCanvas->GetPad(pbin);
+   for (short iP = 0; iP < numpbins; iP++) {
+    if (iP <= 0 || iP > 12) continue;
+    jetInsituResponseCanvas->cd(iP);
+    TPad* thisPad = (TPad*)jetInsituResponseCanvas->GetPad(iP);
     thisPad->SetTopMargin(0.1);
     gPad->SetLogy(true);
 
-    TH1D* thisHist = jetInsituResponse[pbin]->ProjectionX(Form ("response_pbin%i_etabin%i", pbin, etabin), etabin+1, etabin+1);
-    TH1D* sysHi = jetInsituResponseSysHi[pbin]->ProjectionX(Form ("response_syshi_pbin%i_etabin%i", pbin, etabin), etabin+1, etabin+1);
-    TH1D* sysLo = jetInsituResponseSysLo[pbin]->ProjectionX(Form ("response_syslo_pbin%i_etabin%i", pbin, etabin), etabin+1, etabin+1);
+    TH1D* thisHist = jetInsituResponse[iP]->ProjectionX(Form ("response_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
+    TH1D* sysHi = jetInsituResponseSysHi[iP]->ProjectionX(Form ("response_syshi_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
+    TH1D* sysLo = jetInsituResponseSysLo[iP]->ProjectionX(Form ("response_syslo_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
 
     thisHist->Scale(1./thisHist->Integral());
     sysHi->Scale(1./sysHi->Integral());
@@ -281,12 +294,12 @@ void JetInsituCorrectionCheckHist () {
     sysGraph->SetFillColor(14);
     sysGraph->Draw("2");
 
-    myText (0.18, 0.95, kBlack, Form("%gGeV < #it{p}_{T} < %gGeV", pbins[pbin], pbins[pbin+1]), 0.08);
+    myText (0.18, 0.95, kBlack, Form("%gGeV < #it{p}_{T} < %gGeV", pbins[iP], pbins[iP+1]), 0.08);
 
    }
    jetInsituResponseCanvas->cd(1);
-   myText (0.2, 0.8, kBlack, Form("%g < #eta_{Lab} < %g", etabins[etabin], etabins[etabin+1]), 0.03*3);
-   jetInsituResponseCanvas->SaveAs (Form ("%s/JetInsituResponse_%i.pdf", plotPath.Data(), etabin));
+   myText (0.2, 0.8, kBlack, Form("%g < #eta_{Lab} < %g", etabins[iEta], etabins[iEta+1]), 0.03*3);
+   jetInsituResponseCanvas->SaveAs (Form ("%s/JetInsituResponse_%i.pdf", plotPath.Data(), iEta));
   }  
 
   outFile->Write();
