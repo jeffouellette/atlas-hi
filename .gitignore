@@ -3,6 +3,7 @@
 *.swp
 cernvm3-micro-2.8-6.iso
 *.key
+lib
 
 # 2016 pPb dijets
 pPb_8TeV_2016_dijetAnalysis/data/*
@@ -33,6 +34,12 @@ pPb_8TeV_2016_jet_calibration/Pbp_R4_dR4
 pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
 pPb_8TeV_2016_jet_calibration/Plots
 pPb_8TeV_2016_jet_calibration/Slides*
+pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
+pPb_8TeV_2016_jet_calibration/runFiles/lib
+
+# Pythia W boson decay analysis
+pythiaPhotonJet/lib
+pythiaPhotonJet/output/*.root
 
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
