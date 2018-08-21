@@ -1,0 +1,65 @@
+
+# DO NOT DELETE
+
+./TreeVariables_C.so: TreeVariables.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TTree.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/TIOFeatures.hxx
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TBasket.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TKey.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TNamed.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TObject.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/RConfigure.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/Rtypes.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/RtypesCore.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/RConfig.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/RVersion.h
+./TreeVariables_C.so: /usr/include/AvailabilityMacros.h
+./TreeVariables_C.so: /usr/include/TargetConditionals.h /usr/include/stddef.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/DllImport.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/snprintf.h
+./TreeVariables_C.so: /usr/include/stdio.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/strlcpy.h
+./TreeVariables_C.so: /usr/include/string.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TGenericClassInfo.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TSchemaHelper.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TIsAProxy.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TVirtualIsAProxy.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TStorage.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TVersionCheck.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TString.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TMathBase.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/RStringView.hxx
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/TypeTraits.hxx
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/RSpan.hxx
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ROOT/span.hxx
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TDatime.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TBuffer.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TClass.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TDictionary.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ESTLType.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TObjArray.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TSeqCollection.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TCollection.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TIterator.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TVirtualRWMutex.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TVirtualMutex.h
+./TreeVariables_C.so: /usr/include/assert.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TObjString.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/ThreadLocalStorage.h
+./TreeVariables_C.so: /usr/include/pthread.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TArrayD.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TArray.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TArrayI.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TAttFill.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TAttLine.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TAttMarker.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TBranch.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TDataType.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TBranchCacheInfo.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TBits.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TDirectory.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TList.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TUUID.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/TVirtualTreePlayer.h
+./TreeVariables_C.so: /Applications/root-6.14.02-build/include/RVersion.h /Applications/root-6.14.02-build/include/RConfig.h /Applications/root-6.14.02-build/include/TClass.h /Applications/root-6.14.02-build/include/TDictAttributeMap.h /Applications/root-6.14.02-build/include/TInterpreter.h /Applications/root-6.14.02-build/include/TROOT.h /Applications/root-6.14.02-build/include/TBuffer.h /Applications/root-6.14.02-build/include/TMemberInspector.h /Applications/root-6.14.02-build/include/TError.h /Applications/root-6.14.02-build/include/RtypesImp.h /Applications/root-6.14.02-build/include/TIsAProxy.h /Applications/root-6.14.02-build/include/TFileMergeInfo.h /Applications/root-6.14.02-build/include/TCollectionProxyInfo.h /Applications/root-6.14.02-build/bin/rootcling
+TreeVariables_C__ROOTBUILDVERSION= 6.14/02
