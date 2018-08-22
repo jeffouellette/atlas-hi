@@ -266,7 +266,7 @@ int main() {
     hist_xA_mu_plus[i]->SetLineColor(colors[i]);
     hist_xA_mu_plus[i]->GetXaxis()->SetTitle ("#it{x}_{A}");
     hist_xA_mu_plus[i]->GetYaxis()->SetTitle ("Counts / Total"); 
-    hist_xA_mu_plus[i]->GetYaxis()->SetRangeUser (0, 0.1);
+    hist_xA_mu_plus[i]->GetYaxis()->SetRangeUser (0, 0.05);
     if (i == 0) hist_xA_mu_plus[i]->Draw("hist");
     else hist_xA_mu_plus[i]->Draw("same hist");
   }
@@ -301,7 +301,7 @@ int main() {
     hist_xA_mu_minus[i]->SetLineColor(colors[i]);
     hist_xA_mu_minus[i]->GetXaxis()->SetTitle ("#it{x}_{A}");
     hist_xA_mu_minus[i]->GetYaxis()->SetTitle ("Counts / Total"); 
-    hist_xA_mu_minus[i]->GetYaxis()->SetRangeUser (0, 0.1);
+    hist_xA_mu_minus[i]->GetYaxis()->SetRangeUser (0, 0.05);
     if (i == 0) hist_xA_mu_minus[i]->Draw("hist");
     else hist_xA_mu_minus[i]->Draw("same hist");
   }

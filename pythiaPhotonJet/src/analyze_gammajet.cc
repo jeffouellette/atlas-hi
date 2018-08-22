@@ -322,6 +322,7 @@ int main() {
     hist_xA_gamma[i]->SetLineColor(colors[i]);
     hist_xA_gamma[i]->GetXaxis()->SetTitle ("#it{x}_{A}");
     hist_xA_gamma[i]->GetYaxis()->SetTitle ("Counts / Total");
+    hist_xA_gamma[i]->GetYaxis()->SetRangeUser (0, 0.05);
     if (i == 0) hist_xA_gamma[i]->Draw("hist");
     else hist_xA_gamma[i]->Draw("hist same");
   }
