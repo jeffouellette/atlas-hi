@@ -199,9 +199,19 @@ void EMTopoComparison (const int dataSet,
    }
   }
 
-  int nZeeJet[2][numetabins+1] = {{}, {}};
-  int nZmumuJet[2][numetabins+1] = {{}, {}};
-  int nGammaJet[2][numetabins+1] = {{}, {}};
+  int* nZeeJet[2] = {};
+  int* nZmumuJet[2] = {};
+  int* nGammaJet[2] = {};
+  for (int i = 0; i < 2; i++) {
+   nZeeJet[i] = new int[numetabins+1];
+   nZmumuJet[i] = new int[numetabins+1];
+   nGammaJet[i] = new int[numetabins+1];
+   for (int iEta = 0; iEta <= numetabins; iEta++) {
+    nZeeJet[i][iEta] = 0;
+    nZmumuJet[i][iEta] = 0;
+    nGammaJet[i][iEta] = 0;
+   }
+  }
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
 

@@ -12,6 +12,7 @@
 #include <TSystemDirectory.h>
 
 #include <AtlasUtils.h>
+#include <AtlasStyle.h>
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -105,6 +106,8 @@ TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins
 
 void EMTopoComparisonHist () {
 
+  SetAtlasStyle();
+
   // Setup trigger vectors
   SetupDirectories("EMTopoComparison/", "pPb_8TeV_2016_jet_calibration/");
 
@@ -162,9 +165,23 @@ void EMTopoComparisonHist () {
    }
   }
 
-  int nZeeJet[2][3][2][numetabins+1] = {{{{}, {}}, {{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}, {{}, {}}}};
-  int nZmumuJet[2][3][2][numetabins+1] = {{{{}, {}}, {{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}, {{}, {}}}};
-  int nGammaJet[2][3][2][numetabins+1] = {{{{}, {}}, {{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}, {{}, {}}}};
+  int* nZeeJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
+  int* nZmumuJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
+  int* nGammaJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
+  for (int i = 0; i < 2; i++) {
+   for (int j = 0; j < 3; j++) {
+    for (int k = 0; k < 2; k++) {
+     nZeeJet[i][j][k] = new int[numetabins+1];
+     nZmumuJet[i][j][k] = new int[numetabins+1];
+     nGammaJet[i][j][k] = new int[numetabins+1];
+     for (int iEta = 0; iEta <= numetabins; iEta++) {
+      nZeeJet[i][j][k][iEta] = 0;
+      nZmumuJet[i][j][k][iEta] = 0;
+      nGammaJet[i][j][k][iEta] = 0;
+     }
+    }
+   }
+  }
 
   {
    TSystemDirectory dir(rootPath.Data(), rootPath.Data());

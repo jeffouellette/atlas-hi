@@ -12,11 +12,14 @@
 #include <TSystemFile.h>
 #include <TSystemDirectory.h>
 
+#include <AtlasStyle.h>
 #include <AtlasUtils.h>
 
 namespace pPb8TeV2016JetCalibration {
 
 void EnergyScaleChecksHist () {
+
+  SetAtlasStyle();
 
   // Setup trigger vectors
   SetupDirectories("EnergyScaleChecks/", "pPb_8TeV_2016_jet_calibration/");
@@ -98,7 +101,7 @@ void EnergyScaleChecksHist () {
     }
    }
   }
-  int* nGamma[numpbins+1] = {};
+  int** nGamma = new int*[numpbins+1];
   for (short iP = 0; iP <= numpbins; iP++) {
    nGamma[iP] = new int[numetabins+1];
    for (short iEta = 0; iEta <= numetabins; iEta++) {

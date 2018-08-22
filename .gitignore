@@ -40,6 +40,9 @@ pPb_8TeV_2016_jet_calibration/runFiles/lib
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib
 pythiaPhotonJet/output/*.root
+pythiaPhotonJet/output/*.log
+pythiaPhotonJet/*.pdf
+pythiaPhotonjet/*.root
 
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 

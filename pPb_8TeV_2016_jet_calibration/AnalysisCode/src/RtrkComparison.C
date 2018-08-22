@@ -177,7 +177,13 @@ void RtrkComparison (const int dataSet,
    }
   }
 
-  int nJet[2][numetabins+1] = {{}, {}};
+  int** nJet = new int*[2]; //[numetabins+1] = {{}, {}};
+  for (int i = 0; i < 2; i++) {
+   nJet[i] = new int[numetabins+1];
+   for (int iEta = 0; iEta <= numetabins; iEta++) {
+    nJet[i][iEta] = 0;
+   }
+  }
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
 

@@ -24,12 +24,31 @@ TString RpPbPath = ""; // Where the R_pPb module output is stored.
 int numtrigs = 0; // number of triggers that have been initialized
 
 const char* FormatMeasurement (double val, double err, const int n) {
-  assert (n < 0);
-  assert (err < 0); // sanity checks
+  assert (n > 0); // sanity check
+
   TString out = "";
 
   std::string valStr = Form ("%g", val);
   std::string errStr = Form ("%g", err);
+
+  if (err == 0) {
+    short valDec = 0;
+    while (valDec < (short)valStr.length() && valStr[valDec] != '.')
+     valDec++;
+    if (valDec == (short)valStr.length()) {
+     valStr = valStr + ".";
+    }
+
+    if (valDec > n) { // if decimal is after least significant digit
+      const double factorOfTen = pow (10, n-valDec); // e.g., for "1520" and n=2, get 0.01
+      val = floor (factorOfTen * val + 0.5) / factorOfTen;
+    }
+    else { // if decimal is before least significant digit, e.g. for "15.24" and n=3.
+      const double factorOfTen = pow (10, n-valDec+1); // e.g. for 15.24 and n=3 get 10
+      val = floor (factorOfTen * val + 0.5) / factorOfTen;
+    }
+    return Form ("%g", val);
+  }
 
   if (err < 1) {
    // find the first significant digit

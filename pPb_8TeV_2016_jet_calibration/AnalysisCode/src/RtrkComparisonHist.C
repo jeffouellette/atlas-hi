@@ -12,6 +12,7 @@
 #include <TSystemFile.h>
 #include <TSystemDirectory.h>
 
+#include <AtlasStyle.h>
 #include <AtlasUtils.h>
 
 namespace pPb8TeV2016JetCalibration {
@@ -106,6 +107,8 @@ TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins
 
 void RtrkComparisonHist () {
 
+  SetAtlasStyle();
+
   // Setup trigger vectors
   SetupDirectories("RtrkComparison/", "pPb_8TeV_2016_jet_calibration/");
 
@@ -151,7 +154,18 @@ void RtrkComparisonHist () {
    }
   }
 
-  int nJet[2][3][2][numetabins+1] = {{{{}, {}}, {{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}, {{}, {}}}};
+  int* nJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
+  for (int i = 0; i < 2; i++) {
+   for (int j = 0; j < 3; j++) {
+    for (int k = 0; k < 2; k++) {
+     nJet[i][j][k] = new int[numetabins+1];
+     for (int iEta = 0; iEta <= numetabins; iEta++) {
+      nJet[i][j][k][iEta] = 0;
+     }
+    }
+   }
+  }
+  
 
   {
    TSystemDirectory dir(rootPath.Data(), rootPath.Data());
@@ -184,11 +198,11 @@ void RtrkComparisonHist () {
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
-        for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iEta = 0; iEta < numetabins; iEta++) {
          nJet[iAlgo][iPer][0][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
          nJet[iAlgo][2][0][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][0][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][0][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
 
          for (short iErr = 0; iErr < 3; iErr++) {
           TString error = "sys_lo";
@@ -222,11 +236,11 @@ void RtrkComparisonHist () {
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
-        for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iEta = 0; iEta < numetabins; iEta++) {
          nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
          nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
          TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), iEta));
@@ -257,8 +271,8 @@ void RtrkComparisonHist () {
         for (short iEta = 0; iEta < numetabins; iEta++) {
          nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
          nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
          TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), iEta));
@@ -286,11 +300,11 @@ void RtrkComparisonHist () {
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
-        for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iEta = 0; iEta < numetabins; iEta++) {
          nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
          nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[numetabins + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
          TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), iEta));

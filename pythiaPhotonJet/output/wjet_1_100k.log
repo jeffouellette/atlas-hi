@@ -8,7 +8,7 @@
  |  |   P  P   Y Y     T    H   H   I    A A     This is PYTHIA version 8.235      |  | 
  |  |   PPP     Y      T    HHHHH   I   AAAAA    Last date of change: 27 Mar 2018  |  | 
  |  |   P       Y      T    H   H   I   A   A                                      |  | 
- |  |   P       Y      T    H   H  III  A   A    Now is 21 Aug 2018 at 10:26:47    |  | 
+ |  |   P       Y      T    H   H  III  A   A    Now is 21 Aug 2018 at 14:08:40    |  | 
  |  |                                                                              |  | 
  |  |   Christian Bierlich;  Department of Astronomy and Theoretical Physics,      |  | 
  |  |      Lund University, Solvegatan 14A, SE-223 62 Lund, Sweden;                |  | 
@@ -1153,3 +1153,184 @@
 
  Pythia::next(): 50000 events have been generated 
 50000
+
+ Pythia::next(): 51000 events have been generated 
+51000
+
+ Pythia::next(): 52000 events have been generated 
+52000
+
+ Pythia::next(): 53000 events have been generated 
+53000
+
+ Pythia::next(): 54000 events have been generated 
+54000
+
+ Pythia::next(): 55000 events have been generated 
+55000
+
+ Pythia::next(): 56000 events have been generated 
+56000
+
+ Pythia::next(): 57000 events have been generated 
+57000
+
+ Pythia::next(): 58000 events have been generated 
+58000
+
+ Pythia::next(): 59000 events have been generated 
+59000
+
+ Pythia::next(): 60000 events have been generated 
+60000
+
+ Pythia::next(): 61000 events have been generated 
+61000
+
+ Pythia::next(): 62000 events have been generated 
+62000
+
+ Pythia::next(): 63000 events have been generated 
+63000
+
+ Pythia::next(): 64000 events have been generated 
+64000
+
+ Pythia::next(): 65000 events have been generated 
+65000
+
+ Pythia::next(): 66000 events have been generated 
+66000
+
+ Pythia::next(): 67000 events have been generated 
+67000
+
+ Pythia::next(): 68000 events have been generated 
+68000
+
+ Pythia::next(): 69000 events have been generated 
+69000
+
+ Pythia::next(): 70000 events have been generated 
+70000
+ PYTHIA Warning in Pythia::check: energy-momentum not quite conserved  
+
+ Pythia::next(): 71000 events have been generated 
+71000
+
+ Pythia::next(): 72000 events have been generated 
+72000
+
+ Pythia::next(): 73000 events have been generated 
+73000
+
+ Pythia::next(): 74000 events have been generated 
+74000
+
+ Pythia::next(): 75000 events have been generated 
+75000
+
+ Pythia::next(): 76000 events have been generated 
+76000
+
+ Pythia::next(): 77000 events have been generated 
+77000
+
+ Pythia::next(): 78000 events have been generated 
+78000
+
+ Pythia::next(): 79000 events have been generated 
+79000
+
+ Pythia::next(): 80000 events have been generated 
+80000
+
+ Pythia::next(): 81000 events have been generated 
+81000
+
+ Pythia::next(): 82000 events have been generated 
+82000
+
+ Pythia::next(): 83000 events have been generated 
+83000
+
+ Pythia::next(): 84000 events have been generated 
+84000
+
+ Pythia::next(): 85000 events have been generated 
+85000
+
+ Pythia::next(): 86000 events have been generated 
+86000
+
+ Pythia::next(): 87000 events have been generated 
+87000
+
+ Pythia::next(): 88000 events have been generated 
+88000
+ PYTHIA Warning in SpaceShower::pT2nextQCD: small daughter PDF  
+
+ Pythia::next(): 89000 events have been generated 
+89000
+
+ Pythia::next(): 90000 events have been generated 
+90000
+
+ Pythia::next(): 91000 events have been generated 
+91000
+
+ Pythia::next(): 92000 events have been generated 
+92000
+
+ Pythia::next(): 93000 events have been generated 
+93000
+
+ Pythia::next(): 94000 events have been generated 
+94000
+
+ Pythia::next(): 95000 events have been generated 
+95000
+
+ Pythia::next(): 96000 events have been generated 
+96000
+
+ Pythia::next(): 97000 events have been generated 
+97000
+
+ Pythia::next(): 98000 events have been generated 
+98000
+
+ Pythia::next(): 99000 events have been generated 
+99000
+
+ *-------  PYTHIA Event and Cross Section Statistics  -------------------------------------------------------------*
+ |                                                                                                                 |
+ | Subprocess                                    Code |            Number of events       |      sigma +- delta    |
+ |                                                    |       Tried   Selected   Accepted |     (estimated) (mb)   |
+ |                                                    |                                   |                        |
+ |-----------------------------------------------------------------------------------------------------------------|
+ |                                                    |                                   |                        |
+ | f fbar' -> W+-                                 222 |      274733     100000     100000 |   8.485e-05  1.608e-07 |
+ |                                                    |                                   |                        |
+ | sum                                                |      274733     100000     100000 |   8.485e-05  1.608e-07 |
+ |                                                                                                                 |
+ *-------  End PYTHIA Event and Cross Section Statistics ----------------------------------------------------------*
+
+ *-------  PYTHIA Error and Warning Messages Statistics  ----------------------------------------------------------* 
+ |                                                                                                                 | 
+ |  times   message                                                                                                | 
+ |                                                                                                                 | 
+ |     65   Error in Pythia::next: hadronLevel failed; try again                                                   | 
+ |     79   Error in SpaceShower::pT2nearThreshold: stuck in loop                                                  | 
+ |     56   Error in StringFragmentation::fragment: stuck in joining                                               | 
+ |      9   Error in StringFragmentation::fragmentToJunction: caught in junction flavour loop                      | 
+ |      9   Warning in MultipartonInteractions::pTnext: weight above unity                                         | 
+ |      3   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
+ |     11   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
+ |      3   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
+ |     12   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
+ |    545   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
+ |    174   Warning in TimeShower::findMEcorr: ME weight above PS one                                              | 
+ |     39   Warning in TimeShower::pTnext: negative dipole mass.                                                   | 
+ |                                                                                                                 | 
+ *-------  End PYTHIA Error and Warning Messages Statistics  ------------------------------------------------------* 

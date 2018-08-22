@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #time ./lib/gammajetgen 10 10000 output/gammajet_pt10_10k.root >& output/log_gammajet_pt10_10k
 #time ./lib/gammajetgen 30 10000 output/gammajet_pt30_10k.root >& output/log_gammajet_pt30_10k
 #time ./lib/gammajetgen 45 10000 output/gammajet_pt45_10k.root >& output/log_gammajet_pt45_10k
@@ -26,9 +28,24 @@
 #time ./lib/gammajetgen 210 100000 output/gammajet_pt210_100k.root >& output/log_gammajet_pt210_100k
 #time ./lib/gammajetgen 375 100000 output/gammajet_pt375_100k.root >& output/log_gammajet_pt375_100k
 
-time ./lib/wgen 0 100000 output/wjet_1_100k.root > output/wjet_1_100k.log &
-time ./lib/wgen 0 100000 output/wjet_2_100k.root > output/wjet_2_100k.log &
-time ./lib/wgen 0 100000 output/wjet_3_100k.root > output/wjet_3_100k.log &
-time ./lib/wgen 0 100000 output/wjet_4_100k.root > output/wjet_4_100k.log &
-time ./lib/wgen 0 100000 output/wjet_5_100k.root > output/wjet_5_100k.log &
+#time ./lib/wgen 0 100000 output/wjet_1_100k.root > output/wjet_1_100k.log &
+#time ./lib/wgen 0 100000 output/wjet_2_100k.root > output/wjet_2_100k.log &
+#time ./lib/wgen 0 100000 output/wjet_3_100k.root > output/wjet_3_100k.log &
+#time ./lib/wgen 0 100000 output/wjet_4_100k.root > output/wjet_4_100k.log &
+#time ./lib/wgen 0 100000 output/wjet_5_100k.root > output/wjet_5_100k.log &
+#wait
+
+time ./lib/wgen 0 100000 output/wjet_6_100k.root > output/wjet_6_100k.log &
+time ./lib/wgen 0 100000 output/wjet_7_100k.root > output/wjet_7_100k.log &
+time ./lib/wgen 0 100000 output/wjet_8_100k.root > output/wjet_8_100k.log &
+time ./lib/wgen 0 100000 output/wjet_9_100k.root > output/wjet_9_100k.log &
+time ./lib/wgen 0 100000 output/wjet_10_100k.root > output/wjet_10_100k.log &
+wait
+
+time ./lib/wgen 0 100000 output/wjet_11_100k.root > output/wjet_11_100k.log &
+time ./lib/wgen 0 100000 output/wjet_12_100k.root > output/wjet_12_100k.log &
+time ./lib/wgen 0 100000 output/wjet_13_100k.root > output/wjet_13_100k.log &
+time ./lib/wgen 0 100000 output/wjet_14_100k.root > output/wjet_14_100k.log &
+time ./lib/wgen 0 100000 output/wjet_15_100k.root > output/wjet_15_100k.log &
+wait
 

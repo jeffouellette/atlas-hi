@@ -220,11 +220,11 @@ void ZGammaJetCrossCheck (const int dataSet,
    }
   }
 
-  int nZeeMass[numetabins+1] = {};
-  int nZeeJet[numetabins+1] = {};
-  int nZmumuMass[numetabins+1] = {};
-  int nZmumuJet[numetabins+1] = {};
-  int nGammaJet[numetabins+1] = {};
+  int* nZeeMass = new int[numetabins+1];
+  int* nZeeJet = new int[numetabins+1];
+  int* nZmumuMass = new int[numetabins+1];
+  int* nZmumuJet = new int[numetabins+1];
+  int* nGammaJet = new int[numetabins+1];
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
   dataOverMCFile = new TFile(rootPath + "cc_difference.root", "READ");

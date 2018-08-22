@@ -165,7 +165,6 @@ void EnergyScaleChecks (const int dataSet,
   }
 
   int** nJet[2] = {};
-  int* nGamma[numpbins+1] = {};
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    nJet[iAlgo] = new int*[numpbins+1];
    for (short iP = 0; iP <= numpbins; iP++) {
@@ -175,6 +174,7 @@ void EnergyScaleChecks (const int dataSet,
     }
    }
   }
+  int** nGamma = new int*[numpbins+1];
   for (short iP = 0; iP <= numpbins; iP++) {
    nGamma[iP] = new int[numetabins+1];
    for (short iEta = 0; iEta <= numetabins; iEta++) {

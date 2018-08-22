@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
         b_mu_plus_pt[b_mu_plus_n] = pythia.event[i].pT();
         b_mu_plus_eta[b_mu_plus_n] = pythia.event[i].eta();
         b_mu_plus_phi[b_mu_plus_n] = pythia.event[i].phi();
-        b_mu_minus_n++;
+        b_mu_plus_n++;
       }
       
     }

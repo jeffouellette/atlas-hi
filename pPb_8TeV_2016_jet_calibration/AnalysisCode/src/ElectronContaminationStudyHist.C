@@ -19,6 +19,8 @@ namespace pPb8TeV2016JetCalibration {
 
 void ElectronContaminationStudyHist () {
 
+  SetAtlasStyle();
+
   // Setup trigger vectors
   SetupDirectories("ElectronContamination/", "pPb_8TeV_2016_jet_calibration/");
 

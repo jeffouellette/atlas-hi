@@ -12,11 +12,14 @@
 #include <TSystemFile.h>
 #include <TSystemDirectory.h>
 
+#include <AtlasStyle.h>
 #include <AtlasUtils.h>
 
 namespace pPb8TeV2016JetCalibration {
 
 void JetInsituCorrectionCheckHist () {
+
+  SetAtlasStyle();
 
   // Setup trigger vectors
   SetupDirectories("JetInsituCorrectionCheck/", "pPb_8TeV_2016_jet_calibration/");
@@ -106,9 +109,9 @@ void JetInsituCorrectionCheckHist () {
   const double padYwidth = 0.5;
   const double padRatio = 1.8; // ratio of size of upper pad to lower pad
   const int nx = numetabins/2;
-  const int ny = 4;
-  double lPadXbounds[nx] = {};
-  double uPadXbounds[nx] = {};
+  //const int ny = 4;
+  double* lPadXbounds = new double[nx];
+  double* uPadXbounds = new double[nx];
   for (short i = 0; i < nx-1; i++) {
    lPadXbounds[i+1] = 0.04 + (0.955/nx) * (i+1); 
    uPadXbounds[i] = 0.04 + (0.955/nx) * (i+1);
@@ -116,8 +119,8 @@ void JetInsituCorrectionCheckHist () {
   lPadXbounds[0] = 0;
   uPadXbounds[nx-1] = 1.;
 
-  double padLeftMargins[nx] = {};
-  double padRightMargins[nx] = {};
+  double* padLeftMargins = new double[nx];
+  double* padRightMargins = new double[nx];
   padLeftMargins[0] = 0.04/lPadXbounds[1];
   padRightMargins[nx-1] = 0.005/(1.-lPadXbounds[nx-1]);
 
@@ -128,11 +131,12 @@ void JetInsituCorrectionCheckHist () {
   const double padTopMargins[4] = {0.02, 0, 0.02, 0};
   const double padBottomMargins[4] = {0, 0.32, 0, 0.32};
 
-  TPad* pads[nx][4] = {{}, {}, {}};
+  TPad*** pads = new TPad**[nx]; //[nx][4];
   for (int ix = 0; ix < nx; ix++) {
+   pads[ix] = new TPad*[4];
    const double lPadX = lPadXbounds[ix];
    const double uPadX = uPadXbounds[ix];
-   for (int iy = 0; iy < ny; iy++) {
+   for (int iy = 0; iy < 4; iy++) {
     const double lPadY = lPadYbounds[iy];
     const double uPadY = uPadYbounds[iy];
     pads[ix][iy] = new TPad (Form ("pad_%i_%i", ix, iy), "", lPadX, lPadY, uPadX, uPadY);
