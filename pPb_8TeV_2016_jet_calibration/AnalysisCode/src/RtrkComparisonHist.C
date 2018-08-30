@@ -422,8 +422,8 @@ void RtrkComparisonHist () {
      jetRtrkGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);

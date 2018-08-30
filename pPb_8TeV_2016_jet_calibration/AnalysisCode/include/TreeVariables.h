@@ -83,6 +83,9 @@ struct TreeVariables {
    vector<float>* trk_pt;
    vector<float>* trk_eta;
    vector<float>* trk_phi;
+
+   int clean_jet_n = 0;
+   int total_jet_n = 0;
    
    int jet_n = 0; 
 

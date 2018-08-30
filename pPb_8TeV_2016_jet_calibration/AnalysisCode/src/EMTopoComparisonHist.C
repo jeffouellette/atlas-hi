@@ -1,5 +1,7 @@
 #include "EMTopoComparisonHist.h"
 
+#include <GlobalParams.h>
+
 #include <TF1.h>
 #include <TH1D.h>
 #include <TFile.h>
@@ -13,6 +15,8 @@
 
 #include <AtlasUtils.h>
 #include <AtlasStyle.h>
+
+using namespace atlashi;
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -50,7 +54,7 @@ TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double
 TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins, const double* xbins, const int numybins, const double* ybins, const bool useFit) {
   TH1D* dataOverMC = new TH1D(name, "", numxbins, xbins);
   for (int xbin = 1; xbin <= numxbins; xbin++) {
-   TH1D* projy = data->ProjectionY(name + TString(Form("data_xbin%i", xbin)), xbin, xbin);
+   TH1D* projy = data->ProjectionY(name + TString(Form ("data_xbin%i", xbin)), xbin, xbin);
    projy->Rebin(rebinFactor);
    double dataAvg, dataErr, mcAvg, mcErr;
    double chi_square = 0;
@@ -72,7 +76,7 @@ TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins
    }
    if (projy) delete projy;
 
-   projy = mc->ProjectionY(name + TString(Form("mc_xbin%i", xbin)), xbin, xbin);
+   projy = mc->ProjectionY(name + TString(Form ("mc_xbin%i", xbin)), xbin, xbin);
    projy->Rebin(rebinFactor);
    chi_square = 0;
    numNonzeroBins = 0;
@@ -127,12 +131,9 @@ void EMTopoComparisonHist () {
   zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
   zmumuJetSampleIds.push_back("pPb_ZmumuJet");
 
-  TH2D* zeeJetHists[2][3][numetabins+1][2][3];
-  //TH2D* zeeJetHistsSys[2][3][numetabins][2][3];
-  TH2D* zmumuJetHists[2][3][numetabins+1][2][3];
-  //TH2D* zmumuJetHistsSys[2][3][numetabins][2][3];
-  TH2D* gJetHists[2][3][numetabins+1][2][3];
-  //TH2D* gJetHistsSys[2][3][numetabins+1][2][3];
+  TH2D****** zeeJetHists = Get5DArray <TH2D*> (2, 3, numetabins+1, 2, 3);
+  TH2D****** zmumuJetHists = Get5DArray <TH2D*> (2, 3, numetabins+1, 2, 3);
+  TH2D****** gJetHists = Get5DArray <TH2D*> (2, 3, numetabins+1, 2, 3);
 
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -150,14 +151,14 @@ void EMTopoComparisonHist () {
        if (iPer == 1) period = "periodB";
        else if (iPer == 2) period = "periodAB";
 
-       zeeJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form("zeeJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{Z} #left[GeV#right];#it{x}_{J}^{ref}", numpzbins, pzbins, numxjrefbins, xjrefbins);
+       zeeJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form ("zeeJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{Z} #left[GeV#right];#it{x}_{J}^{ref}", numpzbins, pzbins, numxjrefbins, xjrefbins);
        zeeJetHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2();
-       zmumuJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form("zmumuJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{Z} #left[GeV#right];#it{x}_{J}^{ref}", numpzbins, pzbins, numxjrefbins, xjrefbins);
+       zmumuJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form ("zmumuJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{Z} #left[GeV#right];#it{x}_{J}^{ref}", numpzbins, pzbins, numxjrefbins, xjrefbins);
        zmumuJetHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2();
-       gJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form("gJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{#gamma} #left[GeV#right];#it{x}_{J}^{ref}", numpbins, pbins, numxjrefbins, xjrefbins);
+       gJetHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form ("gJetPtRatio_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{#gamma} #left[GeV#right];#it{x}_{J}^{ref}", numpbins, pbins, numxjrefbins, xjrefbins);
        gJetHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2();
 
-       //gJetHistsSys[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form("gJetPtRatioSys_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];#Delta#it{x}_{J}^{ref}#it{p}_{T}^{ref}/#it{p}_{T}^{jet}", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
+       //gJetHistsSys[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form ("gJetPtRatioSys_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];#Delta#it{x}_{J}^{ref}#it{p}_{T}^{ref}/#it{p}_{T}^{jet}", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
        //gJetHistsSys[iAlgo][iPer][iEta][iData][iErr]->Sumw2();
       }
      }
@@ -165,23 +166,12 @@ void EMTopoComparisonHist () {
    }
   }
 
-  int* nZeeJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
-  int* nZmumuJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
-  int* nGammaJet[2][3][2] = {{{}, {}, {}}, {{}, {}, {}}};
-  for (int i = 0; i < 2; i++) {
-   for (int j = 0; j < 3; j++) {
-    for (int k = 0; k < 2; k++) {
-     nZeeJet[i][j][k] = new int[numetabins+1];
-     nZmumuJet[i][j][k] = new int[numetabins+1];
-     nGammaJet[i][j][k] = new int[numetabins+1];
-     for (int iEta = 0; iEta <= numetabins; iEta++) {
-      nZeeJet[i][j][k][iEta] = 0;
-      nZmumuJet[i][j][k][iEta] = 0;
-      nGammaJet[i][j][k][iEta] = 0;
-     }
-    }
-   }
-  }
+  int**** nZeeJet = Get4DArray <int> (2, 3, 2, numetabins+1);
+  int**** nZmumuJet = Get4DArray <int> (2, 3, 2, numetabins+1);
+  int**** nGammaJet = Get4DArray <int> (2, 3, 2, numetabins+1);
+
+  int nTotalJets[2] = {};
+  int nCleanJets[2] = {};
 
   {
    TSystemDirectory dir(rootPath.Data(), rootPath.Data());
@@ -194,7 +184,7 @@ void EMTopoComparisonHist () {
    TString fname;
    TString histName;
    TIter next(sysfiles);
-   TVectorD *nZeeJetVec, *nZmumuJetVec, *nGammaJetVec;
+   TVectorD *nZeeJetVec, *nZmumuJetVec, *nGammaJetVec, *jetCleaningVec;
    int numFiles = 0;
    while ((sysfile=(TSystemFile*)next())) {
     fname = sysfile->GetName();
@@ -208,10 +198,16 @@ void EMTopoComparisonHist () {
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        const short iPer = (runNumber < 313500 ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", runNumber));
-       nZeeJetVec = (TVectorD*)thisFile->Get(Form("nZeeJetVec_%i", runNumber));
-       nZmumuJetVec = (TVectorD*)thisFile->Get(Form("nZmumuJetVec_%i", runNumber));
-       nGammaJetVec = (TVectorD*)thisFile->Get(Form("nGammaJetVec_%i", runNumber));
+       //infoVec = (TVectorD*) thisFile->Get (Form ("infoVec_%i", runNumber));
+       nZeeJetVec = (TVectorD*) thisFile->Get (Form ("nZeeJetVec_%i", runNumber));
+       nZmumuJetVec = (TVectorD*) thisFile->Get (Form ("nZmumuJetVec_%i", runNumber));
+       nGammaJetVec = (TVectorD*) thisFile->Get (Form ("nGammaJetVec_%i", runNumber));
+
+       jetCleaningVec = (TVectorD*) thisFile->Get (Form ("jetCleaningVec_%i", runNumber));
+       if (jetCleaningVec) {
+        nTotalJets[0] += (int) (*jetCleaningVec)[0];
+        nCleanJets[0] += (int) (*jetCleaningVec)[1];
+       }
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -235,24 +231,24 @@ void EMTopoComparisonHist () {
           if (iErr == 1) error = "stat";
           else if (iErr == 2) error = "sys_hi";
 
-          TH2D* temp = (TH2D*)thisFile->Get(Form("zeeJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
+          TH2D* temp = (TH2D*) thisFile->Get (Form ("zeeJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
           zeeJetHists[iAlgo][iPer][iEta][0][iErr]->Add(temp);
-          temp = (TH2D*)thisFile->Get(Form("zeeJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
+          temp = (TH2D*) thisFile->Get (Form ("zeeJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
           zeeJetHists[iAlgo][2][iEta][0][iErr]->Add(temp);
 
-          temp = (TH2D*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
+          temp = (TH2D*) thisFile->Get (Form ("zmumuJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
           zmumuJetHists[iAlgo][iPer][iEta][0][iErr]->Add(temp);
-          temp = (TH2D*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
+          temp = (TH2D*) thisFile->Get (Form ("zmumuJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
           zmumuJetHists[iAlgo][2][iEta][0][iErr]->Add(temp);
 
-          temp = (TH2D*)thisFile->Get(Form("gJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
+          temp = (TH2D*) thisFile->Get (Form ("gJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
           gJetHists[iAlgo][iPer][iEta][0][iErr]->Add(temp);
-          temp = (TH2D*)thisFile->Get(Form("gJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
+          temp = (TH2D*) thisFile->Get (Form ("gJetPtRatio_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), act_iEta, error.Data()));
           gJetHists[iAlgo][2][iEta][0][iErr]->Add(temp);
 
           //if (iErr == 1)  {
-          // gJetHistsSys[iAlgo][iPer][iEta][0][iErr]->Add((TH2D*)thisFile->Get(Form("gJetPtRatioSys_dataSet%i_iEta%i_data_%s", runNumber, iEta, error.Data())));
-          ////gJetHistsSys[2][iEta][0][iErr]->Add((TH2D*)thisFile->Get(Form("gJetPtRatioSys_dataSet%i_iEta%i_data_%s", runNumber, act_iEta, error.Data())));
+          // gJetHistsSys[iAlgo][iPer][iEta][0][iErr]->Add((TH2D*) thisFile->Get (Form ("gJetPtRatioSys_dataSet%i_iEta%i_data_%s", runNumber, iEta, error.Data())));
+          ////gJetHistsSys[2][iEta][0][iErr]->Add((TH2D*) thisFile->Get (Form ("gJetPtRatioSys_dataSet%i_iEta%i_data_%s", runNumber, act_iEta, error.Data())));
           //}
          }
         }
@@ -270,8 +266,13 @@ void EMTopoComparisonHist () {
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        const short iPer = (gammaJetSampleId.Contains("pPb") ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", gammaJetSampleId.Data()));
-       nGammaJetVec = (TVectorD*)thisFile->Get(Form("nGammaJetVec_%s", gammaJetSampleId.Data()));
+       nGammaJetVec = (TVectorD*) thisFile->Get (Form ("nGammaJetVec_%s", gammaJetSampleId.Data()));
+
+       jetCleaningVec = (TVectorD*) thisFile->Get (Form ("jetCleaningVec_%s", gammaJetSampleId.Data()));
+       if (jetCleaningVec) {
+        nTotalJets[1] += (int) (*jetCleaningVec)[0];
+        nCleanJets[1] += (int) (*jetCleaningVec)[1];
+       }
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -285,13 +286,13 @@ void EMTopoComparisonHist () {
          nGammaJet[iAlgo][2][1][iEta] += (*nGammaJetVec)[act_iEta + iAlgo*(numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("gJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), iEta));
+         TH2D* temp = (TH2D*) thisFile->Get (Form ("gJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), iEta));
          gJetHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         temp = (TH2D*)thisFile->Get(Form("gJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), act_iEta));
+         temp = (TH2D*) thisFile->Get (Form ("gJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), act_iEta));
          gJetHists[iAlgo][2][iEta][1][1]->Add(temp);
 
-         //gJetHistsSys[iAlgo][iPer][iEta][1][1]->Add((TH2D*)thisFile->Get(Form("gJetPtRatioSys_dataSet%s_iEta%i_mc_stat", gammaJetSampleId.Data(), iEta)));
-         ////gJetHistsSys[iAlgo][2][iEta][1][1]->Add((TH2D*)thisFile->Get(Form("gJetPtRatioSys_dataSet%s_iEta%i_mc_stat", gammaJetSampleId.Data(), act_iEta)));
+         //gJetHistsSys[iAlgo][iPer][iEta][1][1]->Add((TH2D*) thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_stat", gammaJetSampleId.Data(), iEta)));
+         ////gJetHistsSys[iAlgo][2][iEta][1][1]->Add((TH2D*) thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_stat", gammaJetSampleId.Data(), act_iEta)));
         }
        }
 
@@ -307,7 +308,13 @@ void EMTopoComparisonHist () {
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        const short iPer = (zeeJetSampleId.Contains("pPb") ? 0 : 1);
-       nZeeJetVec = (TVectorD*)thisFile->Get(Form("nZeeJetVec_%s", zeeJetSampleId.Data()));
+       nZeeJetVec = (TVectorD*) thisFile->Get (Form ("nZeeJetVec_%s", zeeJetSampleId.Data()));
+
+       jetCleaningVec = (TVectorD*) thisFile->Get (Form ("jetCleaningVec_%s", zeeJetSampleId.Data()));
+       if (jetCleaningVec) {
+        nTotalJets[1] += (int) (*jetCleaningVec)[0];
+        nCleanJets[1] += (int) (*jetCleaningVec)[1];
+       }
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -321,9 +328,9 @@ void EMTopoComparisonHist () {
          nZeeJet[iAlgo][2][1][iEta] += (*nZeeJetVec)[act_iEta + iAlgo*(numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), iEta));
+         TH2D* temp = (TH2D*) thisFile->Get (Form ("zeeJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), iEta));
          zeeJetHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         temp = (TH2D*)thisFile->Get(Form("zeeJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), act_iEta));
+         temp = (TH2D*) thisFile->Get (Form ("zeeJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), act_iEta));
          zeeJetHists[iAlgo][2][iEta][1][1]->Add(temp);
         }
        }
@@ -340,7 +347,13 @@ void EMTopoComparisonHist () {
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        const short iPer = (zmumuJetSampleId.Contains("pPb") ? 0 : 1);
-       nZmumuJetVec = (TVectorD*)thisFile->Get(Form("nZmumuJetVec_%s", zmumuJetSampleId.Data()));
+       nZmumuJetVec = (TVectorD*) thisFile->Get (Form ("nZmumuJetVec_%s", zmumuJetSampleId.Data()));
+
+       jetCleaningVec = (TVectorD*) thisFile->Get (Form ("jetCleaningVec_%s", zmumuJetSampleId.Data()));
+       if (jetCleaningVec) {
+        nTotalJets[1] += (int) (*jetCleaningVec)[0];
+        nCleanJets[1] += (int) (*jetCleaningVec)[1];
+       }
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -355,9 +368,9 @@ void EMTopoComparisonHist () {
 
          // Only add the statistical error plots for MC (don't need to
          // consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), iEta));
+         TH2D* temp = (TH2D*) thisFile->Get (Form ("zmumuJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), iEta));
          zmumuJetHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         temp = (TH2D*)thisFile->Get(Form("zmumuJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), act_iEta));
+         temp = (TH2D*) thisFile->Get (Form ("zmumuJetPtRatio_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), act_iEta));
          zmumuJetHists[iAlgo][2][iEta][1][1]->Add(temp);
         }
        }
@@ -438,7 +451,7 @@ void EMTopoComparisonHist () {
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
      topPad->cd();
      topPad->SetLogx();
-     vJetHist = GetProfileX(Form("zmumuJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zmumuJetHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, false);
+     vJetHist = GetProfileX(Form ("zmumuJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zmumuJetHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, false);
      vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
@@ -459,7 +472,7 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->SetFillColor(kBlack);
      vJetGraph_sys->SetFillStyle(3001);
 
-     vJetHist_mc = GetProfileX(Form("zmumuJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
+     vJetHist_mc = GetProfileX(Form ("zmumuJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
      vJetHist_mc->SetMarkerStyle(markerStyle);
      vJetHist_mc->SetMarkerColor(mc_color);
      vJetHist_mc->SetLineColor(mc_color);
@@ -470,11 +483,11 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
-       if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       }
       myText(0.155, 0.28, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.Data(), 0.04/uPadY);
@@ -483,10 +496,10 @@ void EMTopoComparisonHist () {
      bottomPad->cd();
      bottomPad->SetLogx();
 
-     vJetHist_rat = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][1], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat = GetDataOverMC(TString(Form ("zmumuJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][1], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
      vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-     vJetHist_rat_lo = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][0], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-     vJetHist_rat_hi = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_hi_%s_iEta%i", algo.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][2], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat_lo = GetDataOverMC(TString(Form ("zmumuJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][0], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat_hi = GetDataOverMC(TString(Form ("zmumuJetPtDataMCRatio_hi_%s_iEta%i", algo.Data(), iEta)), zmumuJetHists[iAlgo][iPer][iEta][0][2], zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
      CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
      if (vJetHist_rat_lo) delete vJetHist_rat_lo;
      if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -514,18 +527,18 @@ void EMTopoComparisonHist () {
     }
 
     char* plotName;
-    if (iEta < numetabins) plotName = Form("z_mumu_jet%i.pdf", iEta);
-    else plotName = Form("z_mumu_jet_combined.pdf");
+    if (iEta < numetabins) plotName = Form ("z_mumu_jet%i.pdf", iEta);
+    else plotName = Form ("z_mumu_jet_combined.pdf");
 
     switch (iPer) {
      case 0:
-      canvas->SaveAs(Form("%s/PeriodA/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodA/%s", plotPath.Data(), plotName));
       break;
      case 1:
-      canvas->SaveAs(Form("%s/PeriodB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodB/%s", plotPath.Data(), plotName));
       break;
      case 2:
-      canvas->SaveAs(Form("%s/PeriodAB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodAB/%s", plotPath.Data(), plotName));
       break;
     }
     if (vJetHist) delete vJetHist;
@@ -541,7 +554,7 @@ void EMTopoComparisonHist () {
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
      topPad->cd();
      topPad->SetLogx();
-     vJetHist = GetProfileX(Form("zeeJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zeeJetHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, false);
+     vJetHist = GetProfileX(Form ("zeeJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zeeJetHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, false);
      vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
@@ -562,7 +575,7 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->SetFillColor(kBlack);
      vJetGraph_sys->SetFillStyle(3001);
 
-     vJetHist_mc = GetProfileX(Form("zeeJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
+     vJetHist_mc = GetProfileX(Form ("zeeJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
      vJetHist_mc->SetMarkerStyle(markerStyle);
      vJetHist_mc->SetMarkerColor(mc_color);
      vJetHist_mc->SetLineColor(mc_color);
@@ -573,11 +586,11 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
-       if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       }
       myText(0.155, 0.28, kBlack, "Z (ee) + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.Data(), 0.04/uPadY);
@@ -586,10 +599,10 @@ void EMTopoComparisonHist () {
      bottomPad->cd();
      bottomPad->SetLogx();
 
-     vJetHist_rat = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][1], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat = GetDataOverMC(TString(Form ("zeeJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][1], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
      vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-     vJetHist_rat_lo = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][0], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-     vJetHist_rat_hi = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_hi_%s_iEta%i", algo.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][2], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat_lo = GetDataOverMC(TString(Form ("zeeJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][0], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+     vJetHist_rat_hi = GetDataOverMC(TString(Form ("zeeJetPtDataMCRatio_hi_%s_iEta%i", algo.Data(), iEta)), zeeJetHists[iAlgo][iPer][iEta][0][2], zeeJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
      CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
      if (vJetHist_rat_lo) delete vJetHist_rat_lo;
      if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -616,17 +629,17 @@ void EMTopoComparisonHist () {
      for (TLine* line : zlines) line->Draw("same");
     }
 
-    if (iEta < numetabins) plotName = Form("z_ee_jet%i.pdf", iEta);
-    else plotName = Form("z_ee_jet_combined.pdf");
+    if (iEta < numetabins) plotName = Form ("z_ee_jet%i.pdf", iEta);
+    else plotName = Form ("z_ee_jet_combined.pdf");
     switch (iPer) {
      case 0:
-      canvas->SaveAs(Form("%s/PeriodA/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodA/%s", plotPath.Data(), plotName));
       break;
      case 1:
-      canvas->SaveAs(Form("%s/PeriodB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodB/%s", plotPath.Data(), plotName));
       break;
      case 2:
-      canvas->SaveAs(Form("%s/PeriodAB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodAB/%s", plotPath.Data(), plotName));
       break;
     }
     if (vJetHist) delete vJetHist;
@@ -642,7 +655,7 @@ void EMTopoComparisonHist () {
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
      topPad->cd();
      topPad->SetLogx();
-     vJetHist = GetProfileX(Form("gammaJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), gJetHists[iAlgo][iPer][iEta][0][1], numpbins, pbins, true);
+     vJetHist = GetProfileX(Form ("gammaJetHist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), gJetHists[iAlgo][iPer][iEta][0][1], numpbins, pbins, true);
      vJetGraph_sys = new TGraphAsymmErrors(vJetHist); // for plotting systematics
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
@@ -663,7 +676,7 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->SetFillColor(kBlack);
      vJetGraph_sys->SetFillStyle(3001);
 
-     vJetHist_mc = GetProfileX(Form("gammaJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, true);
+     vJetHist_mc = GetProfileX(Form ("gammaJetHist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, true);
      vJetHist_mc->SetMarkerStyle(markerStyle);
      vJetHist_mc->SetMarkerColor(mc_color);
      vJetHist_mc->SetLineColor(mc_color);
@@ -675,11 +688,11 @@ void EMTopoComparisonHist () {
      for (TLine* line : dplines) line->Draw("same");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
-       if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       }
       myText(0.155, 0.28, kBlack, "#gamma + Jet", 0.04/uPadY);
       myText(0.155, 0.19, kBlack, period.Data(), 0.04/uPadY);
@@ -687,10 +700,10 @@ void EMTopoComparisonHist () {
 
      bottomPad->cd();
      bottomPad->SetLogx();
-     vJetHist_rat = GetDataOverMC(TString(Form("gJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), gJetHists[iAlgo][iPer][iEta][0][1], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+     vJetHist_rat = GetDataOverMC(TString(Form ("gJetPtDataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), gJetHists[iAlgo][iPer][iEta][0][1], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
      vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-     vJetHist_rat_lo = GetDataOverMC(TString(Form("gJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), gJetHists[iAlgo][iPer][iEta][0][0], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
-     vJetHist_rat_hi = GetDataOverMC(TString(Form("gJetPtDataMCRatio_hi_iEta%i", iEta)), gJetHists[iAlgo][iPer][iEta][0][2], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+     vJetHist_rat_lo = GetDataOverMC(TString(Form ("gJetPtDataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), gJetHists[iAlgo][iPer][iEta][0][0], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+     vJetHist_rat_hi = GetDataOverMC(TString(Form ("gJetPtDataMCRatio_hi_iEta%i", iEta)), gJetHists[iAlgo][iPer][iEta][0][2], gJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
      CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
      if (vJetHist_rat_lo) delete vJetHist_rat_lo;
      if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -717,17 +730,17 @@ void EMTopoComparisonHist () {
      for (TLine* line : dplines_bottom) line->Draw("same");
     }
 
-    if (iEta < numetabins) plotName = Form("gamma_jet%i.pdf", iEta);
-    else plotName = Form("gamma_jet_combined.pdf");
+    if (iEta < numetabins) plotName = Form ("gamma_jet%i.pdf", iEta);
+    else plotName = Form ("gamma_jet_combined.pdf");
     switch (iPer) {
      case 0:
-      canvas->SaveAs(Form("%s/PeriodA/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodA/%s", plotPath.Data(), plotName));
       break;
      case 1:
-      canvas->SaveAs(Form("%s/PeriodB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodB/%s", plotPath.Data(), plotName));
       break;
      case 2:
-      canvas->SaveAs(Form("%s/PeriodAB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs(Form ("%s/PeriodAB/%s", plotPath.Data(), plotName));
       break;
     }
     if (vJetHist) delete vJetHist;
@@ -746,7 +759,7 @@ void EMTopoComparisonHist () {
   // for (short iEta = 0; iEta < numetabins; iEta++) {
   //  topPad->cd();
   //  TH2D* thisHist = gJetHistsSys[iPer][iEta][0][1];
-  //  TH1D* rmsHist = new TH1D(Form("rms_iEta%i_%s", iEta, (iPer==0?"pPb":"Pbp")), "", numpzbins, pzbins);
+  //  TH1D* rmsHist = new TH1D(Form ("rms_iEta%i_%s", iEta, (iPer==0?"pPb":"Pbp")), "", numpzbins, pzbins);
   //  for (short pzbin = 0; pzbin < numpzbins; pzbin++) {
   //   float rms = 0;
   //   float sumWeights = 0;
@@ -766,7 +779,7 @@ void EMTopoComparisonHist () {
   //  thisHist->GetYaxis()->SetTitleSize(0.04/uPadY);
   //  thisHist->GetYaxis()->SetTitleOffset(1.1*uPadY);
   //  myText(0.72, 0.89, kBlack, period.Data(), 0.04/uPadY);
-  //  myText(0.72, 0.8,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+  //  myText(0.72, 0.8,kBlack, Form ("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
 
   //  bottomPad->cd();
   //  rmsHist->SetXTitle("#it{p}_{T}^{jet} #left[GeV#right]");
@@ -783,10 +796,39 @@ void EMTopoComparisonHist () {
   //  rmsHist->GetYaxis()->SetLabelSize(0.04/dPadY);
   //  rmsHist->GetXaxis()->SetTickLength(0.08);
   //  rmsHist->Draw("hist");
-  //  canvas->SaveAs(Form("%s/Period%s/jetSystematics_iEta%i.pdf", plotPath.Data(), (iPer==0 ? "A":"B"), iEta));
+  //  canvas->SaveAs(Form ("%s/Period%s/jetSystematics_iEta%i.pdf", plotPath.Data(), (iPer==0 ? "A":"B"), iEta));
   //  if (rmsHist) delete rmsHist;
   // }
   //}
+
+  Delete4DArray (nZeeJet, 2, 3, 2, numetabins+1);
+  Delete4DArray (nZmumuJet, 2, 3, 2, numetabins+1);
+  Delete4DArray (nGammaJet, 2, 3, 2, numetabins+1);
+  Delete5DArray (zeeJetHists, 2, 3, numetabins+1, 2, 3);
+  Delete5DArray (zmumuJetHists, 2, 3, numetabins+1, 2, 3);
+  Delete5DArray (gJetHists, 2, 3, numetabins+1, 2, 3);
+
+  double num = (double)nCleanJets[0];
+  double den = (double)nTotalJets[0];
+  double frac = num / den;
+  double fracErr = sqrt ( ((num+1.)*(num+2.)) / ((den+2.)*(den+3.)) - ((num+1.)*(num+1.))/((den+2.)*(den+2.)) );
+
+  cout << "Clean / total jets in data = " << nCleanJets[0]
+       << " / " << nTotalJets[0]
+       << " = " << frac
+       << " +/- " << fracErr
+       << endl;
+
+  num = (double)nCleanJets[1];
+  den = (double)nTotalJets[1];
+  frac = num / den;
+  fracErr = sqrt ( ((num+1.)*(num+2.)) / ((den+2.)*(den+3.)) - ((num+1.)*(num+1.))/((den+2.)*(den+2.)) );
+
+  cout << "Clean / total jets in MC   = " << nCleanJets[1]
+       << " / " << nTotalJets[1]
+       << " = " << frac
+       << " +/- " << fracErr
+       << endl;
 
   return;
 }

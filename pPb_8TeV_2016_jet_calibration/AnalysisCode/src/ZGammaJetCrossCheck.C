@@ -1,11 +1,12 @@
 #include "ZGammaJetCrossCheck.h"
 
-#include <iostream>
 #include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TLorentzVector.h>
 #include <TVectorT.h>
+
+#include <iostream>
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -112,7 +113,8 @@ void ZGammaJetCrossCheck (const int dataSet,
     else fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isMCperiodAflag ? ".pPb":".Pbp");
    } else fileIdentifier = inFileName;
 
-   TSystemDirectory dir(dataPath.Data(), dataPath.Data());
+   const TString dataPathTemp = dataPath;// + "/data810/";
+   TSystemDirectory dir(dataPathTemp.Data(), dataPathTemp.Data());
    TList* sysfiles = dir.GetListOfFiles();
    if (!sysfiles) {
     cout << "Cannot get list of files! Exiting." << endl;
@@ -128,7 +130,7 @@ void ZGammaJetCrossCheck (const int dataSet,
      if (debugStatements) cout << "Status: In ZGammaJetCrossCheck.C (breakpoint B): Found " << fname.Data() << endl;
      
      if (fname.Contains(fileIdentifier)) {
-      file = new TFile(dataPath+fname, "READ");
+      file = new TFile(dataPathTemp+fname, "READ");
       tree = (TTree*)file->Get("tree");
       break;
      }

@@ -1,6 +1,7 @@
+#include "TreeVariables.h"
+
 #include <iostream>
 #include <iomanip>
-#include "TreeVariables.h"
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -154,43 +155,47 @@ void TreeVariables :: SetBranchAddresses() {
    tree->SetBranchStatus("vert_type", 0);
   }
 
-  if (getFCals) {
-   tree->SetBranchAddress("fcalA_et", &fcalA_et);
-   tree->SetBranchAddress("fcalC_et", &fcalC_et);
-  }
-  else {
-   tree->SetBranchStatus("fcalA_et", 0);
-   tree->SetBranchStatus("fcalC_et", 0);
-  }
+  //if (getFCals) {
+  // tree->SetBranchAddress("fcalA_et", &fcalA_et);
+  // tree->SetBranchAddress("fcalC_et", &fcalC_et);
+  //}
+  //else {
+  // tree->SetBranchStatus("fcalA_et", 0);
+  // tree->SetBranchStatus("fcalC_et", 0);
+  //}
 
-  if (getTracks) {
-   tree->SetBranchAddress("ntrk", &ntrk);
-   tree->SetBranchAddress("trk_quality_4", &trk_quality_4);
-   //tree->SetBranchAddress("trk_d0", &trk_d0);
-   //tree->SetBranchAddress("trk_z0", &trk_z0);
-   //tree->SetBranchAddress("trk_theta", &trk_theta);
-   //tree->SetBranchAddress("trk_charge", &trk_charge);
-   tree->SetBranchStatus("trk_d0", 0);
-   tree->SetBranchStatus("trk_z0", 0);
-   tree->SetBranchStatus("trk_theta", 0);
-   tree->SetBranchStatus("trk_charge", 0);
-   tree->SetBranchAddress("trk_pt", &trk_pt);
-   tree->SetBranchAddress("trk_eta", &trk_eta);
-   tree->SetBranchAddress("trk_phi", &trk_phi);
-  }
-  else {
-   tree->SetBranchStatus("ntrk", 0);
-   tree->SetBranchStatus("trk_quality_4", 0);
-   tree->SetBranchStatus("trk_d0", 0);
-   tree->SetBranchStatus("trk_z0", 0);
-   tree->SetBranchStatus("trk_theta", 0);
-   tree->SetBranchStatus("trk_charge", 0);
-   tree->SetBranchStatus("trk_pt", 0);
-   tree->SetBranchStatus("trk_eta", 0);
-   tree->SetBranchStatus("trk_phi", 0);
-  }
+  //if (getTracks) {
+  // tree->SetBranchAddress("ntrk", &ntrk);
+  // tree->SetBranchAddress("trk_quality_4", &trk_quality_4);
+  // //tree->SetBranchAddress("trk_d0", &trk_d0);
+  // //tree->SetBranchAddress("trk_z0", &trk_z0);
+  // //tree->SetBranchAddress("trk_theta", &trk_theta);
+  // //tree->SetBranchAddress("trk_charge", &trk_charge);
+  // tree->SetBranchStatus("trk_d0", 0);
+  // tree->SetBranchStatus("trk_z0", 0);
+  // tree->SetBranchStatus("trk_theta", 0);
+  // tree->SetBranchStatus("trk_charge", 0);
+  // tree->SetBranchAddress("trk_pt", &trk_pt);
+  // tree->SetBranchAddress("trk_eta", &trk_eta);
+  // tree->SetBranchAddress("trk_phi", &trk_phi);
+  //}
+  //else {
+  // tree->SetBranchStatus("ntrk", 0);
+  // tree->SetBranchStatus("trk_quality_4", 0);
+  // tree->SetBranchStatus("trk_d0", 0);
+  // tree->SetBranchStatus("trk_z0", 0);
+  // tree->SetBranchStatus("trk_theta", 0);
+  // tree->SetBranchStatus("trk_charge", 0);
+  // tree->SetBranchStatus("trk_pt", 0);
+  // tree->SetBranchStatus("trk_eta", 0);
+  // tree->SetBranchStatus("trk_phi", 0);
+  //}
 
   if (!getSimpleJets) {
+
+   tree->SetBranchAddress("total_jet_n", &total_jet_n);
+   tree->SetBranchAddress("clean_jet_n", &clean_jet_n);
+
    if (getHIJets) {
 
     tree->SetBranchAddress("akt4hi_jet_n", &akt4hi_jet_n);
@@ -224,6 +229,40 @@ void TreeVariables :: SetBranchAddresses() {
     tree->SetBranchAddress("akt4hi_constit_jet_eta", &akt4hi_constit_jet_eta);
     tree->SetBranchAddress("akt4hi_constit_jet_phi", &akt4hi_constit_jet_phi);
     tree->SetBranchAddress("akt4hi_constit_jet_e", &akt4hi_constit_jet_e);
+   } // end if get HI jets
+
+   else {
+    tree->SetBranchStatus("akt4hi_jet_n", 0);
+
+    tree->SetBranchStatus("akt4hi_em_xcalib_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_em_xcalib_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_em_xcalib_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_em_xcalib_jet_e", 0);
+
+    tree->SetBranchStatus("akt4hi_em_etajes_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_em_etajes_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_em_etajes_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_em_etajes_jet_e", 0);
+
+    tree->SetBranchStatus("akt4hi_em_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_em_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_em_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_em_jet_e", 0);
+
+    tree->SetBranchStatus("akt4hi_constit_xcalib_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_constit_xcalib_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_constit_xcalib_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_constit_xcalib_jet_e", 0);
+
+    tree->SetBranchStatus("akt4hi_constit_etajes_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_constit_etajes_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_constit_etajes_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_constit_etajes_jet_e", 0);
+
+    tree->SetBranchStatus("akt4hi_constit_jet_pt", 0);
+    tree->SetBranchStatus("akt4hi_constit_jet_eta", 0);
+    tree->SetBranchStatus("akt4hi_constit_jet_phi", 0);
+    tree->SetBranchStatus("akt4hi_constit_jet_e", 0);
    }
 
    if (getEMTopoJets) {
@@ -238,9 +277,34 @@ void TreeVariables :: SetBranchAddresses() {
     tree->SetBranchAddress("akt4emtopo_calib_jet_eta", &akt4emtopo_calib_jet_eta);
     tree->SetBranchAddress("akt4emtopo_calib_jet_phi", &akt4emtopo_calib_jet_phi);
     tree->SetBranchAddress("akt4emtopo_calib_jet_e", &akt4emtopo_calib_jet_e);
+   } // end if get EMTopo jets
+   else {
+    tree->SetBranchStatus("akt4emtopo_jet_n", 0);
+
+    tree->SetBranchStatus("akt4emtopo_em_jet_pt", 0);
+    tree->SetBranchStatus("akt4emtopo_em_jet_eta", 0);
+    tree->SetBranchStatus("akt4emtopo_em_jet_phi", 0);
+    tree->SetBranchStatus("akt4emtopo_em_jet_e", 0);
+
+    tree->SetBranchStatus("akt4emtopo_calib_jet_pt", 0);
+    tree->SetBranchStatus("akt4emtopo_calib_jet_eta", 0);
+    tree->SetBranchStatus("akt4emtopo_calib_jet_phi", 0);
+    tree->SetBranchStatus("akt4emtopo_calib_jet_e", 0);
    }
   } // end not getSimpleJets
   else {
+
+   tree->SetBranchStatus("total_jet_n", 0);
+   tree->SetBranchStatus("clean_jet_n", 0);
+
+   //// temporary solution to running over older data sets
+   //tree->SetBranchAddress("jet_n", &jet_n);
+
+   //tree->SetBranchAddress("em_xcalib_jet_pt", &jet_pt);
+   //tree->SetBranchAddress("em_xcalib_jet_eta", &jet_eta);
+   //tree->SetBranchAddress("em_xcalib_jet_phi", &jet_phi);
+   //tree->SetBranchAddress("em_xcalib_jet_e", &jet_e);
+
    tree->SetBranchAddress("akt4hi_jet_n", &jet_n);
 
    tree->SetBranchAddress("akt4hi_em_xcalib_jet_pt", &jet_pt);
@@ -272,6 +336,38 @@ void TreeVariables :: SetBranchAddresses() {
    //tree->SetBranchAddress("akt4hi_constit_jet_eta", &precalib_jet_eta);
    //tree->SetBranchAddress("akt4hi_constit_jet_phi", &precalib_jet_phi);
    //tree->SetBranchAddress("akt4hi_constit_jet_e", &precalib_jet_e);
+
+   tree->SetBranchStatus("akt4hi_em_etajes_jet_pt", 0);
+   tree->SetBranchStatus("akt4hi_em_etajes_jet_eta", 0);
+   tree->SetBranchStatus("akt4hi_em_etajes_jet_phi", 0);
+   tree->SetBranchStatus("akt4hi_em_etajes_jet_e", 0);
+
+   tree->SetBranchStatus("akt4hi_constit_xcalib_jet_pt", 0);
+   tree->SetBranchStatus("akt4hi_constit_xcalib_jet_eta", 0);
+   tree->SetBranchStatus("akt4hi_constit_xcalib_jet_phi", 0);
+   tree->SetBranchStatus("akt4hi_constit_xcalib_jet_e", 0);
+
+   tree->SetBranchStatus("akt4hi_constit_etajes_jet_pt", 0);
+   tree->SetBranchStatus("akt4hi_constit_etajes_jet_eta", 0);
+   tree->SetBranchStatus("akt4hi_constit_etajes_jet_phi", 0);
+   tree->SetBranchStatus("akt4hi_constit_etajes_jet_e", 0);
+
+   tree->SetBranchStatus("akt4hi_constit_jet_pt", 0);
+   tree->SetBranchStatus("akt4hi_constit_jet_eta", 0);
+   tree->SetBranchStatus("akt4hi_constit_jet_phi", 0);
+   tree->SetBranchStatus("akt4hi_constit_jet_e", 0);
+
+   tree->SetBranchStatus("akt4emtopo_jet_n", 0);
+
+   tree->SetBranchStatus("akt4emtopo_em_jet_pt", 0);
+   tree->SetBranchStatus("akt4emtopo_em_jet_eta", 0);
+   tree->SetBranchStatus("akt4emtopo_em_jet_phi", 0);
+   tree->SetBranchStatus("akt4emtopo_em_jet_e", 0);
+
+   tree->SetBranchStatus("akt4emtopo_calib_jet_pt", 0);
+   tree->SetBranchStatus("akt4emtopo_calib_jet_eta", 0);
+   tree->SetBranchStatus("akt4emtopo_calib_jet_phi", 0);
+   tree->SetBranchStatus("akt4emtopo_calib_jet_e", 0);
   }
 
   if (isMC) {

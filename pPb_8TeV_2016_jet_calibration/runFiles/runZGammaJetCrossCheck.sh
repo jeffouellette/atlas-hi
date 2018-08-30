@@ -45,21 +45,21 @@
 #wait
 
 # gamma+jet pp sample with pPb data overlay
-./lib/runZGammaJetCrossCheck 1 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423100.Slice1.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck 2 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423101.Slice2.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck 3 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423102.Slice3.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck 4 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423103.Slice4.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck 5 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423104.Slice5.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck 6 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423105.Slice6.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 1 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423100.Slice1.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 2 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423101.Slice2.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 3 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423102.Slice3.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 4 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423103.Slice4.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 5 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423104.Slice5.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 6 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423105.Slice6.pPb_myOutput.root &
 
 wait
 
-./lib/runZGammaJetCrossCheck 1 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423100.Slice1.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck 2 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423101.Slice2.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck 3 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423102.Slice3.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck 4 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423103.Slice4.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck 5 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423104.Slice5.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck 6 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.423105.Slice6.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 1 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423100.Slice1.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 2 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423101.Slice2.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 3 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423102.Slice3.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 4 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423103.Slice4.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 5 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423104.Slice5.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 6 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423105.Slice6.Pbp_myOutput.root &
 
 wait
 
@@ -74,12 +74,12 @@ wait
 #wait
 
 # Zmumu (data overlay) and Zee (signal only) samples for period A
-./lib/runZGammaJetCrossCheck 0 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.361107.ZmumuJet.pPb_myOutput.root &
-./lib/runZGammaJetCrossCheck -6 0 true true user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck 0 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.pPb_myOutput.root &
+./lib/runZGammaJetCrossCheck -6 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &
 
 # ... and for period B
-./lib/runZGammaJetCrossCheck 0 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.361107.ZmumuJet.Pbp_myOutput.root &
-./lib/runZGammaJetCrossCheck -6 0 true false user.jeouelle.2.4.30hi.calibcheck.120.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck 0 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.Pbp_myOutput.root &
+./lib/runZGammaJetCrossCheck -6 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
 
 wait
 

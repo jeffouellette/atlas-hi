@@ -16,6 +16,7 @@
 
 namespace pPb8TeV2016JetCalibration {
 
+
 TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit) {
   TH1D* prof = new TH1D(name, "", nbinsx, xbins);
   for (int xbin = 1; xbin <= nbinsx; xbin++) {
@@ -25,8 +26,8 @@ TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double
    double mean, mean_err;
    double chi_square = 0;
    int numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
+   for (int xbinprime = 1; xbinprime <= projy->GetNbinsX(); xbinprime++)
+    if (projy->GetBinContent(xbinprime) > 0) numNonzeroBins++;
 
    if (useFit && useGaussian && numNonzeroBins > 4) {
     TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
@@ -47,62 +48,134 @@ TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double
   return prof;
 }
 
-TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins, const double* xbins, const int numybins, const double* ybins, const bool useFit) {
-  TH1D* dataOverMC = new TH1D(name, "", numxbins, xbins);
-  for (int xbin = 1; xbin <= numxbins; xbin++) {
-   TH1D* projy = data->ProjectionY(name + TString(Form("data_xbin%i", xbin)), xbin, xbin);
-   projy->Rebin(rebinFactor);
-   double dataAvg, dataErr, mcAvg, mcErr;
+
+TH1D* GetProfileY(const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit) {
+  TH1D* prof = new TH1D(name, "", nbinsy, ybins);
+  for (int ybin = 1; ybin <= nbinsy; ybin++) {
+   TH1D* projx = hist->ProjectionX("projx", ybin, ybin);
+   projx->Rebin(rebinFactor);
+   //projx->GetXaxis()->SetLimits(0, 2.0);
+   double mean, mean_err;
    double chi_square = 0;
    int numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
+   for (int ybin = 1; ybin <= projx->GetNbinsX(); ybin++)
+    if (projx->GetBinContent(ybin) > 0) numNonzeroBins++;
 
    if (useFit && useGaussian && numNonzeroBins > 4) {
-    TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
-    projy->Fit(gaus, "Q0R");
-    dataAvg = gaus->GetParameter(1);
-    dataErr = gaus->GetParError(1);
-    chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
+    TF1* gaus = new TF1("gaus", "gaus(0)", projx->GetXaxis()->GetBinLowEdge(1), projx->GetXaxis()->GetBinUpEdge(projx->GetNbinsX()));
+    projx->Fit(gaus, "Q0R");
+    mean = gaus->GetParameter(1);
+    mean_err = gaus->GetParError(1);
+    chi_square = gaus->GetChisquare() / (projx->GetNbinsX() - 3);
     if (gaus) delete gaus;
    }
    if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
-    dataAvg = projy->GetMean();
-    dataErr = projy->GetMeanError();
+    mean = projx->GetMean();
+    mean_err = projx->GetMeanError();
    }
-   if (projy) delete projy;
-
-   projy = mc->ProjectionY(name + TString(Form("mc_xbin%i", xbin)), xbin, xbin);
-   projy->Rebin(rebinFactor);
-   chi_square = 0;
-   numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
-
-   if (useFit && useGaussian && numNonzeroBins > 4) {
-    TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
-    projy->Fit(gaus, "Q0R");
-    mcAvg = gaus->GetParameter(1);
-    mcErr = gaus->GetParError(1);
-    chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
-    if (gaus) delete gaus;
-   }
-   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
-    mcAvg = projy->GetMean();
-    mcErr = projy->GetMeanError();
-   }
-   if (projy) delete projy;
-
-   const double dataOverMCavg = dataAvg/mcAvg;
-   const double dataOverMCerr = dataOverMCavg * TMath::Sqrt(TMath::Power(dataErr/dataAvg, 2) + TMath::Power(mcErr/mcAvg, 2));
-   if (!isnan(dataOverMCavg) && !isnan(dataOverMCerr)) {
-    dataOverMC->SetBinContent(xbin, dataOverMCavg);
-    dataOverMC->SetBinError(xbin, dataOverMCerr);
-   }
+   prof->SetBinContent(ybin, mean);
+   prof->SetBinError(ybin, mean_err);
+   if (projx) delete projx;
   }
-  dataOverMC->GetXaxis()->SetTitle(data->GetXaxis()->GetTitle());
-  return dataOverMC;
+  return prof;
+
 }
+
+
+//TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins, const double* xbins, const int numybins, const double* ybins, const bool useFit, const TString axis) {
+TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis) {
+  TH1D* dataOverMC = NULL;
+  TH1D* dataProf = NULL;
+  TH1D* mcProf = NULL;
+
+  if (axis == "y" || axis == "Y") {
+    dataProf = GetProfileY ("dataProf", data, numbins, bins, useFit);
+    mcProf = GetProfileY ("mcProf", mc, numbins, bins, useFit);
+    dataOverMC = new TH1D (name, "", numbins, bins);
+  }
+  else if (axis == "x" || axis == "X") {
+    dataProf = GetProfileX ("dataProf", data, numbins, bins, useFit);
+    mcProf = GetProfileY ("mcProf", mc, numbins, bins, useFit);
+    dataOverMC = new TH1D (name, "", numbins, bins);
+  }
+
+  if (dataOverMC && dataProf && mcProf) {
+    for (int bin = 1; bin <= numbins; bin++) {
+     const double dataAvg = dataProf->GetBinContent (bin);
+     const double dataErr = dataProf->GetBinError (bin);
+     const double mcAvg = mcProf->GetBinContent (bin);
+     const double mcErr = mcProf->GetBinError (bin);
+
+     const double dataOverMCavg = dataAvg/mcAvg;
+     const double dataOverMCerr = dataOverMCavg * TMath::Sqrt(TMath::Power(dataErr/dataAvg, 2) + TMath::Power(mcErr/mcAvg, 2));
+
+     dataOverMC->SetBinContent (bin, dataOverMCavg);
+     dataOverMC->SetBinError (bin, dataOverMCerr);
+    }
+
+    if (dataProf) delete dataProf;
+    if (mcProf) delete mcProf;
+  }
+
+  return dataOverMC;
+
+  //TH1D* dataOverMC = new TH1D(name, "", numxbins, xbins);
+
+  //for (int xbin = 1; xbin <= numxbins; xbin++) {
+  // TH1D* projy = data->ProjectionY(name + TString(Form("data_xbin%i", xbin)), xbin, xbin);
+  // projy->Rebin(rebinFactor);
+  // double dataAvg, dataErr, mcAvg, mcErr;
+  // double chi_square = 0;
+  // int numNonzeroBins = 0;
+  // for (int xbinprime = 1; xbinprime <= projy->GetNbinsX(); xbinprime++)
+  //  if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
+
+  // if (useFit && useGaussian && numNonzeroBins > 4) {
+  //  TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
+  //  projy->Fit(gaus, "Q0R");
+  //  dataAvg = gaus->GetParameter(1);
+  //  dataErr = gaus->GetParError(1);
+  //  chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
+  //  if (gaus) delete gaus;
+  // }
+  // if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
+  //  dataAvg = projy->GetMean();
+  //  dataErr = projy->GetMeanError();
+  // }
+  // if (projy) delete projy;
+
+  // projy = mc->ProjectionY(name + TString(Form("mc_xbin%i", xbin)), xbin, xbin);
+  // projy->Rebin(rebinFactor);
+  // chi_square = 0;
+  // numNonzeroBins = 0;
+  // for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
+  //  if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
+
+  // if (useFit && useGaussian && numNonzeroBins > 4) {
+  //  TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);//projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
+  //  projy->Fit(gaus, "Q0R");
+  //  mcAvg = gaus->GetParameter(1);
+  //  mcErr = gaus->GetParError(1);
+  //  chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
+  //  if (gaus) delete gaus;
+  // }
+  // if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
+  //  mcAvg = projy->GetMean();
+  //  mcErr = projy->GetMeanError();
+  // }
+  // if (projy) delete projy;
+
+  // const double dataOverMCavg = dataAvg/mcAvg;
+  // const double dataOverMCerr = dataOverMCavg * TMath::Sqrt(TMath::Power(dataErr/dataAvg, 2) + TMath::Power(mcErr/mcAvg, 2));
+  // if (!isnan(dataOverMCavg) && !isnan(dataOverMCerr)) {
+  //  dataOverMC->SetBinContent(xbin, dataOverMCavg);
+  //  dataOverMC->SetBinError(xbin, dataOverMCerr);
+  // }
+  //}
+  //dataOverMC->GetXaxis()->SetTitle(data->GetXaxis()->GetTitle());
+  //return dataOverMC;
+}
+
 
 void ZGammaJetCrossCheckHist () {
 
@@ -491,8 +564,8 @@ void ZGammaJetCrossCheckHist () {
     vJetHist_mc->DrawCopy("SAME E1 X0");
     vJetGraph_sys->Draw("2");
 
-    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nZmumuJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
-    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZmumuJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZmumuJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
     if (iEta < numetabins) {
      if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
      else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -503,10 +576,13 @@ void ZGammaJetCrossCheckHist () {
     bottomPad->cd();
     bottomPad->SetLogx();
 
-    vJetHist_rat = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][1], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    //vJetHist_rat = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][1], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][1], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
     vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-    vJetHist_rat_lo = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_lo_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][0], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-    vJetHist_rat_hi = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_hi_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][2], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    //vJetHist_rat_lo = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_lo_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][0], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat_lo = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_lo_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][0], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+    //vJetHist_rat_hi = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_hi_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][2], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat_hi = GetDataOverMC(TString(Form("zmumuJetPtDataMCRatio_hi_iEta%i", iEta)), zmumuJetHists[iPer][iEta][0][2], zmumuJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
     CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
     if (vJetHist_rat_lo) delete vJetHist_rat_lo;
     if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -583,8 +659,8 @@ void ZGammaJetCrossCheckHist () {
     vJetHist_mc->DrawCopy("SAME E1 X0");
     vJetGraph_sys->Draw("2");
 
-    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nZeeJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
-    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZeeJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZeeJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
     if (iEta < numetabins) {
      if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
      else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -595,10 +671,13 @@ void ZGammaJetCrossCheckHist () {
     bottomPad->cd();
     bottomPad->SetLogx();
 
-    vJetHist_rat = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][1], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    //vJetHist_rat = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][1], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][1], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
     vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-    vJetHist_rat_lo = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_lo_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][0], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-    vJetHist_rat_hi = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_hi_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][2], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    //vJetHist_rat_lo = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_lo_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][0], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat_lo = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_lo_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][0], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+    //vJetHist_rat_hi = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_hi_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][2], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
+    vJetHist_rat_hi = GetDataOverMC(TString(Form("zeeJetPtDataMCRatio_hi_iEta%i", iEta)), zeeJetHists[iPer][iEta][0][2], zeeJetHists[iPer][iEta][1][1], numpzbins, pzbins, false, "x");
     CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
     if (vJetHist_rat_lo) delete vJetHist_rat_lo;
     if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -700,8 +779,8 @@ void ZGammaJetCrossCheckHist () {
     vJetGraph_sys->Draw("2");
     for (TLine* line : dplines) line->Draw("same");
 
-    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nGammaJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
-    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nGammaJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iPer][0][iEta]), 1.25, 0.04/uPadY);
+    myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nGammaJet[iPer][1][iEta]), 1.25, 0.04/uPadY);
     if (iEta < numetabins) {
      if (iPer == 2) myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
      else myText(0.155, 0.1,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -711,10 +790,13 @@ void ZGammaJetCrossCheckHist () {
 
     bottomPad->cd();
     bottomPad->SetLogx();
-    vJetHist_rat = GetDataOverMC(TString(Form("gJetPtDataMCRatio_iEta%i", iEta)), gJetHists[iPer][iEta][0][1], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+    //vJetHist_rat = GetDataOverMC(TString(Form("gJetPtDataMCRatio_iEta%i", iEta)), gJetHists[iPer][iEta][0][1], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+    vJetHist_rat = GetDataOverMC(TString(Form("gJetPtDataMCRatio_iEta%i", iEta)), gJetHists[iPer][iEta][0][1], gJetHists[iPer][iEta][1][1], numpbins, pbins, true, "x");
     vJetGraph_rat_sys = new TGraphAsymmErrors(vJetHist_rat);
-    vJetHist_rat_lo = GetDataOverMC(TString(Form("gJetPtDataMCRatio_lo_iEta%i", iEta)), gJetHists[iPer][iEta][0][0], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
-    vJetHist_rat_hi = GetDataOverMC(TString(Form("gJetPtDataMCRatio_hi_iEta%i", iEta)), gJetHists[iPer][iEta][0][2], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+    //vJetHist_rat_lo = GetDataOverMC(TString(Form("gJetPtDataMCRatio_lo_iEta%i", iEta)), gJetHists[iPer][iEta][0][0], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+    vJetHist_rat_lo = GetDataOverMC(TString(Form("gJetPtDataMCRatio_lo_iEta%i", iEta)), gJetHists[iPer][iEta][0][0], gJetHists[iPer][iEta][1][1], numpbins, pbins, true, "x");
+    //vJetHist_rat_hi = GetDataOverMC(TString(Form("gJetPtDataMCRatio_hi_iEta%i", iEta)), gJetHists[iPer][iEta][0][2], gJetHists[iPer][iEta][1][1], numpbins, pbins, numxjrefbins, xjrefbins, true);
+    vJetHist_rat_hi = GetDataOverMC(TString(Form("gJetPtDataMCRatio_hi_iEta%i", iEta)), gJetHists[iPer][iEta][0][2], gJetHists[iPer][iEta][1][1], numpbins, pbins, true, "x");
     CalcSystematics(vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
     if (vJetHist_rat_lo) delete vJetHist_rat_lo;
     if (vJetHist_rat_hi) delete vJetHist_rat_hi;
@@ -819,10 +901,10 @@ void ZGammaJetCrossCheckHist () {
 //     vJetGraph_sys->Draw("2");
 
 //     float n = 100. * counts_data / total_data;
-     myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", (int)counts_data), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", (int)counts_data), 1.25, 0.04/uPadY);
 
 //     n = 100. * counts_mc / total_mc;
-     myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV %s (%i events)", (runValidation ? "":"with Overlay"), (int)counts_mc), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with Overlay"), (int)counts_mc), 1.25, 0.04/uPadY);
 
      float mean, mean_err, mean_mc, mean_mc_err, mean_lo, mean_hi;
    
@@ -1055,13 +1137,13 @@ void ZGammaJetCrossCheckHist () {
     }
     if (iSpc == 0) {
      myText(0.175, 0.88, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
-     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+{Pb} 8 TeV (%i events)", nZmumuMass[2][0][iEta]), 1.25, 0.04/uPadY);
-     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZmumuMass[2][1][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+{Pb} 8.16 TeV (%i events)", nZmumuMass[2][0][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZmumuMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
     else if (iSpc == 1) {
      myText(0.175, 0.88, kBlack, "Z (ee) + Jet", 0.04/uPadY);
-     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+{Pb} 8 TeV (%i events)", nZeeMass[2][0][iEta]), 1.25, 0.04/uPadY);
-     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8 TeV with Overlay (%i events)", nZeeMass[2][1][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+{Pb} 8.16 TeV (%i events)", nZeeMass[2][0][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with Overlay (%i events)", nZeeMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
     myText(0.175, 0.72, kBlack, Form("m_{Z}^{data} = %.2f #pm %.2f GeV", mean[0], mean_err[0]), 0.04/uPadY);
     myText(0.175, 0.64, kBlack, Form("#sigma_{Z}^{data} = %.2f #pm %.2f GeV", sigma[0], sigma_err[0]), 0.04/uPadY);
@@ -1143,7 +1225,7 @@ void ZGammaJetCrossCheckHist () {
     dataHist->GetXaxis()->SetLabelSize(0.02/rPadX);
     dataHist->GetYaxis()->SetLabelSize(0.02/rPadX);
     dataHist->Draw("col");
-    myText(0.1, 0.15, kBlack, Form("2016 #it{p}+Pb 8 TeV, with Insitu Corrections (%i events)", nGammaJet[iPer][0][iEta]), 0.02/rPadX);
+    myText(0.1, 0.15, kBlack, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iPer][0][iEta]), 0.02/rPadX);
     if (iPer != 2) myText(0.6, 0.85,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.02/rPadX);
     else myText(0.6, 0.85,kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.02/rPadX);
     myText(0.6, 0.8,kBlack, period.Data(), 0.02/rPadX);
@@ -1158,7 +1240,7 @@ void ZGammaJetCrossCheckHist () {
     mcHist->GetXaxis()->SetLabelSize(0.02/lPadX);
     mcHist->GetYaxis()->SetLabelSize(0.02/lPadX);
     mcHist->Draw("col");
-    myText(0.2, 0.15, kBlack, Form("Pythia8 #it{pp} 8 TeV %s (%i events)", (runValidation ? "":"with Overlay"), nGammaJet[iPer][1][iEta]), 0.02/lPadX);
+    myText(0.2, 0.15, kBlack, Form("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with Overlay"), nGammaJet[iPer][1][iEta]), 0.02/lPadX);
 
     const char* plotName = Form("gamma_jet%i_th2.pdf", iEta);
     switch (iPer) {

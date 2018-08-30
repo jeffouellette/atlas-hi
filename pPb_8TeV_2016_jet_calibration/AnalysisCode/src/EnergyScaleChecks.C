@@ -1,9 +1,11 @@
 #include "EnergyScaleChecks.h"
-#include <iostream>
+
 #include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TVectorT.h>
+
+#include <iostream>
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -24,7 +26,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
   while (xcalibEtabins[iEta] < TMath::Abs(jeta)) iEta++;
   iEta--;
 
-  const TString hname = TString("fsys_rel_") + Form("%i", iEta);
+  const TString hname = TString("fsys_rel_") + Form ("%i", iEta);
   TH1D* fsys_rel = (TH1D*)file->Get(hname.Data());
 
   return TMath::Abs(fsys_rel->GetBinContent(fsys_rel->FindBin(jpt)) - 1) * jpt;
@@ -120,21 +122,21 @@ void EnergyScaleChecks (const int dataSet,
   TH2D* responsePt[2];
   TH1D* jetSpectrum[2];
 
-  lowResponseEtaPhi[0] = new TH2D(Form("akt4hi_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  lowResponseEtaPhi[1] = new TH2D(Form("akt4emtopo_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  highResponseEtaPhi[0] = new TH2D(Form("akt4hi_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  highResponseEtaPhi[1] = new TH2D(Form("akt4emtopo_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  lowResponseEtaPt[0] = new TH2D(Form("akt4hi_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-  lowResponseEtaPt[1] = new TH2D(Form("akt4emtopo_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-  highResponseEtaPt[0] = new TH2D(Form("akt4hi_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-  highResponseEtaPt[1] = new TH2D(Form("akt4emtopo_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-  responsePt[0] = new TH2D(Form("akt4hi_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
-  responsePt[1] = new TH2D(Form("akt4emtopo_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
+  lowResponseEtaPhi[0] = new TH2D (Form ("akt4hi_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+  lowResponseEtaPhi[1] = new TH2D (Form ("akt4emtopo_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+  highResponseEtaPhi[0] = new TH2D (Form ("akt4hi_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+  highResponseEtaPhi[1] = new TH2D (Form ("akt4emtopo_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+  lowResponseEtaPt[0] = new TH2D (Form ("akt4hi_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
+  lowResponseEtaPt[1] = new TH2D (Form ("akt4emtopo_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
+  highResponseEtaPt[0] = new TH2D (Form ("akt4hi_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
+  highResponseEtaPt[1] = new TH2D (Form ("akt4emtopo_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
+  responsePt[0] = new TH2D (Form ("akt4hi_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
+  responsePt[1] = new TH2D (Form ("akt4emtopo_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
 
-  jetSpectrum[0] = new TH1D(Form("akt4hi_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
-  jetSpectrum[1] = new TH1D(Form("akt4emtopo_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
+  jetSpectrum[0] = new TH1D (Form ("akt4hi_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
+  jetSpectrum[1] = new TH1D (Form ("akt4emtopo_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
 
-  TH1D* electronEnergyScale = new TH1D(Form("electronEnergyScale_dataSet%s", identifier.Data()), "", 200, 0, 2);
+  TH1D* electronEnergyScale = new TH1D (Form ("electronEnergyScale_dataSet%s", identifier.Data()), "", 200, 0, 2);
   electronEnergyScale->Sumw2();
 
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
@@ -146,41 +148,26 @@ void EnergyScaleChecks (const int dataSet,
    jetSpectrum[iAlgo]->Sumw2();
   }
 
-  TH1D* jetEnergyResponseCalib[2][numpbins+1][numetabins+1];
-  TH1D* jetEnergyResponseReco[2][numpbins+1][numetabins+1];
-  TH1D* photonEnergyResponse[numpbins+1][numetabins+1];
+  TH1D**** jetEnergyResponseCalib = Get3DArray <TH1D*> (2, numpbins+1, numetabins+1);
+  TH1D**** jetEnergyResponseReco = Get3DArray <TH1D*> (2, numpbins+1, numetabins+1);
+  TH1D*** photonEnergyResponse = Get2DArray <TH1D*> (numpbins+1, numetabins+1);
 
   for (short iP = 0; iP <= numpbins; iP++) {
    for (short iEta = 0; iEta <= numetabins; iEta++) {
     for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
      const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-     jetEnergyResponseCalib[iAlgo][iP][iEta] = new TH1D(Form("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
+     jetEnergyResponseCalib[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
      jetEnergyResponseCalib[iAlgo][iP][iEta]->Sumw2();
-     jetEnergyResponseReco[iAlgo][iP][iEta] = new TH1D(Form("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
+     jetEnergyResponseReco[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
      jetEnergyResponseReco[iAlgo][iP][iEta]->Sumw2();
     }
-    photonEnergyResponse[iP][iEta] = new TH1D(Form("photonEnergyResponse_dataSet%s_iP%i_iEta%i", identifier.Data(), iP, iEta), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};Counts", 50, 0, 2);
+    photonEnergyResponse[iP][iEta] = new TH1D (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", identifier.Data(), iP, iEta), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};Counts", 50, 0, 2);
     photonEnergyResponse[iP][iEta]->Sumw2();
    }
   }
 
-  int** nJet[2] = {};
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   nJet[iAlgo] = new int*[numpbins+1];
-   for (short iP = 0; iP <= numpbins; iP++) {
-    nJet[iAlgo][iP] = new int[numetabins+1];
-    for (short iEta = 0; iEta <= numetabins; iEta++) {
-     nJet[iAlgo][iP][iEta] = 0;
-    }
-   }
-  }
-  int** nGamma = new int*[numpbins+1];
-  for (short iP = 0; iP <= numpbins; iP++) {
-   nGamma[iP] = new int[numetabins+1];
-   for (short iEta = 0; iEta <= numetabins; iEta++) {
-    nGamma[iP][iEta] = 0;
-   }
-  }
+  int*** nJet = Get3DArray <int> (2, numpbins+1, numetabins+1);
+  int** nGamma = Get2DArray <int> (numpbins+1, numetabins+1);
 
   int* jet_n;
   vector<float>* jet_pt;
@@ -430,7 +417,7 @@ void EnergyScaleChecks (const int dataSet,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form("%s/EnergyScaleChecks/dataSet_%s.root", rootPath.Data(), identifier.Data());
+  const char* outFileName = Form ("%s/EnergyScaleChecks/dataSet_%s.root", rootPath.Data(), identifier.Data());
   TFile* outFile = new TFile(outFileName, "RECREATE");
 
 
@@ -457,14 +444,15 @@ void EnergyScaleChecks (const int dataSet,
    for (short iEta = 0; iEta <= numetabins; iEta++) {
     for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
      jetEnergyResponseCalib[iAlgo][iP][iEta]->Write();
-     if (jetEnergyResponseCalib[iAlgo][iP][iEta]) delete jetEnergyResponseCalib[iAlgo][iP][iEta];
      jetEnergyResponseReco[iAlgo][iP][iEta]->Write();
-     if (jetEnergyResponseReco[iAlgo][iP][iEta]) delete jetEnergyResponseReco[iAlgo][iP][iEta];
     }
     photonEnergyResponse[iP][iEta]->Write();
-    if (photonEnergyResponse[iP][iEta]) delete photonEnergyResponse[iP][iEta];
    }
   }
+
+  Delete3DArray (jetEnergyResponseCalib, 2, numpbins+1, numetabins+1);
+  Delete3DArray (jetEnergyResponseReco, 2, numpbins+1, numetabins+1);
+  Delete2DArray (photonEnergyResponse, numpbins+1, numetabins+1);
 
   TVectorD nJetVec(2*(numpbins+1)*(numetabins+1));
   TVectorD nGammaVec((numpbins+1)*(numetabins+1));
@@ -476,8 +464,11 @@ void EnergyScaleChecks (const int dataSet,
     nGammaVec[iP + (numpbins+1)*iEta] = (double)nGamma[iP][iEta];
    }
   }
-  nJetVec.Write(Form("nJetVec_%s", identifier.Data()));
-  nGammaVec.Write(Form("nGammaVec_%s", identifier.Data()));
+  nJetVec.Write(Form ("nJetVec_%s", identifier.Data()));
+  nGammaVec.Write(Form ("nGammaVec_%s", identifier.Data()));
+
+  Delete3DArray (nJet, 2, numpbins+1, numetabins+1);
+  Delete2DArray (nGamma, numpbins+1, numetabins+1);
 
   outFile->Close();
   if (outFile) delete outFile;

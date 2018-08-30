@@ -42,6 +42,7 @@ pythiaPhotonJet/lib
 pythiaPhotonJet/output/*.root
 pythiaPhotonJet/output/*.log
 pythiaPhotonJet/*.pdf
+pythiaPhotonJet/plot/*
 pythiaPhotonjet/*.root
 
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration

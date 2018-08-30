@@ -2,43 +2,49 @@ CFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH
 LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(CALIB_PATH)/AnalysisCode/lib -lAtlas -lGlobalParams -lInitialization -lTrigger -ldl
 
 
-all : runEMTopoComparison runEMTopoComparisonHist runElectronContaminationStudy runElectronContaminationStudyHist runEnergyScaleChecks runEnergyScaleChecksHist runJetInsituCorrectionCheck runJetInsituCorrectionCheckHist runRtrkComparison runRtrkComparisonHist runZGammaJetCrossCheck runZGammaJetCrossCheckHist
+all : runEMTopoComparison runEMTopoComparisonHist runElectronContaminationStudy runElectronContaminationStudyHist runEnergyScaleChecks runEnergyScaleChecksHist runFCalDistribution runFCalDistributionHist runJetInsituCorrectionCheck runJetInsituCorrectionCheckHist runRtrkComparison runRtrkComparisonHist runZGammaJetCrossCheck runZGammaJetCrossCheckHist
 
 runEMTopoComparison :
-	$(CXX) -o `pwd`/lib/runEMTopoComparison `pwd`/src/runEMTopoComparison.cc $(CFLAGS) $(LDFLAGS) -lEMTopoComparison
+	$(CXX) -o lib/runEMTopoComparison src/runEMTopoComparison.cc $(CFLAGS) $(LDFLAGS) -lEMTopoComparison
 
 runEMTopoComparisonHist :
-	$(CXX) -o `pwd`/lib/runEMTopoComparisonHist `pwd`/src/runEMTopoComparisonHist.cc $(CFLAGS) $(LDFLAGS) -lEMTopoComparisonHist 
+	$(CXX) -o lib/runEMTopoComparisonHist src/runEMTopoComparisonHist.cc $(CFLAGS) $(LDFLAGS) -lEMTopoComparisonHist 
 
 runElectronContaminationStudy :
-	$(CXX) -o `pwd`/lib/runElectronContaminationStudy `pwd`/src/runElectronContaminationStudy.cc $(CFLAGS) $(LDFLAGS) -lElectronContaminationStudy
+	$(CXX) -o lib/runElectronContaminationStudy src/runElectronContaminationStudy.cc $(CFLAGS) $(LDFLAGS) -lElectronContaminationStudy
 
 runElectronContaminationStudyHist :
-	$(CXX) -o `pwd`/lib/runElectronContaminationStudyHist `pwd`/src/runElectronContaminationStudyHist.cc $(CFLAGS) $(LDFLAGS) -lElectronContaminationStudyHist
+	$(CXX) -o lib/runElectronContaminationStudyHist src/runElectronContaminationStudyHist.cc $(CFLAGS) $(LDFLAGS) -lElectronContaminationStudyHist
 
 runEnergyScaleChecks :
-	$(CXX) -o `pwd`/lib/runEnergyScaleChecks `pwd`/src/runEnergyScaleChecks.cc $(CFLAGS) $(LDFLAGS) -lEnergyScaleChecks
+	$(CXX) -o lib/runEnergyScaleChecks src/runEnergyScaleChecks.cc $(CFLAGS) $(LDFLAGS) -lEnergyScaleChecks
 
 runEnergyScaleChecksHist :
-	$(CXX) -o `pwd`/lib/runEnergyScaleChecksHist `pwd`/src/runEnergyScaleChecksHist.cc $(CFLAGS) $(LDFLAGS) -lEnergyScaleChecksHist
+	$(CXX) -o lib/runEnergyScaleChecksHist src/runEnergyScaleChecksHist.cc $(CFLAGS) $(LDFLAGS) -lEnergyScaleChecksHist
+
+runFCalDistribution :
+	$(CXX) -o lib/runFCalDistribution src/runFCalDistribution.cc $(CFLAGS) $(LDFLAGS) -lFCalDistribution
+
+runFCalDistributionHist :
+	$(CXX) -o lib/runFCalDistributionHist src/runFCalDistributionHist.cc $(CFLAGS) $(LDFLAGS) -lFCalDistributionHist
 
 runJetInsituCorrectionCheck :
-	$(CXX) -o `pwd`/lib/runJetInsituCorrectionCheck `pwd`/src/runJetInsituCorrectionCheck.cc $(CFLAGS) $(LDFLAGS) -lJetInsituCorrectionCheck
+	$(CXX) -o lib/runJetInsituCorrectionCheck src/runJetInsituCorrectionCheck.cc $(CFLAGS) $(LDFLAGS) -lJetInsituCorrectionCheck
 
 runJetInsituCorrectionCheckHist :
-	$(CXX) -o `pwd`/lib/runJetInsituCorrectionCheckHist `pwd`/src/runJetInsituCorrectionCheckHist.cc $(CFLAGS) $(LDFLAGS) -lJetInsituCorrectionCheckHist
+	$(CXX) -o lib/runJetInsituCorrectionCheckHist src/runJetInsituCorrectionCheckHist.cc $(CFLAGS) $(LDFLAGS) -lJetInsituCorrectionCheckHist
 
 runRtrkComparison :
-	$(CXX) -o `pwd`/lib/runRtrkComparison `pwd`/src/runRtrkComparison.cc $(CFLAGS) $(LDFLAGS) -lRtrkComparison
+	$(CXX) -o lib/runRtrkComparison src/runRtrkComparison.cc $(CFLAGS) $(LDFLAGS) -lRtrkComparison
 
 runRtrkComparisonHist :
-	$(CXX) -o `pwd`/lib/runRtrkComparisonHist `pwd`/src/runRtrkComparisonHist.cc $(CFLAGS) $(LDFLAGS) -lRtrkComparisonHist
+	$(CXX) -o lib/runRtrkComparisonHist src/runRtrkComparisonHist.cc $(CFLAGS) $(LDFLAGS) -lRtrkComparisonHist
 
 runZGammaJetCrossCheck :
-	$(CXX) -o `pwd`/lib/runZGammaJetCrossCheck `pwd`/src/runZGammaJetCrossCheck.cc $(CFLAGS) $(LDFLAGS) -lZGammaJetCrossCheck
+	$(CXX) -o lib/runZGammaJetCrossCheck src/runZGammaJetCrossCheck.cc $(CFLAGS) $(LDFLAGS) -lZGammaJetCrossCheck
 
 runZGammaJetCrossCheckHist :
-	$(CXX) -o `pwd`/lib/runZGammaJetCrossCheckHist `pwd`/src/runZGammaJetCrossCheckHist.cc $(CFLAGS) $(LDFLAGS) -lZGammaJetCrossCheckHist
+	$(CXX) -o lib/runZGammaJetCrossCheckHist src/runZGammaJetCrossCheckHist.cc $(CFLAGS) $(LDFLAGS) -lZGammaJetCrossCheckHist
 
 clean :
 	rm -rf ./lib/*

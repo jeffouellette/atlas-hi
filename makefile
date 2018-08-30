@@ -14,4 +14,4 @@ Initialization :
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTrigger -lGlobalParams -o $(ATLAS_PATH)/lib/libInitialization.so $(ATLAS_PATH)/src/Initialization.C
 
 clean :
-	rm -rf ./lib/*.so
+	rm -rf ./lib/*.so*

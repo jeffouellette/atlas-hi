@@ -52,8 +52,8 @@ extern const double pzbins[12];
 extern const short numpzbins;
 
 //extern const double etabins[7];
-//extern const short numetabins;
 extern const double etabins[15];
+//extern const double etabins[37];
 extern const short numetabins;
 
 extern const double xcalibEtabins[8];

@@ -331,10 +331,10 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.22, 0.6+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.22, 0.6+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_xA_gamma->SaveAs ("gamma_xA.pdf");
+  canvas_xA_gamma->SaveAs ("plot/gamma_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -365,10 +365,10 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_xA_gamma_quark->SaveAs ("gamma_quark_xA.pdf");
+  canvas_xA_gamma_quark->SaveAs ("plot/gamma_quark_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,10 +399,10 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_xA_gamma_gluon->SaveAs ("gamma_gluon_xA.pdf");
+  canvas_xA_gamma_gluon->SaveAs ("plot/gamma_gluon_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +463,7 @@ int main() {
     myText (0.55+(1-0.55)*gPad->GetLeftMargin()/*+(gROOT->GetSelectedPad()->GetLeftMargin())*/, 0.9, kBlack, Form("%g < #it{y} < %g", YLOBINS[iy], YHIBINS[iy]), 0.06);
 
   } // end loop over rapidities
-  canvas_xA_gamma_quark_gluon->SaveAs ("gamma_quark_gluon_xA.pdf");
+  canvas_xA_gamma_quark_gluon->SaveAs ("plot/gamma_quark_gluon_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,10 +491,10 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_pT_gamma->SaveAs ("gamma_pT.pdf");
+  canvas_pT_gamma->SaveAs ("plot/gamma_pT.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,7 +527,7 @@ int main() {
     myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
   }
 
-  canvas_xA_Q_gamma_gluon->SaveAs ("gamma_gluon_xA_Q.pdf");
+  canvas_xA_Q_gamma_gluon->SaveAs ("plot/gamma_gluon_xA_Q.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -560,7 +560,7 @@ int main() {
     myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
   }
 
-  canvas_xA_Q_gamma_quark->SaveAs ("gamma_quark_xA_Q.pdf");
+  canvas_xA_Q_gamma_quark->SaveAs ("plot/gamma_quark_xA_Q.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -593,7 +593,7 @@ int main() {
     myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
   }
 
-  canvas_xA_Q_gamma->SaveAs ("gamma_xA_Q.pdf");
+  canvas_xA_Q_gamma->SaveAs ("plot/gamma_xA_Q.pdf");
 
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -629,7 +629,7 @@ int main() {
     //myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times 10^{%i})", YLOBINS[i], YHIBINS[i], i-1), 1.25, 0.04);
   }
 
-  canvas_pT_Q_gamma->SaveAs ("gamma_pT_Q.pdf");
+  canvas_pT_Q_gamma->SaveAs ("plot/gamma_pT_Q.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////

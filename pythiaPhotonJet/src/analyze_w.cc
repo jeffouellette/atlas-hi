@@ -245,7 +245,7 @@ int main() {
     myMarkerText (0.65, 0.85-0.07*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_mu_pt->SaveAs ("muonPtSpectrum.pdf");
+  canvas_mu_pt->SaveAs ("plot/muonPtSpectrum.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,10 +277,10 @@ int main() {
 
   for (int i = 0; i < 3; i++) {
     //myMarkerText (0.65, 0.78+0.06*i, kBlack, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 0.04);
-    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_xA_mu_plus->SaveAs ("muPlus_xA.pdf");
+  canvas_xA_mu_plus->SaveAs ("plot/muPlus_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,10 +312,10 @@ int main() {
 
   for (int i = 0; i < 3; i++) {
     //myText (0.65, 0.78+0.06*i, kBlack, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 0.04);
-    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.6, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
-  canvas_xA_mu_minus->SaveAs ("muMinus_xA.pdf");
+  canvas_xA_mu_minus->SaveAs ("plot/muMinus_xA.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,7 +350,7 @@ int main() {
     //myMarkerText (0.65, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
   }
 
-  canvas_xA_Q_mu_plus->SaveAs ("muPlus_xA_Q.pdf");
+  canvas_xA_Q_mu_plus->SaveAs ("plot/muPlus_xA_Q.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -385,7 +385,7 @@ int main() {
     //myMarkerText (0.65, 0.78+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
   }
 
-  canvas_xA_Q_mu_minus->SaveAs ("muMinus_xA_Q.pdf");
+  canvas_xA_Q_mu_minus->SaveAs ("plot/muMinus_xA_Q.pdf");
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////

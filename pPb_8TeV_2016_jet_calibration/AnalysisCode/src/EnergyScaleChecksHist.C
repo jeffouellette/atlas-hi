@@ -247,7 +247,7 @@ void EnergyScaleChecksHist () {
   TF1* gausFit = new TF1("gausFit", "gaus(0)", 0, 2.0);
   energyScaleCanvas->cd();
   const float ncounts = thisHist->Integral();
-  thisHist->Scale(1./ncounts, "width");
+  thisHist->Scale(1./ncounts);
   thisHist->Fit(gausFit, "R", "L");
   const float m = gausFit->GetParameter(1);
   const float s = gausFit->GetParameter(2);
@@ -255,7 +255,7 @@ void EnergyScaleChecksHist () {
   gausFit = new TF1("gausFit2", "gaus(0)", m - 1.6*s, m + 1.6*s);
   thisHist->Fit(gausFit, "R", "L");
 
-  thisHist->GetYaxis()->SetTitle("Fractional counts / 0.01 GeV");
+  thisHist->GetYaxis()->SetTitle ("Counts / Total");
   //thisHist->SetMarkerStyle(6);
   thisHist->Draw("e1 x0");
   myText(0.18, 0.85, kBlack, "Electron energy response");
@@ -268,20 +268,32 @@ void EnergyScaleChecksHist () {
   /**** Plots the jet energy response ****/
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+
+   TH1D* jetEnergyScale[numetabins];
+   TH1D* jetEnergyRes[numetabins];
+
    for (int iEta = 0; iEta <= numetabins; iEta++) {
     TCanvas* jesCanvas = new TCanvas (Form ("%s_jetEnergyScalePad_%i", algo.Data(), iEta), "", 800, 600);
+
+    if (iEta < numetabins) {
+     jetEnergyScale[iEta] = new TH1D (Form ("%s_jetEnergyScale_eta%i", algo.Data(), iEta), ";#it{p}_{T} #left[GeV#right];JES", numpbins, pbins);
+     jetEnergyRes[iEta] = new TH1D (Form ("%s_jetEnergyRes_eta%i", algo.Data(), iEta), ";#it{p}_{T} #left[GeV#right];JER", numpbins, pbins);
+    }
+
     jesCanvas->cd();
     jesCanvas->Divide(4, 3);
 
     TF1* recoFits[12];
     TF1* calibFits[12];
-    for (int iP = 0; iP <= 11; iP++) {
-     jesCanvas->cd(iP+1);
+    for (int iP = 0; iP < numpbins; iP++) {
+     if (iP <= 11) {
+      jesCanvas->cd(iP+1);
+     }
      TH1D* thisHist = jetEnergyResponseReco[iAlgo][iP][iEta];
      int nJets = nJet[iAlgo][iP][iEta];
 
      TF1* recoFit = new TF1 (Form ("recoFit_iP%i", iP), "gaus(0)", 0, 2.0);
-     thisHist->Scale (1./thisHist->Integral(), "width");
+     thisHist->Scale (1./thisHist->Integral());
      thisHist->Fit (recoFit, "RNL");
      double m = recoFit->GetParameter(1);
      double s = recoFit->GetParameter(2);
@@ -296,16 +308,20 @@ void EnergyScaleChecksHist () {
      //recoFit = new TF1("recoFit3", "gaus(0)", m - 1.3*s, m + 1.3*s);
      //thisHist->Fit(recoFit, "RNL");
 
+     thisHist->SetMarkerStyle(kFullDotMedium);
      thisHist->SetLineColor(kBlack);
      thisHist->SetMarkerColor(kBlack);
-     thisHist->GetYaxis()->SetTitle(Form("Fractional counts / %.2f GeV", thisHist->GetBinWidth(1)));
-     thisHist->Draw("e1 x0");
-     recoFit->SetLineColor(kBlack);
-     recoFit->Draw("same");
-     recoFits[iP] = recoFit;
+     thisHist->GetYaxis()->SetTitle ("Counts / Total");
+
+     if (iP <= 11) {
+      thisHist->Draw("e1 x0");
+      recoFit->SetLineColor(kBlack);
+      recoFit->Draw("same");
+      recoFits[iP] = recoFit;
+     }
 
      thisHist = jetEnergyResponseCalib[iAlgo][iP][iEta];
-     thisHist->Scale (1./thisHist->Integral(), "width");
+     thisHist->Scale (1./thisHist->Integral());
 
      TF1* calibFit = new TF1 (Form ("calibFit_iP%i", iP), "gaus(0)", 0, 2.0);
      thisHist->Fit(calibFit, "RNL");
@@ -322,13 +338,24 @@ void EnergyScaleChecksHist () {
      //calibFit = new TF1("calibFit3", "gaus(0)", m - 1.3*s, m + 1.3*s);
      //thisHist->Fit(calibFit, "RNL");
 
+     thisHist->SetMarkerStyle(kFullDotMedium);
      thisHist->SetLineColor(kBlue);
      thisHist->SetMarkerColor(kBlue);
-     //thisHist->GetYaxis()->SetTitle(Form("Fractional counts / %.2f GeV", thisHist->GetBinWidth(1)));
-     thisHist->Draw("same e1 x0");
-     calibFit->SetLineColor(kBlue);
-     calibFit->Draw("same");
-     calibFits[iP] = calibFit;
+     if (iP <= 11) {
+      thisHist->Draw("same e1 x0");
+      calibFit->SetLineColor(kBlue);
+      calibFit->Draw("same");
+      calibFits[iP] = calibFit;
+     }
+
+     if (iEta < numetabins) {
+      jetEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
+      jetEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
+      //jetEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
+      jetEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
+      jetEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
+      //jetEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
+     }
 
      myText(0.18, 0.90, kBlack, Form("#mu = %s", FormatMeasurement (calibFit->GetParameter(1), calibFit->GetParError(1), 1)), 0.04 * 2);
      myText(0.18, 0.80, kBlack, Form("#sigma = %s", FormatMeasurement (calibFit->GetParameter(2), calibFit->GetParError(2), 1)), 0.04 * 2);
@@ -336,7 +363,7 @@ void EnergyScaleChecksHist () {
      //if (iEta < numetabins) {
      // myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{Jet} < %g", etabins[iEta], etabins[iEta+1]));
      //}
-     if (iP < numpbins) {
+     if (iP <= 11) {
       myText (0.18, 0.70, kBlack, Form("%g < #it{p}_{T}^{J} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
      }
 
@@ -357,22 +384,68 @@ void EnergyScaleChecksHist () {
      if (calibFits[iP]) delete calibFits[iP];
     }
    }
+
+   TCanvas* jesSummaryCanvas = new TCanvas("jesSummaryCanvas", "", 800, 600);
+   jesSummaryCanvas->cd();
+   gPad->SetLogx();
+   Color_t colors[14] = {kAzure-2, kBlue, kViolet+7, kMagenta, kPink, kRed+2, kOrange+8, kSpring, kGreen+2, kCyan, kGray, kRed-9, kViolet-8, kBlue-9};
+   for (int iEta = 0; iEta < numetabins; iEta++) {
+     jetEnergyScale[iEta]->GetYaxis()->SetTitle ("Jet Energy Scale");
+     jetEnergyScale[iEta]->GetYaxis()->SetRangeUser (0.85, 1.15);
+     jetEnergyScale[iEta]->SetLineColor (colors[iEta]);
+     jetEnergyScale[iEta]->SetMarkerColor (colors[iEta]);
+     //jetEnergyScale[iEta]->SetMarkerStyle (kFullDotLarge);
+     if (iEta == 0) jetEnergyScale[iEta]->Draw("hist ][");
+     else jetEnergyScale[iEta]->Draw("same hist ][");
+     myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   }
+   jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyScale.pdf", plotPath.Data(), algo.Data()));
+   for (int iEta = 0; iEta < numetabins; iEta++) {
+     jetEnergyRes[iEta]->GetYaxis()->SetTitle ("Jet Energy Resolution");
+     jetEnergyRes[iEta]->GetYaxis()->SetRangeUser(0, 0.3);
+     jetEnergyRes[iEta]->SetLineColor (colors[iEta]);
+     jetEnergyRes[iEta]->SetMarkerColor (colors[iEta]);
+     //jetEnergyRes[iEta]->SetMarkerStyle (kFullDotLarge);
+     if (iEta == 0) jetEnergyRes[iEta]->Draw("hist ][");
+     else jetEnergyRes[iEta]->Draw("same hist ][");
+     myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   }
+   jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyResolution.pdf", plotPath.Data(), algo.Data()));
+   for (int iEta = 0; iEta < numetabins; iEta++) {
+     if (jetEnergyScale[iEta]) delete jetEnergyScale[iEta];
+     if (jetEnergyRes[iEta]) delete jetEnergyRes[iEta];
+   }
+   if (jesSummaryCanvas) delete jesSummaryCanvas;
   }
 
 
   /**** Plots the photon energy response ****/
   //energyScaleCanvas->cd();
   //gPad->SetLogy(true);
+
+  TH1D* photonEnergyScale[numetabins+1];
+  TH1D* photonEnergyRes[numetabins+1];
   for (short iEta = 0; iEta <= numetabins; iEta++) {
-   TCanvas* jesCanvas = new TCanvas (Form ("photonEnergyScalePad_%i", iEta), "", 800, 600);
-   jesCanvas->cd();
-   jesCanvas->Divide(4, 3);
-   for (short iP = 0; iP <= 11; iP++) {
-    jesCanvas->cd(iP+1);
+   TCanvas* pesCanvas = new TCanvas (Form ("photonEnergyScalePad_%i", iEta), "", 800, 600);
+
+   //if (iEta < numetabins) {
+   photonEnergyScale[iEta] = new TH1D (Form ("photonEnergyScale_eta%i", iEta), "", numpbins, pbins);
+   photonEnergyRes[iEta] = new TH1D (Form ("photonEnergyRes_eta%i", iEta), "", numpbins, pbins);
+   //}
+
+   pesCanvas->cd();
+   pesCanvas->Divide(4, 3);
+
+   TF1* calibFits[12];
+
+   for (short iP = 0; iP < numpbins; iP++) {
+    if (iP <= 11)
+     pesCanvas->cd(iP+1);
+
     gPad->SetLogy(true);
     TH1D* thisHist = photonEnergyResponse[iP][iEta];
     int nGammas = nGamma[iP][iEta];
-    thisHist->Scale(1./thisHist->Integral(), "width");
+    thisHist->Scale(1./thisHist->Integral());
     thisHist->SetAxisRange(3e-6, 2e1, "Y");
 
     TF1* calibFit = new TF1("calibFit", "gaus(0)", 0, 2.0);
@@ -390,12 +463,25 @@ void EnergyScaleChecksHist () {
     calibFit = new TF1("calibFit3", "gaus(0)", m - 3.5*s, m + 3.5*s);
     thisHist->Fit(calibFit, "RNL");
 
+    thisHist->SetMarkerStyle(kFullDotMedium);
     thisHist->SetLineColor(kBlue);
     thisHist->SetMarkerColor(kBlue);
-    thisHist->GetYaxis()->SetTitle(Form("Fractional counts / %.2f GeV", thisHist->GetBinWidth(1)));
-    thisHist->Draw("e1 x0");
-    calibFit->SetLineColor(kBlue);
-    calibFit->Draw("same");
+    thisHist->GetYaxis()->SetTitle ("Counts / Total");
+    if (iP <= 11) {
+     thisHist->Draw("e1 x0");
+     calibFit->SetLineColor(kBlue);
+     calibFit->Draw("same");
+     calibFits[iP] = calibFit;
+    }
+
+    //if (iEta < numetabins) {
+    photonEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
+    photonEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
+    //photonEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
+    photonEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
+    photonEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
+    //photonEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
+    //}
 
     //myText(0.18, 0.9, kBlack, "Photon energy response");
     //myText(0.18, 0.83, kBlack, Form("%i photons", nGammas));
@@ -405,17 +491,51 @@ void EnergyScaleChecksHist () {
     //if (iEta < numetabins) {
     // myText (0.18, 0.62, kBlack, Form("%g < #eta_{Lab}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]));
     //}
-    if (iP < numpbins) {
+    if (iP <= 11) {
      myText (0.18, 0.70, kBlack, Form("%g < #it{p}_{T}^{reco} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
     }
 
     //energyScaleCanvas->SaveAs(Form("%s/photonEnergyResponse/iP%i_iEta%i.pdf", plotPath.Data(), iP, iEta));
 
-    if (calibFit) delete calibFit;
+    //if (calibFit) delete calibFit;
    }
-   jesCanvas->SaveAs(Form("%s/photonEnergyResponse/iEta%i.pdf", plotPath.Data(), iEta));
-   if (jesCanvas) delete jesCanvas;
+   pesCanvas->SaveAs(Form("%s/photonEnergyResponse/iEta%i.pdf", plotPath.Data(), iEta));
+   if (pesCanvas) delete pesCanvas;
+
+   for (short iP = 0; iP <= 11; iP++) if (calibFits[iP]) delete calibFits[iP];
   }
+
+  TCanvas* pesSummaryCanvas = new TCanvas("pesSummaryCanvas", "", 800, 600);
+  pesSummaryCanvas->cd();
+  gPad->SetLogx();
+  Color_t colors[14] = {kAzure-2, kBlue, kViolet+7, kMagenta, kPink, kRed+2, kOrange+8, kSpring, kGreen+2, kCyan, kGray, kRed-9, kViolet-8, kBlue-9};
+  for (short iEta = 0; iEta < numetabins; iEta++) {
+   photonEnergyScale[iEta]->GetYaxis()->SetTitle ("Photon Energy Scale");
+   photonEnergyScale[iEta]->GetYaxis()->SetRangeUser (0.98, 1.02);
+   photonEnergyScale[iEta]->SetLineColor (colors[iEta]);
+   photonEnergyScale[iEta]->SetMarkerColor (colors[iEta]);
+   //photonEnergyScale[iEta]->SetMarkerStyle (kFullDotLarge);
+   if (iEta == 0) photonEnergyScale[iEta]->Draw("hist ][");
+   else photonEnergyScale[iEta]->Draw("same hist ][");
+   myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+  }
+  pesSummaryCanvas->SaveAs (Form ("%s/PhotonEnergyScale.pdf", plotPath.Data()));
+  for (short iEta = 0; iEta < numetabins; iEta++) {
+   photonEnergyRes[iEta]->GetYaxis()->SetTitle ("Photon Energy Resolution");
+   photonEnergyRes[iEta]->GetYaxis()->SetRangeUser(0, 0.04);
+   photonEnergyRes[iEta]->SetLineColor (colors[iEta]);
+   photonEnergyRes[iEta]->SetMarkerColor (colors[iEta]);
+   //photonEnergyRes[iEta]->SetMarkerStyle (kFullDotLarge);
+   if (iEta == 0) photonEnergyRes[iEta]->Draw("hist ][");
+   else photonEnergyRes[iEta]->Draw("same hist ][");
+   myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+  }
+  pesSummaryCanvas->SaveAs (Form ("%s/PhotonEnergyResolution.pdf", plotPath.Data()));
+  for (short iEta = 0; iEta <= numetabins; iEta++) {
+   if (photonEnergyScale[iEta]) delete photonEnergyScale[iEta];
+   if (photonEnergyRes[iEta]) delete photonEnergyRes[iEta];
+  }
+  if (pesSummaryCanvas) delete pesSummaryCanvas;
 
 
 // Miscellaneous plots

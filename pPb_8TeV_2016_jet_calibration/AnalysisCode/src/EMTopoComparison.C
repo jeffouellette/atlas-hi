@@ -1,10 +1,12 @@
 #include "EMTopoComparison.h"
-#include <iostream>
+
 #include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TLorentzVector.h>
 #include <TVectorT.h>
+
+#include <iostream>
 
 namespace pPb8TeV2016JetCalibration {
 
@@ -162,12 +164,9 @@ void EMTopoComparison (const int dataSet,
   vector<float>* jet_e;
 
   // initialize histograms
-  TH2D* zeeJetHists[2][3][numetabins+1];
-  //TH2D* zeeJetHistsSys[2][3][numetabins];
-  TH2D* zmumuJetHists[2][3][numetabins+1];
-  //TH2D* zmumuJetHistsSys[2][3][numetabins];
-  TH2D* gJetHists[2][3][numetabins+1];
-  //TH2D* gJetHistsSys[2][3][numetabins+1];
+  TH2D**** zeeJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
+  TH2D**** zmumuJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
+  TH2D**** gJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
 
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
@@ -199,29 +198,31 @@ void EMTopoComparison (const int dataSet,
    }
   }
 
-  int* nZeeJet[2] = {};
-  int* nZmumuJet[2] = {};
-  int* nGammaJet[2] = {};
-  for (int i = 0; i < 2; i++) {
-   nZeeJet[i] = new int[numetabins+1];
-   nZmumuJet[i] = new int[numetabins+1];
-   nGammaJet[i] = new int[numetabins+1];
-   for (int iEta = 0; iEta <= numetabins; iEta++) {
-    nZeeJet[i][iEta] = 0;
-    nZmumuJet[i][iEta] = 0;
-    nGammaJet[i][iEta] = 0;
-   }
-  }
+  int** nZeeJet = Get2DArray <int> (2, numetabins+1);
+  int** nZmumuJet = Get2DArray <int> (2, numetabins+1);
+  int** nGammaJet = Get2DArray <int> (2, numetabins+1);
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
 
   const long long numEntries = tree->GetEntries();
+
+  long long nTotalJets = 0;
+  long long nCleanJets = 0;
 
   //////////////////////////////////////////////////////////////////////////////
   // begin loop over events
   //////////////////////////////////////////////////////////////////////////////
   for (long long entry = 0; entry < numEntries; entry++) {
    tree->GetEntry(entry);
+
+   /////////////////////////////////////////////////////////////////////////////
+   // basic event selection: e.g., require a primary vertex
+   /////////////////////////////////////////////////////////////////////////////
+   if ((t->nvert <= 0) || (t->nvert >= 1 && t->vert_type->at(0) != 1)) continue;
+
+   nTotalJets += t->total_jet_n;
+   nCleanJets += t->clean_jet_n;
+
 
    // basically just do the full analysis twice, once for each algorithm
    for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
@@ -240,12 +241,6 @@ void EMTopoComparison (const int dataSet,
      jet_phi = t->akt4emtopo_calib_jet_phi;
      jet_e = t->akt4emtopo_calib_jet_e;
     }
-
-    /////////////////////////////////////////////////////////////////////////////
-    // basic event selection: e.g., require a primary vertex
-    /////////////////////////////////////////////////////////////////////////////
-    if ((t->nvert <= 0) || (t->nvert >= 1 && t->vert_type->at(0) != 1)) continue;
-
 
     /////////////////////////////////////////////////////////////////////////////
     // now reject events with less than 2 muons, 2 electrons AND 1 photon
@@ -783,21 +778,9 @@ void EMTopoComparison (const int dataSet,
    for (short iEta = 0; iEta <= numetabins; iEta++) {
     for (short iErr = 0; iErr < 3; iErr++) {
      zmumuJetHists[iAlgo][iErr][iEta]->Write();
-     if (zmumuJetHists[iAlgo][iErr][iEta]) delete zmumuJetHists[iAlgo][iErr][iEta];
-     //zmumuJetHistsSys[iErr][iEta]->Write();
-     //if (zmumuJetHistsSys[iErr][iEta]) delete zmumuJetHistsSys[iErr][iEta];
-
      zeeJetHists[iAlgo][iErr][iEta]->Write();
-     if (zeeJetHists[iAlgo][iErr][iEta]) delete zeeJetHists[iAlgo][iErr][iEta];
-     //zeeJetHistsSys[iErr][iEta]->Write();
-     //if (zeeJetHistsSys[iErr][iEta]) delete zeeJetHistsSys[iErr][iEta];
-
      gJetHists[iAlgo][iErr][iEta]->Write();
-     if (gJetHists[iAlgo][iErr][iEta]) delete gJetHists[iAlgo][iErr][iEta];
     }
-
-    //gJetHistsSys[iAlgo][1][iEta]->Write();
-    //if (gJetHistsSys[iAlgo][1][iEta]) delete gJetHistsSys[iAlgo][1][iEta];
    }
   }
 
@@ -805,6 +788,11 @@ void EMTopoComparison (const int dataSet,
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write(Form("infoVec_%s", identifier.Data()));
+
+  TVectorD jetCleaningVec(2);
+  jetCleaningVec[0] = nTotalJets;
+  jetCleaningVec[1] = nCleanJets;
+  jetCleaningVec.Write(Form("jetCleaningVec_%s", identifier.Data()));
 
   TVectorD nZeeJetVec(2*(numetabins+1));
   TVectorD nZmumuJetVec(2*(numetabins+1));
@@ -816,6 +804,14 @@ void EMTopoComparison (const int dataSet,
     nGammaJetVec[iEta + iAlgo*(numetabins+1)] = (double)nGammaJet[iAlgo][iEta];
    }
   }
+
+  Delete3DArray (zeeJetHists, 2, 3, numetabins+1);
+  Delete3DArray (zmumuJetHists, 2, 3, numetabins+1);
+  Delete3DArray (gJetHists, 2, 3, numetabins+1);
+  Delete2DArray (nZeeJet, 2, numetabins+1);
+  Delete2DArray (nZmumuJet, 2, numetabins+1);
+  Delete2DArray (nGammaJet, 2, numetabins+1);
+
   nZeeJetVec.Write(Form("nZeeJetVec_%s", identifier.Data()));
   nZmumuJetVec.Write(Form("nZmumuJetVec_%s", identifier.Data()));
   nGammaJetVec.Write(Form("nGammaJetVec_%s", identifier.Data()));
