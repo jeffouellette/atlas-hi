@@ -27,19 +27,23 @@ void EnergyScaleChecksHist () {
   SetupDirectories("EnergyScaleChecks/", "pPb_8TeV_2016_jet_calibration/");
 
   // Setup list of data and lists of MC samples
+  vector<int> runNumbers(0);
+  for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
   vector<TString> gammaJetSampleIds(0);
   for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
-   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
-
   vector<TString> zeeJetSampleIds(0);
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
+  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+
+  vector<TString> dijetSampleIds(0);
+  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
 
   /**** Initialize histograms ****/
@@ -263,8 +267,8 @@ void EnergyScaleChecksHist () {
     TCanvas* jesCanvas = new TCanvas (Form ("%s_jetEnergyScalePad_%i", algo.Data(), iEta), "", 800, 600);
 
     if (iEta < numetabins) {
-     jetEnergyScale[iEta] = new TH1D (Form ("%s_jetEnergyScale_eta%i", algo.Data(), iEta), ";#it{p}_{T} #left[GeV#right];JES", numpbins, pbins);
-     jetEnergyRes[iEta] = new TH1D (Form ("%s_jetEnergyRes_eta%i", algo.Data(), iEta), ";#it{p}_{T} #left[GeV#right];JER", numpbins, pbins);
+     jetEnergyScale[iEta] = new TH1D (Form ("%s_jetEnergyScale_eta%i", algo.Data(), iEta), "", numpbins, pbins);
+     jetEnergyRes[iEta] = new TH1D (Form ("%s_jetEnergyRes_eta%i", algo.Data(), iEta), "", numpbins, pbins);
     }
 
     jesCanvas->cd();
@@ -286,7 +290,7 @@ void EnergyScaleChecksHist () {
      double s = recoFit->GetParameter(2);
      if (recoFit) delete recoFit;
 
-     recoFit = new TF1 (Form ("recoFit2_iP%i", iP), "gaus(0)", m - 1.3*s, m + 1.3*s);
+     recoFit = new TF1 (Form ("recoFit2_iP%i", iP), "gaus(0)", m - 1.5*s, m + 1.5*s);
      thisHist->Fit (recoFit, "RNL");
      //m = recoFit->GetParameter(1);
      //s = recoFit->GetParameter(2);
@@ -336,12 +340,19 @@ void EnergyScaleChecksHist () {
      }
 
      if (iEta < numetabins) {
-      jetEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
-      jetEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
-      //jetEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
-      jetEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
-      jetEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
-      //jetEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
+      //jetEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
+      jetEnergyScale[iEta]->SetBinContent (iP+1, thisHist->GetMean());
+
+      //jetEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
+      //jetEnergyScale[iEta]->SetBinError (iP+1, thisHist->GetMeanError());
+      jetEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
+
+      //jetEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
+      jetEnergyRes[iEta]->SetBinContent (iP+1, thisHist->GetStdDev());
+
+      //jetEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
+      //jetEnergyRes[iEta]->SetBinError (iP+1, thisHist->GetStdDevError());
+      jetEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
      }
 
      myText(0.18, 0.90, kBlack, Form("#mu = %s", FormatMeasurement (calibFit->GetParameter(1), calibFit->GetParError(1), 1)), 0.04 * 2);
@@ -375,28 +386,37 @@ void EnergyScaleChecksHist () {
    TCanvas* jesSummaryCanvas = new TCanvas("jesSummaryCanvas", "", 800, 600);
    jesSummaryCanvas->cd();
    gPad->SetLogx();
-   Color_t colors[14] = {kAzure-2, kBlue, kViolet+7, kMagenta, kPink, kRed+2, kOrange+8, kSpring, kGreen+2, kCyan, kGray, kRed-9, kViolet-8, kBlue-9};
+   gStyle->SetErrorX(0.5);
+   Color_t colors[14] = {kBlack, kAzure, kViolet, kMagenta, kPink+10, kPink, kOrange+10, kOrange, kSpring+10, kSpring, kTeal+10, kTeal, kAzure+10, kGray};
    for (int iEta = 0; iEta < numetabins; iEta++) {
+     jetEnergyScale[iEta]->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
      jetEnergyScale[iEta]->GetYaxis()->SetTitle ("Jet Energy Scale");
      jetEnergyScale[iEta]->GetYaxis()->SetRangeUser (0.85, 1.15);
      jetEnergyScale[iEta]->SetLineColor (colors[iEta]);
      jetEnergyScale[iEta]->SetMarkerColor (colors[iEta]);
-     //jetEnergyScale[iEta]->SetMarkerStyle (kFullDotLarge);
-     if (iEta == 0) jetEnergyScale[iEta]->Draw("hist ][");
-     else jetEnergyScale[iEta]->Draw("same hist ][");
-     myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+     jetEnergyScale[iEta]->SetMarkerStyle (kFullDotLarge);
+     jetEnergyScale[iEta]->SetMarkerSize (0.5);
+     if (iEta == 0) jetEnergyScale[iEta]->Draw("L ][");
+     else jetEnergyScale[iEta]->Draw("same L ][");
+     myMarkerText (0.22+(iEta>=(numetabins/2))*0.18, 0.45-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
    }
+   myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+   myText (0.60, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
    jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyScale.pdf", plotPath.Data(), algo.Data()));
    for (int iEta = 0; iEta < numetabins; iEta++) {
+     jetEnergyRes[iEta]->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
      jetEnergyRes[iEta]->GetYaxis()->SetTitle ("Jet Energy Resolution");
      jetEnergyRes[iEta]->GetYaxis()->SetRangeUser(0, 0.3);
      jetEnergyRes[iEta]->SetLineColor (colors[iEta]);
      jetEnergyRes[iEta]->SetMarkerColor (colors[iEta]);
-     //jetEnergyRes[iEta]->SetMarkerStyle (kFullDotLarge);
-     if (iEta == 0) jetEnergyRes[iEta]->Draw("hist ][");
-     else jetEnergyRes[iEta]->Draw("same hist ][");
-     myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+     jetEnergyRes[iEta]->SetMarkerStyle (kFullDotLarge);
+     jetEnergyRes[iEta]->SetMarkerSize (0.5);
+     if (iEta == 0) jetEnergyRes[iEta]->Draw("L ][");
+     else jetEnergyRes[iEta]->Draw("same L ][");
+     myMarkerText (0.57+(iEta>=(numetabins/2))*0.18, 0.85-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
    }
+   myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+   myText (0.20, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
    jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyResolution.pdf", plotPath.Data(), algo.Data()));
    for (int iEta = 0; iEta < numetabins; iEta++) {
      if (jetEnergyScale[iEta]) delete jetEnergyScale[iEta];
@@ -443,12 +463,12 @@ void EnergyScaleChecksHist () {
 
     calibFit = new TF1("calibFit2", "gaus(0)", m - 3.5*s, m + 3.5*s);
     thisHist->Fit(calibFit, "RNL");
-    m = calibFit->GetParameter(1);
-    s = calibFit->GetParameter(2);
-    if (calibFit) delete calibFit;
+    //m = calibFit->GetParameter(1);
+    //s = calibFit->GetParameter(2);
+    //if (calibFit) delete calibFit;
 
-    calibFit = new TF1("calibFit3", "gaus(0)", m - 3.5*s, m + 3.5*s);
-    thisHist->Fit(calibFit, "RNL");
+    //calibFit = new TF1("calibFit3", "gaus(0)", m - 3.5*s, m + 3.5*s);
+    //thisHist->Fit(calibFit, "RNL");
 
     thisHist->SetMarkerStyle(kFullDotMedium);
     thisHist->SetLineColor(kBlue);
@@ -461,14 +481,19 @@ void EnergyScaleChecksHist () {
      calibFits[iP] = calibFit;
     }
 
-    //if (iEta < numetabins) {
-    photonEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
-    photonEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
-    //photonEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
-    photonEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
-    photonEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
-    //photonEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
-    //}
+    //photonEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter(1));
+    photonEnergyScale[iEta]->SetBinContent (iP+1, thisHist->GetMean());
+
+    //photonEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
+    //photonEnergyScale[iEta]->SetBinError (iP+1, thisHist->GetMeanError());
+    photonEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
+
+    //photonEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter(2));
+    photonEnergyRes[iEta]->SetBinContent (iP+1, thisHist->GetStdDev());
+
+    //photonEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
+    //photonEnergyRes[iEta]->SetBinError (iP+1, thisHist->GetStdDevError());
+    photonEnergyRes[iEta]->SetBinError (iP+1, 0.000001);
 
     //myText(0.18, 0.9, kBlack, "Photon energy response");
     //myText(0.18, 0.83, kBlack, Form("%i photons", nGammas));
@@ -495,28 +520,34 @@ void EnergyScaleChecksHist () {
   TCanvas* pesSummaryCanvas = new TCanvas("pesSummaryCanvas", "", 800, 600);
   pesSummaryCanvas->cd();
   gPad->SetLogx();
-  Color_t colors[14] = {kAzure-2, kBlue, kViolet+7, kMagenta, kPink, kRed+2, kOrange+8, kSpring, kGreen+2, kCyan, kGray, kRed-9, kViolet-8, kBlue-9};
+  Color_t colors[14] = {kBlack, kAzure, kViolet+10, kViolet, kPink+10, kPink, kOrange+10, kOrange, kSpring+10, kSpring, kTeal+10, kTeal, kAzure+10, kGray};
   for (short iEta = 0; iEta < numetabins; iEta++) {
+   photonEnergyScale[iEta]->GetXaxis()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
    photonEnergyScale[iEta]->GetYaxis()->SetTitle ("Photon Energy Scale");
-   photonEnergyScale[iEta]->GetYaxis()->SetRangeUser (0.98, 1.02);
+   photonEnergyScale[iEta]->GetYaxis()->SetRangeUser (0.985, 1.015);
    photonEnergyScale[iEta]->SetLineColor (colors[iEta]);
    photonEnergyScale[iEta]->SetMarkerColor (colors[iEta]);
    //photonEnergyScale[iEta]->SetMarkerStyle (kFullDotLarge);
    if (iEta == 0) photonEnergyScale[iEta]->Draw("hist ][");
    else photonEnergyScale[iEta]->Draw("same hist ][");
-   myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   myMarkerText (0.22+(iEta>=(numetabins/2))*0.18, 0.45-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
   }
+  myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+  myText (0.60, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
   pesSummaryCanvas->SaveAs (Form ("%s/PhotonEnergyScale.pdf", plotPath.Data()));
   for (short iEta = 0; iEta < numetabins; iEta++) {
+   photonEnergyRes[iEta]->GetXaxis()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
    photonEnergyRes[iEta]->GetYaxis()->SetTitle ("Photon Energy Resolution");
-   photonEnergyRes[iEta]->GetYaxis()->SetRangeUser(0, 0.04);
+   photonEnergyRes[iEta]->GetYaxis()->SetRangeUser(0, 0.07);
    photonEnergyRes[iEta]->SetLineColor (colors[iEta]);
    photonEnergyRes[iEta]->SetMarkerColor (colors[iEta]);
    //photonEnergyRes[iEta]->SetMarkerStyle (kFullDotLarge);
    if (iEta == 0) photonEnergyRes[iEta]->Draw("hist ][");
    else photonEnergyRes[iEta]->Draw("same hist ][");
-   myMarkerText (0.77, 0.88-0.04*iEta, colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   myMarkerText (0.22+(iEta>=(numetabins/2))*0.18, 0.45-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
   }
+  myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+  myText (0.20, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
   pesSummaryCanvas->SaveAs (Form ("%s/PhotonEnergyResolution.pdf", plotPath.Data()));
   for (short iEta = 0; iEta <= numetabins; iEta++) {
    if (photonEnergyScale[iEta]) delete photonEnergyScale[iEta];

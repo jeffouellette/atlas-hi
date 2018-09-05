@@ -61,7 +61,7 @@ static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 4
  * dataSet: Data set identifier. This should be a run number for data or some other identifier for MC (e.g., slice number).
  * luminosity: Integrated luminosity for this run. Presumed constant over the run period. Meaningless for MC.
  * isMC: is data/MC flag.
- * isMCperiodAflag: flag that is raised for MC (meaningless if isMC is false)
+ * isPeriodA: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */
 void ElectronContaminationStudy (const bool isPeriodA = false, 

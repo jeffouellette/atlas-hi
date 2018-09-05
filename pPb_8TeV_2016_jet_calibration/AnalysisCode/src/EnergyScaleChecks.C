@@ -35,39 +35,43 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 }
 
 
-TString GetIdentifier (const int dataSet, const bool isValidationSample, const bool periodA) {
-  TString id = "";
-  if (periodA) id = "pPb_";
-  else id = "Pbp_";
-  if (dataSet > 0) { // true for GammaJet samples
-   if (isValidationSample) id = id + "Valid_";
-   else id = id + "Overlay_";
-   id = id + "GammaJet_Slice" + to_string(dataSet);
+TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
+  if (!isMC) return to_string(dataSet);
+
+  TString id = (periodA ? "pPb_" : "Pbp_");
+
+  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
+
+  if (inFileName.Contains ("jetjet")) { // dijet
+   if (dataSet <= 0) return "";
+   id = id + "Dijet_Slice" + to_string (dataSet);
   }
-  else {
-   if (dataSet == 0) { // true for Zmumu samples
-    id = id + "ZmumuJet";
-   }
-   else if (dataSet == -6) { // true for Zee overlay samples
-    id = id + "ZeeJet_Overlay";
-   }
-   else { // true for Zee signal-only samples
-    id = id + "ZeeJet_Slice" + to_string(-dataSet);
-   }
+  else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
+   if (dataSet <= 0) return "";
+   id = id + "GammaJet_Slice" + to_string (dataSet);
   }
+  else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
+   if (dataSet < 0) return "";
+   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+  }
+  else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
+   if (dataSet != 0) return "";
+   id = id + "ZmumuJet";
+  }
+
   return id;
 }
 
 
 void EnergyScaleChecks (const int dataSet,
-                        const bool isPeriodAflag,
+                        const bool isPeriodA,
                         const TString inFileName)
 {
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isValidationSample = TString(inFileName).Contains("valid");
-  const TString identifier = GetIdentifier(dataSet, isValidationSample, isPeriodAflag);
+  const bool isSignalOnlySample = TString(inFileName).Contains("valid");
+  const TString identifier = GetIdentifier(dataSet, inFileName, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
@@ -76,7 +80,7 @@ void EnergyScaleChecks (const int dataSet,
   {
    TString fileIdentifier;
    if (inFileName == "") {
-    fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodAflag ? ".pPb":".Pbp");
+    fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
    } else fileIdentifier = inFileName;
 
    TSystemDirectory dir(dataPath.Data(), dataPath.Data());

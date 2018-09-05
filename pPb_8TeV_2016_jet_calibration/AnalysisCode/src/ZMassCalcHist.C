@@ -156,17 +156,21 @@ void ZMassCalcHist () {
   // Setup list of data and lists of MC samples
   vector<int> runNumbers(0);
   for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
+  vector<TString> gammaJetSampleIds(0);
+  for (short i = 0; i < 6; i++) {
+   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+  }
   vector<TString> zeeJetSampleIds(0);
-  //for (short i = 0; i < 6; i++) {
-  // zeeJetSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
-  // zeeJetSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
-  //}
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
+  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+
+  vector<TString> dijetSampleIds(0);
+  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
   TH1D**** zMassSpectra = Get3DArray <TH1D*> (2, 2, numetabins+1);
 

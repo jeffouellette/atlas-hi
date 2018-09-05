@@ -117,16 +117,19 @@ void RtrkComparisonHist () {
   for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
   vector<TString> gammaJetSampleIds(0);
   for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
-   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
   vector<TString> zeeJetSampleIds(0);
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
+  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+
+  vector<TString> dijetSampleIds(0);
+  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
   TH2D* jetRtrkHists[2][3][numetabins+1][2][3];
 
@@ -308,6 +311,38 @@ void RtrkComparisonHist () {
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
          TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), iEta));
+         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
+         jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
+         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);
+         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add(temp);
+        }
+       }
+
+       thisFile->Close();
+       delete thisFile;
+       break;
+      }
+     }
+     // do this if a dijet MC sample
+     for (TString dijetSampleId : dijetSampleIds) { // check for Z->ee MC
+      if (fname.Contains(dijetSampleId)) { // if Z->ee MC do this
+       numFiles++;
+       cout << "Reading in " << rootPath+fname << endl;
+       TFile* thisFile = new TFile(rootPath + fname, "READ");
+       const short iPer = (dijetSampleId.Contains("pPb") ? 0 : 1);
+       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%s", dijetSampleId.Data()));
+
+       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+
+        for (short iEta = 0; iEta < numetabins; iEta++) {
+         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+
+         // Only add the statistical error plots for MC (don't need to consider systematics)
+         TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", dijetSampleId.Data(), algo.Data(), iEta));
          jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
          jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
          jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);

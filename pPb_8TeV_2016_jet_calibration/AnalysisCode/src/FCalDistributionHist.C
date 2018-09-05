@@ -34,16 +34,19 @@ void FCalDistributionHist () {
   for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
   vector<TString> gammaJetSampleIds(0);
   for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
-   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
   vector<TString> zeeJetSampleIds(0);
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
+  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+
+  vector<TString> dijetSampleIds(0);
+  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
   TH1D* fCal_p_et[2];
   fCal_p_et[0] = new TH1D ("fCal_p_et_data", "", 125, -50, 200);

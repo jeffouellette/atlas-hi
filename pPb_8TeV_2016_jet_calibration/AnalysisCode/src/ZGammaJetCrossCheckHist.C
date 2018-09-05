@@ -158,20 +158,19 @@ void ZGammaJetCrossCheckHist () {
   for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
   vector<TString> gammaJetSampleIds(0);
   for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back(TString ("Pbp") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
-   gammaJetSampleIds.push_back(TString ("pPb") + (runValidation ? "_Valid":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
   }
   vector<TString> zeeJetSampleIds(0);
-  //for (short i = 0; i < 6; i++) {
-  // zeeJetSampleIds.push_back(string("Pbp_ZeeJet") + to_string(i));
-  // zeeJetSampleIds.push_back(string("pPb_ZeeJet") + to_string(i));
-  //}
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_ZmumuJet");
+  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+
+  vector<TString> dijetSampleIds(0);
+  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
   TH3D* zeeJetHists[2][3][2][3];
   //TH2D* zeeJetHistsSys[3][numetabins][2][3];
@@ -395,9 +394,9 @@ void ZGammaJetCrossCheckHist () {
   TLine* zlines[5] = {};
   TLine* glines[5] = {};
   TLine* xlines[5] = {};
-  TLine* dplines[5] = {};
-  TLine* dplines_bottom[5] = {};
-  float dpbounds[5] = {35, 50, 70, 140, 280};
+  //TLine* dplines[5] = {};
+  //TLine* dplines_bottom[5] = {};
+  //float dpbounds[5] = {35, 50, 70, 140, 280};
   for (short i = 0; i < 5; i++) {
    const float dz = 0.1;
    const float dg = 0.05;
@@ -406,8 +405,8 @@ void ZGammaJetCrossCheckHist () {
    zlines[i] = new TLine(pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
    glines[i] = new TLine(pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
    xlines[i] = new TLine(xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
-   dplines[i] = new TLine(dpbounds[i], 0.55, dpbounds[i], 1.85);
-   dplines_bottom[i] = new TLine(dpbounds[i], 0.91, dpbounds[i], 1.09);
+   //dplines[i] = new TLine(dpbounds[i], 0.55, dpbounds[i], 1.85);
+   //dplines_bottom[i] = new TLine(dpbounds[i], 0.91, dpbounds[i], 1.09);
 
    if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle (1);
    else zlines[i]->SetLineStyle (3);
@@ -415,8 +414,8 @@ void ZGammaJetCrossCheckHist () {
    else glines[i]->SetLineStyle (3);
    if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle (1);
    else xlines[i]->SetLineStyle (3);
-   dplines[i]->SetLineStyle (3);
-   dplines_bottom[i]->SetLineStyle (3);
+   //dplines[i]->SetLineStyle (3);
+   //dplines_bottom[i]->SetLineStyle (3);
   }
 
 
@@ -512,7 +511,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->Draw ("2");
 
      if (iYear == 0) { 
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iYear][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[iYear][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iYear][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #it{p}_{T}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -520,8 +519,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -636,7 +638,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->Draw ("2");
 
      if (iYear == 0) {
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iYear][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[iYear][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iYear][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #it{p}_{T}^{#it{ee}} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -644,8 +646,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "Z (ee) + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -783,10 +788,10 @@ void ZGammaJetCrossCheckHist () {
       vJetHist->DrawCopy ("same e1 x0");
      }
      vJetGraph_sys->Draw ("2");
-     for (TLine* line : dplines) line->Draw ("same");
+     //for (TLine* line : dplines) line->Draw ("same");
 
      if (iYear == 0) {
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -794,8 +799,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -835,7 +843,7 @@ void ZGammaJetCrossCheckHist () {
      else vJetHist_rat->DrawCopy ("same e1 x0");
      ((TGraphAsymmErrors*)vJetGraph_rat_sys->Clone())->Draw ("2");
      for (TLine* line : glines) line->Draw ("same");
-     for (TLine* line : dplines_bottom) line->Draw ("same");
+     //for (TLine* line : dplines_bottom) line->Draw ("same");
 
      if (vJetHist) { delete vJetHist; vJetHist = NULL; }
      if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
@@ -965,7 +973,7 @@ void ZGammaJetCrossCheckHist () {
       //const float sys_err = 0.5* (TMath::Abs(mean_lo-mean) + TMath::Abs(mean_hi-mean));
 
       if (iYear == 0) {
-       myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][iP]), 1.25, 0.04/uPadY);
+       myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][iP]), 1.25, 0.04/uPadY);
        myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with #it{p}-Pb Overlay"), nGammaJet[iYear][iPer][1][iEta][iP]), 1.25, 0.04/uPadY);
 
        myText (0.155, 0.73, kBlack, Form ("<#it{x}_{J}^{ref}>^{data} = %.2f #pm %.2f"/* #pm %.2f"*/, mean, mean_err/*, sys_err*/), 0.04/uPadY);
@@ -976,6 +984,7 @@ void ZGammaJetCrossCheckHist () {
        myText (0.155, 0.25, kBlack, period.Data(), 0.04/uPadY);
        if (iPer == 2) myText (0.155, 0.16, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText (0.155, 0.16, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
       }
 
       bottomPad->cd();
@@ -1094,7 +1103,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->Draw ("2");
 
      if (iYear == 0) { 
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iYear][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       if (iP < numpzbins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #it{p}_{T}^{#mu#mu} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
@@ -1102,8 +1111,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -1218,7 +1230,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->Draw ("2");
 
      if (iYear == 0) {
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iYear][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       if (iP < numpzbins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #it{p}_{T}^{#it{ee}} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
@@ -1226,8 +1238,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "Z (ee) + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -1377,10 +1392,10 @@ void ZGammaJetCrossCheckHist () {
       vJetHist->DrawCopy ("same e1 x0");
      }
      vJetGraph_sys->Draw ("2");
-     for (TLine* line : dplines) line->Draw ("same");
+     //for (TLine* line : dplines) line->Draw ("same");
 
      if (iYear == 0) {
-      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       if (iP < numpbins) {
        if (iPer == 2) myText (0.155, 0.56, kBlack, Form ("%g < #it{p}_{T}^{#gamma} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
@@ -1388,8 +1403,11 @@ void ZGammaJetCrossCheckHist () {
       }
       myText (0.155, 0.73, kBlack, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.64, kBlack, period.Data(), 0.04/uPadY);
-      myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
-      myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myMarkerText (0.65, 0.73, kBlack, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.64, kBlack, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
+      //myText (0.525, 0.73, kBlack, "Full Circles = 2016 Insitu Factors", 0.04/uPadY);
+      //myText (0.525, 0.64, kBlack, "Open Circles = 2015 Insitu Factors", 0.04/uPadY);
+      myText (0.155, 0.08, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
      }
 
      bottomPad->cd();
@@ -1429,7 +1447,7 @@ void ZGammaJetCrossCheckHist () {
      else vJetHist_rat->DrawCopy ("same e1 x0");
      ((TGraphAsymmErrors*)vJetGraph_rat_sys->Clone())->Draw ("2");
      for (TLine* line : glines) line->Draw ("same");
-     for (TLine* line : dplines_bottom) line->Draw ("same");
+     //for (TLine* line : dplines_bottom) line->Draw ("same");
 
      if (vJetHist) { delete vJetHist; vJetHist = NULL; }
      if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
@@ -1548,7 +1566,7 @@ void ZGammaJetCrossCheckHist () {
 //    dataHist->GetXaxis()->SetLabelSize (0.02/rPadX);
 //    dataHist->GetYaxis()->SetLabelSize (0.02/rPadX);
 //    dataHist->Draw ("col");
-//    myText (0.1, 0.15, kBlack, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 0.02/rPadX);
+//    myText (0.1, 0.15, kBlack, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 0.02/rPadX);
 //    if (iPer != 2) myText (0.6, 0.85, kBlack, Form ("%g < #eta_{det}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.02/rPadX);
 //    else myText (0.6, 0.85, kBlack, Form ("%g < #eta_{det}^{#gamma} < %g", etabins[iEta], etabins[iEta+1]), 0.02/rPadX);
 //    myText (0.6, 0.8, kBlack, period.Data(), 0.02/rPadX);

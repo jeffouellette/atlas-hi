@@ -34,7 +34,7 @@ double GetNewXCalibSystematicError(TFile* file, const double jeta, const double 
  */
 void JetInsituCorrectionCheck (const int dataSet,
                                const double luminosity = 0, 
-                               const bool periodA = false);
+                               const bool isPeriodA = false);
 
 } // end namespace
 

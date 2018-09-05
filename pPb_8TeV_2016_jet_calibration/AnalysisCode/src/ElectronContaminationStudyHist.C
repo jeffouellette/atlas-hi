@@ -26,8 +26,8 @@ void ElectronContaminationStudyHist () {
 
   // Setup list of data and lists of MC samples
   vector<TString> zeeJetSampleIds(0);
-  zeeJetSampleIds.push_back("Pbp_ZeeJet_Overlay");
-  zeeJetSampleIds.push_back("pPb_ZeeJet_Overlay");
+  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
 
   TH2D* fakePhotonSpectrum = new TH2D ("fakePhotonSpectrum", ";#it{p}_{T}^{e} #left[GeV#right];#eta;#sigma_{Z#rightarrow ee} #times #SigmaN_{fake #gamma} / #SigmaN_{evt} #left[#mub#right]", numpebins, pebins, numeetabins, eetabins);
   fakePhotonSpectrum->Sumw2();

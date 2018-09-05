@@ -36,27 +36,30 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 }
 
 
-TString GetIdentifier (const int dataSet, const bool isMC, const bool isValidationSample, const bool periodA) {
+TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
   if (!isMC) return to_string(dataSet);
-  TString id = "";
-  if (periodA) id = "pPb_";
-  else id = "Pbp_";
-  if (dataSet > 0) { // true for GammaJet samples
-   if (isValidationSample) id = id + "Valid_";
-   else id = id + "Overlay_";
-   id = id + "GammaJet_Slice" + to_string(dataSet);
+
+  TString id = (periodA ? "pPb_" : "Pbp_");
+
+  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
+
+  if (inFileName.Contains ("jetjet")) { // dijet
+   if (dataSet <= 0) return "";
+   id = id + "Dijet_Slice" + to_string (dataSet);
   }
-  else {
-   if (dataSet == 0) { // true for Zmumu samples
-    id = id + "ZmumuJet";
-   }
-   else if (dataSet == -6) { // true for Zee overlay samples
-    id = id + "ZeeJet_Overlay";
-   }
-   else { // true for Zee signal-only samples
-    id = id + "ZeeJet_Slice" + to_string(-dataSet);
-   }
+  else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
+   if (dataSet <= 0) return "";
+   id = id + "GammaJet_Slice" + to_string (dataSet);
   }
+  else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
+   if (dataSet < 0) return "";
+   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+  }
+  else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
+   if (dataSet != 0) return "";
+   id = id + "ZmumuJet";
+  }
+
   return id;
 }
 
@@ -64,18 +67,14 @@ TString GetIdentifier (const int dataSet, const bool isMC, const bool isValidati
 void RtrkComparison (const int dataSet,
                      const double luminosity,
                      const bool isMC, 
-                     const bool isMCperiodAflag,
+                     const bool isPeriodA,
                      const TString inFileName)
 {
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  bool isPeriodA;
-  if (!isMC) isPeriodA = dataSet < 313500;
-  else isPeriodA = isMCperiodAflag;
-
-  const bool isValidationSample = isMC && TString(inFileName).Contains("valid");
-  const TString identifier = GetIdentifier(dataSet, isMC, isValidationSample, isPeriodA);
+  const bool isSignalOnlySample = isMC && TString(inFileName).Contains("signalonly");
+  const TString identifier = GetIdentifier(dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
@@ -85,8 +84,9 @@ void RtrkComparison (const int dataSet,
    TString fileIdentifier;
    if (inFileName == "") {
     if (!isMC) fileIdentifier = to_string(dataSet);
-    else fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isMCperiodAflag ? ".pPb":".Pbp");
-   } else fileIdentifier = inFileName;
+    else fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
+   }
+   else fileIdentifier = inFileName;
 
    const TString path = dataPath + "/rtrk_data/";
    TSystemDirectory dir (path.Data(), path.Data());
@@ -123,8 +123,8 @@ void RtrkComparison (const int dataSet,
   t->SetGetHIJets ();
   t->SetGetEMTopoJets ();
   t->SetGetTracks ();
-  t->SetGetElectrons ();
-  t->SetGetPhotons ();
+  //t->SetGetElectrons ();
+  //t->SetGetPhotons ();
   t->SetBranchAddresses();
 
   if (!isMC) {
@@ -245,7 +245,8 @@ void RtrkComparison (const int dataSet,
      }
     }
     else { // MC weight
-     weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+     //weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+     weight = 1.2910E+03 / 0.0056462 / 3998445;
     }
     if (weight == 0)
      continue; // reject events which are weighted to 0
@@ -266,40 +267,40 @@ void RtrkComparison (const int dataSet,
      if (InDisabledHEC (jeta, jphi))
       continue; // Reject event on additional HEC cuts
 
-     // reject jets near selected photons & electrons
-     double minDeltaR = 1000;
-     for (int p = 0; p < t->photon_n; p++) {
-      // photon cuts
-      if (t->photon_pt->at(p) < photon_pt_cut)
-       continue; // basic pT cut on photons
-      if (!t->photon_tight->at(p))
-       continue; // require tight cuts on photons
-      if (t->photon_topoetcone40->at(p) > isolationEnergyIntercept + isolationEnergySlope*t->photon_pt->at(p))
-       continue; // require maximum isolation energy on gammas
-      if (!InEMCal (t->photon_eta->at(p)) || InDisabledHEC (t->photon_eta->at(p), t->photon_phi->at(p)))
-       continue; // require photon to be in EMCal
-      const double deltaR = DeltaR (jeta, t->photon_eta->at(p), jphi, t->photon_phi->at(p));
-      if (deltaR < minDeltaR) {
-       minDeltaR = deltaR;
-      }
-     }
-     for (int e = 0; e < t->electron_n; e++) {
-      // electron cuts
-      if (t->electron_pt->at(e) < electron_pt_cut)
-       continue; // basic electron pT cuts
-      if (!InEMCal (t->electron_eta->at(e)))
-       continue; // reject electrons reconstructed outside EMCal
-      if (!t->electron_loose->at(e))
-       continue; // reject non-loose electrons
-      if (t->electron_d0sig->at(e) > 5)
-       continue; // d0 (transverse impact parameter) significance cut
-      if (t->electron_delta_z0_sin_theta->at(e) > 0.5)
-       continue; // z0 (longitudinal impact parameter) vertex compatibility cut
-      const double deltaR = DeltaR (jeta, t->electron_eta->at(e), jphi, t->electron_phi->at(e));
-      if (deltaR < minDeltaR) {
-       minDeltaR = deltaR;
-      }
-     }
+     //// reject jets near selected photons & electrons
+     //double minDeltaR = 1000;
+     //for (int p = 0; p < t->photon_n; p++) {
+     // // photon cuts
+     // if (t->photon_pt->at(p) < photon_pt_cut)
+     //  continue; // basic pT cut on photons
+     // if (!t->photon_tight->at(p))
+     //  continue; // require tight cuts on photons
+     // if (t->photon_topoetcone40->at(p) > isolationEnergyIntercept + isolationEnergySlope*t->photon_pt->at(p))
+     //  continue; // require maximum isolation energy on gammas
+     // if (!InEMCal (t->photon_eta->at(p)) || InDisabledHEC (t->photon_eta->at(p), t->photon_phi->at(p)))
+     //  continue; // require photon to be in EMCal
+     // const double deltaR = DeltaR (jeta, t->photon_eta->at(p), jphi, t->photon_phi->at(p));
+     // if (deltaR < minDeltaR) {
+     //  minDeltaR = deltaR;
+     // }
+     //}
+     //for (int e = 0; e < t->electron_n; e++) {
+     // // electron cuts
+     // if (t->electron_pt->at(e) < electron_pt_cut)
+     //  continue; // basic electron pT cuts
+     // if (!InEMCal (t->electron_eta->at(e)))
+     //  continue; // reject electrons reconstructed outside EMCal
+     // if (!t->electron_loose->at(e))
+     //  continue; // reject non-loose electrons
+     // if (t->electron_d0sig->at(e) > 5)
+     //  continue; // d0 (transverse impact parameter) significance cut
+     // if (t->electron_delta_z0_sin_theta->at(e) > 0.5)
+     //  continue; // z0 (longitudinal impact parameter) vertex compatibility cut
+     // const double deltaR = DeltaR (jeta, t->electron_eta->at(e), jphi, t->electron_phi->at(e));
+     // if (deltaR < minDeltaR) {
+     //  minDeltaR = deltaR;
+     // }
+     //}
 
      // Put the jet in the right eta bin
      short iEta = 0;

@@ -51,12 +51,10 @@ static const char* photonTriggerNames[photonTrigLength] = {
 static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40};//40, 65};
 static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 100000};//65, 100000};
 
-TString GetIdentifier (const int dataSet, const bool isMC, const bool isValidationSample, const bool periodA);
-
 void FCalDistribution (const int dataSet,
                        const double luminosity = 0, 
                        const bool isMC = false,
-                       const bool isMCperiodAflag = false, 
+                       const bool isPeriodA = false, 
                        const TString inFileName = "");
 
 }

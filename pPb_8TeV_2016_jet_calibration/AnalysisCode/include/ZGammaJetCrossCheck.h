@@ -90,13 +90,13 @@ double GetNewXCalibSystematicError(TFile* file, const double jeta, const double 
  * dataSet: Data set identifier. This should be a run number for data or some other identifier for MC (e.g., slice number).
  * luminosity: Integrated luminosity for this run. Presumed constant over the run period. Meaningless for MC.
  * isMC: is data/MC flag.
- * isMCperiodAflag: flag that is raised for MC (meaningless if isMC is false)
+ * isPeriodA: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */
 void ZGammaJetCrossCheck (const int dataSet,
                           const double luminosity = 0, 
                           const bool isMC = false,
-                          const bool isMCperiodAflag = false, 
+                          const bool isPeriodA = false, 
                           const TString inFileName = "");
 
 } // end namespace

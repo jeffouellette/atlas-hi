@@ -36,7 +36,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 
 void JetInsituCorrectionCheck (const int dataSet,
                                const double luminosity, 
-                               const bool periodA)
+                               const bool isPeriodA)
 {
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
@@ -175,7 +175,7 @@ void JetInsituCorrectionCheck (const int dataSet,
 
     const double insituSys = GetXCalibSystematicError (t->akt4hi_em_xcalib_jet_pt->at(j), t->akt4hi_em_xcalib_jet_eta->at(j));
 
-    const double etaPlot = t->akt4hi_em_xcalib_jet_eta->at(j);//(periodA ? -t->akt4hi_em_xcalib_jet_eta->at(j) : t->akt4hi_em_xcalib_jet_eta->at(j));
+    const double etaPlot = t->akt4hi_em_xcalib_jet_eta->at(j);//(isPeriodA ? -t->akt4hi_em_xcalib_jet_eta->at(j) : t->akt4hi_em_xcalib_jet_eta->at(j));
 
     jetPreInsituSpectrum->Fill (t->akt4hi_em_etajes_jet_pt->at(j), etaPlot);
     jetPostInsituSpectrum->Fill (t->akt4hi_em_xcalib_jet_pt->at(j), etaPlot);
