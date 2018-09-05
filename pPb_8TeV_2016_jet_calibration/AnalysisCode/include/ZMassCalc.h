@@ -1,5 +1,5 @@
-#ifndef __ZGammaJetCrossCheck_h__
-#define __ZGammaJetCrossCheck_h__
+#ifndef __ZMassCalc_h__
+#define __ZMassCalc_h__
 
 #include "Params.h"
 #include <Initialization.h>
@@ -18,22 +18,10 @@ static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000};
 
 static const short muonTrigLength = 1;
 static const char* muonTriggerNames[muonTrigLength] = {
- "HLT_mu8"
+ "HLT_mu8",
 };
 static const float muonTriggerMinPtCuts[muonTrigLength] = {8};
 static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};
-
-static const short photonTrigLength = 6;
-static const char* photonTriggerNames[photonTrigLength] = {
- "HLT_g10_loose",
- "HLT_g15_loose",
- "HLT_g20_loose",
- "HLT_g25_loose",
- "HLT_g30_loose",
- "HLT_g35_loose"
-};
-static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40};
-static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 10000};
 
 //static const short electronTrigLength = 3;
 //static const char* electronTriggerNames[electronTrigLength] = {
@@ -53,36 +41,6 @@ static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 4
 //};
 //static const float muonTriggerMinPtCuts[muonTrigLength] = {15, 18, 20};
 //static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000, 100000, 100000};
-//
-//static const short photonTrigLength = 7;
-//static const char* photonTriggerNames[photonTrigLength] = {
-// "HLT_g10_loose",
-// "HLT_g15_loose",
-// "HLT_g20_loose",
-// "HLT_g25_loose",
-// "HLT_g30_loose",
-// "HLT_g35_loose",
-// "HLT_g60_loose"
-//};
-//static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40, 65};
-//static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 65, 10000};
-
-
-/**
- * Calculates the original systematic error on this jet from the cross calib.
- * jpt: pt of the jet
- * jeta: eta of the jet
- */
-double GetXCalibSystematicError(const double jpt, const double jeta);
-
-
-/**
- * Calculates the additional systematic on jet pt given the jet eta and the
- * reference vector boson pt^ref.
- * jeta: eta of the jet
- * refpt: reference pt of the vector boson
- */
-double GetNewXCalibSystematicError(TFile* file, const double jeta, const double refpt, const bool periodA);
 
 
 /**
@@ -93,11 +51,11 @@ double GetNewXCalibSystematicError(TFile* file, const double jeta, const double 
  * isMCperiodAflag: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */
-void ZGammaJetCrossCheck (const int dataSet,
-                          const double luminosity = 0, 
-                          const bool isMC = false,
-                          const bool isMCperiodAflag = false, 
-                          const TString inFileName = "");
+void ZMassCalc (const int dataSet,
+                const double luminosity = 0, 
+                const bool isMC = false,
+                const bool isMCperiodAflag = false, 
+                const TString inFileName = "");
 
 } // end namespace
 

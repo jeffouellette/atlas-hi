@@ -118,6 +118,9 @@ TreeVariables :: ~TreeVariables() {
 
 
 void TreeVariables :: SetBranchAddresses() {
+  tree->SetBranchStatus ("akt4hi_sampling", 0);
+  tree->SetBranchStatus ("akt4emtopo_sampling", 0);
+
   if (getCollisionRateInfo) {
    tree->SetBranchAddress("actualInteractionsPerCrossing", &actualInteractionsPerCrossing);
    tree->SetBranchAddress("averageInteractionsPerCrossing", &averageInteractionsPerCrossing);
@@ -155,41 +158,41 @@ void TreeVariables :: SetBranchAddresses() {
    tree->SetBranchStatus("vert_type", 0);
   }
 
-  //if (getFCals) {
-  // tree->SetBranchAddress("fcalA_et", &fcalA_et);
-  // tree->SetBranchAddress("fcalC_et", &fcalC_et);
-  //}
-  //else {
-  // tree->SetBranchStatus("fcalA_et", 0);
-  // tree->SetBranchStatus("fcalC_et", 0);
-  //}
+  if (getFCals) {
+   tree->SetBranchAddress("fcalA_et", &fcalA_et);
+   tree->SetBranchAddress("fcalC_et", &fcalC_et);
+  }
+  else {
+   tree->SetBranchStatus("fcalA_et", 0);
+   tree->SetBranchStatus("fcalC_et", 0);
+  }
 
-  //if (getTracks) {
-  // tree->SetBranchAddress("ntrk", &ntrk);
-  // tree->SetBranchAddress("trk_quality_4", &trk_quality_4);
-  // //tree->SetBranchAddress("trk_d0", &trk_d0);
-  // //tree->SetBranchAddress("trk_z0", &trk_z0);
-  // //tree->SetBranchAddress("trk_theta", &trk_theta);
-  // //tree->SetBranchAddress("trk_charge", &trk_charge);
-  // tree->SetBranchStatus("trk_d0", 0);
-  // tree->SetBranchStatus("trk_z0", 0);
-  // tree->SetBranchStatus("trk_theta", 0);
-  // tree->SetBranchStatus("trk_charge", 0);
-  // tree->SetBranchAddress("trk_pt", &trk_pt);
-  // tree->SetBranchAddress("trk_eta", &trk_eta);
-  // tree->SetBranchAddress("trk_phi", &trk_phi);
-  //}
-  //else {
-  // tree->SetBranchStatus("ntrk", 0);
-  // tree->SetBranchStatus("trk_quality_4", 0);
-  // tree->SetBranchStatus("trk_d0", 0);
-  // tree->SetBranchStatus("trk_z0", 0);
-  // tree->SetBranchStatus("trk_theta", 0);
-  // tree->SetBranchStatus("trk_charge", 0);
-  // tree->SetBranchStatus("trk_pt", 0);
-  // tree->SetBranchStatus("trk_eta", 0);
-  // tree->SetBranchStatus("trk_phi", 0);
-  //}
+  if (getTracks) {
+   tree->SetBranchAddress("ntrk", &ntrk);
+   tree->SetBranchAddress("trk_quality_4", &trk_quality_4);
+   //tree->SetBranchAddress("trk_d0", &trk_d0);
+   //tree->SetBranchAddress("trk_z0", &trk_z0);
+   //tree->SetBranchAddress("trk_theta", &trk_theta);
+   //tree->SetBranchAddress("trk_charge", &trk_charge);
+   tree->SetBranchStatus("trk_d0", 0);
+   tree->SetBranchStatus("trk_z0", 0);
+   tree->SetBranchStatus("trk_theta", 0);
+   tree->SetBranchStatus("trk_charge", 0);
+   tree->SetBranchAddress("trk_pt", &trk_pt);
+   tree->SetBranchAddress("trk_eta", &trk_eta);
+   tree->SetBranchAddress("trk_phi", &trk_phi);
+  }
+  else {
+   tree->SetBranchStatus("ntrk", 0);
+   tree->SetBranchStatus("trk_quality_4", 0);
+   tree->SetBranchStatus("trk_d0", 0);
+   tree->SetBranchStatus("trk_z0", 0);
+   tree->SetBranchStatus("trk_theta", 0);
+   tree->SetBranchStatus("trk_charge", 0);
+   tree->SetBranchStatus("trk_pt", 0);
+   tree->SetBranchStatus("trk_eta", 0);
+   tree->SetBranchStatus("trk_phi", 0);
+  }
 
   if (!getSimpleJets) {
 

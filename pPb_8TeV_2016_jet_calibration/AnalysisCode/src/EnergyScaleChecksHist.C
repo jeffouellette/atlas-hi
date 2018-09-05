@@ -1,5 +1,7 @@
 #include "EnergyScaleChecksHist.h"
 
+#include <ArrayTemplates.h>
+
 #include <TF1.h>
 #include <TH1D.h>
 #include <TH2D.h>
@@ -91,23 +93,8 @@ void EnergyScaleChecksHist () {
    }
   }
 
-  int** nJet[2] = {};
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   nJet[iAlgo] = new int*[numpbins+1];
-   for (short iP = 0; iP <= numpbins; iP++) {
-    nJet[iAlgo][iP] = new int[numetabins+1];
-    for (short iEta = 0; iEta <= numetabins; iEta++) {
-     nJet[iAlgo][iP][iEta] = 0;
-    }
-   }
-  }
-  int** nGamma = new int*[numpbins+1];
-  for (short iP = 0; iP <= numpbins; iP++) {
-   nGamma[iP] = new int[numetabins+1];
-   for (short iEta = 0; iEta <= numetabins; iEta++) {
-    nGamma[iP][iEta] = 0;
-   }
-  }
+  int *** nJet = Get3DArray <int> (2, numpbins+1, numetabins+1);
+  int ** nGamma = Get2DArray <int> (numpbins+1, numetabins+1);
 
   {
    TSystemDirectory dir(rootPath.Data(), rootPath.Data());

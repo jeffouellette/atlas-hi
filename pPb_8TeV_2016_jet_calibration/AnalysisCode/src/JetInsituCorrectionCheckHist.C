@@ -267,19 +267,20 @@ void JetInsituCorrectionCheckHist () {
   for (short iEta = 0; iEta < numetabins; iEta++) {
 
    for (short iP = 0; iP < numpbins; iP++) {
-    if (iP <= 0 || iP > 12) continue;
-    jetInsituResponseCanvas->cd(iP);
+    if (iP <= 11) jetInsituResponseCanvas->cd(iP+1);
     TPad* thisPad = (TPad*)jetInsituResponseCanvas->GetPad(iP);
     thisPad->SetTopMargin(0.1);
-    gPad->SetLogy(true);
+    //gPad->SetLogy(true);
 
     TH1D* thisHist = jetInsituResponse[iP]->ProjectionX(Form ("response_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
     TH1D* sysHi = jetInsituResponseSysHi[iP]->ProjectionX(Form ("response_syshi_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
     TH1D* sysLo = jetInsituResponseSysLo[iP]->ProjectionX(Form ("response_syslo_iP%i_iEta%i", iP, iEta), iEta+1, iEta+1);
 
-    thisHist->Scale(1./thisHist->Integral());
-    sysHi->Scale(1./sysHi->Integral());
-    sysLo->Scale(1./sysLo->Integral());
+    if (thisHist->Integral() != 0) {
+     thisHist->Scale(1./thisHist->Integral());
+     sysHi->Scale(1./sysHi->Integral());
+     sysLo->Scale(1./sysLo->Integral());
+    }
 
     //thisHist->Rebin(2);
     //sysHi->Rebin(2);
@@ -304,15 +305,17 @@ void JetInsituCorrectionCheckHist () {
     thisHist->GetYaxis()->SetLabelSize(0.08);
     thisHist->GetXaxis()->SetNdivisions(503);
 
-    thisHist->Draw("e1");
-    //sysHi->Draw("same p");
-    //sysLo->Draw("same p");
+    if (iP <= 11) {
+     thisHist->Draw("e1");
+     //sysHi->Draw("same p");
+     //sysLo->Draw("same p");
 
-    sysGraph->SetFillStyle(1001);
-    sysGraph->SetFillColor(14);
-    sysGraph->Draw("2");
+     //sysGraph->SetFillStyle(1001);
+     //sysGraph->SetFillColor(14);
+     //sysGraph->Draw("2");
 
-    myText (0.18, 0.95, kBlack, Form("%gGeV < #it{p}_{T} < %gGeV", pbins[iP], pbins[iP+1]), 0.08);
+     myText (0.18, 0.95, kBlack, Form("%gGeV < #it{p}_{T} < %gGeV", pbins[iP], pbins[iP+1]), 0.08);
+    }
 
    }
    jetInsituResponseCanvas->cd(1);

@@ -88,7 +88,8 @@ void RtrkComparison (const int dataSet,
     else fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isMCperiodAflag ? ".pPb":".Pbp");
    } else fileIdentifier = inFileName;
 
-   TSystemDirectory dir(dataPath.Data(), dataPath.Data());
+   const TString path = dataPath + "/rtrk_data/";
+   TSystemDirectory dir (path.Data(), path.Data());
    TList* sysfiles = dir.GetListOfFiles();
    if (!sysfiles) {
     cout << "Cannot get list of files! Exiting." << endl;
@@ -104,7 +105,7 @@ void RtrkComparison (const int dataSet,
      if (debugStatements) cout << "Status: In RtrkComparison.C (breakpoint B): Found " << fname.Data() << endl;
      
      if (fname.Contains(fileIdentifier)) {
-      file = new TFile(dataPath+fname, "READ");
+      file = new TFile(path+fname, "READ");
       tree = (TTree*)file->Get("tree");
       break;
      }
@@ -127,32 +128,42 @@ void RtrkComparison (const int dataSet,
   t->SetBranchAddresses();
 
   if (!isMC) {
-   for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
-    Trigger* trig = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerMinPtCuts[electronTriggerN], -2.47, 2.47);
-    trig->minPt = electronTriggerMinPtCuts[electronTriggerN];
-    trig->maxPt = electronTriggerMaxPtCuts[electronTriggerN];
+   //for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
+   // Trigger* trig = new Trigger(electronTriggerNames[electronTriggerN], electronTriggerMinPtCuts[electronTriggerN], -2.47, 2.47);
+   // trig->minPt = electronTriggerMinPtCuts[electronTriggerN];
+   // trig->maxPt = electronTriggerMaxPtCuts[electronTriggerN];
+   // triggers.push_back(trig);
+   // tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(trig->trigBool));
+   // tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(trig->trigPrescale));
+   //}
+
+   //for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
+   // Trigger* trig = new Trigger(muonTriggerNames[muonTriggerN], muonTriggerMinPtCuts[muonTriggerN], -2.40, 2.40);
+   // trig->minPt = muonTriggerMinPtCuts[muonTriggerN];
+   // trig->maxPt = muonTriggerMaxPtCuts[muonTriggerN];
+   // triggers.push_back(trig);
+   // tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(trig->trigBool));
+   // tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(trig->trigPrescale));
+   //}
+
+   //for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
+   // Trigger* trig = new Trigger(photonTriggerNames[photonTriggerN], photonTriggerMinPtCuts[photonTriggerN], -2.47, 2.47);
+   // trig->minPt = photonTriggerMinPtCuts[photonTriggerN];
+   // trig->maxPt = photonTriggerMaxPtCuts[photonTriggerN];
+   // triggers.push_back(trig);
+   // tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(trig->trigBool));
+   // tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(trig->trigPrescale));
+   //}
+
+   for (int jetTriggerN = 0; jetTriggerN < jetTrigLength; jetTriggerN++) {
+    Trigger* trig = new Trigger(jetTriggerNames[jetTriggerN], jetTriggerMinPtCuts[jetTriggerN], -2.47, 2.47);
+    trig->minPt = jetTriggerMinPtCuts[jetTriggerN];
+    trig->maxPt = jetTriggerMaxPtCuts[jetTriggerN];
     triggers.push_back(trig);
-    tree->SetBranchAddress(electronTriggerNames[electronTriggerN], &(trig->trigBool));
-    tree->SetBranchAddress(Form("%s_prescale", electronTriggerNames[electronTriggerN]), &(trig->trigPrescale));
+    tree->SetBranchAddress(jetTriggerNames[jetTriggerN], &(trig->trigBool));
+    tree->SetBranchAddress(Form("%s_prescale", jetTriggerNames[jetTriggerN]), &(trig->trigPrescale));
    }
 
-   for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
-    Trigger* trig = new Trigger(muonTriggerNames[muonTriggerN], muonTriggerMinPtCuts[muonTriggerN], -2.40, 2.40);
-    trig->minPt = muonTriggerMinPtCuts[muonTriggerN];
-    trig->maxPt = muonTriggerMaxPtCuts[muonTriggerN];
-    triggers.push_back(trig);
-    tree->SetBranchAddress(muonTriggerNames[muonTriggerN], &(trig->trigBool));
-    tree->SetBranchAddress(Form("%s_prescale", muonTriggerNames[muonTriggerN]), &(trig->trigPrescale));
-   }
-
-   for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
-    Trigger* trig = new Trigger(photonTriggerNames[photonTriggerN], photonTriggerMinPtCuts[photonTriggerN], -2.47, 2.47);
-    trig->minPt = photonTriggerMinPtCuts[photonTriggerN];
-    trig->maxPt = photonTriggerMaxPtCuts[photonTriggerN];
-    triggers.push_back(trig);
-    tree->SetBranchAddress(photonTriggerNames[photonTriggerN], &(trig->trigBool));
-    tree->SetBranchAddress(Form("%s_prescale", photonTriggerNames[photonTriggerN]), &(trig->trigPrescale));
-   }
   } // end branch triggers
 
   int* jet_n;
@@ -309,8 +320,8 @@ void RtrkComparison (const int dataSet,
      for (int iTrk = 0; iTrk < t->ntrk; iTrk++) {
       if (1e-3 * (t->trk_pt->at(iTrk)) < trk_pt_cut)
        continue; // reject tracks below pT threshold for consistency in data & MC
-      //if (!t->trk_quality_4->at(iTrk))
-      // continue; // cut on track quality
+      if (!t->trk_quality_4->at(iTrk))
+       continue; // cut on track quality
       if (DeltaR (jeta, t->trk_eta->at(iTrk), jphi, t->trk_phi->at(iTrk)) < 0.4) { // if track is within jet cone
        TLorentzVector newTrack;
        newTrack.SetPtEtaPhiM (1e-3 * (t->trk_pt->at(iTrk)), t->trk_eta->at(iTrk), t->trk_phi->at(iTrk), 0);

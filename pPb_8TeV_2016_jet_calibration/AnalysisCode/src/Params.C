@@ -10,7 +10,7 @@ const bool runPeriodA = true; // Analyze period A data
 const bool runPeriodB = true; // Analyze period B data
 const bool runValidation = false; // Use validation (signal only) gamma+jet sample instead of data overlay
 
-const double trk_pt_cut = 0.9;
+const double trk_pt_cut = 1; // Cut on track pt in GeV
 const double jet_pt_cut = 20; // Cut on jet pt
 const double photon_pt_cut = 20; // Cut on photon pt
 const double electron_pt_cut = 20; // Cut on electron pt
@@ -27,7 +27,7 @@ const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit
 
 const bool useGaussian = false; // 
 
-const bool plot_xjref = false; // whether to plot xjref distributions
+const bool plot_xjref = true; // whether to plot xjref distributions
 
 /** End user defined parameters **/
 
@@ -49,11 +49,9 @@ const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 
 const short numpzbins = sizeof(pzbins)/sizeof(pzbins[0]) - 1;
 
 //const double etabins[7] = {-2.5, -1.3, -0.5, 0, 0.5, 1.3, 2.5};
-//const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
-const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 //const double etabins[37] = {-4.4, -3.6, -3.2, -3.0, -2.8, -2.6, -2.4, -2.2, -2.0, -1.8, -1.6, -1.4, -1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.6, 4.4};
-//const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
+const short numetabins = sizeof(etabins)/sizeof(etabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
 const short numXCalibEtabins = sizeof(xcalibEtabins)/sizeof(xcalibEtabins[0]) - 1;

@@ -81,6 +81,8 @@ void JetInsituCorrectionCheck (const int dataSet,
   TreeVariables* t = new TreeVariables (tree, false);
   t->SetGetVertices ();
   t->SetGetHIJets ();
+  t->SetGetPhotons ();
+  t->SetGetElectrons ();
   t->SetBranchAddresses ();
 
   // initialize histograms
@@ -127,7 +129,7 @@ void JetInsituCorrectionCheck (const int dataSet,
    /////////////////////////////////////////////////////////////////////////////
    // fill jet energy response from insitu corrections
    /////////////////////////////////////////////////////////////////////////////
-   for (int j = 0; j < t->jet_n; j++) {
+   for (int j = 0; j < t->akt4hi_jet_n; j++) {
 
     if (t->akt4hi_em_xcalib_jet_pt->at(j) < jet_pt_cut)
      continue; // basic jet pT cut
@@ -191,10 +193,6 @@ void JetInsituCorrectionCheck (const int dataSet,
      jetInsituResponse[iP]->Fill (ratio, etaPlot);
      jetInsituResponseSysHi[iP]->Fill (ratiohi, etaPlot);
      jetInsituResponseSysLo[iP]->Fill (ratiolo, etaPlot);
-     if (-1.3 < etaPlot && etaPlot < -0.5 &&
-         0.94 < ratio && ratio < 0.97) {
-      cout << "Found a weird event! Run: " << dataSet << ", Entry: " << entry << endl;
-     }
     }
 
    } // end jet energy response

@@ -9,6 +9,20 @@ using namespace atlashi;
 
 namespace pPb8TeV2016JetCalibration {
 
+static const short jetTrigLength = 7;
+static const char* jetTriggerNames[jetTrigLength] = {
+ "HLT_j30_ion_0eta490_L1TE10",
+ "HLT_j35_ion_n320eta490_L1TE10",
+ "HLT_j40_ion_L1J5",
+ "HLT_j50_ion_L1J10",
+ "HLT_j60_ion_L1J20",
+ "HLT_j90_ion_L1J20",
+ "HLT_j100_ion_L1J20"
+};
+
+static const float jetTriggerMinPtCuts[jetTrigLength] = {35, 40, 45, 55, 65, 95, 105};
+static const float jetTriggerMaxPtCuts[jetTrigLength] = {40, 45, 55, 65, 95, 105, 100000};
+
 static const short electronTrigLength = 1;
 static const char* electronTriggerNames[electronTrigLength] = {
  "HLT_e15_loose_ion_L1EM12"

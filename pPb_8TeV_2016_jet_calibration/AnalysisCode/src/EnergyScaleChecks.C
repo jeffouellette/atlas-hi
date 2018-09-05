@@ -1,5 +1,7 @@
 #include "EnergyScaleChecks.h"
 
+#include <ArrayTemplates.h>
+
 #include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>

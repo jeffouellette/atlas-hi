@@ -1,5 +1,7 @@
 #include "EMTopoComparison.h"
 
+#include <ArrayTemplates.h>
+
 #include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
@@ -164,43 +166,32 @@ void EMTopoComparison (const int dataSet,
   vector<float>* jet_e;
 
   // initialize histograms
-  TH2D**** zeeJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
-  TH2D**** zmumuJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
-  TH2D**** gJetHists = Get3DArray <TH2D*> (2, 3, numetabins+1);
+  TH3D*** zeeJetHists = Get2DArray <TH3D*> (2, 3);
+  TH3D*** zmumuJetHists = Get2DArray <TH3D*> (2, 3);
+  TH3D*** gJetHists = Get2DArray <TH3D*> (2, 3);
 
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
  
-   for (short iEta = 0; iEta <= numetabins; iEta++) {
-    for (short iErr = 0; iErr < 3; iErr++) {
-     TString error = "sys_lo";
-     if (iErr == 1) error = "stat";
-     else if (iErr == 2) error = "sys_hi";
+   for (short iErr = 0; iErr < 3; iErr++) {
+    TString error = "sys_lo";
+    if (iErr == 1) error = "stat";
+    else if (iErr == 2) error = "sys_hi";
 
-     zeeJetHists[iAlgo][iErr][iEta] = new TH2D(Form("zeeJetPtRatio_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-     zeeJetHists[iAlgo][iErr][iEta]->Sumw2();
-     //zeeJetHistsSys[iAlgo][iErr][iEta] = new TH2D(Form("zeeJetPtRatioSys_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-     //zeeJetHistsSys[iAlgo][iErr][iEta]->Sumw2();
+    zeeJetHists[iAlgo][iErr] = new TH3D(Form("zeeJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data(), algo.Data(), (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zeeJetHists[iAlgo][iErr]->Sumw2();
 
-     zmumuJetHists[iAlgo][iErr][iEta] = new TH2D(Form("zmumuJetPtRatio_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-     zmumuJetHists[iAlgo][iErr][iEta]->Sumw2();
-     //zmumuJetHistsSys[iAlgo][iErr][iEta] = new TH2D(Form("zmumuJetPtRatioSys_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-     //zmumuJetHistsSys[iAlgo][iErr][iEta]->Sumw2();
+    zmumuJetHists[iAlgo][iErr] = new TH3D(Form("zmumuJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data(), algo.Data(), (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iAlgo][iErr]->Sumw2();
 
-     gJetHists[iAlgo][iErr][iEta] = new TH2D(Form("gJetPtRatio_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpbins, pbins, numxjrefbins, xjrefbins);
-     gJetHists[iAlgo][iErr][iEta]->Sumw2();
-     //if (iErr == 1) {
-     // gJetHistsSys[iAlgo][iErr][iEta] = new TH2D(Form("gJetPtRatioSys_dataSet%s_%s_iEta%i_%s_%s", identifier.Data(), algo.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
-     // gJetHistsSys[iAlgo][iErr][iEta]->Sumw2();
-     //}
-
-    }
+    gJetHists[iAlgo][iErr] = new TH3D(Form("gJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data(), algo.Data(), (isMC ? "mc":"data"), error.Data()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    gJetHists[iAlgo][iErr]->Sumw2();
    }
   }
 
-  int** nZeeJet = Get2DArray <int> (2, numetabins+1);
-  int** nZmumuJet = Get2DArray <int> (2, numetabins+1);
-  int** nGammaJet = Get2DArray <int> (2, numetabins+1);
+  int*** nZeeJet = Get3DArray <int> (2, numetabins+1, numpzbins+1);
+  int*** nZmumuJet = Get3DArray <int> (2, numetabins+1, numpzbins+1);
+  int*** nGammaJet = Get3DArray <int> (2, numetabins+1, numpbins+1);
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
 
@@ -323,14 +314,20 @@ void EMTopoComparison (const int dataSet,
       const double Z_m = Z.M();
 
       // Z boson, dielectron cuts
-      if (Z_pt < Z_pt_cut)
-       continue; // pt cut on Z bosons
       if (t->electron_charge->at(e1) == t->electron_charge->at(e2))
        continue; // opposite charge requirement
-
-      // additional Z boson cuts
       if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
        continue; // cut on our sample Z boson mass
+      if (Z_pt < Z_pt_cut)
+       continue; // pt cut on Z bosons
+
+      // Put photon in the right pt bin
+      short iP = 0;
+      if (pzbins[0] < Z_pt &&
+          Z_pt < pzbins[numpzbins]) {
+       while (pzbins[iP] < Z_pt) iP++;
+      }
+      iP--;
 
       // Jet finding
       int lj = -1; // allowed to be in disabled HEC while finding
@@ -375,7 +372,7 @@ void EMTopoComparison (const int dataSet,
       const double sjet_pt = ((0 <= sj && sj < *jet_n) ? jet_pt->at(sj) : 0);
       const double sjet_phi = ((0 <= sj && sj < *jet_n) ? jet_phi->at(sj) : 0);
 
-      // Put the jet in the right eta bin
+      // Put the jet in the right eta, pt bins
       short iEta = 0;
       if (etabins[0] < ljet_eta &&
           ljet_eta < etabins[numetabins]) {
@@ -409,16 +406,14 @@ void EMTopoComparison (const int dataSet,
       // Fill xjref histograms 
       //for (short iErr = 0; iErr < 3; iErr++) zeeJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr]/ptref, weight);
       for (short iErr = 0; iErr < 3; iErr++) {
-       if (iEta != -1) zeeJetHists[iAlgo][iErr][iEta]->Fill (Z_pt, ptratio[iErr], weight);
-       zeeJetHists[iAlgo][iErr][numetabins]->Fill (Z_pt, ptratio[iErr], weight);
+       zeeJetHists[iAlgo][iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
       }
 
       // Increment Z+jet counters
-      if (iEta != -1) nZeeJet[iAlgo][iEta]++;
-      nZeeJet[iAlgo][numetabins]++;
-
-      // Fill additional systematics histograms
-      //for (short iErr = 0; iErr < 3; iErr++) zeeJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
+      if (iEta != -1 && iP != -1) nZeeJet[iAlgo][iEta][iP]++;
+      if (iEta != -1) nZeeJet[iAlgo][iEta][numpbins]++;
+      if (iP != -1) nZeeJet[iAlgo][numetabins][iP]++;
+      nZeeJet[iAlgo][numetabins][numpbins]++;
      }
     } // end loop over electron pairs
     // end Z->ee type events
@@ -490,14 +485,20 @@ void EMTopoComparison (const int dataSet,
       const double Z_m = Z.M();
 
       // Z boson, dimuon cuts
-      if (Z_pt < Z_pt_cut)
-       continue; // pt cut on Z bosons
       if (t->muon_charge->at(m1) == t->muon_charge->at(m2))
        continue; // require oppositely charged muons
-
-      // additional Z boson cuts
       if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
        continue; // cut on our sample Z boson mass
+      if (Z_pt < Z_pt_cut)
+       continue; // pt cut on Z bosons
+
+      // Put photon in the right pt bin
+      short iP = 0;
+      if (pzbins[0] < Z_pt &&
+          Z_pt < pzbins[numpzbins]) {
+       while (pzbins[iP] < Z_pt) iP++;
+      }
+      iP--;
 
       // jet finding
       int lj = -1;
@@ -538,7 +539,7 @@ void EMTopoComparison (const int dataSet,
       const double sjet_pt = ((0 <= sj && sj < *jet_n) ? jet_pt->at(sj) : 0);
       const double sjet_phi = ((0 <= sj && sj < *jet_n) ? jet_phi->at(sj) : 0);
 
-      // Put the jet in the right eta bin
+      // Put the jet in the right eta, pt bins
       short iEta = 0;
       if (etabins[0] < ljet_eta &&
           ljet_eta < etabins[numetabins]) {
@@ -570,20 +571,15 @@ void EMTopoComparison (const int dataSet,
       const double ptratio[3] = {(ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
       // Fill dimuon xjref histograms
-      //for (short iErr = 0; iErr < 3; iErr++)
-      // zmumuJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr]/ptref, weight);
       for (short iErr = 0; iErr < 3; iErr++) {
-       if (iEta != -1) zmumuJetHists[iAlgo][iErr][iEta]->Fill (Z_pt, ptratio[iErr], weight);
-       zmumuJetHists[iAlgo][iErr][numetabins]->Fill (Z_pt, ptratio[iErr], weight);
+       zmumuJetHists[iAlgo][iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
       }
 
       // Increment Z+jet counters
-      if (iEta != -1) nZmumuJet[iAlgo][iEta]++;
-      nZmumuJet[iAlgo][numetabins]++;
-
-      // Fill additional systematics histograms
-      //for (short iErr = 0; iErr < 3; iErr++)
-      // zmumuJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
+      if (iEta != -1 && iP != -1) nZmumuJet[iAlgo][iEta][iP]++;
+      if (iEta != -1) nZmumuJet[iAlgo][iEta][numpbins]++;
+      if (iP != -1) nZmumuJet[iAlgo][numetabins][iP]++;
+      nZmumuJet[iAlgo][numetabins][numpbins]++;
      }
     } // end loop over muon pairs
     // end Z->mumu type events
@@ -619,10 +615,6 @@ void EMTopoComparison (const int dataSet,
              trig->minPt <= photon_pt &&
              photon_pt <= trig->maxPt)))
         photonTrigger = trig;
-       //if (trig->trigPrescale > 0 &&
-       //    trig->minPt <= photon_pt &&
-       //    photon_pt <= trig->maxPt)
-       // photonTrigger = trig;
       }
       if (photonTrigger == NULL ||
           !photonTrigger->trigBool)
@@ -639,6 +631,14 @@ void EMTopoComparison (const int dataSet,
       weight = photonTrigger->trigPrescale;
      }
      else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+
+     // Put photon in the right pt bin
+     short iP = 0;
+     if (pbins[0] < photon_pt &&
+         photon_pt < pbins[numpbins]) {
+      while (pbins[iP] < photon_pt) iP++;
+     }
+     iP--;
 
      // jet finding
      int lj = -1; // allowed to be in HEC when finding
@@ -688,7 +688,7 @@ void EMTopoComparison (const int dataSet,
      //const double sjet_pt = ((0 <= sj && sj < *jet_n) ? jet_pt->at(sj) : 0);
      //const double sjet_phi = ((0 <= sj && sj < *jet_n) ? jet_phi->at(sj) : 0);
 
-     // Put the jet in the right eta bin
+     // Put the jet in the right eta, pt bins
      short iEta = 0;
      if (etabins[0] < ljet_eta &&
          ljet_eta < etabins[numetabins]) {
@@ -739,21 +739,14 @@ void EMTopoComparison (const int dataSet,
 
      // Fill xjref histograms
      for (short iErr = 0; iErr < 3; iErr++) {
-      if (iEta != -1) gJetHists[iAlgo][iErr][iEta]->Fill (photon_pt, ptratio[iErr], weight);
-      gJetHists[iAlgo][iErr][numetabins]->Fill (photon_pt, ptratio[iErr], weight);
+      gJetHists[iAlgo][iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
      }
 
-     // if data, calculate additional systematics for this jet
-     //if (!isMC) {
-     // const double newJetPtSys = GetNewXCalibSystematicError (ljet_eta, photon_pt) / ljet_pt;
-     // if (iEta != -1) gJetHistsSys[iAlgo][1][iEta]->Fill (ljet_pt, newJetPtSys, weight);
-     // gJetHistsSys[iAlgo][1][numetabins]->Fill (ljet_pt, newJetPtSys, weight);
-     //}
-
      // Increment gamma+jet counters
-     if (iEta != -1)
-      nGammaJet[iAlgo][iEta]++;
-     nGammaJet[iAlgo][numetabins]++;
+     if (iEta != -1 && iP != -1) nGammaJet[iAlgo][iEta][iP]++;
+     if (iEta != -1) nGammaJet[iAlgo][iEta][numpbins]++;
+     if (iP != -1) nGammaJet[iAlgo][numetabins][iP]++;
+     nGammaJet[iAlgo][numetabins][numpbins]++;
 
     }
    } // end loop over jet algorithms
@@ -775,14 +768,16 @@ void EMTopoComparison (const int dataSet,
 
   // Write histograms to output and clean memory
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   for (short iEta = 0; iEta <= numetabins; iEta++) {
-    for (short iErr = 0; iErr < 3; iErr++) {
-     zmumuJetHists[iAlgo][iErr][iEta]->Write();
-     zeeJetHists[iAlgo][iErr][iEta]->Write();
-     gJetHists[iAlgo][iErr][iEta]->Write();
-    }
+   for (short iErr = 0; iErr < 3; iErr++) {
+    zmumuJetHists[iAlgo][iErr]->Write();
+    zeeJetHists[iAlgo][iErr]->Write();
+    gJetHists[iAlgo][iErr]->Write();
    }
   }
+
+  Delete2DArray (zeeJetHists, 2, 3);
+  Delete2DArray (zmumuJetHists, 2, 3);
+  Delete2DArray (gJetHists, 2, 3);
 
   TVectorD infoVec(2);
   infoVec[0] = luminosity;
@@ -794,23 +789,25 @@ void EMTopoComparison (const int dataSet,
   jetCleaningVec[1] = nCleanJets;
   jetCleaningVec.Write(Form("jetCleaningVec_%s", identifier.Data()));
 
-  TVectorD nZeeJetVec(2*(numetabins+1));
-  TVectorD nZmumuJetVec(2*(numetabins+1));
-  TVectorD nGammaJetVec(2*(numetabins+1));
+  TVectorD nZeeJetVec(2*(numetabins+1)*(numpzbins+1));
+  TVectorD nZmumuJetVec(2*(numetabins+1)*(numpzbins+1));
+  TVectorD nGammaJetVec(2*(numetabins+1)*(numpbins+1));
+
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    for (short iEta = 0; iEta <= numetabins; iEta++) {
-    nZeeJetVec[iEta + iAlgo*(numetabins+1)] = (double)nZeeJet[iAlgo][iEta];
-    nZmumuJetVec[iEta + iAlgo*(numetabins+1)] = (double)nZmumuJet[iAlgo][iEta];
-    nGammaJetVec[iEta + iAlgo*(numetabins+1)] = (double)nGammaJet[iAlgo][iEta];
+    for (short iP = 0; iP <= numpzbins; iP++) {
+     nZeeJetVec[iAlgo + 2*(iEta + iP*(numetabins+1))] = (double)nZeeJet[iAlgo][iEta][iP];
+     nZmumuJetVec[iAlgo + 2*(iEta + iP*(numetabins+1))] = (double)nZmumuJet[iAlgo][iEta][iP];
+    }
+    for (short iP = 0; iP <= numpbins; iP++) {
+     nGammaJetVec[iAlgo + 2*(iEta + iP*(numetabins+1))] = (double)nGammaJet[iAlgo][iEta][iP];
+    }
    }
   }
 
-  Delete3DArray (zeeJetHists, 2, 3, numetabins+1);
-  Delete3DArray (zmumuJetHists, 2, 3, numetabins+1);
-  Delete3DArray (gJetHists, 2, 3, numetabins+1);
-  Delete2DArray (nZeeJet, 2, numetabins+1);
-  Delete2DArray (nZmumuJet, 2, numetabins+1);
-  Delete2DArray (nGammaJet, 2, numetabins+1);
+  Delete3DArray (nZeeJet, 2, numetabins+1, numpzbins+1);
+  Delete3DArray (nZmumuJet, 2, numetabins+1, numpzbins+1);
+  Delete3DArray (nGammaJet, 2, numetabins+1, numpbins+1);
 
   nZeeJetVec.Write(Form("nZeeJetVec_%s", identifier.Data()));
   nZmumuJetVec.Write(Form("nZmumuJetVec_%s", identifier.Data()));

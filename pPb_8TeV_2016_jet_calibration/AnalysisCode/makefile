@@ -1,7 +1,7 @@
 CXXFLAGS=-shared -Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH)/include -I$(CALIB_PATH)/AnalysisCode/include
 LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(CALIB_PATH)/AnalysisCode/lib -lGlobalParams -lInitialization -lTrigger -lAtlas -ldl
 
-all : Params TreeVariables RooZfit EMTopoComparison EMTopoComparisonHist ElectronContaminationStudy ElectronContaminationStudyHist EnergyScaleChecks EnergyScaleChecksHist FCalDistribution FCalDistributionHist JetInsituCorrectionCheck JetInsituCorrectionCheckHist RtrkComparison RtrkComparisonHist ZGammaJetCrossCheck ZGammaJetCrossCheckHist
+all : Params TreeVariables RooZfit EMTopoComparison EMTopoComparisonHist ElectronContaminationStudy ElectronContaminationStudyHist EnergyScaleChecks EnergyScaleChecksHist FCalDistribution FCalDistributionHist JetInsituCorrectionCheck JetInsituCorrectionCheckHist RtrkComparison RtrkComparisonHist ZGammaJetCrossCheck ZGammaJetCrossCheckHist ZMassCalc ZMassCalcHist
 
 Params : src/Params.C
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(CALIB_PATH)/AnalysisCode/lib/libParams.so $(CALIB_PATH)/AnalysisCode/src/Params.C
@@ -53,6 +53,12 @@ ZGammaJetCrossCheck : src/ZGammaJetCrossCheck.C
 
 ZGammaJetCrossCheckHist : src/ZGammaJetCrossCheckHist.C
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lParams -o $(CALIB_PATH)/AnalysisCode/lib/libZGammaJetCrossCheckHist.so $(CALIB_PATH)/AnalysisCode/src/ZGammaJetCrossCheckHist.C
+
+ZMassCalc : src/ZMassCalc.C
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lParams -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libZMassCalc.so $(CALIB_PATH)/AnalysisCode/src/ZMassCalc.C
+
+ZMassCalcHist : src/ZMassCalcHist.C
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lParams -o $(CALIB_PATH)/AnalysisCode/lib/libZMassCalcHist.so $(CALIB_PATH)/AnalysisCode/src/ZMassCalcHist.C
 
 clean :
 	rm -rf ./lib/*.so*
