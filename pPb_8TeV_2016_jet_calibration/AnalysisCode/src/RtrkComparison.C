@@ -321,7 +321,7 @@ void RtrkComparison (const int dataSet,
      for (int iTrk = 0; iTrk < t->ntrk; iTrk++) {
       if (1e-3 * (t->trk_pt->at(iTrk)) < trk_pt_cut)
        continue; // reject tracks below pT threshold for consistency in data & MC
-      if (!t->trk_quality_4->at(iTrk))
+      if (t->trk_quality_4->at(iTrk))
        continue; // cut on track quality
       if (DeltaR (jeta, t->trk_eta->at(iTrk), jphi, t->trk_phi->at(iTrk)) < 0.4) { // if track is within jet cone
        TLorentzVector newTrack;
