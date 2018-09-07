@@ -1,6 +1,4 @@
 # General
-*.DS_Store
-*.swp
 cernvm3-micro-2.8-6.iso
 *.key
 lib
@@ -8,11 +6,11 @@ lib
 *.zip
 
 # 2016 pPb dijets
-pPb_8TeV_2016_dijetAnalysis/AnalysisCode/lib/*
-pPb_8TeV_2016_dijetAnalysis/data/*
-pPb_8TeV_2016_dijetAnalysis/rootFiles/*
+pPb_8TeV_2016_dijetAnalysis/AnalysisCode/lib
+pPb_8TeV_2016_dijetAnalysis/data
+pPb_8TeV_2016_dijetAnalysis/rootFiles
 pPb_8TeV_2016_dijetAnalysis/HepData*
-pPb_8TeV_2016_dijetAnalysis/Slides*
+pPb_8TeV_2016_dijetAnalysis/Slides
 pPb_8TeV_2016_dijetAnalysis/Derivation/*.root
 pPb_8TeV_2016_dijetAnalysis/Plots
 
@@ -23,9 +21,9 @@ pPb_8TeV_2016_dijetAnalysis/Validation/*.pdf
 pp_5TeV_2017_offlineElectronAnalysis/Data/
 
 # 2016 8TeV pPb jet calibration
-pPb_8TeV_2016_jet_calibration/AnalysisCode/lib/*
-pPb_8TeV_2016_jet_calibration/data/*
-pPb_8TeV_2016_jet_calibration/rootFiles/*
+pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
+pPb_8TeV_2016_jet_calibration/data
+pPb_8TeV_2016_jet_calibration/rootFiles
 pPb_8TeV_2016_jet_calibration/old_calib
 pPb_8TeV_2016_jet_calibration/pPb_dR2
 pPb_8TeV_2016_jet_calibration/pPb_dR4
@@ -37,7 +35,7 @@ pPb_8TeV_2016_jet_calibration/Pbp_R4_dR2
 pPb_8TeV_2016_jet_calibration/Pbp_R4_dR4
 pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
 pPb_8TeV_2016_jet_calibration/Plots
-pPb_8TeV_2016_jet_calibration/Slides*
+pPb_8TeV_2016_jet_calibration/Slides
 pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
 pPb_8TeV_2016_jet_calibration/runFiles/lib
 

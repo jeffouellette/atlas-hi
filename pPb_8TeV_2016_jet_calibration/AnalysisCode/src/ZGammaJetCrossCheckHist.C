@@ -598,6 +598,8 @@ void ZGammaJetCrossCheckHist () {
      vJetHist_rat->SetAxisRange (0.85, 1.15, "Y");
      //vJetHist_rat->SetAxisRange (0.75, 1.35, "Y");
      vJetHist_rat->SetMarkerStyle (dataStyle);
+     vJetHist_rat->SetMarkerColor (dataColor);
+     vJetHist_rat->SetLineColor (dataColor);
      vJetHist_rat->GetYaxis()->SetNdivisions (405);
      vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
      vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
@@ -726,6 +728,8 @@ void ZGammaJetCrossCheckHist () {
      vJetHist_rat->SetAxisRange (0.85, 1.15, "Y");
      //vJetHist_rat->SetAxisRange (0.75, 1.35, "Y");
      vJetHist_rat->SetMarkerStyle (dataStyle);
+     vJetHist_rat->SetMarkerColor (dataColor);
+     vJetHist_rat->SetLineColor (dataColor);
      vJetHist_rat->GetYaxis()->SetNdivisions (405);
      vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
      vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
@@ -893,6 +897,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist_rat->SetAxisRange (0.91, 1.09, "Y");
       vJetHist_rat->SetMarkerStyle (iMC == 1 ? dataStyle:mcSignalStyle);
       vJetHist_rat->SetMarkerColor (iMC == 1 ? dataColor:mcSignalColor);
+      vJetHist_rat->SetLineColor (iMC == 1 ? dataColor:mcSignalColor);
       vJetHist_rat->GetYaxis()->SetNdivisions (405);
       vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
       vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
@@ -1178,6 +1183,8 @@ void ZGammaJetCrossCheckHist () {
      vJetHist_rat->SetAxisRange (0.85, 1.15, "Y");
      //vJetHist_rat->SetAxisRange (0.75, 1.35, "Y");
      vJetHist_rat->SetMarkerStyle (dataStyle);
+     vJetHist_rat->SetMarkerColor (dataColor);
+     vJetHist_rat->SetLineColor (dataColor);
      vJetHist_rat->GetYaxis()->SetNdivisions (405);
      vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
      vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
@@ -1306,6 +1313,8 @@ void ZGammaJetCrossCheckHist () {
      vJetHist_rat->SetAxisRange (0.85, 1.15, "Y");
      //vJetHist_rat->SetAxisRange (0.75, 1.35, "Y");
      vJetHist_rat->SetMarkerStyle (dataStyle);
+     vJetHist_rat->SetMarkerColor (dataColor);
+     vJetHist_rat->SetLineColor (dataColor);
      vJetHist_rat->GetYaxis()->SetNdivisions (405);
      vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
      vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
@@ -1487,6 +1496,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist_rat->SetAxisRange (0.91, 1.09, "Y");
       vJetHist_rat->SetMarkerStyle (iMC == 1 ? dataStyle:mcSignalStyle);
       vJetHist_rat->SetMarkerColor (iMC == 1 ? dataColor:mcSignalColor);
+      vJetHist_rat->SetLineColor (iMC == 1 ? dataColor:mcSignalColor);
       vJetHist_rat->GetYaxis()->SetNdivisions (405);
       vJetHist_rat->GetXaxis()->SetTitleSize (0.04/dPadY);
       vJetHist_rat->GetYaxis()->SetTitleSize (0.04/dPadY);
