@@ -665,6 +665,23 @@ void TreeVariables :: PrintAll (const long long entry) {
    }
   }
 
+  if (getTracks) {
+   cout << endl << "Tracks:" << endl;
+   cout << setw(2) << "#"
+        << setw(10) << "Quality"
+        << setw(10) << "Pt"
+        << setw(10) << "Eta"
+        << setw(10) << "Phi" << endl;
+
+   for (int j = 0; j < ntrk; j++) {
+     cout << setw(10) << j
+          << setw(10) << trk_quality_4->at(j)
+          << setw(10) << trk_pt->at(j)
+          << setw(10) << trk_eta->at(j)
+          << setw(10) << trk_phi->at(j) << endl;
+   }
+  }
+
   if (getElectrons) {
    cout << endl << "Calibrated electrons:" << endl;
    cout << setw(2) << "#"

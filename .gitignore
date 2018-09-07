@@ -4,6 +4,8 @@
 cernvm3-micro-2.8-6.iso
 *.key
 lib
+*.pdf
+*.zip
 
 # 2016 pPb dijets
 pPb_8TeV_2016_dijetAnalysis/data/*

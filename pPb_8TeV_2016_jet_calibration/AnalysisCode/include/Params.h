@@ -24,8 +24,10 @@ extern const double Z_mass_upper_cut;
 extern const double isolationEnergyIntercept; // Cut on photon isolation energy [GeV]
 extern const double isolationEnergySlope; // Slope of photon isolation energy cut
 
-extern const Color_t data_color; // plot color for data
-extern const Color_t mc_color; // plot color for MC
+extern const Color_t dataColor; // plot color for data
+extern const Color_t mcOverlayColor; // plot color for MC overlay
+extern const Color_t mcSignalColor; // plot color for MC signal
+
 extern const double Z_mass_fitNsigma; // Number of sigma around the Z mass to fit invariant mass peak
 
 extern const bool useGaussian; // 

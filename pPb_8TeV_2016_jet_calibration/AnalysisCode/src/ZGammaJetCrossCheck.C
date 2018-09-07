@@ -81,7 +81,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";
@@ -99,9 +99,9 @@ void ZGammaJetCrossCheck (const int dataSet,
                           const TString inFileName)
 {
 
-  SetupDirectories("/2015factors/", "pPb_8TeV_2016_jet_calibration/");
+  SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = isMC && (TString(inFileName).Contains("valid"));
+  const bool isSignalOnlySample = isMC && (TString(inFileName).Contains("signalonly"));
   const TString identifier = GetIdentifier(dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
@@ -112,7 +112,10 @@ void ZGammaJetCrossCheck (const int dataSet,
    TString fileIdentifier;
    if (inFileName == "") {
     if (!isMC) fileIdentifier = to_string(dataSet);
-    else fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
+    else {
+     cout << "Cannot identify this MC file! Exiting." << endl;
+     return;
+    }
    } else fileIdentifier = inFileName;
 
    const TString dataPathTemp = dataPath;// + "/data810/";
@@ -191,27 +194,33 @@ void ZGammaJetCrossCheck (const int dataSet,
   TH3D** gJetHists = Get1DArray <TH3D*> (3);
   //TH2D* gJetHistsSys[3][numetabins+1];
 
-  for (short iErr = 0; iErr < 3; iErr++) {
-   TString error = "sys_lo";
-   if (iErr == 1) error = "stat";
-   else if (iErr == 2) error = "sys_hi";
+  {
+   TString data = "data";
+   if (isMC && !isSignalOnlySample) data = "mc_overlay";
+   else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   zeeJetHists[iErr] = new TH3D(Form("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data(), (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
-   zeeJetHists[iErr]->Sumw2();
-   //zeeJetHistsSys[iErr][iEta] = new TH2D(Form("zeeJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-   //zeeJetHistsSys[iErr][iEta]->Sumw2();
+   for (short iErr = 0; iErr < 3; iErr++) {
+    TString error = "sys_lo";
+    if (iErr == 1) error = "stat";
+    else if (iErr == 2) error = "sys_hi";
 
-   zmumuJetHists[iErr] = new TH3D(Form("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data(), (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
-   zmumuJetHists[iErr]->Sumw2();
-   //zmumuJetHistsSys[iErr][iEta] = new TH2D(Form("zmumuJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-   //zmumuJetHistsSys[iErr][iEta]->Sumw2();
+    zeeJetHists[iErr] = new TH3D(Form("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data(), data.Data(), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zeeJetHists[iErr]->Sumw2();
+    //zeeJetHistsSys[iErr][iEta] = new TH2D(Form("zeeJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, data.Data(), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    //zeeJetHistsSys[iErr][iEta]->Sumw2();
 
-   gJetHists[iErr] = new TH3D(Form("gJetPtRatio_dataSet%s_%s_%s", identifier.Data(), (isMC ? "mc":"data"), error.Data()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-   gJetHists[iErr]->Sumw2();
-   //if (iErr == 1) {
-   // gJetHistsSys[iErr][iEta] = new TH2D(Form("gJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, (isMC ? "mc":"data"), error.Data()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
-   // gJetHistsSys[iErr][iEta]->Sumw2();
-   //}
+    zmumuJetHists[iErr] = new TH3D(Form("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data(), data.Data(), error.Data()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iErr]->Sumw2();
+    //zmumuJetHistsSys[iErr][iEta] = new TH2D(Form("zmumuJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, data.Data(), error.Data()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
+    //zmumuJetHistsSys[iErr][iEta]->Sumw2();
+
+    gJetHists[iErr] = new TH3D(Form("gJetPtRatio_dataSet%s_%s_%s", identifier.Data(), data.Data(), error.Data()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    gJetHists[iErr]->Sumw2();
+    //if (iErr == 1) {
+    // gJetHistsSys[iErr][iEta] = new TH2D(Form("gJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data(), iEta, data.Data(), error.Data()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
+    // gJetHistsSys[iErr][iEta]->Sumw2();
+    //}
+   }
   }
 
   int** nZeeJet = Get2DArray <int> (numetabins+1, numpzbins+1);
@@ -228,13 +237,6 @@ void ZGammaJetCrossCheck (const int dataSet,
   //////////////////////////////////////////////////////////////////////////////
   for (long long entry = 0; entry < numEntries; entry++) {
    tree->GetEntry(entry);
-
-   //if (t->eventNumber == 150852815 && t->runNumber == 313929) {
-   // cout << "In run 313929, event 150852815..." << endl;
-   // for (int j = 0; j < t->jet_n; j++) {
-   //  cout << t->jet_pt->at(j) << endl;
-   // }
-   //}
 
 
    /////////////////////////////////////////////////////////////////////////////

@@ -19,11 +19,11 @@ wait
 
 # Zmumu (data overlay) and Zee (signal only) samples for period A
 ./lib/runEnergyScaleChecks 0 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.pPb_myOutput.root &
-./lib/runEnergyScaleChecks -6 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 0 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &
 
 # ... and for period B
 ./lib/runEnergyScaleChecks 0 false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.Pbp_myOutput.root &
-./lib/runEnergyScaleChecks -6 false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
+./lib/runEnergyScaleChecks 0 false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
 
 wait
 

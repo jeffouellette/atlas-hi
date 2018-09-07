@@ -34,10 +34,10 @@ TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double
     projy->Fit(gaus, "Q0R");
     mean = gaus->GetParameter(1);
     mean_err = gaus->GetParError(1);
-    chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
+    //chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
     if (gaus) delete gaus;
    }
-   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
+   if (!useGaussian || !useFit /*|| chi_square > 1.0*/ || numNonzeroBins <= 4) {
     mean = projy->GetMean();
     mean_err = projy->GetMeanError();
    }
@@ -425,7 +425,7 @@ void RtrkComparisonHist () {
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
      topPad->cd();
      topPad->SetLogx();
-     jetRtrkHist = GetProfileX(Form("jetRtrk_Hist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, false);
+     jetRtrkHist = GetProfileX(Form("jetRtrk_Hist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, true);
      jetRtrkGraph_sys = new TGraphAsymmErrors(jetRtrkHist); // for plotting systematics
      jetRtrkHist->SetYTitle("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{calo}>");
      jetRtrkHist->SetAxisRange(0., 2.0, "Y");
@@ -438,15 +438,15 @@ void RtrkComparisonHist () {
      jetRtrkHist->GetYaxis()->SetTitleOffset(uPadY);
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     jetRtrkHist_lo = GetProfileX("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpzbins, pzbins, false);
-     jetRtrkHist_hi = GetProfileX("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpzbins, pzbins, false);
+     jetRtrkHist_lo = GetProfileX("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpzbins, pzbins, true);
+     jetRtrkHist_hi = GetProfileX("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpzbins, pzbins, true);
      CalcSystematics(jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
      if (jetRtrkHist_lo) delete jetRtrkHist_lo;
      if (jetRtrkHist_hi) delete jetRtrkHist_hi;
      jetRtrkGraph_sys->SetFillColor(kBlack);
      jetRtrkGraph_sys->SetFillStyle(3001);
 
-     jetRtrkHist_mc = GetProfileX(Form("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
+     jetRtrkHist_mc = GetProfileX(Form("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, true);
      jetRtrkHist_mc->SetMarkerStyle(markerStyle);
      jetRtrkHist_mc->SetMarkerColor(mc_color);
      jetRtrkHist_mc->SetLineColor(mc_color);
@@ -458,7 +458,7 @@ void RtrkComparisonHist () {
 
      if (iAlgo == 0) {
       myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);

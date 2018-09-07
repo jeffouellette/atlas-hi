@@ -340,6 +340,8 @@ void RtrkComparison (const int dataSet,
        jetRtrkHists[iAlgo][iErr][iEta]->Fill (jpt, sum_trk_pt / jpts[iErr], weight);
      }
      nJet[iAlgo][iEta]++;
+
+     //if (sum_trk_pt == 0 && abs(jeta) < 2.1) cout << entry << endl;
      
     } // end jet loop
 

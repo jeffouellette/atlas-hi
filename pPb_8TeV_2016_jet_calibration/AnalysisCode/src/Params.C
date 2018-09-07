@@ -8,9 +8,9 @@ namespace pPb8TeV2016JetCalibration {
 
 const bool runPeriodA = true; // Analyze period A data
 const bool runPeriodB = true; // Analyze period B data
-const bool runValidation = false; // Use validation (signal only) gamma+jet sample instead of data overlay
+const bool runValidation = true; // Use validation (signal only) gamma+jet sample instead of data overlay
 
-const double trk_pt_cut = 1; // Cut on track pt in GeV
+const double trk_pt_cut = 0.5; // Cut on track pt in GeV
 const double jet_pt_cut = 20; // Cut on jet pt
 const double photon_pt_cut = 20; // Cut on photon pt
 const double electron_pt_cut = 20; // Cut on electron pt
@@ -21,8 +21,10 @@ const double Z_mass_upper_cut = 15;
 const double isolationEnergyIntercept = 4.8; // Cut on photon isolation energy [GeV]
 const double isolationEnergySlope = 0.0042; // Slope of photon isolation energy cut
 
-const Color_t data_color = kBlack; // plot color for data
-const Color_t mc_color = kRed; // plot color for MC
+const Color_t dataColor = kBlack; // plot color for data
+const Color_t mcOverlayColor = kRed; // plot color for MC overlay
+const Color_t mcSignalColor = kBlue; // plot color for MC signal
+
 const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit invariant mass peak
 
 const bool useGaussian = false; // 
