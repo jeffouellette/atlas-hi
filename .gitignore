@@ -8,6 +8,7 @@ lib
 *.zip
 
 # 2016 pPb dijets
+pPb_8TeV_2016_dijetAnalysis/AnalysisCode/lib/*
 pPb_8TeV_2016_dijetAnalysis/data/*
 pPb_8TeV_2016_dijetAnalysis/rootFiles/*
 pPb_8TeV_2016_dijetAnalysis/HepData*
@@ -22,6 +23,7 @@ pPb_8TeV_2016_dijetAnalysis/Validation/*.pdf
 pp_5TeV_2017_offlineElectronAnalysis/Data/
 
 # 2016 8TeV pPb jet calibration
+pPb_8TeV_2016_jet_calibration/AnalysisCode/lib/*
 pPb_8TeV_2016_jet_calibration/data/*
 pPb_8TeV_2016_jet_calibration/rootFiles/*
 pPb_8TeV_2016_jet_calibration/old_calib
