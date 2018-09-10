@@ -35,8 +35,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 }
 
 
-TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
-  if (!isMC) return to_string(dataSet);
+TString GetIdentifier (const int dataSet, const TString inFileName, const bool isSignalOnlySample, const bool periodA) {
 
   TString id = (periodA ? "pPb_" : "Pbp_");
 
@@ -52,7 +51,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";
@@ -70,7 +69,7 @@ void EnergyScaleChecks (const int dataSet,
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = TString(inFileName).Contains("valid");
+  const bool isSignalOnlySample = TString(inFileName).Contains("signalonly");
   const TString identifier = GetIdentifier(dataSet, inFileName, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
@@ -121,26 +120,23 @@ void EnergyScaleChecks (const int dataSet,
   t->SetBranchAddresses();
 
   // initialize histograms
-  TH2D* lowResponseEtaPhi[2];
-  TH2D* highResponseEtaPhi[2];
-  TH2D* lowResponseEtaPt[2];
-  TH2D* highResponseEtaPt[2];
-  TH2D* responsePt[2];
-  TH1D* jetSpectrum[2];
+  TH2D** lowResponseEtaPhi = Get1DArray <TH2D*> (2);
+  TH2D** highResponseEtaPhi = Get1DArray <TH2D*> (2);
+  TH2D** lowResponseEtaPt = Get1DArray <TH2D*> (2);
+  TH2D** highResponseEtaPt = Get1DArray <TH2D*> (2);
+  TH2D** responsePt = Get1DArray <TH2D*> (2);
+  TH1D** jetSpectrum = Get1DArray <TH1D*> (2);
 
-  lowResponseEtaPhi[0] = new TH2D (Form ("akt4hi_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  lowResponseEtaPhi[1] = new TH2D (Form ("akt4emtopo_lowResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  highResponseEtaPhi[0] = new TH2D (Form ("akt4hi_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  highResponseEtaPhi[1] = new TH2D (Form ("akt4emtopo_highResponseEtaPhi_dataSet%s", identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  lowResponseEtaPt[0] = new TH2D (Form ("akt4hi_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-  lowResponseEtaPt[1] = new TH2D (Form ("akt4emtopo_lowResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-  highResponseEtaPt[0] = new TH2D (Form ("akt4hi_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-  highResponseEtaPt[1] = new TH2D (Form ("akt4emtopo_highResponseEtaPt_dataSet%s", identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-  responsePt[0] = new TH2D (Form ("akt4hi_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
-  responsePt[1] = new TH2D (Form ("akt4emtopo_responsePt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
+  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+   const TString algo = (iAlgo == 0 ? "akt4hi":"akt4emtopo");
+   lowResponseEtaPhi[iAlgo] = new TH2D (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+   highResponseEtaPhi[iAlgo] = new TH2D (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
+   lowResponseEtaPt[iAlgo] = new TH2D (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
+   highResponseEtaPt[iAlgo] = new TH2D (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
+   responsePt[iAlgo] = new TH2D (Form ("%s_responsePt_dataSet%s", algo.Data(), identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
 
-  jetSpectrum[0] = new TH1D (Form ("akt4hi_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
-  jetSpectrum[1] = new TH1D (Form ("akt4emtopo_jetPt_dataSet%s", identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
+   jetSpectrum[iAlgo] = new TH1D (Form ("%s_jetPt_dataSet%s", algo.Data(), identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
+  }
 
   TH1D* electronEnergyScale = new TH1D (Form ("electronEnergyScale_dataSet%s", identifier.Data()), "", 200, 0, 2);
   electronEnergyScale->Sumw2();

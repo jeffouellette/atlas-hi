@@ -7,14 +7,14 @@ namespace pPb8TeV2016JetCalibration {
 
 static const short electronTrigLength = 1;
 static const char* electronTriggerNames[electronTrigLength] = {
- "HLT_e15_loose_ion_L1EM12"
+ "HLT_e15_lhloose_nod0"
 };
 static const float electronTriggerMinPtCuts[electronTrigLength] = {15};
 static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000};
 
 static const short muonTrigLength = 1;
 static const char* muonTriggerNames[muonTrigLength] = {
- "HLT_mu8",
+ "HLT_mu15",
 };
 static const float muonTriggerMinPtCuts[muonTrigLength] = {8};
 static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};

@@ -57,7 +57,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";
@@ -77,7 +77,7 @@ void EMTopoComparison (const int dataSet,
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = isMC && TString(inFileName).Contains("valid");
+  const bool isSignalOnlySample = isMC && (TString(inFileName).Contains("signalonly"));
   const TString identifier = GetIdentifier (dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 

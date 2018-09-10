@@ -53,7 +53,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";

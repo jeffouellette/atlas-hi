@@ -430,8 +430,8 @@ void RtrkComparisonHist () {
      jetRtrkHist->SetYTitle("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{calo}>");
      jetRtrkHist->SetAxisRange(0., 2.0, "Y");
      jetRtrkHist->SetMarkerStyle(markerStyle);
-     jetRtrkHist->SetMarkerColor(data_color);
-     jetRtrkHist->SetLineColor(data_color);
+     jetRtrkHist->SetMarkerColor(dataColor);
+     jetRtrkHist->SetLineColor(dataColor);
      jetRtrkHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      jetRtrkHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      jetRtrkHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -448,8 +448,8 @@ void RtrkComparisonHist () {
 
      jetRtrkHist_mc = GetProfileX(Form("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, true);
      jetRtrkHist_mc->SetMarkerStyle(markerStyle);
-     jetRtrkHist_mc->SetMarkerColor(mc_color);
-     jetRtrkHist_mc->SetLineColor(mc_color);
+     jetRtrkHist_mc->SetMarkerColor(mcOverlayColor);
+     jetRtrkHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) jetRtrkHist->DrawCopy("e1 x0");
      else jetRtrkHist->DrawCopy("same e1 x0");
@@ -457,8 +457,8 @@ void RtrkComparisonHist () {
      jetRtrkGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);

@@ -17,6 +17,16 @@ wait
 
 wait
 
+# alternative validation signal-only gamma+jet sample (period A only!)
+./lib/runEnergyScaleChecks 1 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423100.Slice1.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423101.Slice2.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 3 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423102.Slice3.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 4 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423103.Slice4.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 5 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423104.Slice5.pPb_myOutput.root &
+./lib/runEnergyScaleChecks 6 true user.jeouelle.2.4.30hi.calibcheck.signalonly.310.mc15_8TeV.423105.Slice6.pPb_myOutput.root &
+
+wait
+
 # Zmumu (data overlay) and Zee (signal only) samples for period A
 ./lib/runEnergyScaleChecks 0 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.pPb_myOutput.root &
 ./lib/runEnergyScaleChecks 0 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &

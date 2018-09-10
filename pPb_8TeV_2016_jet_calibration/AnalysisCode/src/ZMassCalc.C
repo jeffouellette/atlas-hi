@@ -1,4 +1,4 @@
-#include "ZGammaJetCrossCheck.h"
+#include "ZMassCalc.h"
 
 #include <ArrayTemplates.h>
 
@@ -34,7 +34,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "ZeeJet" : "ZeeJet_Slice" + to_string (dataSet));
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";
@@ -45,7 +45,7 @@ TString GetIdentifier (const int dataSet, const TString inFileName, const bool i
 }
 
 
-void ZGammaJetCrossCheck (const int dataSet,
+void ZMassCalc (const int dataSet,
                           const double luminosity,
                           const bool isMC, 
                           const bool isPeriodA,
@@ -54,7 +54,7 @@ void ZGammaJetCrossCheck (const int dataSet,
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = isMC && (TString(inFileName).Contains("valid"));
+  const bool isSignalOnlySample = isMC && (TString(inFileName).Contains("signalonly"));
   const TString identifier = GetIdentifier(dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
@@ -82,7 +82,7 @@ void ZGammaJetCrossCheck (const int dataSet,
    while ((sysfile = (TSystemFile*)next())) {
     fname = sysfile->GetName();
     if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-     if (debugStatements) cout << "Status: In ZGammaJetCrossCheck.C (breakpoint B): Found " << fname.Data() << endl;
+     if (debugStatements) cout << "Status: In ZMassCalc.C (breakpoint B): Found " << fname.Data() << endl;
      
      if (fname.Contains(fileIdentifier)) {
       file = new TFile(dataPathTemp+fname, "READ");
@@ -93,7 +93,7 @@ void ZGammaJetCrossCheck (const int dataSet,
    }
   }
   if (tree == NULL || file == NULL) {
-   cout << "Error: In ZGammaJetCrossCheck.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+   cout << "Error: In ZMassCalc.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
    return;
   }
   /**** End find TTree ****/

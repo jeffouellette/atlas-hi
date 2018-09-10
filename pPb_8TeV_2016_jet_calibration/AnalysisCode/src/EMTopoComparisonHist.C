@@ -463,8 +463,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -490,8 +490,8 @@ void EMTopoComparisonHist () {
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
 
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -499,8 +499,8 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -584,8 +584,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -610,8 +610,8 @@ void EMTopoComparisonHist () {
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
 
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -619,8 +619,8 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -703,8 +703,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -728,8 +728,8 @@ void EMTopoComparisonHist () {
      proj_mc = Project2D ("", gJetHists[iAlgo][iPer][1][1], "x", "z", eta_lo, eta_hi);
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -738,8 +738,8 @@ void EMTopoComparisonHist () {
      for (TLine* line : dplines) line->Draw("same");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
@@ -833,8 +833,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -860,8 +860,8 @@ void EMTopoComparisonHist () {
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
 
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -869,8 +869,8 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iP][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iP][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iP][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iP][numpzbins]), 1.25, 0.04/uPadY);
       if (iP < numpzbins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
@@ -954,8 +954,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -980,8 +980,8 @@ void EMTopoComparisonHist () {
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
 
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -989,8 +989,8 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->Draw("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iP][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iP][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iP][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iP][numpzbins]), 1.25, 0.04/uPadY);
       if (iP < numpzbins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
@@ -1083,8 +1083,8 @@ void EMTopoComparisonHist () {
      vJetHist->SetYTitle("<#it{x}_{J}^{ref}>");
      vJetHist->SetAxisRange(0.75, 2.15, "Y");
      vJetHist->SetMarkerStyle(markerStyle);
-     vJetHist->SetMarkerColor(data_color);
-     vJetHist->SetLineColor(data_color);
+     vJetHist->SetMarkerColor(dataColor);
+     vJetHist->SetLineColor(dataColor);
      vJetHist->GetXaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetLabelSize(0.04/uPadY);
      vJetHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -1108,8 +1108,8 @@ void EMTopoComparisonHist () {
      proj_mc = Project2D ("", gJetHists[iAlgo][iPer][1][1], "y", "z", p_lo, p_hi);
      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, false);
      vJetHist_mc->SetMarkerStyle(markerStyle);
-     vJetHist_mc->SetMarkerColor(mc_color);
-     vJetHist_mc->SetLineColor(mc_color);
+     vJetHist_mc->SetMarkerColor(mcOverlayColor);
+     vJetHist_mc->SetLineColor(mcOverlayColor);
 
      if (iAlgo == 0) vJetHist->DrawCopy("e1 x0");
      else vJetHist->DrawCopy("same e1 x0");
@@ -1118,8 +1118,8 @@ void EMTopoComparisonHist () {
      for (TLine* line : dplines) line->Draw("same");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, data_color, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iP][numpbins]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mc_color, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iP][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iP][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iP][numpbins]), 1.25, 0.04/uPadY);
       if (iP < numpbins) {
        if (iPer == 2) myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
        else myText(0.155, 0.1,kBlack, Form ("%g < #eta_{det}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);

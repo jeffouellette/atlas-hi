@@ -1,4 +1,4 @@
-#include "ZGammaJetCrossCheckHist.h"
+#include "ZMassCalcHist.h"
 
 #include <GlobalParams.h>
 #include <ArrayTemplates.h>
@@ -343,7 +343,7 @@ void ZMassCalcHist () {
     //RooZfit* fits[2];
     for (short iData = 0; iData < 2; iData++) {
      TH1D* thisHist = zMassSpectra[iSpc][iData][iEta];
-     Color_t color = (iData==0 ? data_color : mc_color);
+     Color_t color = (iData==0 ? dataColor : mcOverlayColor);
      thisHist->GetXaxis()->SetTitle("#font[12]{ll} Invariant Mass #left[GeV#right]");
      thisHist->GetYaxis()->SetTitle("Normalized Counts / 1 GeV");
      thisHist->GetYaxis()->SetTitleSize(0.04/uPadY);
@@ -407,13 +407,13 @@ void ZMassCalcHist () {
     }
     if (iSpc == 0) {
      myText(0.175, 0.88, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
-     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV (%i events)", nZmumuMass[2][0][iEta]), 1.25, 0.04/uPadY);
-     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuMass[2][1][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.80, dataColor, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV (%i events)", nZmumuMass[2][0][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.55, mcOverlayColor, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
     else if (iSpc == 1) {
      myText(0.175, 0.88, kBlack, "Z (ee) + Jet", 0.04/uPadY);
-     myMarkerText(0.175, 0.80, data_color, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV (%i events)", nZeeMass[2][0][iEta]), 1.25, 0.04/uPadY);
-     myMarkerText(0.175, 0.55, mc_color, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeMass[2][1][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.80, dataColor, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV (%i events)", nZeeMass[2][0][iEta]), 1.25, 0.04/uPadY);
+     myMarkerText(0.175, 0.55, mcOverlayColor, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
     myText(0.175, 0.72, kBlack, Form("m_{Z}^{data} = %.2f #pm %.2f GeV", mean[0], mean_err[0]), 0.04/uPadY);
     myText(0.175, 0.64, kBlack, Form("#sigma_{Z}^{data} = %.2f #pm %.2f GeV", sigma[0], sigma_err[0]), 0.04/uPadY);
