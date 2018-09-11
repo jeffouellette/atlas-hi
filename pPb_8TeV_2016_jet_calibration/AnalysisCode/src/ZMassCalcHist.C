@@ -331,7 +331,6 @@ void ZMassCalcHist () {
 
   /**** Plot dilepton mass spectra ****/
   for (short iEta = 0; iEta <= numetabins; iEta++) {
-   if (iEta != numetabins) continue;
    for (short iSpc = 0; iSpc < 2; iSpc++) {
     topPad->cd();
     topPad->SetLogx(0);
@@ -345,7 +344,7 @@ void ZMassCalcHist () {
      TH1D* thisHist = zMassSpectra[iSpc][iData][iEta];
      Color_t color = (iData==0 ? dataColor : mcOverlayColor);
      thisHist->GetXaxis()->SetTitle("#font[12]{ll} Invariant Mass #left[GeV#right]");
-     thisHist->GetYaxis()->SetTitle("Normalized Counts / 1 GeV");
+     thisHist->GetYaxis()->SetTitle("Counts / Area under Curve");
      thisHist->GetYaxis()->SetTitleSize(0.04/uPadY);
      thisHist->GetYaxis()->SetTitleOffset(1.1*uPadY);
      thisHist->GetYaxis()->SetLabelSize(0.04/uPadY);

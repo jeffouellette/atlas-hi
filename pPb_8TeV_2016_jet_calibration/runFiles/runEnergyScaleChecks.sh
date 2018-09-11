@@ -1,3 +1,5 @@
+#./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.212.mc15_8TeV.signalonly.420012.jetjet.JZ2R04.pPb_myOutput.root &
+
 # gamma+jet pp sample with pPb data overlay
 ./lib/runEnergyScaleChecks 1 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423100.Slice1.pPb_myOutput.root &
 ./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423101.Slice2.pPb_myOutput.root &

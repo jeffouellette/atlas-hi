@@ -46,8 +46,11 @@ extern const double* xjrefbins;
 extern const short numrtrkbins;
 extern const double* rtrkbins;
 
+extern const double dpbins[7];
+extern const short numdpbins;
+
 //extern const double pbins[31];
-extern const double pbins[14];
+extern const double pbins[16];
 extern const short numpbins;
 
 extern const double pzbins[12];

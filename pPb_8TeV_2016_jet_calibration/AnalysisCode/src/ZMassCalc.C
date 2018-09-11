@@ -366,7 +366,7 @@ void ZMassCalc (const int dataSet,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form("%sdataSet_%s.root", rootPath.Data(), identifier.Data());
+  const char* outFileName = Form("%s/ZMassCalc/dataSet_%s.root", rootPath.Data(), identifier.Data());
   TFile* outFile = new TFile(outFileName, "RECREATE");
 
   for (short iEta = 0; iEta <= numetabins; iEta++) {

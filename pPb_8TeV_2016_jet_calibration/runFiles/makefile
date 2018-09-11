@@ -2,7 +2,7 @@ CFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH
 LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(CALIB_PATH)/AnalysisCode/lib -lAtlas -lGlobalParams -lInitialization -lTrigger -ldl
 
 
-all : runEMTopoComparison runEMTopoComparisonHist runElectronContaminationStudy runElectronContaminationStudyHist runEnergyScaleChecks runEnergyScaleChecksHist runFCalDistribution runFCalDistributionHist runJetInsituCorrectionCheck runJetInsituCorrectionCheckHist runRtrkComparison runRtrkComparisonHist runZGammaJetCrossCheck runZGammaJetCrossCheckHist
+all : runEMTopoComparison runEMTopoComparisonHist runElectronContaminationStudy runElectronContaminationStudyHist runEnergyScaleChecks runEnergyScaleChecksHist runFCalDistribution runFCalDistributionHist runJetInsituCorrectionCheck runJetInsituCorrectionCheckHist runRtrkComparison runRtrkComparisonHist runZGammaJetCrossCheck runZGammaJetCrossCheckHist runZMassCalc runZMassCalcHist
 
 runEMTopoComparison :
 	$(CXX) -o lib/runEMTopoComparison src/runEMTopoComparison.cc $(CFLAGS) $(LDFLAGS) -lEMTopoComparison
@@ -45,6 +45,12 @@ runZGammaJetCrossCheck :
 
 runZGammaJetCrossCheckHist :
 	$(CXX) -o lib/runZGammaJetCrossCheckHist src/runZGammaJetCrossCheckHist.cc $(CFLAGS) $(LDFLAGS) -lZGammaJetCrossCheckHist
+
+runZMassCalc :
+	$(CXX) -o lib/runZMassCalc src/runZMassCalc.cc $(CFLAGS) $(LDFLAGS) -lZMassCalc
+
+runZMassCalcHist :
+	$(CXX) -o lib/runZMassCalcHist src/runZMassCalcHist.cc $(CFLAGS) $(LDFLAGS) -lZMassCalcHist
 
 clean :
 	rm -rf ./lib/*

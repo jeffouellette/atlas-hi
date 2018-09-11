@@ -227,11 +227,6 @@ Both sets of corrections are derived twice, once for each beam direction, becaus
 % The package placeins provides the macro \FloatBarrier to achieve this.
 % \FloatBarrier
 
-%-------------------------------------------------------------------------------
-\section{Validation of the 2015 cross-calibration}
-\label{sec:EtaJES}
-%-------------------------------------------------------------------------------
-
 \begin{center}
 \begin{table}
 \resizebox{\linewidth}{!}{
@@ -239,10 +234,9 @@ Both sets of corrections are derived twice, once for each beam direction, becaus
 	\hline
 	\multicolumn{3}{|c|}{V + jet event selection} \\ \hline \hline
 	$\gamma$ + jet & $\Zboson\rightarrow\ee$ + jet & $\Zboson\rightarrow\mumu$ + jet \\ \hline
-	{\small \texttt{HLT\_g10\_loose}, \texttt{HLT\_g15\_loose},} & {\small \texttt{HLT\_e20\_lhloose},} & {\small \texttt{HLT\_mu15},} \\
-	{\small \texttt{HLT\_g20\_loose}, \texttt{HLT\_g25\_loose},} & {\small \texttt{HLT\_e22\_lhloose}, or} & {\small \texttt{HLT\_mu18},} \\
-	{\small \texttt{HLT\_g30\_loose}, \texttt{HLT\_g35\_loose}, or} & {\small \texttt{HLT\_e24\_lhloose}} & {\small \texttt{HLT\_mu20}, or} \\
-	{\small \texttt{HLT\_g60\_loose}} & & {\small \texttt{HLT\_mu20\_L1MU15}} \\ \hline
+	{\small \texttt{HLT\_g10\_loose}, \texttt{HLT\_g15\_loose},} & {\small \texttt{HLT\_e15\_lhloose\_nod0}} & {\small \texttt{HLT\_mu15},} \\
+	{\small \texttt{HLT\_g20\_loose}, \texttt{HLT\_g25\_loose},} & & \\
+	{\small \texttt{HLT\_g30\_loose}, or \texttt{HLT\_g35\_loose}} & & \\ \hline
 	{\small $\pt^{\text{jet}} > \SI{20}{\GeV}$} & {\small $\pt^{\text{jet}} > \SI{20}{\GeV}$} & {\small $\pt^{\text{jet}} > \SI{20}{\GeV}$} \\ \hline
 	{\small $\pt^{\gamma} > \SI{10}{\GeV}$} & {\small $\pt^{\text{e}} > \SI{20}{\GeV}$} & {\small $\pt^{\mu} > \SI{20}{\GeV}$} \\ \hline
 	{\small $\text{dR}\left(\gamma, \text{jet}\right) > 0.4$} & {\small $\text{dR}\left(\text{e}, \text{jet}\right) > 0.2$ for both electrons} & {\small $\text{dR}\left(\mu, \text{jet}\right) > 0.2$ for both muons}  \\ \hline
@@ -255,6 +249,11 @@ Both sets of corrections are derived twice, once for each beam direction, becaus
 \label{tab:eventSelection}
 \end{table}
 \end{center}
+
+%-------------------------------------------------------------------------------
+\section{Validation of the 2015 Cross-Calibration}
+\label{sec:EtaJES}
+%-------------------------------------------------------------------------------
 
 Additional corrections to reconstructed jet 4-momenta are required due to differences between the standard EMTopo jets studied in $pp$ collisions and HI jets, which cannot have the same insitu corrections applied. In order to provide jets with similar kinematics, performance of the HI algorithm with respect to the EMTopo algorithm can be studied in $pp$ collisions, so the corresponding corrections can be applied to HI jets in heavy ion systems. To understand how well the previous corrections from 2015 can be applied in the 2016 data, the $\pt$ balance of vector bosons with jets is studied in data and MC.\par
 Events are selected using the criteria found in Table \ref{tab:eventSelection}. All jets are corrected using the derived EtaJES calibrations relevant to the beam direction. In data, the 2015 cross calibration and insitu corrections are also applied. Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. An alternative to $x_{\text{J}}^{\text{V}}$, this $x_{\text{J}}^{\text{ref}}$ additionally accounts for soft radiation from the jet being missed by the jet finding algorithm.

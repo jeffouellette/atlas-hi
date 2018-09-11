@@ -82,7 +82,8 @@ void EnergyScaleChecks (const int dataSet,
     fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
    } else fileIdentifier = inFileName;
 
-   TSystemDirectory dir(dataPath.Data(), dataPath.Data());
+   const TString dataPathTemp = dataPath;// + "/rtrk_data/";
+   TSystemDirectory dir(dataPathTemp.Data(), dataPathTemp.Data());
    TList* sysfiles = dir.GetListOfFiles();
    if (!sysfiles) {
     cout << "Cannot get list of files! Exiting." << endl;
@@ -98,7 +99,7 @@ void EnergyScaleChecks (const int dataSet,
      if (debugStatements) cout << "Status: In EnergyScaleChecks.C (breakpoint B): Found " << fname.Data() << endl;
      
      if (fname.Contains(fileIdentifier)) {
-      file = new TFile(dataPath+fname, "READ");
+      file = new TFile(dataPathTemp+fname, "READ");
       tree = (TTree*)file->Get("tree");
       break;
      }
@@ -158,12 +159,12 @@ void EnergyScaleChecks (const int dataSet,
    for (short iEta = 0; iEta <= numetabins; iEta++) {
     for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
      const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-     jetEnergyResponseCalib[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
+     jetEnergyResponseCalib[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 100, 0, 2);
      jetEnergyResponseCalib[iAlgo][iP][iEta]->Sumw2();
-     jetEnergyResponseReco[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 50, 0, 2);
+     jetEnergyResponseReco[iAlgo][iP][iEta] = new TH1D (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), identifier.Data(), iP, iEta), "", 100, 0, 2);
      jetEnergyResponseReco[iAlgo][iP][iEta]->Sumw2();
     }
-    photonEnergyResponse[iP][iEta] = new TH1D (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", identifier.Data(), iP, iEta), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};Counts", 50, 0, 2);
+    photonEnergyResponse[iP][iEta] = new TH1D (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", identifier.Data(), iP, iEta), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};Counts", 100, 0, 2);
     photonEnergyResponse[iP][iEta]->Sumw2();
    }
   }
@@ -189,6 +190,7 @@ void EnergyScaleChecks (const int dataSet,
    tree->GetEntry(entry);
 
    const double evtWeight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+   //const double evtWeight = 1.2910E+03 / 0.0056462 / 3998445;
 
 
    /////////////////////////////////////////////////////////////////////////////
