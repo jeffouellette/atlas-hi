@@ -31,6 +31,8 @@ const bool useGaussian = false; //
 
 const bool plot_xjref = false; // whether to plot xjref distributions
 
+const bool calcPtClosure = true; // whether the energy scale calculations will use pT (true) or E (false)
+
 /** End user defined parameters **/
 
 
@@ -43,7 +45,8 @@ const double* xjrefbins = linspace(0, 2.0, numxjrefbins);
 const short numrtrkbins = 400;
 const double* rtrkbins = linspace(0, 2.0, numrtrkbins);
 
-const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
+//const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
+const double dpbins[2] = {60, 140};
 const short numdpbins = sizeof(dpbins)/sizeof(dpbins[0]) - 1;
 
 //const double pbins[31] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 90., 100., 110., 120., 130., 140., 150., 165., 180., 200., 225., 250., 275., 300., 350., 420., 500.};

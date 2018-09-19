@@ -44,7 +44,7 @@
 #
 #wait
 
-./lib/runRtrkComparison 2 0 true true user.jeouelle.2.4.30hi.calibcheck.212.mc15_8TeV.signalonly.420012.jetjet.JZ2R04.pPb_myOutput.root &
+./lib/runRtrkComparison 2 0 true true user.jeouelle.2.4.30hi.calibcheck.220.mc15_8TeV.signalonly.420012.jetjet.JZ2R04.pPb_myOutput.root &
 
 ## gamma+jet pp sample with pPb data overlay
 #./lib/runRtrkComparison 1 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423100.Slice1.pPb_myOutput.root &

@@ -135,7 +135,7 @@ void TreeVariables :: SetBranchAddresses() {
    tree->SetBranchAddress("CrossSection_microbarns", &crossSection_microbarns);
    tree->SetBranchAddress("FilterEfficiency", &filterEfficiency);
   }
-  else {
+  if (!isMC) {
    tree->SetBranchAddress("eventNumber", &eventNumber);
    tree->SetBranchAddress("runNumber", &runNumber);
    tree->SetBranchAddress("lumiBlock", &lumiBlock);

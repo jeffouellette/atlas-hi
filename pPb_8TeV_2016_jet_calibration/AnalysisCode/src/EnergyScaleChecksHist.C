@@ -19,6 +19,53 @@
 
 namespace pPb8TeV2016JetCalibration {
 
+const short plotMC = 1; // 0 plots overlay
+
+
+TString GetMCType (const short iMC) {
+  if (iMC == 0) return "overlay";
+  else if (iMC == 1) return "signal";
+  else if (iMC == 2) return "valid_signal";
+  else return "";
+}
+
+
+void deltaize (TGraphAsymmErrors* tg, const double delta = 0, const bool logx = false) {
+  double x, y, exh, exl;
+  for (int n = 0; n < tg->GetN(); n++) {
+    tg->GetPoint (n, x, y);
+    exh = x + tg->GetErrorXhigh (n);
+    exl = x - tg->GetErrorXhigh (n);
+    
+    if (logx) tg->SetPoint (n, x*delta, y);
+    else tg->SetPoint (n, x + delta, y);
+
+    tg->GetPoint (n, x, y);
+    exh = exh - x;
+    exl = x - exl;
+
+    tg->SetPointEXhigh (n, exh);
+    tg->SetPointEXlow (n, exl);
+  }
+}
+
+
+TGraphAsymmErrors* make_graph (TH1* h, const float cutoff = -1) {
+  TGraphAsymmErrors* tg = new TGraphAsymmErrors (TString(h->GetName()) + "_graph");
+
+  for (int n = 0; n < h->GetNbinsX(); n++) {
+    if (cutoff >= 0 && h->GetBinContent(n+1) <= cutoff) {
+      continue;
+    }
+    else {
+      tg->SetPoint (tg->GetN(), h->GetBinCenter (n+1), h->GetBinContent (n+1));
+      tg->SetPointError (tg->GetN()-1, h->GetBinWidth (n+1) / 2, h->GetBinWidth (n+1) / 2, h->GetBinError (n+1), h->GetBinError (n+1));
+    }
+  }
+  return tg;
+}
+
+
 void EnergyScaleChecksHist () {
 
   SetAtlasStyle();
@@ -49,53 +96,24 @@ void EnergyScaleChecksHist () {
   vector<TString> dijetSampleIds(0);
   dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
 
+  vector<TString> dijetValidSampleIds(0);
+  dijetValidSampleIds.push_back("pPb_Signal_Valid_Dijet_Slice2");
+  dijetValidSampleIds.push_back("Pbp_Signal_Valid_Dijet_Slice2");
+
 
   /**** Initialize histograms ****/
   TH1D* electronEnergyScale = new TH1D ("electronEnergyScale", ";Electron #it{p}_{T}^{reco} / #it{p}_{T}^{truth};", 200, 0, 2.0);
   electronEnergyScale->Sumw2();
 
-  //TH2D*** lowResponseEtaPhi = Get2DArray <TH2D*> (2, 2);
-  //TH2D*** highResponseEtaPhi = Get2DArray <TH2D*> (2, 2);
-  //TH2D*** lowResponseEtaPt = Get2DArray <TH2D*> (2, 2);
-  //TH2D*** highResponseEtaPt = Get2DArray <TH2D*> (2, 2);
-  //TH2D*** responsePt = Get2DArray <TH2D*> (2, 2);
-  //TH1D*** jetSpectrum = Get2DArray <TH1D*> (2, 2);
+  TH1D****** jetEnergyResponseCalib = Get5DArray <TH1D*> (numdpbins, 2, 3, numpbins+1, numetabins+1); // DP slice, jet algo, MC type, pt bin, eta bin
+  TH1D****** jetEnergyResponseReco = Get5DArray <TH1D*> (numdpbins, 2, 3, numpbins+1, numetabins+1);
+  TH1D***** photonEnergyResponse = Get4DArray <TH1D*> (numdpbins, 3, numpbins+1, numetabins+1);
 
-  //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-  // const TString algo = (iAlgo == 0 ? "akt4hi":"akt4emtopo");
-  // for (short iMC = 0; iMC < 2; iMC++) {
-  //  const TString mcType = (iMC == 0 ? "overlay":"signal");
-
-  //  lowResponseEtaPhi[iAlgo][iMC] = new TH2D (Form ("%s_%s_lowResponseEtaPhi", algo.Data(), mcType.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  //  highResponseEtaPhi[iAlgo][iMC] = new TH2D (Form ("%s_%s_highResponseEtaPhi", algo.Data(), mcType.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-  //  lowResponseEtaPt[iAlgo][iMC] = new TH2D (Form ("%s_%s_lowResponseEtaPt", algo.Data(), mcType.Data()), ";#eta;#it{p}_{T}^{reco} #left[GeV#right];", 25, -2.5, 2.5, 66, 20, 350);
-  //  highResponseEtaPt[iAlgo][iMC] = new TH2D (Form ("%s_%s_highResponseEtaPt", algo.Data(), mcType.Data()), ";#eta;#it{p}_{T}^{reco} #left[GeV#right];", 25, -2.5, 2.5, 66, 20, 350);
-  //  responsePt[iAlgo][iMC] = new TH2D (Form ("%s_%s_responsePt", algo.Data(), mcType.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
-  //  jetSpectrum[iAlgo][iMC] = new TH1D (Form ("%s_%s_jetSpectrum", algo.Data(), mcType.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
-  //
-  // }
-  //} 
-  //
-  //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-  // for (short iMC = 0; iMC < 2; iMC++) {
-  //  lowResponseEtaPhi[iAlgo][iMC]->Sumw2();
-  //  highResponseEtaPhi[iAlgo][iMC]->Sumw2();
-  //  lowResponseEtaPt[iAlgo][iMC]->Sumw2();
-  //  highResponseEtaPt[iAlgo][iMC]->Sumw2();
-  //  responsePt[iAlgo][iMC]->Sumw2();
-  //  jetSpectrum[iAlgo][iMC]->Sumw2();
-  // }
-  //}
-
-  TH1D****** jetEnergyResponseCalib = Get5DArray <TH1D*> (6, 2, 2, numpbins+1, numetabins+1);
-  TH1D****** jetEnergyResponseReco = Get5DArray <TH1D*> (6, 2, 2, numpbins+1, numetabins+1);
-  TH1D***** photonEnergyResponse = Get4DArray <TH1D*> (6, 2, numpbins+1, numetabins+1);
-
-  for (short iDP = 0; iDP < 6; iDP++) {
+  for (short iDP = 0; iDP < numdpbins; iDP++) {
    for (short iP = 0; iP <= numpbins; iP++) {
     for (short iEta = 0; iEta <= numetabins; iEta++) {
-     for (short iMC = 0; iMC < 2; iMC++) {
-      const TString mcType = (iMC == 0 ? "overlay" : "signal");
+     for (short iMC = 0; iMC < 3; iMC++) {
+      const TString mcType = GetMCType (iMC);
       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
        jetEnergyResponseCalib[iDP][iAlgo][iMC][iP][iEta] = new TH1D (Form ("%s_%s_jetEnergyResponseCalib_iP%i_iEta%i_Slice%i", algo.Data(), mcType.Data(), iP, iEta, iDP+1), "", 100, 0, 2);
@@ -110,8 +128,8 @@ void EnergyScaleChecksHist () {
    }
   }
 
-  int***** nJet = Get5DArray <int> (6, 2, 2, numpbins+1, numetabins+1);
-  int**** nGamma = Get4DArray <int> (6, 2, numpbins+1, numetabins+1);
+  int***** nJet = Get5DArray <int> (numdpbins, 2, 3, numpbins+1, numetabins+1);
+  int**** nGamma = Get4DArray <int> (numdpbins, 3, numpbins+1, numetabins+1);
 
   {
    TSystemDirectory dir(rootPath.Data(), rootPath.Data());
@@ -140,28 +158,21 @@ void EnergyScaleChecksHist () {
        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetOverlaySampleId.Data()));
        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetOverlaySampleId.Data()));
 
-       int iDP = -1;
-       while (iDP < 6 && !gammaJetOverlaySampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
-       cout << iDP << endl;
-       if (iDP == -1 || 6 <= iDP) continue;
+       //int iDP = -1;
+       //while (iDP < numdpbins && !gammaJetOverlaySampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
+       //if (iDP == -1 || 6 <= iDP) continue;
 
-       //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       // const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       // lowResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       // highResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       // lowResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       // highResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       // responsePt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_responsePt_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       // jetSpectrum[iAlgo][0]->Add ((TH1D*)thisFile->Get (Form ("%s_jetPt_dataSet%s", algo.Data(), gammaJetOverlaySampleId.Data())));
-       //}
+       const int iDP = 0;
 
        for (short iEta = 0; iEta <= numetabins; iEta++) {
         for (short iP = 0; iP <= numpbins; iP++) {
          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-          nJet[iDP][iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
-          jetEnergyResponseCalib[iDP][iAlgo][0][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetOverlaySampleId.Data(), iP, iEta)));
-          jetEnergyResponseReco[iDP][iAlgo][0][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetOverlaySampleId.Data(), iP, iEta)));
+          if (plotMC == 0) {
+           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+           nJet[iDP][iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
+           jetEnergyResponseCalib[iDP][iAlgo][0][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetOverlaySampleId.Data(), iP, iEta)));
+           jetEnergyResponseReco[iDP][iAlgo][0][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetOverlaySampleId.Data(), iP, iEta)));
+          }
          }
          nGamma[iDP][0][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
          photonEnergyResponse[iDP][0][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetOverlaySampleId.Data(), iP, iEta)));
@@ -182,27 +193,21 @@ void EnergyScaleChecksHist () {
        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetSignalSampleId.Data()));
        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetSignalSampleId.Data()));
 
-       int iDP = -1;
-       while (iDP < 6 && !gammaJetSignalSampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
-       if (iDP == -1 || 6 <= iDP) continue;
+       //int iDP = -1;
+       //while (iDP < numdpbins && !gammaJetSignalSampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
+       //if (iDP == -1 || 6 <= iDP) continue;
 
-       //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       // const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       // lowResponseEtaPhi[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       // highResponseEtaPhi[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       // lowResponseEtaPt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       // highResponseEtaPt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       // responsePt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_responsePt_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       // jetSpectrum[iAlgo][1]->Add ((TH1D*)thisFile->Get (Form ("%s_jetPt_dataSet%s", algo.Data(), gammaJetSignalSampleId.Data())));
-       //}
+       const int iDP = 0;
 
        for (short iEta = 0; iEta <= numetabins; iEta++) {
         for (short iP = 0; iP <= numpbins; iP++) {
          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-          nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
-          jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetSignalSampleId.Data(), iP, iEta)));
-          jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetSignalSampleId.Data(), iP, iEta)));
+          if (plotMC == 0) {
+           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+           nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
+           jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetSignalSampleId.Data(), iP, iEta)));
+           jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), gammaJetSignalSampleId.Data(), iP, iEta)));
+          }
          }
          nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
          photonEnergyResponse[iDP][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetSignalSampleId.Data(), iP, iEta)));
@@ -221,16 +226,6 @@ void EnergyScaleChecksHist () {
        cout << "Reading in " << rootPath+fname << endl;
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zeeJetSampleId.Data()));
-
-       //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       // const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       // lowResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       // highResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       // lowResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       // highResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       // responsePt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_responsePt_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       // jetSpectrum[iAlgo][0]->Add ((TH1D*)thisFile->Get (Form ("%s_jetPt_dataSet%s", algo.Data(), zeeJetSampleId.Data())));
-       //}
 
        electronEnergyScale->Add ((TH1D*)thisFile->Get (Form ("electronEnergyScale_dataSet%s", zeeJetSampleId.Data())));
 
@@ -258,16 +253,6 @@ void EnergyScaleChecksHist () {
        TFile* thisFile = new TFile(rootPath + fname, "READ");
        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zmumuJetSampleId.Data()));
 
-       //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       // const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       // lowResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       // highResponseEtaPhi[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       // lowResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       // highResponseEtaPt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       // responsePt[iAlgo][0]->Add ((TH2D*)thisFile->Get (Form ("%s_responsePt_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       // jetSpectrum[iAlgo][0]->Add ((TH1D*)thisFile->Get (Form ("%s_jetPt_dataSet%s", algo.Data(), zmumuJetSampleId.Data())));
-       //}
-
        //for (short iEta = 0; iEta <= numetabins; iEta++) {
        // for (short iP = 0; iP <= numpbins; iP++) {
        //  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
@@ -284,6 +269,7 @@ void EnergyScaleChecksHist () {
        break;
       }
      }
+
      // do this if dijet MC sample (SIGNAL)
      for (TString dijetSampleId : dijetSampleIds) { // check for gamma jet MC
       if (fname.Contains(dijetSampleId)) { // if gamma jet MC sample
@@ -293,28 +279,54 @@ void EnergyScaleChecksHist () {
        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetSampleId.Data()));
        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetSampleId.Data()));
 
-       //for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       // const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       // lowResponseEtaPhi[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       // highResponseEtaPhi[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       // lowResponseEtaPt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       // highResponseEtaPt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       // responsePt[iAlgo][1]->Add ((TH2D*)thisFile->Get (Form ("%s_responsePt_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       // jetSpectrum[iAlgo][1]->Add ((TH1D*)thisFile->Get (Form ("%s_jetPt_dataSet%s", algo.Data(), dijetSampleId.Data())));
-       //}
+       const short iDP = 0;
 
-       //for (short iEta = 0; iEta <= numetabins; iEta++) {
-       // for (short iP = 0; iP <= numpbins; iP++) {
-       //  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       //   const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       //   nJet[iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
-       //   jetEnergyResponseCalib[iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), dijetSampleId.Data(), iP, iEta)));
-       //   jetEnergyResponseReco[iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), dijetSampleId.Data(), iP, iEta)));
-       //  }
-       //  nGamma[1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
-       //  photonEnergyResponse[1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetSampleId.Data(), iP, iEta)));
-       // }
-       //}
+       for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iP = 0; iP <= numpbins; iP++) {
+         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+          if (plotMC == 1) {
+           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+           nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
+           jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), dijetSampleId.Data(), iP, iEta)));
+           jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), dijetSampleId.Data(), iP, iEta)));
+          }
+         }
+         //nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+         //photonEnergyResponse[iDP][1][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetSampleId.Data(), iP, iEta)));
+        }
+       }
+
+       thisFile->Close();
+       delete thisFile;
+       break;
+      }
+     }
+
+     // do this if dijet MC sample (SIGNAL)
+     for (TString dijetValidSampleId : dijetValidSampleIds) { // check for gamma jet MC
+      if (fname.Contains(dijetValidSampleId)) { // if gamma jet MC sample
+       numFiles++;
+       cout << "Reading in " << rootPath+fname << endl;
+       TFile* thisFile = new TFile(rootPath + fname, "READ");
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetValidSampleId.Data()));
+       nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetValidSampleId.Data()));
+
+       const short iDP = 0;
+
+       for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iP = 0; iP <= numpbins; iP++) {
+         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+          if (plotMC == 1) {
+           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+           nJet[iDP][iAlgo][2][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo*(numpbins+1)*(numetabins+1)];
+           jetEnergyResponseCalib[iDP][iAlgo][2][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data(), dijetValidSampleId.Data(), iP, iEta)));
+           jetEnergyResponseReco[iDP][iAlgo][2][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data(), dijetValidSampleId.Data(), iP, iEta)));
+          }
+         }
+         //nGamma[iDP][2][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+         //photonEnergyResponse[iDP][2][iP][iEta]->Add ((TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetValidSampleId.Data(), iP, iEta)));
+        }
+       }
 
        thisFile->Close();
        delete thisFile;
@@ -328,39 +340,41 @@ void EnergyScaleChecksHist () {
   /**** End loop over input files ****/
 
 
-  ///**** Plots the electron energy scale ****/
-  TCanvas* energyScaleCanvas = new TCanvas("energyScaleCanvas", "", 800, 600);
-  TH1D* thisHist = electronEnergyScale;
-  TF1* gausFit = new TF1("gausFit", "gaus(0)", 0, 2.0);
-  energyScaleCanvas->cd();
-  const float ncounts = thisHist->Integral();
-  thisHist->Scale(1./ncounts);
-  thisHist->Fit(gausFit, "R", "L");
-  const float m = gausFit->GetParameter (1);
-  const float s = gausFit->GetParameter (2);
-  if (gausFit) delete gausFit;
-  gausFit = new TF1("gausFit2", "gaus(0)", m - 1.6*s, m + 1.6*s);
-  thisHist->Fit(gausFit, "R", "L");
+  /////**** Plots the electron energy scale ****/
+  TH1D* thisHist = NULL;
+  //TCanvas* energyScaleCanvas = new TCanvas("energyScaleCanvas", "", 800, 600);
+  //TH1D* thisHist = electronEnergyScale;
+  //TF1* gausFit = new TF1("gausFit", "gaus(0)", 0, 2.0);
+  //energyScaleCanvas->cd();
+  //const float ncounts = thisHist->Integral();
+  //thisHist->Scale(1./ncounts);
+  //thisHist->Fit(gausFit, "R", "L");
+  //const float m = gausFit->GetParameter (1);
+  //const float s = gausFit->GetParameter (2);
+  //if (gausFit) delete gausFit;
+  //gausFit = new TF1("gausFit2", "gaus(0)", m - 1.6*s, m + 1.6*s);
+  //thisHist->Fit(gausFit, "R", "L");
 
-  thisHist->GetYaxis()->SetTitle ("Counts / Total");
-  //thisHist->SetMarkerStyle(6);
-  thisHist->Draw ("e1 x0");
-  myText(0.18, 0.85, kBlack, "Electron energy response");
-  myText(0.18, 0.78, kBlack, Form ("%i electrons", (int)ncounts));
-  myText(0.18, 0.71, kBlack, Form ("En. Scale = %.5f #pm %.5f", gausFit->GetParameter (1), gausFit->GetParError(1)));
-  myText(0.18, 0.64, kBlack, Form ("En. Res. = %.5f #pm %.5f", gausFit->GetParameter (2), gausFit->GetParError(2)));
-  energyScaleCanvas->SaveAs(Form ("%s/electronEnergyScale.pdf", plotPath.Data()));
+  //thisHist->GetYaxis()->SetTitle ("Counts / Total");
+  ////thisHist->SetMarkerStyle(6);
+  //thisHist->Draw ("e1 x0");
+  //myText(0.18, 0.85, kBlack, "Electron energy response");
+  //myText(0.18, 0.78, kBlack, Form ("%i electrons", (int)ncounts));
+  //myText(0.18, 0.71, kBlack, Form ("En. Scale = %.5f #pm %.5f", gausFit->GetParameter (1), gausFit->GetParError(1)));
+  //myText(0.18, 0.64, kBlack, Form ("En. Res. = %.5f #pm %.5f", gausFit->GetParameter (2), gausFit->GetParError(2)));
+  //energyScaleCanvas->SaveAs(Form ("%s/electronEnergyScale.pdf", plotPath.Data()));
 
 
+  int** jetCounter = Get2DArray <int> (2, 3);
   /**** Plots the jet energy response ****/
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
-   TH1D*** jetEnergyScale = Get2DArray <TH1D*> (2, numetabins+1);
-   TH1D*** jetEnergyRes = Get2DArray <TH1D*> (2, numetabins+1);
+   TH1D*** jetEnergyScale = Get2DArray <TH1D*> (3, numetabins+1);
+   TH1D*** jetEnergyRes = Get2DArray <TH1D*> (3, numetabins+1);
 
-   for (short iMC = 0; iMC < 2; iMC++) {
-    const TString mcType = (iMC == 0 ? "overlay" : "signal");
+   for (short iMC = plotMC; iMC < plotMC+2; iMC++) {
+    const TString mcType = GetMCType (iMC);
     for (int iEta = 0; iEta <= numetabins; iEta++) {
      TCanvas* jesCanvas = new TCanvas (Form ("%s_jetEnergyScalePad_%i", algo.Data(), iEta), "", 800, 600);
 
@@ -372,36 +386,38 @@ void EnergyScaleChecksHist () {
 
      TF1** recoFits = Get1DArray<TF1*> (12);
      TF1** calibFits = Get1DArray<TF1*> (12);
-     for (short iDP = 0; iDP < 6; iDP++) {
+     for (short iDP = 0; iDP < numdpbins; iDP++) {
       for (int iP = 0; iP < numpbins; iP++) {
-       if (!(dpbins[iDP] <= pbins[iP] && pbins[iP+1] <= dpbins[iDP+1])) {
-        continue;
-       }
-       if (iP <= 11) {
-        jesCanvas->cd(iP+1);
-       }
-       TH1D* thisHist = jetEnergyResponseReco[iDP][iAlgo][iMC][iP][iEta];
-       if (thisHist->Integral() != 0) {
-        thisHist->Scale (1./thisHist->Integral());
-       }
-       int nJets = nJet[iDP][iAlgo][iMC][iP][iEta];
 
-       if (nJets == 0) continue;
+       if (!(dpbins[iDP] <= pbins[iP]) || (numdpbins > 1 && !(pbins[iP+1] <= dpbins[iDP+1])))
+        continue;
+
+       if (iP <= 11)
+        jesCanvas->cd(iP+1);
+
+       thisHist = jetEnergyResponseReco[iDP][iAlgo][iMC][iP][iEta];
+       if (thisHist->Integral() != 0)
+        thisHist->Scale (1./thisHist->Integral());
+
+       int nJets = nJet[iDP][iAlgo][iMC][iP][iEta];
+       jetCounter [iAlgo][iMC] += nJets;
 
        TF1* recoFit = new TF1 (Form ("recoFit_iP%i", iP), "gaus(0)", 0, 2.0);
-       recoFit->SetParameter (1, thisHist->GetMean());
-       recoFit->SetParameter (2, thisHist->GetStdDev());
-       thisHist->Fit (recoFit, "RNL");
-       double m = recoFit->GetParameter (1);
-       double s = recoFit->GetParameter (2);
-       if (recoFit) delete recoFit;
+       if (nJets > 0) {
+        recoFit->SetParameter (1, thisHist->GetMean());
+        recoFit->SetParameter (2, thisHist->GetStdDev());
+        thisHist->Fit (recoFit, "RN");
+        double m = recoFit->GetParameter (1);
+        double s = recoFit->GetParameter (2);
+        if (recoFit) delete recoFit;
 
-       recoFit = new TF1 (Form ("recoFit2_iP%i", iP), "gaus(0)", m - 1.8*s, m + 1.8*s);
-       recoFit->SetParameter (1, thisHist->GetMean());
-       recoFit->SetParameter (2, thisHist->GetStdDev());
-       thisHist->Fit (recoFit, "RNL");
+        recoFit = new TF1 (Form ("recoFit2_iP%i", iP), "gaus(0)", m - 2.0*s, m + 2.0*s);
+        recoFit->SetParameter (1, thisHist->GetMean());
+        recoFit->SetParameter (2, thisHist->GetStdDev());
+        thisHist->Fit (recoFit, "RN");
+       }
 
-       if (iP <= 11) {
+       if (iMC == plotMC && iP <= 11) {
         thisHist->SetMarkerStyle(kFullDotMedium);
         thisHist->SetLineColor(kBlack);
         thisHist->SetMarkerColor(kBlack);
@@ -420,19 +436,21 @@ void EnergyScaleChecksHist () {
        }
 
        TF1* calibFit = new TF1 (Form ("calibFit_iP%i", iP), "gaus(0)", 0, 2.0);
-       calibFit->SetParameter (1, thisHist->GetMean());
-       calibFit->SetParameter (2, thisHist->GetStdDev());
-       thisHist->Fit(calibFit, "RNL");
-       m = calibFit->GetParameter (1);
-       s = calibFit->GetParameter (2);
-       if (calibFit) delete calibFit;
+       if (nJets > 0) {
+        calibFit->SetParameter (1, thisHist->GetMean());
+        calibFit->SetParameter (2, thisHist->GetStdDev());
+        thisHist->Fit(calibFit, "RN");
+        double m = calibFit->GetParameter (1);
+        double s = calibFit->GetParameter (2);
+        if (calibFit) delete calibFit;
 
-       calibFit = new TF1 (Form ("calibFit2_iP%i", iP), "gaus(0)", m - 1.8*s, m + 1.8*s);
-       calibFit->SetParameter (1, thisHist->GetMean());
-       calibFit->SetParameter (2, thisHist->GetStdDev());
-       thisHist->Fit(calibFit, "RNL");
+        calibFit = new TF1 (Form ("calibFit2_iP%i", iP), "gaus(0)", m - 2.0*s, m + 2.0*s);
+        calibFit->SetParameter (1, thisHist->GetMean());
+        calibFit->SetParameter (2, thisHist->GetStdDev());
+        thisHist->Fit(calibFit, "RN");
+       }
 
-       if (iP <= 11) {
+       if (iMC == plotMC && iP <= 11) {
         thisHist->SetMarkerStyle(kFullDotMedium);
         thisHist->SetLineColor(kBlue);
         thisHist->SetMarkerColor(kBlue);
@@ -446,20 +464,20 @@ void EnergyScaleChecksHist () {
        jetEnergyScale[iMC][iEta]->SetBinContent (iP+1, calibFit->GetParameter (1));
        //jetEnergyScale[iMC][iEta]->SetBinContent (iP+1, thisHist->GetMean());
 
-       //jetEnergyScale[iMC][iEta]->SetBinError (iP+1, calibFit->GetParError(1));
+       jetEnergyScale[iMC][iEta]->SetBinError (iP+1, calibFit->GetParError(1));
        //jetEnergyScale[iMC][iEta]->SetBinError (iP+1, thisHist->GetMeanError());
-       jetEnergyScale[iMC][iEta]->SetBinError (iP+1, 0.000001);
+       //jetEnergyScale[iMC][iEta]->SetBinError (iP+1, 0.000001);
 
        jetEnergyRes[iMC][iEta]->SetBinContent (iP+1, calibFit->GetParameter (2));
        //jetEnergyRes[iMC][iEta]->SetBinContent (iP+1, thisHist->GetStdDev());
 
-       //jetEnergyRes[iMC][iEta]->SetBinError (iP+1, calibFit->GetParError(2));
+       jetEnergyRes[iMC][iEta]->SetBinError (iP+1, calibFit->GetParError(2));
        //jetEnergyRes[iMC][iEta]->SetBinError (iP+1, thisHist->GetStdDevError());
-       jetEnergyRes[iMC][iEta]->SetBinError (iP+1, 0.000001);
+       //jetEnergyRes[iMC][iEta]->SetBinError (iP+1, 0.000001);
 
-       if (iP <= 11) {
-        myText(0.18, 0.90, kBlack, Form ("#mu = %s", FormatMeasurement (calibFit->GetParameter (1), calibFit->GetParError(1), 1)), 0.04 * 2);
-        myText(0.18, 0.80, kBlack, Form ("#sigma = %s", FormatMeasurement (calibFit->GetParameter (2), calibFit->GetParError(2), 1)), 0.04 * 2);
+       if (iMC == plotMC && iP <= 11) {
+        myText(0.18, 0.90, kBlack, Form ("#mu = %s", FormatMeasurement (calibFit->GetParameter (1), calibFit->GetParError(1), 2)), 0.04 * 2);
+        myText(0.18, 0.80, kBlack, Form ("#sigma = %s", FormatMeasurement (calibFit->GetParameter (2), calibFit->GetParError(2), 2)), 0.04 * 2);
         myText (0.18, 0.70, kBlack, Form ("%g < #it{p}_{T}^{J} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
        }
        else {
@@ -469,105 +487,192 @@ void EnergyScaleChecksHist () {
       }
      }
 
-     jesCanvas->cd(1);
-     myText (0.2, 0.8, kBlack, Form ("%g < #eta_{Lab} < %g", etabins[iEta], etabins[iEta+1]), 0.03*3);
-     if (iAlgo == 0)
-      myText (0.2, 0.65, kBlack, "HI jets", 0.03*3);
-     else
-      myText (0.2, 0.65, kBlack, "EMTopo jets");
+     if (iMC == plotMC) {
+      jesCanvas->cd(1);
+      myText (0.2, 0.8, kBlack, Form ("%g < #eta_{Lab} < %g", etabins[iEta], etabins[iEta+1]), 0.03*3);
+      if (iAlgo == 0)
+       myText (0.2, 0.65, kBlack, "HI jets", 0.03*3);
+      else
+       myText (0.2, 0.65, kBlack, "EMTopo jets");
 
-     jesCanvas->SaveAs(Form ("%s/jetEnergyResponse/%s_iEta%i.pdf", plotPath.Data(), algo.Data(), iEta));
-     if (jesCanvas) delete jesCanvas;
+      jesCanvas->SaveAs(Form ("%s/jetEnergyResponse/%s_iEta%i.pdf", plotPath.Data(), algo.Data(), iEta));
 
-     for (short iP = 0; iP <= 11; iP++) {
-      if (recoFits[iP]) delete recoFits[iP];
-      if (calibFits[iP]) delete calibFits[iP];
+      Delete1DArray (recoFits, 12);
+      Delete1DArray (calibFits, 12);
      }
+     if (jesCanvas) delete jesCanvas;
     }
    }
 
    TCanvas* jesSummaryCanvas = new TCanvas("jesSummaryCanvas", "", 800, 600);
-   TH1D* thisHist = NULL;
+   TGraphAsymmErrors* thisGraph = NULL;
+
    jesSummaryCanvas->cd();
    gPad->SetLogx();
    gStyle->SetErrorX(0.5);
-   Color_t colors[14] = {kBlack, kAzure, kViolet, kMagenta, kPink+10, kPink, kOrange+10, kOrange, kSpring+10, kSpring, kTeal+10, kTeal, kAzure+10, kGray};
-   for (short iMC = 0; iMC < 2; iMC++) {
-    const TString mcType = (iMC == 0 ? "overlay":"signal");
-    for (int iEta = 0; iEta < numetabins; iEta++) {
-     thisHist = jetEnergyScale[iMC][iEta];
-     thisHist->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
-     thisHist->GetYaxis()->SetTitle ("Jet Energy Scale");
-     thisHist->GetYaxis()->SetRangeUser (0.85, 1.15);
-     thisHist->SetLineColor (colors[iEta]);
-     thisHist->SetMarkerColor (colors[iEta]);
-     thisHist->SetMarkerStyle (kFullDotLarge);
-     thisHist->SetMarkerSize (0.5);
-     if (iEta == 0) thisHist->Draw ("L ][");
-     else thisHist->Draw ("same L ][");
-     myMarkerText (0.22+(iEta>=(numetabins/2))*0.18, 0.45-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   Color_t colors[15] = {kGray+2, kAzure, kViolet, kMagenta, kPink+10, kPink, kOrange+10, kOrange, kSpring+10, kSpring, kTeal+10, kTeal, kAzure+10, kGray, kBlack};
+
+   double delta = 0.005;
+   for (short iMC = plotMC; iMC < plotMC+2; iMC++) {
+    const TString mcType = GetMCType (iMC);
+
+    TGraphAsymmErrors** hArr = Get1DArray <TGraphAsymmErrors*> (numetabins+1);
+    for (int iEta = 0; iEta <= numetabins; iEta++) {
+     thisGraph = make_graph (jetEnergyScale[iMC][iEta]);
+     double t_delta = 1.;
+     if (iEta < numetabins) t_delta += delta * (iEta - (numetabins/2) + (int)(iEta>=(numetabins/2)));
+     deltaize (thisGraph, t_delta, true);
+
+     if (calcPtClosure) {
+      thisGraph->GetXaxis()->SetTitle ("#it{p}_{T}^{true} #left[GeV#right]");
+      thisGraph->GetYaxis()->SetTitle ("<#it{p}_{T}^{calib} / #it{p}_{T}^{true}>");
+     }
+     else {
+      thisGraph->GetXaxis()->SetTitle ("#it{E}_{true} #left[GeV#right]");
+      thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
+     }
+
+     if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+     else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+
+     if (plotMC == 1) thisGraph->GetYaxis()->SetRangeUser (0.85, 1.10);
+     else thisGraph->GetYaxis()->SetRangeUser (0.85, 1.20);
+
+     thisGraph->SetLineColor (colors[iEta]);
+     thisGraph->SetMarkerColor (colors[iEta]);
+     thisGraph->SetMarkerStyle (kFullDotLarge);
+     if (iEta < numetabins) thisGraph->SetMarkerSize (0.5);
+     else thisGraph->SetLineWidth (2);
+
+     if (iEta == 0) thisGraph->Draw ("AP");
+     else thisGraph->Draw ("P");
+     hArr[iEta] = thisGraph;
+
+     if (iEta == numetabins) myMarkerText (0.22, 0.49, colors[iEta], kFullCircle, "#eta-integrated", 1.25, 0.03);
+     else myMarkerText (0.22+(iEta>=(numetabins/2))*0.18, 0.45-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
     }
-    if (iMC == 0) myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
-    else myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV", 0.04);
-    myText (0.60, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+
+    if (iMC == 0) myText (0.20, 0.84, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+    else myText (0.20, 0.84, kBlack, "Pythia8 #it{pp} 8.16 TeV", 0.04);
+    myText (0.20, 0.78, kBlack, Form ("%i jets", jetCounter[iAlgo][iMC]), 0.04);
+    myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+
     jesSummaryCanvas->SaveAs (Form ("%s/%s_%s_JetEnergyScale.pdf", plotPath.Data(), algo.Data(), mcType.Data()));
 cout<<"e";
+    Delete1DArray (hArr, numetabins+1);
    }
 
-   for (short iMC = 0; iMC < 2; iMC++) {
-    Color_t color = (iMC == 0 ? mcOverlayColor:mcSignalColor);
-    thisHist = jetEnergyScale[iMC][numetabins];
-    thisHist->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
-    thisHist->GetYaxis()->SetTitle ("Jet Energy Scale");
-    thisHist->GetYaxis()->SetRangeUser (0.85, 1.15);
-    thisHist->SetLineColor (color);
-    thisHist->SetMarkerColor (color);
-    thisHist->SetMarkerStyle (kFullDotLarge);
-    if (iMC == 0) thisHist->Draw ("L ][");
-    else thisHist->Draw ("same L ][");
-    myMarkerText (0.22, 0.28-iMC*0.06, color, kFullDotLarge, Form ("Pythia8 #it{pp} 8.16 TeV%s", (iMC == 0 ? " with #it{p}-Pb Overlay":"")), 1.25, 0.04);
+   delta = 0.014;
+   for (short iMC = plotMC; iMC < plotMC+2; iMC++) {
+    Color_t color = (iMC == plotMC ? mcOverlayColor:mcSignalColor);
+    thisGraph = make_graph (jetEnergyScale[iMC][numetabins]);
+    deltaize (thisGraph, 1 + (iMC-plotMC)*delta, true);
+
+    if (calcPtClosure) {
+     thisGraph->GetXaxis()->SetTitle ("#it{p}_{T}^{true} #left[GeV#right]");
+     thisGraph->GetYaxis()->SetTitle ("<#it{p}_{T}^{calib} / #it{p}_{T}^{true}>");
+    }
+    else {
+     thisGraph->GetXaxis()->SetTitle ("#it{E}_{true} #left[GeV#right]");
+     thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
+    }
+
+    if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+    else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+
+    if (plotMC == 1) thisGraph->GetYaxis()->SetRangeUser (0.98, 1.01);
+    else thisGraph->GetYaxis()->SetRangeUser (0.94, 1.05);
+
+    thisGraph->SetLineWidth (2);
+    thisGraph->SetLineColor (color);
+    thisGraph->SetMarkerColor (color);
+    thisGraph->SetMarkerStyle (kFullDotLarge);
+
+    if (iMC == plotMC) thisGraph->Draw ("AP");
+    else thisGraph->Draw ("P");
+
+    if (plotMC == 1) myMarkerText (0.22, 0.28-(iMC-1)*0.06, color, kFullDotLarge, Form ("B.S. = %i ns", (iMC==1?25:100)), 1.25, 0.04);
+    else myMarkerText (0.22, 0.28-iMC*0.06, color, kFullDotLarge, Form ("Pythia8 #it{pp} 8.16 TeV%s", (iMC==plotMC?" with #it{p}-Pb Data Overlay":"")), 1.25, 0.04);
    }
-   myText (0.60, 0.82, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+
+   jetEnergyScale[plotMC+1][numetabins]->Divide (jetEnergyScale[plotMC][numetabins]);
+   thisGraph = make_graph (jetEnergyScale[plotMC+1][numetabins]);
+   deltaize (thisGraph, 1-delta, true);
+   thisGraph->SetLineWidth (2);
+   thisGraph->SetLineColor(kBlack);
+   thisGraph->SetMarkerColor(kBlack);
+   thisGraph->Draw("P");
+
+   if (plotMC == 1) myMarkerText (0.22, 0.34, kBlack, kFullDotLarge, "Pythia8 #it{pp} 8.16 TeV, New / Old", 1.25, 0.04);
+   else myMarkerText (0.22, 0.34, kBlack, kFullDotLarge, "Overlay / Signal", 1.25, 0.04);
+   myText (0.20, 0.40, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
    jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyScale_MCcomparison.pdf", plotPath.Data(), algo.Data()));
 
-   for (short iMC = 0; iMC < 2; iMC++) {
-    const TString mcType = (iMC == 0 ? "overlay":"signal");
-    for (int iEta = 0; iEta < numetabins; iEta++) {
-     TH1D* thisHist = jetEnergyRes[iMC][iEta];
-     thisHist->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
-     thisHist->GetYaxis()->SetTitle ("Jet Energy Resolution");
-     thisHist->GetYaxis()->SetRangeUser(0, 0.3);
-     thisHist->SetLineColor (colors[iEta]);
-     thisHist->SetMarkerColor (colors[iEta]);
-     thisHist->SetMarkerStyle (kFullDotLarge);
-     thisHist->SetMarkerSize (0.5);
-     if (iEta == 0) thisHist->Draw ("L ][");
-     else thisHist->Draw ("same L ][");
-     myMarkerText (0.57+(iEta>=(numetabins/2))*0.18, 0.85-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
+   delta = 0.005;
+   for (short iMC = plotMC; iMC < plotMC+2; iMC++) {
+    const TString mcType = GetMCType (iMC);
+    TGraphAsymmErrors** hArr = Get1DArray <TGraphAsymmErrors*> (numetabins+1);
+    for (int iEta = 0; iEta <= numetabins; iEta++) {
+     thisGraph = make_graph (jetEnergyRes[iMC][iEta]);
+     double t_delta = 1;
+     if (iEta < numetabins) t_delta += delta * (iEta - (numetabins/2) + (int)(iEta>=(numetabins/2)));
+     deltaize (thisGraph, t_delta, true);
+
+     if (calcPtClosure) {
+      thisGraph->GetXaxis()->SetTitle ("#it{p}_{T}^{true} #left[GeV#right]");
+      thisGraph->GetYaxis()->SetTitle ("<#it{p}_{T}^{calib} / #it{p}_{T}^{true}>");
+     }
+     else {
+      thisGraph->GetXaxis()->SetTitle ("#it{E}_{true} #left[GeV#right]");
+      thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
+     }
+
+     if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+     else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+
+     thisGraph->GetYaxis()->SetRangeUser(0, 0.3);
+
+     thisGraph->SetLineColor (colors[iEta]);
+     thisGraph->SetMarkerColor (colors[iEta]);
+     thisGraph->SetMarkerStyle (kFullDotLarge);
+     if (iEta < numetabins) thisGraph->SetMarkerSize (0.5);
+     else thisGraph->SetLineWidth (2);
+
+     if (iEta == 0) thisGraph->Draw ("AP");
+     else thisGraph->Draw ("P");
+     hArr[iEta] = thisGraph;
+
+     if (iEta == numetabins) myMarkerText (0.57, 0.89, colors[iEta], kFullCircle, "#eta-integrated", 1.25, 0.03);
+     else myMarkerText (0.57+(iEta>=(numetabins/2))*0.18, 0.85-0.04*iEta+0.04*(numetabins/2)*(iEta>=numetabins/2), colors[iEta], kFullCircle, Form ("%g < #eta < %g", etabins[iEta], etabins[iEta+1]), 1.25, 0.03);
     }
-    if (iMC == 0) myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
-    else myText (0.48, 0.9, kBlack, "Pythia8 #it{pp} 8.16 TeV", 0.04);
-    myText (0.20, 0.22, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+
+    if (iMC == 0) myText (0.20, 0.84, kBlack, "Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay", 0.04);
+    else myText (0.20, 0.84, kBlack, "Pythia8 #it{pp} 8.16 TeV", 0.04);
+    myText (0.20, 0.76, kBlack, Form ("%i jets", jetCounter[iAlgo][iMC]), 0.04);
+    myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+
     jesSummaryCanvas->SaveAs (Form ("%s/%s_%s_JetEnergyResolution.pdf", plotPath.Data(), algo.Data(), mcType.Data()));
+    Delete1DArray (hArr, numetabins+1);
    }
 
-   for (short iMC = 0; iMC < 2; iMC++) {
-    Color_t color = (iMC == 0 ? mcOverlayColor:mcSignalColor);
-    thisHist = jetEnergyRes[iMC][numetabins];
-    thisHist->GetXaxis()->SetTitle ("#it{p}_{T}^{jet} #left[GeV#right]");
-    thisHist->GetYaxis()->SetTitle ("Jet Energy Resolution");
-    thisHist->GetYaxis()->SetRangeUser (0, 0.3);
-    thisHist->SetLineColor (color);
-    thisHist->SetMarkerColor (color);
-    thisHist->SetMarkerStyle (kFullDotLarge);
-    if (iMC == 0) thisHist->Draw ("L ][");
-    else thisHist->Draw ("same L ][");
-    myMarkerText (0.22, 0.28-iMC*0.06, color, kFullDotLarge, Form ("Pythia8 #it{pp} 8.16 TeV%s", (iMC == 0 ? " with #it{p}-Pb Overlay":"")), 1.25, 0.04);
-   }
-   myText (0.60, 0.82, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
-   jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyResolution_MCcomparison.pdf", plotPath.Data(), algo.Data()));
+   //for (short iMC = 0; iMC < 3; iMC++) {
+   // Color_t color = (iMC == 0 ? mcOverlayColor:mcSignalColor);
+   // thisGraph = jetEnergyRes[iMC][numetabins];
+   //  //thisGraph->GetXaxis()->SetTitle ("#it{p}_{T}^{true} #left[GeV#right]");
+   // thisGraph->GetXaxis()->SetTitle ("#it{E}_{true} #left[GeV#right]");
+   // thisGraph->GetYaxis()->SetTitle ("Jet Energy Resolution");
+   // thisGraph->GetYaxis()->SetRangeUser (0, 0.3);
+   // thisGraph->SetLineColor (color);
+   // thisGraph->SetMarkerColor (color);
+   // thisGraph->SetMarkerStyle (kFullDotLarge);
+   // if (iMC == 0) thisGraph->Draw ("L ][");
+   // else thisGraph->Draw ("same L ][");
+   // myMarkerText (0.22, 0.28-iMC*0.06, color, kFullDotLarge, Form ("Pythia8 #it{pp} 8.16 TeV%s", (iMC == 0 ? " with #it{p}-Pb Overlay":"")), 1.25, 0.04);
+   //}
+   //myText (0.60, 0.82, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.04);
+   //jesSummaryCanvas->SaveAs (Form ("%s/%s_JetEnergyResolution_MCcomparison.pdf", plotPath.Data(), algo.Data()));
 
-   for (short iMC = 0; iMC < 2; iMC++) {
+   for (short iMC = plotMC; iMC < plotMC+2; iMC++) {
     for (int iEta = 0; iEta <= numetabins; iEta++) {
      if (jetEnergyScale[iMC][iEta]) delete jetEnergyScale[iMC][iEta];
      if (jetEnergyRes[iMC][iEta]) delete jetEnergyRes[iMC][iEta];
@@ -578,9 +683,6 @@ cout<<"e";
 
 
   /**** Plots the photon energy response ****/
-  //energyScaleCanvas->cd();
-  //gPad->SetLogy(true);
-
   TH1D* photonEnergyScale[numetabins+1];
   TH1D* photonEnergyRes[numetabins+1];
   for (short iEta = 0; iEta <= numetabins; iEta++) {
@@ -596,39 +698,44 @@ cout<<"e";
 
    TF1* calibFits[12];
 
-   for (short iDP = 0; iDP < 6; iDP++) {
+   for (short iDP = 0; iDP < numdpbins; iDP++) {
     for (short iP = 0; iP < numpbins; iP++) {
-     if (!(dpbins[iDP] <= pbins[iP] && pbins[iP+1] <= dpbins[iDP+1])) {
+
+     if (!(dpbins[iDP] <= pbins[iP]) || (numdpbins > 1 && !(pbins[iP+1] <= dpbins[iDP+1])))
       continue;
-     }
+
      if (iP <= 11)
       pesCanvas->cd(iP+1);
 
      gPad->SetLogy(true);
-     TH1D* thisHist = photonEnergyResponse[iDP][0][iP][iEta];
-     int nGammas = nGamma[iDP][0][iP][iEta];
+
+     thisHist = photonEnergyResponse[iDP][0][iP][iEta];
      if (thisHist->Integral() != 0)
       thisHist->Scale(1./thisHist->Integral());
-     thisHist->SetAxisRange(3e-6, 2e1, "Y");
+
+     int nGammas = nGamma[iDP][0][iP][iEta];
 
      TF1* calibFit = new TF1("calibFit", "gaus(0)", 0, 2.0);
-     calibFit->SetParameter (1, thisHist->GetMean());
-     calibFit->SetParameter (2, thisHist->GetStdDev());
-     thisHist->Fit(calibFit, "RNL");
-     float m = calibFit->GetParameter (1);
-     float s = calibFit->GetParameter (2);
-     if (calibFit) delete calibFit;
+     if (nGammas > 0) {
+      calibFit->SetParameter (1, thisHist->GetMean());
+      calibFit->SetParameter (2, thisHist->GetStdDev());
+      thisHist->Fit(calibFit, "RN");
+      float m = calibFit->GetParameter (1);
+      float s = calibFit->GetParameter (2);
+      if (calibFit) delete calibFit;
 
-     calibFit = new TF1("calibFit2", "gaus(0)", m - 3.5*s, m + 3.5*s);
-     thisHist->Fit(calibFit, "RNL");
-     //m = calibFit->GetParameter (1);
-     //s = calibFit->GetParameter (2);
-     //if (calibFit) delete calibFit;
+      calibFit = new TF1("calibFit2", "gaus(0)", m - 3.5*s, m + 3.5*s);
+      thisHist->Fit(calibFit, "RN");
+      //m = calibFit->GetParameter (1);
+      //s = calibFit->GetParameter (2);
+      //if (calibFit) delete calibFit;
 
-     //calibFit = new TF1("calibFit3", "gaus(0)", m - 3.5*s, m + 3.5*s);
-     //thisHist->Fit(calibFit, "RNL");
+      //calibFit = new TF1("calibFit3", "gaus(0)", m - 3.5*s, m + 3.5*s);
+      //thisHist->Fit(calibFit, "RNL");
+     }
 
      if (iP <= 11) {
+      thisHist->SetAxisRange(3e-6, 2e1, "Y");
       thisHist->SetMarkerStyle(kFullDotMedium);
       thisHist->SetLineColor(kBlue);
       thisHist->SetMarkerColor(kBlue);
@@ -640,15 +747,15 @@ cout<<"e";
       calibFits[iP] = calibFit;
      }
 
-     //photonEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter (1));
-     photonEnergyScale[iEta]->SetBinContent (iP+1, thisHist->GetMean());
+     photonEnergyScale[iEta]->SetBinContent (iP+1, calibFit->GetParameter (1));
+     //photonEnergyScale[iEta]->SetBinContent (iP+1, thisHist->GetMean());
 
      //photonEnergyScale[iEta]->SetBinError (iP+1, calibFit->GetParError(1));
      //photonEnergyScale[iEta]->SetBinError (iP+1, thisHist->GetMeanError());
      photonEnergyScale[iEta]->SetBinError (iP+1, 0.000001);
 
-     //photonEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter (2));
-     photonEnergyRes[iEta]->SetBinContent (iP+1, thisHist->GetStdDev());
+     photonEnergyRes[iEta]->SetBinContent (iP+1, calibFit->GetParameter (2));
+     //photonEnergyRes[iEta]->SetBinContent (iP+1, thisHist->GetStdDev());
 
      //photonEnergyRes[iEta]->SetBinError (iP+1, calibFit->GetParError(2));
      //photonEnergyRes[iEta]->SetBinError (iP+1, thisHist->GetStdDevError());
@@ -660,6 +767,9 @@ cout<<"e";
       myText(0.18, 0.90, kBlack, Form ("#mu = %s", FormatMeasurement (calibFit->GetParameter (1), calibFit->GetParError(1), 1)), 0.04 * 2);
       myText(0.18, 0.80, kBlack, Form ("#sigma = %s", FormatMeasurement (calibFit->GetParameter (2), calibFit->GetParError(2), 1)), 0.04 * 2);
       myText (0.18, 0.70, kBlack, Form ("%g < #it{p}_{T}^{reco} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
+     }
+     else {
+      if (calibFit) delete calibFit;
      }
     }
    }
@@ -708,38 +818,6 @@ cout<<"e";
   }
   if (pesSummaryCanvas) delete pesSummaryCanvas;
 
-
-// Miscellaneous plots
-  //lowResponseEtaPhi->Draw ("col");
-  //energyScaleCanvas->SaveAs(Form ("%s/lowJetResponseEtaPhi.pdf", plotPath.Data()));
-  //highResponseEtaPhi->Draw ("col");
-  //energyScaleCanvas->SaveAs(Form ("%s/highJetResponseEtaPhi.pdf", plotPath.Data()));
-  //lowResponseEtaPt->Draw ("col");
-  //energyScaleCanvas->SaveAs(Form ("%s/lowJetResponseEtaPt.pdf", plotPath.Data()));
-  //highResponseEtaPt->Draw ("col");
-  //energyScaleCanvas->SaveAs(Form ("%s/highJetResponseEtaPt.pdf", plotPath.Data()));
-  //gPad->SetLogz(true);
-  //TProfile* responsePtProf = responsePt->ProfileY("reponsePtProfY");
-  //TGraphAsymmErrors* responsePtProfGraph = new TGraphAsymmErrors(responsePtProf->GetNbinsX());
-  //for (int binx = 0; binx < responsePtProf->GetNbinsX(); binx++) {
-  // responsePtProfGraph->SetPoint(binx, responsePtProf->GetBinContent(binx+1), responsePtProf->GetBinCenter(binx+1));
-  // responsePtProfGraph->SetPointEYlow(binx, responsePtProf->GetBinLowEdge(binx+1)+responsePtProf->GetBinWidth(binx+1)-responsePtProf->GetBinCenter(binx+1));
-  // responsePtProfGraph->SetPointEYhigh(binx, responsePtProf->GetBinCenter(binx+1)-responsePtProf->GetBinLowEdge(binx+1));
-  // responsePtProfGraph->SetPointEXlow(binx, responsePtProf->GetBinError(binx+1));
-  // responsePtProfGraph->SetPointEXhigh(binx, responsePtProf->GetBinError(binx+1));
-  //}
-  //responsePt->Draw ("col");
-  //responsePtProfGraph->SetMarkerStyle(kDot);
-  //responsePtProfGraph->Draw ("p2 same");
-  //energyScaleCanvas->SaveAs(Form ("%s/responsePt.pdf", plotPath.Data()));
-  //responsePtProf->SetAxisRange(0.95, 1.10, "Y");
-  //responsePtProf->Draw ("e1");
-  //energyScaleCanvas->SaveAs(Form ("%s/responsePtProfY.pdf", plotPath.Data()));
-  //gPad->SetLogy(true);
-  //jetSpectrum->Scale(1e6, "width");
-  //jetSpectrum->Draw ("e1");
-  //energyScaleCanvas->SaveAs(Form ("%s/jetSpectrum.pdf", plotPath.Data()));
-  
 
   return;
 }

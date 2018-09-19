@@ -34,6 +34,8 @@ extern const bool useGaussian; //
 
 extern const bool plot_xjref; // whether to plot xjref distributions
 
+extern const bool calcPtClosure; // whether the energy scale calculations will use pT (true) or E (false)
+
 /** End user defined parameters **/
 
 
@@ -46,7 +48,8 @@ extern const double* xjrefbins;
 extern const short numrtrkbins;
 extern const double* rtrkbins;
 
-extern const double dpbins[7];
+//extern const double dpbins[7];
+extern const double dpbins[2];
 extern const short numdpbins;
 
 //extern const double pbins[31];

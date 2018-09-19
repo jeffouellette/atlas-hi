@@ -35,27 +35,27 @@ double GetXCalibSystematicError(const double jpt, const double jeta) {
 }
 
 
-TString GetIdentifier (const int dataSet, const TString inFileName, const bool isSignalOnlySample, const bool periodA) {
+TString GetIdentifier (const int dataSet, const bool isPeriodA, const TString inFileName) {
 
-  TString id = (periodA ? "pPb_" : "Pbp_");
+  TString id = TString (isPeriodA ? "pPb_" : "Pbp_") + TString (inFileName.Contains ("signalonly") ? "Signal" : "Overlay");
 
-  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
+  if (inFileName.Contains ("valid")) id = id + "_Valid";
 
   if (inFileName.Contains ("jetjet")) { // dijet
    if (dataSet <= 0) return "";
-   id = id + "Dijet_Slice" + to_string (dataSet);
+   id = id + "_Dijet_Slice" + to_string (dataSet);
   }
   else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
    if (dataSet <= 0) return "";
-   id = id + "GammaJet_Slice" + to_string (dataSet);
+   id = id + "_GammaJet_Slice" + to_string (dataSet);
   }
   else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
    if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
+   id = id + "_ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
   }
   else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
    if (dataSet != 0) return "";
-   id = id + "ZmumuJet";
+   id = id + "_ZmumuJet";
   }
 
   return id;
@@ -69,18 +69,18 @@ void EnergyScaleChecks (const int dataSet,
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = TString(inFileName).Contains("signalonly");
-  const TString identifier = GetIdentifier(dataSet, inFileName, isSignalOnlySample, isPeriodA);
+  const TString identifier = GetIdentifier(dataSet, isPeriodA, inFileName);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
   TFile* file = NULL;
   TTree* tree = NULL;
   {
-   TString fileIdentifier;
-   if (inFileName == "") {
-    fileIdentifier = TString(dataSet > 0 ? ("Slice" + to_string(dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string(-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
-   } else fileIdentifier = inFileName;
+   TString fileIdentifier = inFileName;
+   if (fileIdentifier == "") {
+    cout << "File name not provided! Exiting." << endl;
+    return;
+   }
 
    const TString dataPathTemp = dataPath;// + "/rtrk_data/";
    TSystemDirectory dir(dataPathTemp.Data(), dataPathTemp.Data());
@@ -120,36 +120,8 @@ void EnergyScaleChecks (const int dataSet,
   t->SetGetPhotons ();
   t->SetBranchAddresses();
 
-  // initialize histograms
-  TH2D** lowResponseEtaPhi = Get1DArray <TH2D*> (2);
-  TH2D** highResponseEtaPhi = Get1DArray <TH2D*> (2);
-  TH2D** lowResponseEtaPt = Get1DArray <TH2D*> (2);
-  TH2D** highResponseEtaPt = Get1DArray <TH2D*> (2);
-  TH2D** responsePt = Get1DArray <TH2D*> (2);
-  TH1D** jetSpectrum = Get1DArray <TH1D*> (2);
-
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   const TString algo = (iAlgo == 0 ? "akt4hi":"akt4emtopo");
-   lowResponseEtaPhi[iAlgo] = new TH2D (Form ("%s_lowResponseEtaPhi_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-   highResponseEtaPhi[iAlgo] = new TH2D (Form ("%s_highResponseEtaPhi_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 98, -4.9, 4.9, 100, -pi, pi);
-   lowResponseEtaPt[iAlgo] = new TH2D (Form ("%s_lowResponseEtaPt_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#it{p}_{T}^{reco};", 25, -2.5, 2.5, 66, 20, 350);
-   highResponseEtaPt[iAlgo] = new TH2D (Form ("%s_highResponseEtaPt_dataSet%s", algo.Data(), identifier.Data()), ";#eta;#phi;", 25, -2.5, 2.5, 66, 20, 350);
-   responsePt[iAlgo] = new TH2D (Form ("%s_responsePt_dataSet%s", algo.Data(), identifier.Data()), ";#it{p}_{T}^{reco} / #it{p}_{T}^{truth};#it{p}_{T}^{reco} #left[GeV#right];", 200, 0, 4.0, 66, 20, 350);
-
-   jetSpectrum[iAlgo] = new TH1D (Form ("%s_jetPt_dataSet%s", algo.Data(), identifier.Data()), ";#it{p}_{T}^{jet} #left[GeV#right];", 33, 20, 350);
-  }
-
   TH1D* electronEnergyScale = new TH1D (Form ("electronEnergyScale_dataSet%s", identifier.Data()), "", 200, 0, 2);
   electronEnergyScale->Sumw2();
-
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   lowResponseEtaPhi[iAlgo]->Sumw2();
-   highResponseEtaPhi[iAlgo]->Sumw2();
-   lowResponseEtaPt[iAlgo]->Sumw2();
-   highResponseEtaPt[iAlgo]->Sumw2();
-   responsePt[iAlgo]->Sumw2();
-   jetSpectrum[iAlgo]->Sumw2();
-  }
 
   TH1D**** jetEnergyResponseCalib = Get3DArray <TH1D*> (2, numpbins+1, numetabins+1);
   TH1D**** jetEnergyResponseReco = Get3DArray <TH1D*> (2, numpbins+1, numetabins+1);
@@ -178,6 +150,7 @@ void EnergyScaleChecks (const int dataSet,
   vector<float>* jet_phi;
   vector<float>* jet_e;
   vector<float>* precalib_jet_pt;
+  vector<float>* precalib_jet_e;
 
   xCalibSystematicsFile = new TFile(rootPath + "cc_sys_090816.root", "READ");
 
@@ -190,7 +163,8 @@ void EnergyScaleChecks (const int dataSet,
    tree->GetEntry(entry);
 
    const double evtWeight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
-   //const double evtWeight = 1.2910E+03 / 0.0056462 / 3998445;
+   //const double evtWeight = 1.2910E+03 / 0.0056462 / 3997692; // for dijet signal only sample
+   //const double evtWeight = 1; // since AMI is down currently
 
 
    /////////////////////////////////////////////////////////////////////////////
@@ -208,6 +182,7 @@ void EnergyScaleChecks (const int dataSet,
      jet_phi = t->akt4hi_em_xcalib_jet_phi;
      jet_e = t->akt4hi_em_xcalib_jet_e;
      precalib_jet_pt = t->akt4hi_em_jet_pt;
+     precalib_jet_e = t->akt4hi_em_jet_e;
     }
     else { // EMTopo algorithm at the EM scale
      jet_n = &(t->akt4emtopo_jet_n);
@@ -216,6 +191,7 @@ void EnergyScaleChecks (const int dataSet,
      jet_phi = t->akt4emtopo_calib_jet_phi;
      jet_e = t->akt4emtopo_calib_jet_e;
      precalib_jet_pt = t->akt4emtopo_em_jet_pt;
+     precalib_jet_e = t->akt4emtopo_em_jet_e;
     }
 
 
@@ -240,10 +216,8 @@ void EnergyScaleChecks (const int dataSet,
       const double dR = DeltaR (jet_eta->at(j), t->truth_photon_eta->at(p), jet_phi->at(j), t->truth_photon_phi->at(p));
       if (dR < minDeltaR) minDeltaR = dR;
      }
-     if (minDeltaR < 0.4)
+     if (minDeltaR < 0.6)
       continue; // reject jets close to some other lepton or photon
-
-     jetSpectrum[iAlgo]->Fill (jet_pt->at(j), evtWeight);
 
      minDeltaR = 1000;
      int truth_jet = -1;
@@ -265,14 +239,24 @@ void EnergyScaleChecks (const int dataSet,
       }
       iEta--;
       short iP = 0;
-      if (pbins[0] < jet_pt->at(j) ||
-          jet_pt->at(j) < pbins[numpbins]) {
-       while (pbins[iP] < jet_pt->at(j)) iP++;
+      double jer, pjer;
+      if (!calcPtClosure) {
+       if (pbins[0] < t->truth_jet_e->at(truth_jet) ||
+           t->truth_jet_e->at(truth_jet) < pbins[numpbins]) {
+        while (pbins[iP] < t->truth_jet_e->at(truth_jet)) iP++;
+       }
+       jer = jet_e->at(j) / t->truth_jet_e->at(truth_jet);
+       pjer = precalib_jet_e->at(j) / t->truth_jet_e->at(truth_jet);
       }
+      else if (pbins[0] < t->truth_jet_pt->at(truth_jet) ||
+               t->truth_jet_pt->at(truth_jet) < pbins[numpbins]) {
+       while (pbins[iP] < t->truth_jet_pt->at(truth_jet)) iP++;
+       jer = jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
+       pjer = precalib_jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
+      }
+      else continue;
       iP--;
 
-      const double jer = jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
-      const double pjer = precalib_jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
       if (0 <= iP && iP < numpbins &&
           0 <= iEta && iEta < numetabins) {
        nJet[iAlgo][iP][iEta]++;
@@ -292,18 +276,6 @@ void EnergyScaleChecks (const int dataSet,
       nJet[iAlgo][numpbins][numetabins]++;
       jetEnergyResponseCalib[iAlgo][numpbins][numetabins]->Fill (jer, evtWeight);
       jetEnergyResponseReco[iAlgo][numpbins][numetabins]->Fill (pjer, evtWeight);
-
-      // Extra plots
-      if (jet_pt->at(j) / t->truth_jet_pt->at(truth_jet) < 1.18) {
-       lowResponseEtaPhi[iAlgo]->Fill (jet_eta->at(j), jet_phi->at(j), evtWeight);
-       lowResponseEtaPt[iAlgo]->Fill (jet_eta->at(j), jet_pt->at(j), evtWeight);
-      }
-      else {
-       highResponseEtaPhi[iAlgo]->Fill (jet_eta->at(j), jet_phi->at(j), evtWeight);
-       highResponseEtaPt[iAlgo]->Fill (jet_eta->at(j), jet_pt->at(j), evtWeight);
-      }
-      responsePt[iAlgo]->Fill (jer, jet_pt->at(j), evtWeight);
-
      }
     }
    } // end jet algorithm loop
@@ -428,21 +400,6 @@ void EnergyScaleChecks (const int dataSet,
   // Write histograms to output and clean memory
   electronEnergyScale->Write();
   if (electronEnergyScale) delete electronEnergyScale;
-
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   lowResponseEtaPhi[iAlgo]->Write();
-   if (lowResponseEtaPhi[iAlgo]) delete lowResponseEtaPhi[iAlgo];
-   highResponseEtaPhi[iAlgo]->Write();
-   if (highResponseEtaPhi[iAlgo]) delete highResponseEtaPhi[iAlgo];
-   lowResponseEtaPt[iAlgo]->Write();
-   if (lowResponseEtaPt[iAlgo]) delete lowResponseEtaPt[iAlgo];
-   highResponseEtaPt[iAlgo]->Write();
-   if (highResponseEtaPt[iAlgo]) delete highResponseEtaPt[iAlgo];
-   responsePt[iAlgo]->Write();
-   if (responsePt[iAlgo]) delete responsePt[iAlgo];
-   jetSpectrum[iAlgo]->Write();
-   if (jetSpectrum[iAlgo]) delete jetSpectrum[iAlgo];
-  }
 
   for (short iP = 0; iP <= numpbins; iP++) {
    for (short iEta = 0; iEta <= numetabins; iEta++) {

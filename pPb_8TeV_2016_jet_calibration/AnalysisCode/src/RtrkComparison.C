@@ -246,7 +246,7 @@ void RtrkComparison (const int dataSet,
     }
     else { // MC weight
      //weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
-     weight = 1.2910E+03 / 0.0056462 / 3998445;
+     weight = 1.2910E+03 / 0.0056462 / 3997692;
     }
     if (weight == 0)
      continue; // reject events which are weighted to 0
