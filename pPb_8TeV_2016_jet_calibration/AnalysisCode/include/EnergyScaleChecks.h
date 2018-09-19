@@ -27,7 +27,10 @@ double GetXCalibSystematicError(const double jpt, const double jeta);
  */
 void EnergyScaleChecks (const int dataSet,
                         const bool isPeriodAflag = false, 
-                        const TString inFileName = "");
+                        const TString inFileName = "",
+                        const double crossSection_microbarns = 0,
+                        const double filterEfficiency = 0,
+                        const int numberEvents = 0);
 
 } // end namespace
 

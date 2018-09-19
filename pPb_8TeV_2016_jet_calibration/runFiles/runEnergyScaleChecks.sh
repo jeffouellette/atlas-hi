@@ -1,6 +1,6 @@
-./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.signalonly.230.mc15_8TeV.420012.jetjet.JZ2R04.pPb_myOutput.root &
-./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.signalonly.valid.230.mc15_8TeV.420012.jetjet.JZ2R04.pPb_myOutput.root &
-./lib/runEnergyScaleChecks 2 false user.jeouelle.2.4.30hi.calibcheck.signalonly.valid.230.mc15_8TeV.420012.jetjet.JZ2R04.Pbp_myOutput.root &
+./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.signalonly.230.mc15_8TeV.420012.jetjet.JZ2R04.pPb_myOutput.root 1.291E3 0.0056462 3997692 &
+./lib/runEnergyScaleChecks 2 true user.jeouelle.2.4.30hi.calibcheck.signalonly.valid.230.mc15_8TeV.420012.jetjet.JZ2R04.pPb_myOutput.root 1.292E3 0.0056933 9500 &
+./lib/runEnergyScaleChecks 2 false user.jeouelle.2.4.30hi.calibcheck.signalonly.valid.230.mc15_8TeV.420012.jetjet.JZ2R04.Pbp_myOutput.root 1.292E3 0.0056911 10000 &
 
 ## gamma+jet pp sample with pPb data overlay
 #./lib/runEnergyScaleChecks 1 true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.423100.Slice1.pPb_myOutput.root &
@@ -38,7 +38,7 @@
 ## ... and for period B
 #./lib/runEnergyScaleChecks 0 false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361107.ZmumuJet.Pbp_myOutput.root &
 #./lib/runEnergyScaleChecks 0 false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
-#
-#wait
+
+wait
 
 ./lib/runEnergyScaleChecksHist  

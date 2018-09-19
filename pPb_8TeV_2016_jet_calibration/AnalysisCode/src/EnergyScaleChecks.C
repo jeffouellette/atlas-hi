@@ -64,7 +64,10 @@ TString GetIdentifier (const int dataSet, const bool isPeriodA, const TString in
 
 void EnergyScaleChecks (const int dataSet,
                         const bool isPeriodA,
-                        const TString inFileName)
+                        const TString inFileName,
+                        const double crossSection_microbarns,
+                        const double filterEfficiency,
+                        const int numberEvents)
 {
 
   SetupDirectories("", "pPb_8TeV_2016_jet_calibration/");
@@ -113,6 +116,12 @@ void EnergyScaleChecks (const int dataSet,
   /**** End find TTree ****/
 
   TreeVariables* t = new TreeVariables(tree, true);
+  if (crossSection_microbarns != 0) {
+   t->crossSection_microbarns = crossSection_microbarns;
+   t->filterEfficiency = filterEfficiency;
+   t->numberEvents = numberEvents;
+   t->SetGetMCInfo (false);
+  }
   t->SetGetVertices ();
   t->SetGetHIJets ();
   t->SetGetEMTopoJets ();
@@ -163,8 +172,6 @@ void EnergyScaleChecks (const int dataSet,
    tree->GetEntry(entry);
 
    const double evtWeight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
-   //const double evtWeight = 1.2910E+03 / 0.0056462 / 3997692; // for dijet signal only sample
-   //const double evtWeight = 1; // since AMI is down currently
 
 
    /////////////////////////////////////////////////////////////////////////////
@@ -207,17 +214,17 @@ void EnergyScaleChecks (const int dataSet,
       continue; // reject jets reconstructed outside reasonable HCal bounds.
 
      double minDeltaR = 1000;
-     // loop over truth electrons and photons
-     for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
-      const double dR = DeltaR (jet_eta->at(j), t->truth_electron_eta->at(e), jet_phi->at(j), t->truth_electron_phi->at(e));
-      if (dR < minDeltaR) minDeltaR = dR;
-     }
-     for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
-      const double dR = DeltaR (jet_eta->at(j), t->truth_photon_eta->at(p), jet_phi->at(j), t->truth_photon_phi->at(p));
-      if (dR < minDeltaR) minDeltaR = dR;
-     }
-     if (minDeltaR < 0.6)
-      continue; // reject jets close to some other lepton or photon
+     //// loop over truth electrons and photons
+     //for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
+     // const double dR = DeltaR (jet_eta->at(j), t->truth_electron_eta->at(e), jet_phi->at(j), t->truth_electron_phi->at(e));
+     // if (dR < minDeltaR) minDeltaR = dR;
+     //}
+     //for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
+     // const double dR = DeltaR (jet_eta->at(j), t->truth_photon_eta->at(p), jet_phi->at(j), t->truth_photon_phi->at(p));
+     // if (dR < minDeltaR) minDeltaR = dR;
+     //}
+     //if (minDeltaR < 0.6)
+     // continue; // reject jets close to some other lepton or photon
 
      minDeltaR = 1000;
      int truth_jet = -1;
@@ -239,23 +246,27 @@ void EnergyScaleChecks (const int dataSet,
       }
       iEta--;
       short iP = 0;
-      double jer, pjer;
       if (!calcPtClosure) {
        if (pbins[0] < t->truth_jet_e->at(truth_jet) ||
            t->truth_jet_e->at(truth_jet) < pbins[numpbins]) {
         while (pbins[iP] < t->truth_jet_e->at(truth_jet)) iP++;
        }
-       jer = jet_e->at(j) / t->truth_jet_e->at(truth_jet);
-       pjer = precalib_jet_e->at(j) / t->truth_jet_e->at(truth_jet);
       }
       else if (pbins[0] < t->truth_jet_pt->at(truth_jet) ||
                t->truth_jet_pt->at(truth_jet) < pbins[numpbins]) {
        while (pbins[iP] < t->truth_jet_pt->at(truth_jet)) iP++;
+      }
+      iP--;
+
+      double jer, pjer;
+      if (!calcPtClosure) {
+       jer = jet_e->at(j) / t->truth_jet_e->at(truth_jet);
+       pjer = precalib_jet_e->at(j) / t->truth_jet_e->at(truth_jet);
+      }
+      else {
        jer = jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
        pjer = precalib_jet_pt->at(j) / t->truth_jet_pt->at(truth_jet);
       }
-      else continue;
-      iP--;
 
       if (0 <= iP && iP < numpbins &&
           0 <= iEta && iEta < numetabins) {

@@ -19,6 +19,7 @@ struct TreeVariables {
    TTree* tree;
 
    bool isMC = false;
+   bool getMCInfo = true;
    bool getCollisionRateInfo = false;
    bool getVertices = false;
    bool getFCals = false;
@@ -39,6 +40,7 @@ struct TreeVariables {
    void PrintAll (const long long entry);
 
    // setter functions
+   void SetGetMCInfo (const bool _getMCInfo = true);
    void SetGetCollisionRateInfo (const bool _getCollisionRateInfo = true);
    void SetGetVertices (const bool _getVertices = true);
    void SetGetFCals (const bool _getFCals = true);

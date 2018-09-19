@@ -476,9 +476,10 @@ void EnergyScaleChecksHist () {
        //jetEnergyRes[iMC][iEta]->SetBinError (iP+1, 0.000001);
 
        if (iMC == plotMC && iP <= 11) {
-        myText(0.18, 0.90, kBlack, Form ("#mu = %s", FormatMeasurement (calibFit->GetParameter (1), calibFit->GetParError(1), 2)), 0.04 * 2);
-        myText(0.18, 0.80, kBlack, Form ("#sigma = %s", FormatMeasurement (calibFit->GetParameter (2), calibFit->GetParError(2), 2)), 0.04 * 2);
-        myText (0.18, 0.70, kBlack, Form ("%g < #it{p}_{T}^{J} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
+        myText(0.18, 0.90, kBlack, Form ("#mu = %s", FormatMeasurement (calibFit->GetParameter (1), calibFit->GetParError(1), 1)), 0.04 * 2);
+        myText(0.18, 0.80, kBlack, Form ("#sigma = %s", FormatMeasurement (calibFit->GetParameter (2), calibFit->GetParError(2), 1)), 0.04 * 2);
+        if (calcPtClosure) myText (0.18, 0.70, kBlack, Form ("%g < #it{p}_{T}^{true} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
+        else myText (0.18, 0.70, kBlack, Form ("%g < #it{E}_{true} < %g", pbins[iP], pbins[iP+1]), 0.04 * 2);
        }
        else {
         if (recoFit) delete recoFit;
@@ -532,8 +533,13 @@ void EnergyScaleChecksHist () {
       thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
      }
 
-     if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
-     else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+     if (plotMC == 1) {
+      if (calcPtClosure) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+      else thisGraph->GetXaxis()->SetRangeUser (50, pbins[numpbins]);
+     }
+     else {
+      thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+     }
 
      if (plotMC == 1) thisGraph->GetYaxis()->SetRangeUser (0.85, 1.10);
      else thisGraph->GetYaxis()->SetRangeUser (0.85, 1.20);
@@ -577,8 +583,13 @@ cout<<"e";
      thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
     }
 
-    if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
-    else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+    if (plotMC == 1) {
+     if (calcPtClosure) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+     else thisGraph->GetXaxis()->SetRangeUser (50, pbins[numpbins]);
+    }
+    else {
+     thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+    }
 
     if (plotMC == 1) thisGraph->GetYaxis()->SetRangeUser (0.98, 1.01);
     else thisGraph->GetYaxis()->SetRangeUser (0.94, 1.05);
@@ -627,8 +638,13 @@ cout<<"e";
       thisGraph->GetYaxis()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
      }
 
-     if (calcPtClosure && plotMC == 1) thisGraph->GetXaxis()->SetRangeUser (50, 150);
-     else thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+     if (plotMC == 1) {
+      if (calcPtClosure) thisGraph->GetXaxis()->SetRangeUser (50, 150);
+      else thisGraph->GetXaxis()->SetRangeUser (50, pbins[numpbins]);
+     }
+     else {
+      thisGraph->GetXaxis()->SetRangeUser (pbins[0], pbins[numpbins]);
+     }
 
      thisGraph->GetYaxis()->SetRangeUser(0, 0.3);
 

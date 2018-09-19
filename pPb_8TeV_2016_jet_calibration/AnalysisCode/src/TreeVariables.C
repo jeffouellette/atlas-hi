@@ -130,7 +130,7 @@ void TreeVariables :: SetBranchAddresses() {
    tree->SetBranchStatus("averageInteractionsPerCrossing", 0);
   }
 
-  if (isMC) {
+  if (isMC && getMCInfo) {
    tree->SetBranchAddress("NumberEvents", &numberEvents);
    tree->SetBranchAddress("CrossSection_microbarns", &crossSection_microbarns);
    tree->SetBranchAddress("FilterEfficiency", &filterEfficiency);
@@ -782,6 +782,10 @@ void TreeVariables :: PrintAll (const long long entry) {
   } // end if getPhotons
 
   return;
+}
+
+void TreeVariables :: SetGetMCInfo (const bool _getMCInfo) {
+  getMCInfo = _getMCInfo;
 }
 
 void TreeVariables :: SetGetCollisionRateInfo (const bool _getCollisionRateInfo) {
