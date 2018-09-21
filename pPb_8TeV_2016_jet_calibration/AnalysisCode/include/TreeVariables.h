@@ -40,7 +40,7 @@ struct TreeVariables {
    void PrintAll (const long long entry);
 
    // setter functions
-   void SetGetMCInfo (const bool _getMCInfo = true);
+   void SetGetMCInfo (const bool _getMCInfo = true, const double _crossSection_microbarns = 0, const double _filterEfficiency = 0, const int _numberEvents = 0);
    void SetGetCollisionRateInfo (const bool _getCollisionRateInfo = true);
    void SetGetVertices (const bool _getVertices = true);
    void SetGetFCals (const bool _getFCals = true);

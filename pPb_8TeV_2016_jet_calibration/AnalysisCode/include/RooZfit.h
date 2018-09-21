@@ -36,8 +36,8 @@ struct RooZfit {
  
    RooPlot* plot;
 
-   RooZfit(TH1F* hist, Color_t color, bool verbose);
-   ~RooZfit();
+   RooZfit (TH1F* hist, Color_t color, bool verbose);
+   ~RooZfit ();
 };
 
 } // end namespace

@@ -15,7 +15,7 @@ namespace pPb8TeV2016JetCalibration {
  * jpt: pt of the jet
  * jeta: eta of the jet
  */
-double GetXCalibSystematicError(const double jpt, const double jeta);
+double GetXCalibSystematicError (const double jpt, const double jeta);
 
 /**
  * Calculates the additional systematic on jet pt given the jet eta and the
@@ -23,7 +23,7 @@ double GetXCalibSystematicError(const double jpt, const double jeta);
  * jeta: eta of the jet
  * refpt: reference pt of the vector boson
  */
-double GetNewXCalibSystematicError(TFile* file, const double jeta, const double refpt);
+double GetNewXCalibSystematicError (TFile* file, const double jeta, const double refpt);
 
 /**
  * Primary macro.

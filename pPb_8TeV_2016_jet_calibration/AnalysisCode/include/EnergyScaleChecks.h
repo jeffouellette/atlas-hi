@@ -14,7 +14,7 @@ namespace pPb8TeV2016JetCalibration {
  * jpt: pt of the jet
  * jeta: eta of the jet
  */
-double GetXCalibSystematicError(const double jpt, const double jeta);
+double GetXCalibSystematicError (const double jpt, const double jeta);
 
 
 /**

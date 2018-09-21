@@ -12,22 +12,61 @@ using namespace pPb8TeV2016JetCalibration;
  * Dated: 8/20/2018
  */
 int main (int argc, char** argv) {
-  if (!argv[0] || !argv[1] || !argv[2] || !argv[3] || !argv[4]) {
+  if (argc < 2 || !argv[1]) {
    cout << "Not enough arguments specified. Quitting." << endl;
    return 0;
   }
 
-  const int dataSet = atoi(argv[1]);
-  const double luminosity = atof(argv[2]);
-  const bool isMC = (string(argv[3]) == "true" ? true : false);
-  const bool isPeriodA = (string(argv[4]) == "true" ? true : false);
+  int dataSet, nevt;
+  bool isMC, isPeriodA;
+  TString fileName;
+  double lumi, xs, feff;
 
-  if (argc == 5) { // if file name is not given
-   FCalDistribution (dataSet, luminosity, isMC, isPeriodA);
+  switch (argc) {
+   case 9:
+    if (argv[8]) nevt = atoi (argv[8]);
+   case 8:
+    if (argv[7]) feff = atof (argv[7]);
+   case 7:
+    if (argv[6]) xs = atof (argv[6]);
+   case 6:
+    if (argv[5]) fileName = TString (argv[5]);
+   case 5:
+    if (argv[4]) isPeriodA = (string(argv[4]) == "true" ? true : false);
+   case 4:
+    if (argv[3]) isMC = (string(argv[3]) == "true" ? true : false);
+   case 3:
+    if (argv[2]) lumi = atof (argv[2]);
+   case 2:
+    if (argv[1]) dataSet = atoi (argv[1]);
   }
-  else if (argc == 6 && argv[5]) { // if file name is given
-   const TString fileName = argv[5];
-   FCalDistribution (dataSet, luminosity, isMC, isPeriodA, fileName);
+
+  switch (argc) {
+   case 2:
+    FCalDistribution (dataSet);
+    break;
+   case 3:
+    FCalDistribution (dataSet, lumi);
+    break;
+   case 4:
+    FCalDistribution (dataSet, lumi, isMC);
+    break;
+   case 5:
+    FCalDistribution (dataSet, lumi, isMC, isPeriodA);
+    break;
+   case 6:
+    FCalDistribution (dataSet, lumi, isMC, isPeriodA, fileName);
+    break;
+   case 7:
+    FCalDistribution (dataSet, lumi, isMC, isPeriodA, fileName, xs);
+    break;
+   case 8:
+    FCalDistribution (dataSet, lumi, isMC, isPeriodA, fileName, xs, feff);
+    break;
+   case 9:
+    FCalDistribution (dataSet, lumi, isMC, isPeriodA, fileName, xs, feff, nevt);
+    break;
   }
+
   return 0;
 }

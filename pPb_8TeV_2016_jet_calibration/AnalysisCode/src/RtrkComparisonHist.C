@@ -1,4 +1,6 @@
 #include "RtrkComparisonHist.h"
+#include "Params.h"
+#include "Utils.h"
 
 #include <TF1.h>
 #include <TH1D.h>
@@ -17,119 +19,32 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-TH1D* GetProfileX(const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit) {
-  TH1D* prof = new TH1D(name, "", nbinsx, xbins);
-  for (int xbin = 1; xbin <= nbinsx; xbin++) {
-   TH1D* projy = hist->ProjectionY("projy", xbin, xbin);
-   projy->Rebin(rebinFactor);
-   //projy->GetXaxis()->SetLimits(0, 2.0);
-   double mean, mean_err;
-   double chi_square = 0;
-   int numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
-
-   if (useFit && useGaussian && numNonzeroBins > 4) {
-    TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), projy->GetXaxis()->GetBinUpEdge(projy->GetNbinsX()));
-    projy->Fit(gaus, "Q0R");
-    mean = gaus->GetParameter(1);
-    mean_err = gaus->GetParError(1);
-    //chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
-    if (gaus) delete gaus;
-   }
-   if (!useGaussian || !useFit /*|| chi_square > 1.0*/ || numNonzeroBins <= 4) {
-    mean = projy->GetMean();
-    mean_err = projy->GetMeanError();
-   }
-   prof->SetBinContent(xbin, mean);
-   prof->SetBinError(xbin, mean_err);
-   if (projy) delete projy;
-  }
-  return prof;
-}
-
-TH1D* GetDataOverMC(const TString name, TH2D* data, TH2D* mc, const int numxbins, const double* xbins, const int numybins, const double* ybins, const bool useFit) {
-  TH1D* dataOverMC = new TH1D(name, "", numxbins, xbins);
-  for (int xbin = 1; xbin <= numxbins; xbin++) {
-   TH1D* projy = data->ProjectionY(name + TString(Form("data_xbin%i", xbin)), xbin, xbin);
-   projy->Rebin(rebinFactor);
-   double dataAvg, dataErr, mcAvg, mcErr;
-   double chi_square = 0;
-   int numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
-
-   if (useFit && useGaussian && numNonzeroBins > 4) {
-    TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);
-    projy->Fit(gaus, "Q0R");
-    dataAvg = gaus->GetParameter(1);
-    dataErr = gaus->GetParError(1);
-    chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
-    if (gaus) delete gaus;
-   }
-   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
-    dataAvg = projy->GetMean();
-    dataErr = projy->GetMeanError();
-   }
-   if (projy) delete projy;
-
-   projy = mc->ProjectionY(name + TString(Form("mc_xbin%i", xbin)), xbin, xbin);
-   projy->Rebin(rebinFactor);
-   chi_square = 0;
-   numNonzeroBins = 0;
-   for (int xbin = 1; xbin <= projy->GetNbinsX(); xbin++)
-    if (projy->GetBinContent(xbin) > 0) numNonzeroBins++;
-
-   if (useFit && useGaussian && numNonzeroBins > 4) {
-    TF1* gaus = new TF1("gaus", "gaus(0)", projy->GetXaxis()->GetBinLowEdge(1), 2.0);
-    projy->Fit(gaus, "Q0R");
-    mcAvg = gaus->GetParameter(1);
-    mcErr = gaus->GetParError(1);
-    chi_square = gaus->GetChisquare() / (projy->GetNbinsX() - 3);
-    if (gaus) delete gaus;
-   }
-   if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
-    mcAvg = projy->GetMean();
-    mcErr = projy->GetMeanError();
-   }
-   if (projy) delete projy;
-
-   const double dataOverMCavg = dataAvg/mcAvg;
-   const double dataOverMCerr = dataOverMCavg * TMath::Sqrt(TMath::Power(dataErr/dataAvg, 2) + TMath::Power(mcErr/mcAvg, 2));
-   if (!isnan(dataOverMCavg) && !isnan(dataOverMCerr)) {
-    dataOverMC->SetBinContent(xbin, dataOverMCavg);
-    dataOverMC->SetBinError(xbin, dataOverMCerr);
-   }
-  }
-  dataOverMC->GetXaxis()->SetTitle(data->GetXaxis()->GetTitle());
-  return dataOverMC;
-}
 
 void RtrkComparisonHist () {
 
-  SetAtlasStyle();
+  SetAtlasStyle ();
 
   // Setup trigger vectors
-  SetupDirectories("RtrkComparison/", "pPb_8TeV_2016_jet_calibration/");
+  SetupDirectories ("RtrkComparison/", "pPb_8TeV_2016_jet_calibration/");
 
   // Setup list of data and lists of MC samples
-  vector<int> runNumbers(0);
-  for (short i = 0; i < sizeof(full_run_list)/sizeof(full_run_list[0]); i++) runNumbers.push_back(full_run_list[i]);
-  vector<TString> gammaJetSampleIds(0);
+  vector<int> runNumbers (0);
+  for (short i = 0; i < sizeof (full_run_list)/sizeof (full_run_list[0]); i++) runNumbers.push_back (full_run_list[i]);
+  vector<TString> gammaJetSampleIds (0);
   for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back(TString("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
-   gammaJetSampleIds.push_back(TString("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string(i+1));
+   gammaJetSampleIds.push_back (TString ("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
+   gammaJetSampleIds.push_back (TString ("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
   }
-  vector<TString> zeeJetSampleIds(0);
-  zeeJetSampleIds.push_back("Pbp_Overlay_ZeeJet");
-  zeeJetSampleIds.push_back("pPb_Overlay_ZeeJet");
+  vector<TString> zeeJetSampleIds (0);
+  zeeJetSampleIds.push_back ("Pbp_Overlay_ZeeJet");
+  zeeJetSampleIds.push_back ("pPb_Overlay_ZeeJet");
 
-  vector<TString> zmumuJetSampleIds(0);
-  zmumuJetSampleIds.push_back("Pbp_Overlay_ZmumuJet");
-  zmumuJetSampleIds.push_back("pPb_Overlay_ZmumuJet");
+  vector<TString> zmumuJetSampleIds (0);
+  zmumuJetSampleIds.push_back ("Pbp_Overlay_ZmumuJet");
+  zmumuJetSampleIds.push_back ("pPb_Overlay_ZmumuJet");
 
-  vector<TString> dijetSampleIds(0);
-  dijetSampleIds.push_back("pPb_Signal_Dijet_Slice2");
+  vector<TString> dijetSampleIds (0);
+  dijetSampleIds.push_back ("pPb_Signal_Dijet_Slice2");
 
   TH2D* jetRtrkHists[2][3][numetabins+1][2][3];
 
@@ -149,8 +64,8 @@ void RtrkComparisonHist () {
        if (iPer == 1) period = "periodB";
        else if (iPer == 2) period = "periodAB";
 
-       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D(Form("jetRtrkDist_iEta%i_%s_%s_%s_%s", iEta, algo.Data(), dataType.Data(), error.Data(), period.Data()), "", numpzbins, pzbins, numrtrkbins, rtrkbins);
-       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2();
+       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D (Form ("jetRtrkDist_iEta%i_%s_%s_%s_%s", iEta, algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numrtrkbins, rtrkbins);
+       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2 ();
       }
      }
     }
@@ -171,8 +86,8 @@ void RtrkComparisonHist () {
   
 
   {
-   TSystemDirectory dir(rootPath.Data(), rootPath.Data());
-   TList* sysfiles = dir.GetListOfFiles();
+   TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
+   TList* sysfiles = dir.GetListOfFiles ();
    if (!sysfiles) {
     cout << "Cannot get list of files! Exiting." << endl;
     return;
@@ -180,177 +95,177 @@ void RtrkComparisonHist () {
    TSystemFile *sysfile;
    TString fname;
    TString histName;
-   TIter next(sysfiles);
+   TIter next (sysfiles);
    TVectorD *nJetVec;
    int numFiles = 0;
-   while ((sysfile=(TSystemFile*)next())) {
-    fname = sysfile->GetName();
-    if (!sysfile->IsDirectory() && fname.EndsWith(".root")) {
-     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data() << endl;
+   while ( (sysfile= (TSystemFile*)next ())) {
+    fname = sysfile->GetName ();
+    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
+     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data () << endl;
 
      // do this if file is data
      for (int runNumber : runNumbers) { // check for data
-      if (fname.Contains(to_string(runNumber))) { // if data, do this
+      if (fname.Contains (to_string (runNumber))) { // if data, do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile(rootPath + fname, "READ");
+       TFile* thisFile = new TFile (rootPath + fname, "READ");
        const short iPer = (runNumber < 313500 ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%i", runNumber));
-       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%i", runNumber));
+       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%i", runNumber));
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%i", runNumber));
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
         for (short iEta = 0; iEta < numetabins; iEta++) {
-         nJet[iAlgo][iPer][0][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][0][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][0][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][0][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][0][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][0][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][iPer][0][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][0][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
 
          for (short iErr = 0; iErr < 3; iErr++) {
           TString error = "sys_lo";
           if (iErr == 1) error = "stat";
           else if (iErr == 2) error = "sys_hi";
 
-          TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data(), iEta, error.Data()));
-          jetRtrkHists[iAlgo][iPer][iEta][0][iErr]->Add(temp);
-          jetRtrkHists[iAlgo][2][iEta][0][iErr]->Add(temp);
-          jetRtrkHists[iAlgo][iPer][numetabins][0][iErr]->Add(temp);
-          jetRtrkHists[iAlgo][2][numetabins][0][iErr]->Add(temp);
+          TH2D* temp = (TH2D*)thisFile->Get (Form ("jetRtrkDist_dataSet%i_%s_iEta%i_data_%s", runNumber, algo.Data (), iEta, error.Data ()));
+          jetRtrkHists[iAlgo][iPer][iEta][0][iErr]->Add (temp);
+          jetRtrkHists[iAlgo][2][iEta][0][iErr]->Add (temp);
+          jetRtrkHists[iAlgo][iPer][numetabins][0][iErr]->Add (temp);
+          jetRtrkHists[iAlgo][2][numetabins][0][iErr]->Add (temp);
          }
         }
        }
 
-       thisFile->Close();
+       thisFile->Close ();
        delete thisFile;
        break;
       }
      }
      // do this if gamma jet MC sample
      for (TString gammaJetSampleId : gammaJetSampleIds) { // check for gamma jet MC
-      if (fname.Contains(gammaJetSampleId)) { // if gamma jet MC sample
+      if (fname.Contains (gammaJetSampleId)) { // if gamma jet MC sample
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile(rootPath + fname, "READ");
-       const short iPer = (gammaJetSampleId.Contains("pPb") ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get(Form("infoVec_%s", gammaJetSampleId.Data()));
-       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%s", gammaJetSampleId.Data()));
+       TFile* thisFile = new TFile (rootPath + fname, "READ");
+       const short iPer = (gammaJetSampleId.Contains ("pPb") ? 0 : 1);
+       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%s", gammaJetSampleId.Data ()));
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetSampleId.Data ()));
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
         for (short iEta = 0; iEta < numetabins; iEta++) {
-         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data(), algo.Data(), iEta));
-         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add(temp);
+         TH2D* temp = (TH2D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", gammaJetSampleId.Data (), algo.Data (), iEta));
+         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add (temp);
         }
        }
 
-       thisFile->Close();
+       thisFile->Close ();
        delete thisFile;
        break;
       }
      }
      // do this if Z->ee MC sample
      for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
-      if (fname.Contains(zeeJetSampleId)) { // if Z->ee MC do this
+      if (fname.Contains (zeeJetSampleId)) { // if Z->ee MC do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile(rootPath + fname, "READ");
-       const short iPer = (zeeJetSampleId.Contains("pPb") ? 0 : 1);
-       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%s", zeeJetSampleId.Data()));
+       TFile* thisFile = new TFile (rootPath + fname, "READ");
+       const short iPer = (zeeJetSampleId.Contains ("pPb") ? 0 : 1);
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zeeJetSampleId.Data ()));
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
         for (short iEta = 0; iEta < numetabins; iEta++) {
-         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data(), algo.Data(), iEta));
-         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add(temp);
+         TH2D* temp = (TH2D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zeeJetSampleId.Data (), algo.Data (), iEta));
+         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add (temp);
         }
        }
 
-       thisFile->Close();
+       thisFile->Close ();
        delete thisFile;
        break;
       }
      }
      // do this if Z->mumu sample
      for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
-      if (fname.Contains(zmumuJetSampleId)) { // if Z->mumu sample do this
+      if (fname.Contains (zmumuJetSampleId)) { // if Z->mumu sample do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile(rootPath + fname, "READ");
-       const short iPer = (zmumuJetSampleId.Contains("pPb") ? 0 : 1);
-       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%s", zmumuJetSampleId.Data()));
+       TFile* thisFile = new TFile (rootPath + fname, "READ");
+       const short iPer = (zmumuJetSampleId.Contains ("pPb") ? 0 : 1);
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zmumuJetSampleId.Data ()));
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
         for (short iEta = 0; iEta < numetabins; iEta++) {
-         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data(), algo.Data(), iEta));
-         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add(temp);
+         TH2D* temp = (TH2D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", zmumuJetSampleId.Data (), algo.Data (), iEta));
+         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add (temp);
         }
        }
 
-       thisFile->Close();
+       thisFile->Close ();
        delete thisFile;
        break;
       }
      }
      // do this if a dijet MC sample
      for (TString dijetSampleId : dijetSampleIds) { // check for Z->ee MC
-      if (fname.Contains(dijetSampleId)) { // if Z->ee MC do this
+      if (fname.Contains (dijetSampleId)) { // if Z->ee MC do this
        numFiles++;
        cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile(rootPath + fname, "READ");
-       const short iPer = (dijetSampleId.Contains("pPb") ? 0 : 1);
-       nJetVec = (TVectorD*)thisFile->Get(Form("nJetVec_%s", dijetSampleId.Data()));
+       TFile* thisFile = new TFile (rootPath + fname, "READ");
+       const short iPer = (dijetSampleId.Contains ("pPb") ? 0 : 1);
+       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetSampleId.Data ()));
 
        for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
         const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
 
         for (short iEta = 0; iEta < numetabins; iEta++) {
-         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
-         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo*(numetabins+1)];
+         nJet[iAlgo][iPer][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][iEta] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][iPer][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
+         nJet[iAlgo][2][1][numetabins] += (*nJetVec)[iEta + iAlgo* (numetabins+1)];
 
          // Only add the statistical error plots for MC (don't need to consider systematics)
-         TH2D* temp = (TH2D*)thisFile->Get(Form("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", dijetSampleId.Data(), algo.Data(), iEta));
-         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][iEta][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add(temp);
-         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add(temp);
+         TH2D* temp = (TH2D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_mc_stat", dijetSampleId.Data (), algo.Data (), iEta));
+         jetRtrkHists[iAlgo][iPer][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][iEta][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][iPer][numetabins][1][1]->Add (temp);
+         jetRtrkHists[iAlgo][2][numetabins][1][1]->Add (temp);
         }
        }
 
-       thisFile->Close();
+       thisFile->Close ();
        delete thisFile;
        break;
       }
@@ -373,37 +288,37 @@ void RtrkComparisonHist () {
    const float dg = 0.05;
    const float dx = 0.2;
 
-   zlines[i] = new TLine(pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
-   glines[i] = new TLine(pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
-   xlines[i] = new TLine(xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
-   dplines[i] = new TLine(dpbounds[i], 0.75, dpbounds[i], 2.15);
-   dplines_bottom[i] = new TLine(dpbounds[i], 0.91, dpbounds[i], 1.09);
+   zlines[i] = new TLine (pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
+   glines[i] = new TLine (pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
+   xlines[i] = new TLine (xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
+   dplines[i] = new TLine (dpbounds[i], 0.75, dpbounds[i], 2.15);
+   dplines_bottom[i] = new TLine (dpbounds[i], 0.91, dpbounds[i], 1.09);
 
-   if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle(1);
-   else zlines[i]->SetLineStyle(3);
-   if (1.0-1*dg+dg*i == 1) glines[i]->SetLineStyle(1);
-   else glines[i]->SetLineStyle(3);
-   if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle(1);
-   else xlines[i]->SetLineStyle(3);
-   dplines[i]->SetLineStyle(3);
-   dplines_bottom[i]->SetLineStyle(3);
+   if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle (1);
+   else zlines[i]->SetLineStyle (3);
+   if (1.0-1*dg+dg*i == 1) glines[i]->SetLineStyle (1);
+   else glines[i]->SetLineStyle (3);
+   if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle (1);
+   else xlines[i]->SetLineStyle (3);
+   dplines[i]->SetLineStyle (3);
+   dplines_bottom[i]->SetLineStyle (3);
   }
 
 
   /**** Canvas definitions ****/
-  TCanvas* canvas = new TCanvas("canvas", "", 800, 600);
+  TCanvas* canvas = new TCanvas ("canvas", "", 800, 600);
   const double padRatio = 1.5; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
-  const double dPadY = 1.0/(padRatio+1.0);
+  const double dPadY = 1.0/ (padRatio+1.0);
   const double uPadY = 1.0 - dPadY;
-  TPad* topPad = new TPad("topPad", "", 0, dPadY, 1, 1);
-  TPad* bottomPad = new TPad("bottomPad", "", 0, 0, 1, dPadY);
-  topPad->SetBottomMargin(0);
-  topPad->SetLeftMargin(-0.20);
-  bottomPad->SetTopMargin(0);
-  bottomPad->SetBottomMargin(0.30);
-  bottomPad->SetLeftMargin(-0.20);
-  topPad->Draw();
-  bottomPad->Draw();
+  TPad* topPad = new TPad ("topPad", "", 0, dPadY, 1, 1);
+  TPad* bottomPad = new TPad ("bottomPad", "", 0, 0, 1, dPadY);
+  topPad->SetBottomMargin (0);
+  topPad->SetLeftMargin (-0.20);
+  bottomPad->SetTopMargin (0);
+  bottomPad->SetBottomMargin (0.30);
+  bottomPad->SetLeftMargin (-0.20);
+  topPad->Draw ();
+  bottomPad->Draw ();
 
   /**** Define local histograms, graphs, etc. ****/
   TH1D *jetRtrkHist, *jetRtrkHist_mc, *jetRtrkHist_lo, *jetRtrkHist_hi, *jetRtrkHist_rat, *jetRtrkHist_rat_lo, *jetRtrkHist_rat_hi;
@@ -423,95 +338,95 @@ void RtrkComparisonHist () {
     for (short iAlgo = 0; iAlgo < 2; iAlgo++) { // loop over jet algorithms
      const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
-     topPad->cd();
-     topPad->SetLogx();
-     jetRtrkHist = GetProfileX(Form("jetRtrk_Hist_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, true);
-     jetRtrkGraph_sys = new TGraphAsymmErrors(jetRtrkHist); // for plotting systematics
-     jetRtrkHist->SetYTitle("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{calo}>");
-     jetRtrkHist->SetAxisRange(0., 2.0, "Y");
-     jetRtrkHist->SetMarkerStyle(markerStyle);
-     jetRtrkHist->SetMarkerColor(dataColor);
-     jetRtrkHist->SetLineColor(dataColor);
-     jetRtrkHist->GetXaxis()->SetLabelSize(0.04/uPadY);
-     jetRtrkHist->GetYaxis()->SetLabelSize(0.04/uPadY);
-     jetRtrkHist->GetYaxis()->SetTitleSize(0.04/uPadY);
-     jetRtrkHist->GetYaxis()->SetTitleOffset(uPadY);
+     topPad->cd ();
+     topPad->SetLogx ();
+     jetRtrkHist = GetProfileX (Form ("jetRtrk_Hist_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, true);
+     jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
+     jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{calo}>");
+     jetRtrkHist->SetAxisRange (0., 2.0, "Y");
+     jetRtrkHist->SetMarkerStyle (markerStyle);
+     jetRtrkHist->SetMarkerColor (dataColor);
+     jetRtrkHist->SetLineColor (dataColor);
+     jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
+     jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
+     jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
+     jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     jetRtrkHist_lo = GetProfileX("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpzbins, pzbins, true);
-     jetRtrkHist_hi = GetProfileX("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpzbins, pzbins, true);
-     CalcSystematics(jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
+     jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpzbins, pzbins, true);
+     jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpzbins, pzbins, true);
+     CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
      if (jetRtrkHist_lo) delete jetRtrkHist_lo;
      if (jetRtrkHist_hi) delete jetRtrkHist_hi;
-     jetRtrkGraph_sys->SetFillColor(kBlack);
-     jetRtrkGraph_sys->SetFillStyle(3001);
+     jetRtrkGraph_sys->SetFillColor (kBlack);
+     jetRtrkGraph_sys->SetFillStyle (3001);
 
-     jetRtrkHist_mc = GetProfileX(Form("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, true);
-     jetRtrkHist_mc->SetMarkerStyle(markerStyle);
-     jetRtrkHist_mc->SetMarkerColor(mcOverlayColor);
-     jetRtrkHist_mc->SetLineColor(mcOverlayColor);
+     jetRtrkHist_mc = GetProfileX (Form ("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, true);
+     jetRtrkHist_mc->SetMarkerStyle (markerStyle);
+     jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
+     jetRtrkHist_mc->SetLineColor (mcOverlayColor);
 
-     if (iAlgo == 0) jetRtrkHist->DrawCopy("e1 x0");
-     else jetRtrkHist->DrawCopy("same e1 x0");
-     jetRtrkHist_mc->DrawCopy("same e1 x0");
-     jetRtrkGraph_sys->Draw("2");
+     if (iAlgo == 0) jetRtrkHist->DrawCopy ("e1 x0");
+     else jetRtrkHist->DrawCopy ("same e1 x0");
+     jetRtrkHist_mc->DrawCopy ("same e1 x0");
+     jetRtrkGraph_sys->Draw ("2");
 
      if (iAlgo == 0) {
-      myMarkerText(0.175, 0.88, dataColor, kFullCircle, Form("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
-      myMarkerText(0.175, 0.81, mcOverlayColor, kFullCircle, Form("Pythia8 #it{pp} 8.16 TeV (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJet[iAlgo][iPer][0][iEta]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nJet[iAlgo][iPer][1][iEta]), 1.25, 0.04/uPadY);
       if (iEta < numetabins) {
-       if (iPer == 2) myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText(0.155, 0.65, kBlack, Form("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       if (iPer == 2) myText (0.155, 0.65, kBlack, Form ("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       else myText (0.155, 0.65, kBlack, Form ("%g < #eta_{Lab}^{Calo} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       }
-      myText(0.155, 0.73, kBlack, period.Data(), 0.04/uPadY);
+      myText (0.155, 0.73, kBlack, period.Data (), 0.04/uPadY);
      }
 
-     bottomPad->cd();
-     bottomPad->SetLogx();
+     bottomPad->cd ();
+     bottomPad->SetLogx ();
 
-     jetRtrkHist_rat = GetDataOverMC(TString(Form("jetRtrk_DataMCRatio_%s_%s_iEta%i", algo.Data(), perType.Data(), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][1], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-     jetRtrkGraph_rat_sys = new TGraphAsymmErrors(jetRtrkHist_rat);
-     jetRtrkHist_rat_lo = GetDataOverMC(TString(Form("jetRtrk_DataMCRatio_lo_%s_iEta%i", algo.Data(), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][0], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-     jetRtrkHist_rat_hi = GetDataOverMC(TString(Form("jetRtrk_DataMCRatio_hi_%s_iEta%i", algo.Data(), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][2], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, numxjrefbins, xjrefbins, false);
-     CalcSystematics(jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
+     jetRtrkHist_rat = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][1], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+     jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
+     jetRtrkHist_rat_lo = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][0], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+     jetRtrkHist_rat_hi = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][2], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+     CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
      if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
      if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
-     jetRtrkGraph_rat_sys->SetFillColor(kBlack);
-     jetRtrkGraph_rat_sys->SetFillStyle(3001);
+     jetRtrkGraph_rat_sys->SetFillColor (kBlack);
+     jetRtrkGraph_rat_sys->SetFillStyle (3001);
 
-     jetRtrkHist_rat->SetXTitle("#it{p}_{T}^{calo} #left[GeV#right]");
-     jetRtrkHist_rat->SetYTitle("Data / MC");
-     jetRtrkHist_rat->SetAxisRange(0.65, 1.55, "Y");
-     jetRtrkHist_rat->SetMarkerStyle(markerStyle);
-     jetRtrkHist_rat->GetYaxis()->SetNdivisions(405);
-     jetRtrkHist_rat->GetXaxis()->SetTitleSize(0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis()->SetTitleSize(0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis()->SetTitleOffset(1);
-     jetRtrkHist_rat->GetYaxis()->SetTitleOffset(dPadY);
-     jetRtrkHist_rat->GetYaxis()->CenterTitle(true);
-     jetRtrkHist_rat->GetXaxis()->SetLabelSize(0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis()->SetLabelSize(0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis()->SetTickLength(0.08);
+     jetRtrkHist_rat->SetXTitle ("#it{p}_{T}^{calo} #left[GeV#right]");
+     jetRtrkHist_rat->SetYTitle ("Data / MC");
+     jetRtrkHist_rat->SetAxisRange (0.65, 1.55, "Y");
+     jetRtrkHist_rat->SetMarkerStyle (markerStyle);
+     jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
+     jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
+     jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+     jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
+     jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (dPadY);
+     jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
+     jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
+     jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+     jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-     if (iAlgo == 0) jetRtrkHist_rat->Draw("e1 x0");
-     else jetRtrkHist_rat->Draw("same e1 x0");
-     jetRtrkGraph_rat_sys->Draw("2");
-     for (TLine* line : zlines) line->Draw("same");
+     if (iAlgo == 0) jetRtrkHist_rat->Draw ("e1 x0");
+     else jetRtrkHist_rat->Draw ("same e1 x0");
+     jetRtrkGraph_rat_sys->Draw ("2");
+     for (TLine* line : zlines) line->Draw ("same");
     }
 
     char* plotName;
-    if (iEta < numetabins) plotName = Form("jet_rtrk_eta%i.pdf", iEta);
-    else plotName = Form("jet_rtrk_combined.pdf");
+    if (iEta < numetabins) plotName = Form ("jet_rtrk_eta%i.pdf", iEta);
+    else plotName = Form ("jet_rtrk_combined.pdf");
 
     switch (iPer) {
      case 0:
-      canvas->SaveAs(Form("%s/PeriodA/%s", plotPath.Data(), plotName));
+      canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
       break;
      case 1:
-      canvas->SaveAs(Form("%s/PeriodB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
       break;
      case 2:
-      canvas->SaveAs(Form("%s/PeriodAB/%s", plotPath.Data(), plotName));
+      canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
       break;
     }
     if (jetRtrkHist) delete jetRtrkHist;

@@ -20,17 +20,17 @@ namespace atlashi {
 
 /** User defined parameters **/
 
-extern const bool debugStatements = false; // Print out periodic statements to monitor code flow
-extern const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
-extern const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
+const bool debugStatements = false; // Print out periodic statements to monitor code flow
+const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
+const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
-extern const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
-extern const double lowerPhiCut = TMath::Pi()-dR_HEC;
-extern const double upperPhiCut = 3.*TMath::Pi()/2.+dR_HEC;
-extern const double lowerEtaCut = 1.5-dR_HEC;
-extern const double upperEtaCut = 3.2+dR_HEC;
+const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
+const double lowerPhiCut = TMath::Pi()-dR_HEC;
+const double upperPhiCut = 3.*TMath::Pi()/2.+dR_HEC;
+const double lowerEtaCut = 1.5-dR_HEC;
+const double upperEtaCut = 3.2+dR_HEC;
 
-extern const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
+const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 313259, 313285, 313295, 313333, 313435, 313572, 313574, 313575, 313603, 313629, 313630, 313688, 313695, 313833, 313878, 313929, 313935, 313984, 314014, 314077, 314105, 314112, 314157, 314170};
 
 /** End user defined parameters **/
 
@@ -49,23 +49,23 @@ extern TString effPath; // Where the trigger efficiency module output is stored.
 extern TString xPath; // Where the xa/xp module output is stored.
 extern TString RpPbPath; // Where the R_pPb module output is stored.
 
-// Transverse momentum and pseudorapidity binning
-extern const int MAX_PT = 6000; // Maximum transverse momentum
-extern const double MIN_ETA = -4.9; // Minimum detectable pseudorapidity in hadronic calorimeter
-extern const double MAX_ETA = 4.9; // Maximum detectable pseudorapidity
-
 extern int numtrigs; // Total number of triggers
 
-// Useful constants
-extern const double Z = 82;   // value of Z for Pb
-extern const double A = 208;  // value of A for Pb
-extern const double sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
-extern const double electron_mass = 0.000511; // mass of the electron in GeV
-extern const double muon_mass = 0.105658; // mass of the muon in GeV
-extern const double Z_mass = 91.2; // mass of the Z in GeV
-extern const double Z_width = 2.4952; // width of the Z peak in GeV
+// Transverse momentum and pseudorapidity binning
+const int MAX_PT = 6000; // Maximum transverse momentum allowed
+const double MIN_ETA = -4.9; // Minimum detectable pseudorapidity in hadronic calorimeter
+const double MAX_ETA = 4.9; // Maximum detectable pseudorapidity
 
-extern const double pi = TMath::Pi();
+// Useful constants
+const double Z = 82;   // value of Z for Pb
+const double A = 208;  // value of A for Pb
+const double sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
+const double electron_mass = 0.000511; // mass of the electron in GeV
+const double muon_mass = 0.105658; // mass of the muon in GeV
+const double Z_mass = 91.2; // mass of the Z in GeV
+const double Z_width = 2.4952; // width of the Z peak in GeV
+
+const double pi = TMath::Pi();
 
 /** End general parameters **/
 

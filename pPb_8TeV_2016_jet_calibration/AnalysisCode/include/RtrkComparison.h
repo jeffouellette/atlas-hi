@@ -9,73 +9,12 @@ using namespace atlashi;
 
 namespace pPb8TeV2016JetCalibration {
 
-static const short jetTrigLength = 7;
-static const char* jetTriggerNames[jetTrigLength] = {
- "HLT_j30_ion_0eta490_L1TE10",
- "HLT_j35_ion_n320eta490_L1TE10",
- "HLT_j40_ion_L1J5",
- "HLT_j50_ion_L1J10",
- "HLT_j60_ion_L1J20",
- "HLT_j90_ion_L1J20",
- "HLT_j100_ion_L1J20"
-};
-
-static const float jetTriggerMinPtCuts[jetTrigLength] = {35, 40, 45, 55, 65, 95, 105};
-static const float jetTriggerMaxPtCuts[jetTrigLength] = {40, 45, 55, 65, 95, 105, 100000};
-
-static const short electronTrigLength = 1;
-static const char* electronTriggerNames[electronTrigLength] = {
- "HLT_e15_lhloose_nod0"
-};
-static const float electronTriggerMinPtCuts[electronTrigLength] = {15};
-static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000};
-
-static const short muonTrigLength = 1;
-static const char* muonTriggerNames[muonTrigLength] = {
- "HLT_mu15",
-};
-static const float muonTriggerMinPtCuts[muonTrigLength] = {8};
-static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};
-
-//static const short electronTrigLength = 3;
-//static const char* electronTriggerNames[electronTrigLength] = {
-// "HLT_e20_lhloose",
-// "HLT_e22_lhloose",
-// "HLT_e24_lhloose"
-//};
-//static const float electronTriggerMinPtCuts[electronTrigLength] = {20, 22, 24};
-//static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000, 100000, 100000};
-//
-//static const short muonTrigLength = 3;
-//static const char* muonTriggerNames[muonTrigLength] = {
-// "HLT_mu15",
-// "HLT_mu18",
-// //"HLT_mu20",
-// "HLT_mu20_L1MU15"
-//};
-//static const float muonTriggerMinPtCuts[muonTrigLength] = {15, 18, 20};
-//static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000, 100000, 100000};
-
-static const short photonTrigLength = 6;//7;
-static const char* photonTriggerNames[photonTrigLength] = {
- "HLT_g10_loose",
- "HLT_g15_loose",
- "HLT_g20_loose",
- "HLT_g25_loose",
- "HLT_g30_loose",
- "HLT_g35_loose",
- //"HLT_g60_loose"
-};
-static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40};//40, 65};
-static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 100000};//65, 100000};
-
-
 /**
  * Calculates the original systematic error on this jet from the cross calib.
  * jpt: pt of the jet
  * jeta: eta of the jet
  */
-double GetXCalibSystematicError(const double jpt, const double jeta);
+double GetXCalibSystematicError (const double jpt, const double jeta);
 
 
 /**
@@ -90,7 +29,10 @@ void RtrkComparison (const int dataSet,
                      const double luminosity = 0, 
                      const bool isMC = false,
                      const bool isPeriodA = false, 
-                     const TString inFileName = "");
+                     const TString inFileName = "",
+                     const double crossSection_microbarns = 0,
+                     const double filterEfficiency = 0,
+                     const int numberEvents = 0);
 
 } // end namespace
 
