@@ -1,5 +1,6 @@
 #include "EnergyScaleChecksHist.h"
 #include "Params.h"
+#include "Utils.h"
 
 #include <ArrayTemplates.h>
 
@@ -28,42 +29,6 @@ TString GetMCType (const short iMC) {
   else if (iMC == 1) return "signal";
   else if (iMC == 2) return "valid_signal";
   else return "";
-}
-
-
-void deltaize (TGraphAsymmErrors* tg, const double delta = 0, const bool logx = false) {
-  double x, y, exh, exl;
-  for (int n = 0; n < tg->GetN (); n++) {
-    tg->GetPoint (n, x, y);
-    exh = x + tg->GetErrorXhigh (n);
-    exl = x - tg->GetErrorXhigh (n);
-    
-    if (logx) tg->SetPoint (n, x*delta, y);
-    else tg->SetPoint (n, x + delta, y);
-
-    tg->GetPoint (n, x, y);
-    exh = exh - x;
-    exl = x - exl;
-
-    tg->SetPointEXhigh (n, exh);
-    tg->SetPointEXlow (n, exl);
-  }
-}
-
-
-TGraphAsymmErrors* make_graph (TH1* h, const float cutoff = -1) {
-  TGraphAsymmErrors* tg = new TGraphAsymmErrors (TString (h->GetName ()) + "_graph");
-
-  for (int n = 0; n < h->GetNbinsX (); n++) {
-    if (cutoff >= 0 && h->GetBinContent (n+1) <= cutoff) {
-      continue;
-    }
-    else {
-      tg->SetPoint (tg->GetN (), h->GetBinCenter (n+1), h->GetBinContent (n+1));
-      tg->SetPointError (tg->GetN ()-1, h->GetBinWidth (n+1) / 2, h->GetBinWidth (n+1) / 2, h->GetBinError (n+1), h->GetBinError (n+1));
-    }
-  }
-  return tg;
 }
 
 

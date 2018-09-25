@@ -10,6 +10,51 @@ using namespace atlashi;
 
 namespace pPb8TeV2016JetCalibration {
 
+/**
+ * Separates each point on a TGraphAsymmErrors by delta along the x axis, so that the errors don't overlap.
+ */
+void deltaize (TGraphAsymmErrors* tg, const double delta, const bool logx) {
+  double x, y, exh, exl;
+  for (int n = 0; n < tg->GetN (); n++) {
+    tg->GetPoint (n, x, y);
+    exh = x + tg->GetErrorXhigh (n);
+    exl = x - tg->GetErrorXhigh (n);
+    
+    if (logx) tg->SetPoint (n, x*delta, y);
+    else tg->SetPoint (n, x + delta, y);
+
+    tg->GetPoint (n, x, y);
+    exh = exh - x;
+    exl = x - exl;
+
+    tg->SetPointEXhigh (n, exh);
+    tg->SetPointEXlow (n, exl);
+  }
+}
+
+
+/**
+ * Makes a TGraphAsymmErrors from the input histogram.
+ */
+TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
+  TGraphAsymmErrors* tg = new TGraphAsymmErrors (TString (h->GetName ()) + "_graph");
+
+  for (int n = 0; n < h->GetNbinsX (); n++) {
+    if (cutoff >= 0 && h->GetBinContent (n+1) <= cutoff) {
+      continue;
+    }
+    else {
+      tg->SetPoint (tg->GetN (), h->GetBinCenter (n+1), h->GetBinContent (n+1));
+      tg->SetPointError (tg->GetN ()-1, h->GetBinWidth (n+1) / 2, h->GetBinWidth (n+1) / 2, h->GetBinError (n+1), h->GetBinError (n+1));
+    }
+  }
+  return tg;
+}
+
+
+/**
+ * Returns the TProfile of an input histogram along the x axis. Can use either statistical mean or gaussian mean.
+ */
 TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit) {
 
   TH1D* prof = new TH1D (name, "", nbinsx, xbins);
@@ -25,6 +70,7 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
     for (int xbinprime = 1; xbinprime <= projy->GetNbinsX (); xbinprime++)
       if (projy->GetBinContent (xbinprime) > 0) numNonzeroBins++;
 
+    // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
       TF1* gaus = new TF1 ("gaus", "gaus (0)", projy->GetXaxis ()->GetBinLowEdge (1), projy->GetXaxis ()->GetBinUpEdge (projy->GetNbinsX ()));
       projy->Fit (gaus, "Q0R");
@@ -34,6 +80,7 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
+    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
     if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
       mean = projy->GetMean ();
       mean_err = projy->GetMeanError ();
@@ -48,6 +95,9 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 }
 
 
+/**
+ * Returns the TProfile of an input histogram along the y axis. Can use either statistical mean or gaussian mean.
+ */
 TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit) {
 
   TH1D* prof = new TH1D (name, "", nbinsy, ybins);
@@ -63,6 +113,7 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
     for (int ybin = 1; ybin <= projx->GetNbinsX (); ybin++)
       if (projx->GetBinContent (ybin) > 0) numNonzeroBins++;
 
+    // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
       TF1* gaus = new TF1 ("gaus", "gaus (0)", projx->GetXaxis ()->GetBinLowEdge (1), projx->GetXaxis ()->GetBinUpEdge (projx->GetNbinsX ()));
       projx->Fit (gaus, "Q0R");
@@ -72,6 +123,7 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
+    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
     if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
       mean = projx->GetMean ();
       mean_err = projx->GetMeanError ();
@@ -86,6 +138,9 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 }
 
 
+/**
+ * Returns a histogram with the TProfile of data over the TProfile of MC along either the x or y axes. Can use either the statistical or gaussian mean.
+ */
 TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis) {
 
   // figure out which axis to use
@@ -113,6 +168,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     for (int binprime = 1; binprime <= proj->GetNbinsX (); binprime++)
       if (proj->GetBinContent (bin) > 0) numNonzeroBins++;
 
+    // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
       TF1* gaus = new TF1 ("gaus", "gaus (0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
@@ -122,6 +178,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
+    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
     if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
       dataAvg = proj->GetMean ();
       dataErr = proj->GetMeanError ();
@@ -140,6 +197,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     for (int binprime = 1; binprime <= proj->GetNbinsX (); binprime++)
       if (proj->GetBinContent (binprime) != 0) numNonzeroBins++;
 
+    // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
       TF1* gaus = new TF1 ("gaus", "gaus (0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
@@ -149,6 +207,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
+    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
     if (!useGaussian || !useFit || chi_square > 1.0 || numNonzeroBins <= 4) {
       mcAvg = proj->GetMean ();
       mcErr = proj->GetMeanError ();
@@ -165,7 +224,8 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     }
   }
 
-  dataOverMC->GetXaxis ()->SetTitle (data->GetXaxis ()->GetTitle ());
+  if (useXaxis) dataOverMC->GetXaxis ()->SetTitle (data->GetXaxis ()->GetTitle ()); // copy x axis title
+  else dataOverMC->GetXaxis ()->SetTitle (data->GetYaxis ()->GetTitle ()); // copy y axis title
   return dataOverMC;
 }
 

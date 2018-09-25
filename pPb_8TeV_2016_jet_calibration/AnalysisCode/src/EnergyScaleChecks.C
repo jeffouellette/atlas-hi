@@ -355,7 +355,7 @@ void EnergyScaleChecks (const int dataSet,
       minDeltaR = tp;
      }
     }
-    if (minDeltaR >= 0.4)
+    if (minDeltaR >= 0.2)
      continue; // reco photons not matched to a truth photon within dR=0.4 are skipped
 
     // Put the photon in the right eta, pt bin
