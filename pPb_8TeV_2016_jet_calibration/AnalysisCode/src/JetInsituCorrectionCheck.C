@@ -1,7 +1,9 @@
 #include "JetInsituCorrectionCheck.h"
 #include "Params.h"
+#include "TreeVariables.h"
 
 #include <TFile.h>
+#include <TTree.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 

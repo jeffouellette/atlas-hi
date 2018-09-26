@@ -36,7 +36,7 @@ const bool useGaussian = false; // whether to use Gaussian fits when creating cu
 
 const bool plot_xjref = false; // whether to plot xjref distributions
 
-const bool calcPtClosure = false; // whether the energy scale calculations will use pT (true) or E (false)
+const bool calcPtClosure = true; // whether the energy scale calculations will use pT (true) or E (false)
 
 /** binning parameters **/
 

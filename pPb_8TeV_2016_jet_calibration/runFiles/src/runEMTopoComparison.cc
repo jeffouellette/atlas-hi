@@ -1,6 +1,5 @@
 #include <EMTopoComparison.h>
 #include <iostream>
-#include <string>
 #include <TString.h>
 
 using namespace std;
@@ -12,7 +11,7 @@ using namespace pPb8TeV2016JetCalibration;
  * Dated: 8/20/2018
  */
 int main (int argc, char** argv) {
-  if (!argv[0] || !argv[1] || !argv[2] || !argv[3] || !argv[4]) {
+  if (argc < 2 || !argv[1]) { // needs at least 1 argument (+ executable)
    cout << "Not enough arguments specified. Quitting." << endl;
    return 0;
   }
@@ -32,9 +31,9 @@ int main (int argc, char** argv) {
    case 6:
     if (argv[5]) fileName = TString (argv[5]);
    case 5:
-    if (argv[4]) isPeriodA = (string(argv[4]) == "true" ? true : false);
+    if (argv[4]) isPeriodA = (TString(argv[4]) == "true" ? true : false);
    case 4:
-    if (argv[3]) isMC = (string(argv[3]) == "true" ? true : false);
+    if (argv[3]) isMC = (TString(argv[3]) == "true" ? true : false);
    case 3:
     if (argv[2]) lumi = atof (argv[2]);
    case 2:

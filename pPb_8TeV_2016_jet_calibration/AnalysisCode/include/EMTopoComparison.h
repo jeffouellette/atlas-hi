@@ -1,39 +1,9 @@
 #ifndef __EMTopoComparison_h__
 #define __EMTopoComparison_h__
 
-#include "Params.h"
-#include <Initialization.h>
-#include "TreeVariables.h"
-
-using namespace atlashi;
+#include <TString.h>
 
 namespace pPb8TeV2016JetCalibration {
-
-//static const short electronTrigLength = 1;
-//static const char* electronTriggerNames[electronTrigLength] = {
-// "HLT_e15_lhloose_nod0"
-//};
-//static const float electronTriggerMinPtCuts[electronTrigLength] = {15};
-//static const float electronTriggerMaxPtCuts[electronTrigLength] = {100000};
-//
-//static const short muonTrigLength = 1;
-//static const char* muonTriggerNames[muonTrigLength] = {
-// "HLT_mu15",
-//};
-//static const float muonTriggerMinPtCuts[muonTrigLength] = {15};
-//static const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};
-//
-//static const short photonTrigLength = 6;
-//static const char* photonTriggerNames[photonTrigLength] = {
-// "HLT_g10_loose",
-// "HLT_g15_loose",
-// "HLT_g20_loose",
-// "HLT_g25_loose",
-// "HLT_g30_loose",
-// "HLT_g35_loose"
-//};
-//static const float photonTriggerMinPtCuts[photonTrigLength] = {15, 20, 25, 30, 35, 40};
-//static const float photonTriggerMaxPtCuts[photonTrigLength] = {20, 25, 30, 35, 40, 100000};
 
 
 /**

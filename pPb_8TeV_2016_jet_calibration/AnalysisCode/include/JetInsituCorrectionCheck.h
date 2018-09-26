@@ -1,12 +1,8 @@
 #ifndef __JetInsituCorrectionCheck_h__
 #define __JetInsituCorrectionCheck_h__
 
-#include "Params.h"
-#include <Initialization.h>
-#include "TreeVariables.h"
+#include <TString.h>
 #include <TFile.h>
-
-using namespace atlashi;
 
 namespace pPb8TeV2016JetCalibration {
 

@@ -1347,7 +1347,7 @@ void ZGammaJetCrossCheckHist () {
 
       if (iYear == 0 && iMC == 1) vJetHist_rat->DrawCopy ("e1 x0");
       else vJetHist_rat->DrawCopy ("same e1 x0");
-      ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
+      ((TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
       for (TLine* line : getalines) line->Draw ();
       //for (TLine* line : dplines_bottom) line->Draw ();
 

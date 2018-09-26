@@ -61,7 +61,7 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 
   for (int xbin = 1; xbin <= nbinsx; xbin++) {
     TH1D* projy = hist->ProjectionY ("projy", xbin, xbin);
-    projy->Rebin (rebinFactor);
+    //projy->Rebin (rebinFactor);
 
     //projy->GetXaxis ()->SetLimits (0, 2.0);
     double mean, mean_err;
@@ -104,7 +104,7 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 
   for (int ybin = 1; ybin <= nbinsy; ybin++) {
     TH1D* projx = hist->ProjectionX ("projx", ybin, ybin);
-    projx->Rebin (rebinFactor);
+    //projx->Rebin (rebinFactor);
     //projx->GetXaxis ()->SetLimits (0, 2.0);
 
     double mean, mean_err;
@@ -159,7 +159,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
   for (int bin = 1; bin <= numbins; bin++) {
     // first calculate the data value (numerator)
-    if (!useXaxis) proj = data->ProjectionY (name + Form ("data_bin%i", bin), bin, bin);
+    if (useXaxis) proj = data->ProjectionY (name + Form ("data_bin%i", bin), bin, bin);
     else proj = data->ProjectionX (name + Form ("data_bin%i", bin), bin, bin);
     proj->Rebin (rebinFactor);
 
@@ -170,7 +170,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
       dataAvg = gaus->GetParameter (1);
       dataErr = gaus->GetParError (1);
@@ -187,7 +187,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     if (proj) { delete proj; proj = NULL; }
 
     // next calculate the MC value (denominator)
-    if (!useXaxis) proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
+    if (useXaxis) proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
     else proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
     proj->Rebin (rebinFactor);
 
@@ -199,7 +199,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
       mcAvg = gaus->GetParameter (1);
       mcErr = gaus->GetParError (1);
@@ -216,9 +216,9 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     if (proj) { delete proj; proj = NULL; }
 
     // now set the nominal value to the numerator over denominator
-    const double dataOverMCavg = dataAvg/mcAvg;
-    const double dataOverMCerr = dataOverMCavg * TMath::Sqrt (TMath::Power (dataErr/dataAvg, 2) + TMath::Power (mcErr/mcAvg, 2));
-    if (!isnan (dataOverMCavg) && !isnan (dataOverMCerr)) {
+    if (!(dataAvg == 0 || isnan (dataAvg) || mcAvg == 0 || isnan (mcAvg))) {
+      const double dataOverMCavg = dataAvg/mcAvg;
+      const double dataOverMCerr = dataOverMCavg * TMath::Sqrt (TMath::Power (dataErr/dataAvg, 2) + TMath::Power (mcErr/mcAvg, 2));
       dataOverMC->SetBinContent (bin, dataOverMCavg);
       dataOverMC->SetBinError (bin, dataOverMCerr);
     }

@@ -844,9 +844,9 @@ void ZGammaJetCrossCheck (const int dataSet,
   nZmumuJetVec.Write (Form ("nZmumuJetVec_%s", identifier.Data ()));
   nGammaJetVec.Write (Form ("nGammaJetVec_%s", identifier.Data ()));
 
-  Delete2DArray (nZeeJet, numetabins, numpzbins);
-  Delete2DArray (nZmumuJet, numetabins, numpzbins);
-  Delete2DArray (nGammaJet, numetabins, numpbins);
+  Delete2DArray (nZeeJet, numetabins+1, numpzbins+1);
+  Delete2DArray (nZmumuJet, numetabins+1, numpzbins+1);
+  Delete2DArray (nGammaJet, numetabins+1, numpbins+1);
 
   outFile->Close ();
   if (outFile) delete outFile;

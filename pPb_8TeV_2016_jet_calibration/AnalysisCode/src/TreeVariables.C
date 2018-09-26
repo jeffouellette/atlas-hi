@@ -310,20 +310,25 @@ void TreeVariables :: SetBranchAddresses () {
 
    tree->SetBranchAddress ("akt4hi_jet_n", &jet_n);
 
-   tree->SetBranchAddress ("akt4hi_em_xcalib_jet_pt", &jet_pt);
-   tree->SetBranchAddress ("akt4hi_em_xcalib_jet_eta", &jet_eta);
-   tree->SetBranchAddress ("akt4hi_em_xcalib_jet_phi", &jet_phi);
-   tree->SetBranchAddress ("akt4hi_em_xcalib_jet_e", &jet_e);
+   //tree->SetBranchAddress ("akt4hi_em_xcalib_jet_pt", &jet_pt);
+   //tree->SetBranchAddress ("akt4hi_em_xcalib_jet_eta", &jet_eta);
+   //tree->SetBranchAddress ("akt4hi_em_xcalib_jet_phi", &jet_phi);
+   //tree->SetBranchAddress ("akt4hi_em_xcalib_jet_e", &jet_e);
 
    //tree->SetBranchAddress ("akt4hi_em_etajes_jet_pt", &jet_pt);
    //tree->SetBranchAddress ("akt4hi_em_etajes_jet_eta", &jet_eta);
    //tree->SetBranchAddress ("akt4hi_em_etajes_jet_phi", &jet_phi);
    //tree->SetBranchAddress ("akt4hi_em_etajes_jet_e", &jet_e);
 
-   tree->SetBranchAddress ("akt4hi_em_jet_pt", &precalib_jet_pt);
-   tree->SetBranchAddress ("akt4hi_em_jet_eta", &precalib_jet_eta);
-   tree->SetBranchAddress ("akt4hi_em_jet_phi", &precalib_jet_phi);
-   tree->SetBranchAddress ("akt4hi_em_jet_e", &precalib_jet_e);
+   tree->SetBranchAddress ("akt4hi_em_jet_pt", &jet_pt);
+   tree->SetBranchAddress ("akt4hi_em_jet_eta", &jet_eta);
+   tree->SetBranchAddress ("akt4hi_em_jet_phi", &jet_phi);
+   tree->SetBranchAddress ("akt4hi_em_jet_e", &jet_e);
+
+   //tree->SetBranchAddress ("akt4hi_em_jet_pt", &precalib_jet_pt);
+   //tree->SetBranchAddress ("akt4hi_em_jet_eta", &precalib_jet_eta);
+   //tree->SetBranchAddress ("akt4hi_em_jet_phi", &precalib_jet_phi);
+   //tree->SetBranchAddress ("akt4hi_em_jet_e", &precalib_jet_e);
 
    //tree->SetBranchAddress ("akt4hi_constit_xcalib_jet_pt", &jet_pt);
    //tree->SetBranchAddress ("akt4hi_constit_xcalib_jet_eta", &jet_eta);

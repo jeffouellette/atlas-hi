@@ -1,9 +1,12 @@
 #include "EMTopoComparison.h"
 #include "Params.h"
+#include "TreeVariables.h"
 
+#include <Trigger.h>
 #include <ArrayTemplates.h>
 
 #include <TFile.h>
+#include <TTree.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TLorentzVector.h>
@@ -41,11 +44,12 @@ double GetXCalibSystematicError (const double jpt, const double jeta) {
 }
 
 
-TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
+TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool periodA) {
   if (!isMC) return to_string (dataSet);
 
   TString id = (periodA ? "pPb_" : "Pbp_");
 
+  const bool isSignalOnlySample = isMC && (TString (inFileName).Contains ("signalonly"));
   id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
 
   if (inFileName.Contains ("jetjet")) { // dijet
@@ -81,8 +85,7 @@ void EMTopoComparison (const int dataSet,
 
   SetupDirectories ("", "pPb_8TeV_2016_jet_calibration/");
 
-  const bool isSignalOnlySample = isMC && (TString (inFileName).Contains ("signalonly"));
-  const TString identifier = GetIdentifier (dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
+  const TString identifier = GetIdentifier (dataSet, inFileName, isMC, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
@@ -90,10 +93,12 @@ void EMTopoComparison (const int dataSet,
   TTree* tree = NULL;
   {
    TString fileIdentifier;
-   if (inFileName == "") {
-    if (!isMC) fileIdentifier = to_string (dataSet);
-    else fileIdentifier = TString (dataSet > 0 ? ("Slice" + to_string (dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string (-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
-   } else fileIdentifier = inFileName;
+   if (!isMC) fileIdentifier = to_string (dataSet);
+   else if (inFileName == "") {
+     cout << "File name not provided! Exiting." << endl;
+     return;
+   }
+   else fileIdentifier = inFileName;
 
    TSystemDirectory dir (dataPath.Data (), dataPath.Data ());
    TList* sysfiles = dir.GetListOfFiles ();
@@ -123,7 +128,6 @@ void EMTopoComparison (const int dataSet,
    return;
   }
   /**** End find TTree ****/
-
   TreeVariables* t = new TreeVariables (tree, isMC);
   if (crossSection_microbarns != 0)
    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
@@ -164,7 +168,7 @@ void EMTopoComparison (const int dataSet,
    }
   } // end branch triggers
 
-  int* jet_n;
+  int jet_n;
   vector<float>* jet_pt;
   vector<float>* jet_eta;
   vector<float>* jet_phi;
@@ -219,19 +223,18 @@ void EMTopoComparison (const int dataSet,
    nTotalJets += t->total_jet_n;
    nCleanJets += t->clean_jet_n;
 
-
    // basically just do the full analysis twice, once for each algorithm
    for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
 
     if (iAlgo == 0) { // HI algorithm at the EM scale
-     jet_n = & (t->akt4hi_jet_n);
+     jet_n = *(&(t->akt4hi_jet_n));
      jet_pt = t->akt4hi_em_xcalib_jet_pt;
      jet_eta = t->akt4hi_em_xcalib_jet_eta;
      jet_phi = t->akt4hi_em_xcalib_jet_phi;
      jet_e = t->akt4hi_em_xcalib_jet_e;
     }
     else { // EMTopo algorithm at the EM scale
-     jet_n = & (t->akt4emtopo_jet_n);
+     jet_n = *(&(t->akt4emtopo_jet_n));
      jet_pt = t->akt4emtopo_calib_jet_pt;
      jet_eta = t->akt4emtopo_calib_jet_eta;
      jet_phi = t->akt4emtopo_calib_jet_phi;
@@ -326,7 +329,7 @@ void EMTopoComparison (const int dataSet,
       if (Z_pt < Z_pt_cut)
        continue; // pt cut on Z bosons
 
-      // Put photon in the right pt bin
+      // Put Z in the right pt bin
       short iP = 0;
       if (pzbins[0] < Z_pt &&
           Z_pt < pzbins[numpzbins]) {
@@ -337,7 +340,7 @@ void EMTopoComparison (const int dataSet,
       // Jet finding
       int lj = -1; // allowed to be in disabled HEC while finding
       int sj = -1; // not allowed to be in disabled HEC while finding
-      for (int j = 0; j < *jet_n; j++) {
+      for (int j = 0; j < jet_n; j++) {
        if (jet_pt->at (j) < jet_pt_cut)
         continue; // basic jet pT cut
        if (!InHadCal (jet_eta->at (j), 0.4))
@@ -374,8 +377,8 @@ void EMTopoComparison (const int dataSet,
       const double ljet_pt = jet_pt->at (lj);
       const double ljet_eta = jet_eta->at (lj);
       const double ljet_phi = jet_phi->at (lj);
-      const double sjet_pt = ( (0 <= sj && sj < *jet_n) ? jet_pt->at (sj) : 0);
-      const double sjet_phi = ( (0 <= sj && sj < *jet_n) ? jet_phi->at (sj) : 0);
+      const double sjet_pt = ( (0 <= sj && sj < jet_n) ? jet_pt->at (sj) : 0);
+      const double sjet_phi = ( (0 <= sj && sj < jet_n) ? jet_phi->at (sj) : 0);
 
       // Put the jet in the right eta, pt bins
       short iEta = 0;
@@ -402,23 +405,21 @@ void EMTopoComparison (const int dataSet,
       const double dPhi = DeltaPhi (ljet_phi, Z_phi);
 
       // Calculate systematics on jet pT
-      const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
+      const double ljet_pt_err = (isMC ? 0 : GetXCalibSystematicError (ljet_pt, ljet_eta));
 
       // Calculate ptref and xjrefs
       const double ptref = Z_pt * TMath::Cos (pi - dPhi);
       const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
       // Fill xjref histograms 
-      //for (short iErr = 0; iErr < 3; iErr++) zeeJetHists[iErr][iEta]->Fill (Z_pt, ptratio[iErr]/ptref, weight);
-      for (short iErr = 0; iErr < 3; iErr++) {
+      for (short iErr = 0; iErr < 3; iErr++)
        zeeJetHists[iAlgo][iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
-      }
 
       // Increment Z+jet counters
       if (iEta != -1 && iP != -1) nZeeJet[iAlgo][iEta][iP]++;
-      if (iEta != -1) nZeeJet[iAlgo][iEta][numpbins]++;
+      if (iEta != -1) nZeeJet[iAlgo][iEta][numpzbins]++;
       if (iP != -1) nZeeJet[iAlgo][numetabins][iP]++;
-      nZeeJet[iAlgo][numetabins][numpbins]++;
+      nZeeJet[iAlgo][numetabins][numpzbins]++;
      }
     } // end loop over electron pairs
     // end Z->ee type events
@@ -497,7 +498,7 @@ void EMTopoComparison (const int dataSet,
       if (Z_pt < Z_pt_cut)
        continue; // pt cut on Z bosons
 
-      // Put photon in the right pt bin
+      // Put Z in the right pt bin
       short iP = 0;
       if (pzbins[0] < Z_pt &&
           Z_pt < pzbins[numpzbins]) {
@@ -508,7 +509,7 @@ void EMTopoComparison (const int dataSet,
       // jet finding
       int lj = -1;
       int sj = -1;
-      for (int j = 0; j < *jet_n; j++) {
+      for (int j = 0; j < jet_n; j++) {
        if (jet_pt->at (j) < jet_pt_cut)
         continue; // basic jet pT cut
        if (!InHadCal (jet_eta->at (j), 0.4))
@@ -541,8 +542,8 @@ void EMTopoComparison (const int dataSet,
       const double ljet_pt = jet_pt->at (lj);
       const double ljet_eta = jet_eta->at (lj);
       const double ljet_phi = jet_phi->at (lj);
-      const double sjet_pt = ( (0 <= sj && sj < *jet_n) ? jet_pt->at (sj) : 0);
-      const double sjet_phi = ( (0 <= sj && sj < *jet_n) ? jet_phi->at (sj) : 0);
+      const double sjet_pt = ( (0 <= sj && sj < jet_n) ? jet_pt->at (sj) : 0);
+      const double sjet_phi = ( (0 <= sj && sj < jet_n) ? jet_phi->at (sj) : 0);
 
       // Put the jet in the right eta, pt bins
       short iEta = 0;
@@ -576,15 +577,14 @@ void EMTopoComparison (const int dataSet,
       const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
       // Fill dimuon xjref histograms
-      for (short iErr = 0; iErr < 3; iErr++) {
+      for (short iErr = 0; iErr < 3; iErr++)
        zmumuJetHists[iAlgo][iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
-      }
 
       // Increment Z+jet counters
       if (iEta != -1 && iP != -1) nZmumuJet[iAlgo][iEta][iP]++;
-      if (iEta != -1) nZmumuJet[iAlgo][iEta][numpbins]++;
+      if (iEta != -1) nZmumuJet[iAlgo][iEta][numpzbins]++;
       if (iP != -1) nZmumuJet[iAlgo][numetabins][iP]++;
-      nZmumuJet[iAlgo][numetabins][numpbins]++;
+      nZmumuJet[iAlgo][numetabins][numpzbins]++;
      }
     } // end loop over muon pairs
     // end Z->mumu type events
@@ -648,7 +648,7 @@ void EMTopoComparison (const int dataSet,
      // jet finding
      int lj = -1; // allowed to be in HEC when finding
      int sj = -1; // not allowed to be in HEC when finding
-     for (int j = 0; j < *jet_n; j++) {
+     for (int j = 0; j < jet_n; j++) {
       // cuts on leading jet
       if (jet_pt->at (j) < jet_pt_cut)
        continue; // basic jet pT cut
@@ -668,7 +668,7 @@ void EMTopoComparison (const int dataSet,
        continue; // cut on gamma+jet samples not back-to-back in the transverse plane
 
       // compare to the leading jet
-      else if (lj == -1 ||
+      if (lj == -1 ||
                jet_pt->at (lj) < jet_pt->at (j)) {
        if (lj != -1 &&
            !InDisabledHEC (jet_eta->at (lj), jet_phi->at (lj)))
@@ -690,8 +690,8 @@ void EMTopoComparison (const int dataSet,
      const double ljet_pt = jet_pt->at (lj);
      const double ljet_eta = jet_eta->at (lj);
      const double ljet_phi = jet_phi->at (lj);
-     //const double sjet_pt = ( (0 <= sj && sj < *jet_n) ? jet_pt->at (sj) : 0);
-     //const double sjet_phi = ( (0 <= sj && sj < *jet_n) ? jet_phi->at (sj) : 0);
+     //const double sjet_pt = ( (0 <= sj && sj < jet_n) ? jet_pt->at (sj) : 0);
+     //const double sjet_phi = ( (0 <= sj && sj < jet_n) ? jet_phi->at (sj) : 0);
 
      // Put the jet in the right eta, pt bins
      short iEta = 0;
@@ -707,7 +707,7 @@ void EMTopoComparison (const int dataSet,
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // require jet to be outside of disabled HEC
      bool hasOtherJet = false;
-     for (int j = 0; j < *jet_n; j++) {
+     for (int j = 0; j < jet_n; j++) {
       if (j == lj)
        continue; // don't look at the leading jet, its our candidate :)
       if (DeltaR (jet_eta->at (j), photon_eta, jet_phi->at (j), photon_phi) < 0.4)
@@ -736,16 +736,14 @@ void EMTopoComparison (const int dataSet,
      const double dPhi = DeltaPhi (ljet_phi, photon_phi);
 
      // Calculate systematics
-     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
+     const double ljet_pt_err = (isMC ? 0 : GetXCalibSystematicError (ljet_pt, ljet_eta));
 
      // Calculate ptref and xjrefs
      const double ptref = photon_pt * TMath::Cos (pi - dPhi);
      const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
-
      // Fill xjref histograms
-     for (short iErr = 0; iErr < 3; iErr++) {
+     for (short iErr = 0; iErr < 3; iErr++)
       gJetHists[iAlgo][iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
-     }
 
      // Increment gamma+jet counters
      if (iEta != -1 && iP != -1) nGammaJet[iAlgo][iEta][iP]++;
@@ -819,7 +817,7 @@ void EMTopoComparison (const int dataSet,
   nGammaJetVec.Write (Form ("nGammaJetVec_%s", identifier.Data ()));
 
   outFile->Close ();
-  if (outFile) delete outFile;
+  if (outFile) { delete outFile; outFile = NULL; }
   return;
 }
 

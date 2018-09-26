@@ -211,30 +211,30 @@ void EnergyScaleChecksHist () {
        break;
       }
      }
-     // do this if Z->mumu sample
-     for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
-      if (fname.Contains (zmumuJetSampleId)) { // if Z->mumu sample do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zmumuJetSampleId.Data ()));
+     //// do this if Z->mumu sample
+     //for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
+     // if (fname.Contains (zmumuJetSampleId)) { // if Z->mumu sample do this
+     //  numFiles++;
+     //  cout << "Reading in " << rootPath+fname << endl;
+     //  TFile* thisFile = new TFile (rootPath + fname, "READ");
+     //  nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", zmumuJetSampleId.Data ()));
 
-       //for (short iEta = 0; iEta <= numetabins; iEta++) {
-       // for (short iP = 0; iP <= numpbins; iP++) {
-       //  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-       //   const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-       //   nJet[iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
-       //   jetEnergyResponseCalib[iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), zmumuJetSampleId.Data (), iP, iEta)));
-       //   jetEnergyResponseReco[iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), zmumuJetSampleId.Data (), iP, iEta)));
-       //  }
-       // }
-       //}
+     //  //for (short iEta = 0; iEta <= numetabins; iEta++) {
+     //  // for (short iP = 0; iP <= numpbins; iP++) {
+     //  //  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+     //  //   const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+     //  //   nJet[iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
+     //  //   jetEnergyResponseCalib[iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), zmumuJetSampleId.Data (), iP, iEta)));
+     //  //   jetEnergyResponseReco[iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), zmumuJetSampleId.Data (), iP, iEta)));
+     //  //  }
+     //  // }
+     //  //}
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
+     //  thisFile->Close ();
+     //  delete thisFile;
+     //  break;
+     // }
+     //}
 
      // do this if dijet MC sample (SIGNAL)
      for (TString dijetSampleId : dijetSampleIds) { // check for gamma jet MC

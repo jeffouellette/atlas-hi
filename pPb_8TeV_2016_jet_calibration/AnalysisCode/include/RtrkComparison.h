@@ -1,11 +1,7 @@
 #ifndef __RtrkComparison_h__
 #define __RtrkComparison_h__
 
-#include "Params.h"
-#include <Initialization.h>
-#include "TreeVariables.h"
-
-using namespace atlashi;
+#include <TString.h>
 
 namespace pPb8TeV2016JetCalibration {
 

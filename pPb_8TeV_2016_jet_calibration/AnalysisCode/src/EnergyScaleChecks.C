@@ -1,9 +1,11 @@
 #include "EnergyScaleChecks.h"
 #include "Params.h"
+#include "TreeVariables.h"
 
 #include <ArrayTemplates.h>
 
 #include <TFile.h>
+#include <TTree.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TVectorT.h>
@@ -211,17 +213,17 @@ void EnergyScaleChecks (const int dataSet,
       continue; // reject jets reconstructed outside reasonable HCal bounds.
 
      double minDeltaR = 1000;
-     //// loop over truth electrons and photons
-     //for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
-     // const double dR = DeltaR (jet_eta->at (j), t->truth_electron_eta->at (e), jet_phi->at (j), t->truth_electron_phi->at (e));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     //for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
-     // const double dR = DeltaR (jet_eta->at (j), t->truth_photon_eta->at (p), jet_phi->at (j), t->truth_photon_phi->at (p));
-     // if (dR < minDeltaR) minDeltaR = dR;
-     //}
-     //if (minDeltaR < 0.6)
-     // continue; // reject jets close to some other lepton or photon
+     // loop over truth electrons and photons
+     for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
+      const double dR = DeltaR (jet_eta->at (j), t->truth_electron_eta->at (e), jet_phi->at (j), t->truth_electron_phi->at (e));
+      if (dR < minDeltaR) minDeltaR = dR;
+     }
+     for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
+      const double dR = DeltaR (jet_eta->at (j), t->truth_photon_eta->at (p), jet_phi->at (j), t->truth_photon_phi->at (p));
+      if (dR < minDeltaR) minDeltaR = dR;
+     }
+     if (minDeltaR < 0.6)
+      continue; // reject jets close to some other lepton or photon
 
      minDeltaR = 1000;
      int truth_jet = -1;
@@ -232,7 +234,7 @@ void EnergyScaleChecks (const int dataSet,
        truth_jet = tj;
       }
      }
-     if (0 <= truth_jet && truth_jet < t->truth_jet_n && minDeltaR < 0.4) {
+     if (0 <= truth_jet && truth_jet < t->truth_jet_n && minDeltaR < 0.2) {
 
       // Put the jet in the right eta bin
       short iEta = 0;
@@ -356,7 +358,7 @@ void EnergyScaleChecks (const int dataSet,
      }
     }
     if (minDeltaR >= 0.2)
-     continue; // reco photons not matched to a truth photon within dR=0.4 are skipped
+     continue; // reco photons not matched to a truth photon within dR=0.2 are skipped
 
     // Put the photon in the right eta, pt bin
     short iEta = 0;
