@@ -122,7 +122,7 @@ void ZGammaJetCrossCheck (const int dataSet,
     }
    } else fileIdentifier = inFileName;
 
-   const TString dataPathTemp = dataPath;// + "/data810/";
+   const TString dataPathTemp = dataPath;// + "/hion5_300/";
    TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
    TList* sysfiles = dir.GetListOfFiles ();
    if (!sysfiles) {
@@ -248,7 +248,7 @@ void ZGammaJetCrossCheck (const int dataSet,
    /////////////////////////////////////////////////////////////////////////////
    // basic event selection: e.g., require a primary vertex
    /////////////////////////////////////////////////////////////////////////////
-   if ( (t->nvert <= 0) || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
+   if (t->nvert <= 0 || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
 
 
    /////////////////////////////////////////////////////////////////////////////

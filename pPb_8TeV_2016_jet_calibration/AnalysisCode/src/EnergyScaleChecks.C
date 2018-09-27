@@ -239,9 +239,9 @@ void EnergyScaleChecks (const int dataSet,
       // Put the jet in the right eta bin
       short iEta = 0;
       // Make sure jet is in eta bounds
-      if (etabins[0] < jet_eta->at (j) ||
-          jet_eta->at (j) < etabins[numetabins]) {
-       while (etabins[iEta] < jet_eta->at (j)) iEta++;
+      if (etabins[0] < t->truth_jet_eta->at (truth_jet) ||
+          t->truth_jet_eta->at (truth_jet) < etabins[numetabins]) {
+       while (etabins[iEta] < t->truth_jet_eta->at (truth_jet)) iEta++;
       }
       iEta--;
       short iP = 0;
@@ -362,15 +362,15 @@ void EnergyScaleChecks (const int dataSet,
 
     // Put the photon in the right eta, pt bin
     short iEta = 0;
-    if (etabins[0] < photon_eta &&
-        photon_eta < etabins[numetabins]) {
-     while (etabins[iEta] < photon_eta) iEta++;
+    if (etabins[0] < t->truth_photon_eta->at (truth_photon) &&
+        t->truth_photon_eta->at (truth_photon) < etabins[numetabins]) {
+     while (etabins[iEta] < t->truth_photon_eta->at (truth_photon)) iEta++;
     }
     iEta--;
     short iP = 0;
-    if (pbins[0] < photon_pt &&
-        photon_pt < pbins[numpbins]) {
-     while (pbins[iP] < photon_pt) iP++;
+    if (pbins[0] < t->truth_photon_pt->at (truth_photon) &&
+        t->truth_photon_pt->at (truth_photon) < pbins[numpbins]) {
+     while (pbins[iP] < t->truth_photon_pt->at (truth_photon)) iP++;
     }
     iP--;
 

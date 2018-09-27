@@ -414,9 +414,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      if (iEta < numetabins) myText (0.155, 0.1, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();
@@ -535,9 +538,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      if (iEta < numetabins) myText (0.155, 0.1, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "Z (ee) + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();
@@ -656,9 +662,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
-      if (iEta < numetabins) myText (0.155, 0.1, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "#gamma + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();
@@ -785,9 +794,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
-      if (iP < numpzbins) myText (0.155, 0.1, kBlack, Form ("%g < ##it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();
@@ -905,9 +917,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
-      if (iP < numpzbins) myText (0.155, 0.1, kBlack, Form ("%g < ##it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "Z (ee) + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();
@@ -985,7 +1000,7 @@ void EMTopoComparisonHist () {
      topPad->cd ();
      topPad->SetLogx (false);
 
-     proj = Project2D ("", zeeJetHists[iAlgo][iPer][0][1], "y", "z", p_lo, p_hi);
+     proj = Project2D ("", gJetHists[iAlgo][iPer][0][1], "y", "z", p_lo, p_hi);
      vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, true);
 
      vJetHist->SetYTitle ("<#it{x}_{J}^{ref}>");
@@ -1030,9 +1045,12 @@ void EMTopoComparisonHist () {
      if (iAlgo == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nGammaJet[iAlgo][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iAlgo][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
-      if (iP < numpbins) myText (0.155, 0.1, kBlack, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-      myText (0.155, 0.28, kBlack, "#gamma + Jet", 0.04/uPadY);
-      myText (0.155, 0.19, kBlack, period.Data (), 0.04/uPadY);
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iP < numpbins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
+      else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
+      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
+      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
+      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "EMTopo Jets", 1.25, 0.04/uPadY);
      }
 
      bottomPad->cd ();

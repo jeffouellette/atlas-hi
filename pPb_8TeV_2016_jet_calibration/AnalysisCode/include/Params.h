@@ -32,6 +32,8 @@ const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
 const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit invariant mass peak
 
+const bool skipOldInsitu = true; // whether to skip plotting results with old insitu factors (2015)
+
 const bool useGaussian = false; // whether to use Gaussian fits when creating custom TProfiles
 
 const bool plot_xjref = false; // whether to plot xjref distributions
@@ -74,13 +76,15 @@ const short numSigmaBins = 80;
 const short electronTrigLength = 1;
 const char* electronTriggerNames[electronTrigLength] = {
  "HLT_e15_lhloose_nod0"
+ //"HLT_e15_loose_ion_L1EM12" // old - not used in HION5
 };
 const float electronTriggerMinPtCuts[electronTrigLength] = {15};
 const float electronTriggerMaxPtCuts[electronTrigLength] = {100000};
 
 const short muonTrigLength = 1;
 const char* muonTriggerNames[muonTrigLength] = {
- "HLT_mu15",
+ "HLT_mu15"
+ //"HLT_mu8" // old - not used in HION5
 };
 const float muonTriggerMinPtCuts[muonTrigLength] = {15};
 const float muonTriggerMaxPtCuts[muonTrigLength] = {100000};

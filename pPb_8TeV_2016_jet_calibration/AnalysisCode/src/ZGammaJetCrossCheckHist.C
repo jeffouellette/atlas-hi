@@ -94,8 +94,9 @@ void ZGammaJetCrossCheckHist () {
   int***** nGammaJet = Get5DArray <int> (2, 3, 3, numetabins+1, numpbins+1);
 
   for (short iYear = 0; iYear < 2; iYear++) {
+   if (skipOldInsitu && iYear == 0) continue;
 
-   const TString path = (iYear == 0 ? rootPath : rootPath + "/2015factors/");
+   const TString path = (iYear == 0 ? rootPath + "/2015factors/" : rootPath);
 
    TSystemDirectory dir (path.Data (), path.Data ());
    TList* sysfiles = dir.GetListOfFiles ();
@@ -388,11 +389,13 @@ void ZGammaJetCrossCheckHist () {
      topPad->cd ();
      topPad->SetLogx ();
 
-     proj = Project2D ("", zmumuJetHists[0][iPer][0][1], "x", "z", eta_lo, eta_hi);
+     proj = Project2D ("", zmumuJetHists[1][iPer][0][1], "x", "z", eta_lo, eta_hi);
      vJetHist = GetProfileX ("vJetHist", proj, numpzbins, pzbins, false);
 
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-     vJetHist->SetAxisRange (0.55, 1.85, "Y");
+     double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
+     if (10 * middle != floor (10*middle)) middle += 0.05;
+     vJetHist->SetAxisRange (middle - 0.35, middle + 0.35, "Y");
      vJetHist->SetMarkerStyle (dataStyle);
      vJetHist->SetMarkerColor (dataColor);
      vJetHist->SetLineColor (dataColor);
@@ -402,10 +405,10 @@ void ZGammaJetCrossCheckHist () {
      vJetHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     proj_lo = Project2D ("", zmumuJetHists[0][iPer][0][0], "x", "z", eta_lo, eta_hi);
+     proj_lo = Project2D ("", zmumuJetHists[1][iPer][0][0], "x", "z", eta_lo, eta_hi);
      vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpzbins, pzbins, false);
 
-     proj_hi = Project2D ("", zmumuJetHists[0][iPer][0][2], "x", "z", eta_lo, eta_hi);
+     proj_hi = Project2D ("", zmumuJetHists[1][iPer][0][2], "x", "z", eta_lo, eta_hi);
      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpzbins, pzbins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
@@ -416,7 +419,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->SetFillColor (dataColor);
      vJetGraph_sys->SetFillStyle (3001);
 
-     proj_mc_overlay = Project2D ("", zmumuJetHists[0][iPer][1][1], "x", "z", eta_lo, eta_hi);
+     proj_mc_overlay = Project2D ("", zmumuJetHists[1][iPer][1][1], "x", "z", eta_lo, eta_hi);
      vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numpzbins, pzbins, false);
 
      vJetHist_mc_overlay->SetMarkerStyle (mcOverlayStyle);
@@ -426,15 +429,12 @@ void ZGammaJetCrossCheckHist () {
 
      vJetHist->DrawCopy ("e1 x0");
      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[0][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[0][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[1][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[1][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iEta < numetabins) {
-      if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-     }
+     if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
@@ -511,12 +511,14 @@ void ZGammaJetCrossCheckHist () {
      topPad->cd ();
      topPad->SetLogx ();
 
-     proj = Project2D ("", zeeJetHists[0][iPer][0][1], "x", "z", eta_lo, eta_hi);
+     proj = Project2D ("", zeeJetHists[1][iPer][0][1], "x", "z", eta_lo, eta_hi);
      vJetHist = GetProfileX ("vJetHist", proj, numpzbins, pzbins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-     vJetHist->SetAxisRange (0.55, 1.85, "Y");
+     double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
+     if (10 * middle != floor (10*middle)) middle += 0.05;
+     vJetHist->SetAxisRange (middle - 0.35, middle + 0.35, "Y");
      vJetHist->SetMarkerStyle (dataStyle);
      vJetHist->SetMarkerColor (dataColor);
      vJetHist->SetLineColor (dataColor);
@@ -526,10 +528,10 @@ void ZGammaJetCrossCheckHist () {
      vJetHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
-     proj_lo = Project2D ("", zeeJetHists[0][iPer][0][0], "x", "z", eta_lo, eta_hi);
+     proj_lo = Project2D ("", zeeJetHists[1][iPer][0][0], "x", "z", eta_lo, eta_hi);
      vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpzbins, pzbins, false);
 
-     proj_hi = Project2D ("", zeeJetHists[0][iPer][0][2], "x", "z", eta_lo, eta_hi);
+     proj_hi = Project2D ("", zeeJetHists[1][iPer][0][2], "x", "z", eta_lo, eta_hi);
      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpzbins, pzbins, false);
 
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -538,7 +540,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->SetFillColor (dataColor);
      vJetGraph_sys->SetFillStyle (3001);
 
-     proj_mc_overlay = Project2D ("", zeeJetHists[0][iPer][1][1], "x", "z", eta_lo, eta_hi);
+     proj_mc_overlay = Project2D ("", zeeJetHists[1][iPer][1][1], "x", "z", eta_lo, eta_hi);
      vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numpzbins, pzbins, false);
 
      vJetHist_mc_overlay->SetMarkerStyle (mcOverlayStyle);
@@ -547,15 +549,12 @@ void ZGammaJetCrossCheckHist () {
 
      vJetHist->DrawCopy ("e1 x0");
      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[0][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[0][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iEta < numetabins) {
-      if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-     }
+     if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
@@ -624,9 +623,11 @@ void ZGammaJetCrossCheckHist () {
 
     /**** Plots GammaJet info as a function of p_T^ref****/
     for (short iYear = 0; iYear < 2; iYear++) {
-     const Style_t dataStyle = (iYear == 0 ? 20 : 24);
-     const Style_t mcOverlayStyle = (iYear == 0 ? 33 : 27);
-     const Style_t mcSignalStyle = (iYear == 0 ? 34 : 28);
+     if (skipOldInsitu && iYear == 0) continue;
+
+     const Style_t dataStyle = (iYear == 0 ? 24 : 20);
+     const Style_t mcOverlayStyle = (iYear == 0 ? 27 : 33);
+     const Style_t mcSignalStyle = (iYear == 0 ? 28 : 34);
 
      topPad->cd ();
      topPad->SetLogx ();
@@ -636,7 +637,9 @@ void ZGammaJetCrossCheckHist () {
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-     vJetHist->SetAxisRange (0.55, 1.85, "Y");
+     double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
+     if (10 * middle != floor (10*middle)) middle += 0.05;
+     vJetHist->SetAxisRange (middle - 0.35, middle + 0.35, "Y");
      vJetHist->SetMarkerStyle (dataStyle);
      vJetHist->SetMarkerColor (dataColor);
      vJetHist->SetLineColor (dataColor);
@@ -701,7 +704,7 @@ void ZGammaJetCrossCheckHist () {
      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
 
-     if (iYear == 0) {
+     if (skipOldInsitu || iYear == 0) {
       vJetHist->DrawCopy ("e1 x0");
       vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
       if (iPer != 1) vJetHist_mc_signal->DrawCopy ("same e1 x0");
@@ -709,20 +712,19 @@ void ZGammaJetCrossCheckHist () {
      else {
       vJetHist->DrawCopy ("same e1 x0");
      }
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
      //for (TLine* line : dplines) line->Draw ();
 
-     if (iYear == 0) {
+     if (skipOldInsitu || iYear == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
       if (iPer != 1) myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nGammaJet[iYear][iPer][2][iEta][numpbins]), 1.25, 0.04/uPadY);
-      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
-      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
-      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iEta < numetabins) {
-       if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+      if (!skipOldInsitu) {
+       myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+       myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }
@@ -764,7 +766,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
       vJetHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-      if (iYear == 0 && iMC == 1) vJetHist_rat->DrawCopy ("e1 x0");
+      if ((skipOldInsitu || iYear == 0) && iMC == 1) vJetHist_rat->DrawCopy ("e1 x0");
       else vJetHist_rat->DrawCopy ("same e1 x0");
       ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
       for (TLine* line : glines) line->Draw ();
@@ -813,9 +815,11 @@ void ZGammaJetCrossCheckHist () {
      const double pref_hi =  pbins[iP+1];
 
      for (short iYear = 0; iYear < 2; iYear++) {
-      const Style_t dataStyle = (iYear == 0 ? 20 : 24);
-      const Style_t mcOverlayStyle = (iYear == 0 ? 33 : 27);
-      //const Style_t mcSignalStyle = (iYear == 0 ? 34 : 28);
+      if (skipOldInsitu && iYear == 0) continue;
+
+      const Style_t dataStyle = (iYear == 0 ? 24 : 20);
+      const Style_t mcOverlayStyle = (iYear == 0 ? 27 : 33);
+      //const Style_t mcSignalStyle = (iYear == 0 ? 28 : 34);
 
       topPad->cd ();
       topPad->SetLogx (0);
@@ -848,7 +852,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist_mc_overlay->SetMarkerColor (mcOverlayColor);
       vJetHist_mc_overlay->SetLineColor (mcOverlayColor);
 
-      if (iYear == 0) {
+      if (skipOldInsitu || iYear == 0) {
        vJetHist->DrawCopy ("e1 x0");
        vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
       }
@@ -887,8 +891,7 @@ void ZGammaJetCrossCheckHist () {
        myText (0.155, 0.43, dataColor, "#gamma + Jet", 0.04/uPadY);
        myText (0.155, 0.34, dataColor, Form ("%g < #it{p}_{T}^{ref} < %g", pref_lo, pref_hi), 0.04/uPadY);
        myText (0.155, 0.25, dataColor, period.Data (), 0.04/uPadY);
-       if (iPer == 2) myText (0.155, 0.16, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
-       else myText (0.155, 0.16, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       myText (0.155, 0.16, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
        myText (0.155, 0.08, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
       }
 
@@ -908,7 +911,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
       vJetHist->GetXaxis ()->SetTickLength (0.08);
 
-      if (iYear == 0) vJetHist->DrawCopy ("e1 x0"); 
+      if (skipOldInsitu || iYear == 0) vJetHist->DrawCopy ("e1 x0"); 
       else vJetHist->DrawCopy ("same e1 x0"); 
       for (TLine* line : xlines) line->Draw ();
 
@@ -959,12 +962,14 @@ void ZGammaJetCrossCheckHist () {
      topPad->cd ();
      topPad->SetLogx (false);
 
-     proj = Project2D ("", zmumuJetHists[0][iPer][0][1], "y", "z", p_lo, p_hi);
+     proj = Project2D ("", zmumuJetHists[1][iPer][0][1], "y", "z", p_lo, p_hi);
      vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-     vJetHist->SetAxisRange (0.55, 1.85, "Y");
+     double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
+     if (10 * middle != floor (10*middle)) middle += 0.05;
+     vJetHist->SetAxisRange (middle - 0.35, middle + 0.35, "Y");
      vJetHist->SetMarkerStyle (dataStyle);
      vJetHist->SetMarkerColor (dataColor);
      vJetHist->SetLineColor (dataColor);
@@ -974,10 +979,10 @@ void ZGammaJetCrossCheckHist () {
      vJetHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     proj_lo = Project2D ("", zmumuJetHists[0][iPer][0][0], "y", "z", p_lo, p_hi);
+     proj_lo = Project2D ("", zmumuJetHists[1][iPer][0][0], "y", "z", p_lo, p_hi);
      vJetHist_lo = GetProfileX ("vJetHist_lo", proj, numetabins, etabins, false);
 
-     proj_hi = Project2D ("", zmumuJetHists[0][iPer][0][2], "y", "z", p_lo, p_hi);
+     proj_hi = Project2D ("", zmumuJetHists[1][iPer][0][2], "y", "z", p_lo, p_hi);
      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, false);
 
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -986,7 +991,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->SetFillColor (dataColor);
      vJetGraph_sys->SetFillStyle (3001);
 
-     proj_mc_overlay = Project2D ("", zmumuJetHists[0][iPer][1][1], "y", "z", p_lo, p_hi);
+     proj_mc_overlay = Project2D ("", zmumuJetHists[1][iPer][1][1], "y", "z", p_lo, p_hi);
      vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numetabins, etabins, false);
 
      vJetHist_mc_overlay->SetMarkerStyle (mcOverlayStyle);
@@ -995,15 +1000,12 @@ void ZGammaJetCrossCheckHist () {
 
      vJetHist->DrawCopy ("e1 x0");
      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[0][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[0][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZmumuJet[1][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[1][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iP < numpzbins) {
-      if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{#mu#mu} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{#mu#mu} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-     }
+     if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{#mu#mu} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
@@ -1079,12 +1081,14 @@ void ZGammaJetCrossCheckHist () {
      topPad->cd ();
      topPad->SetLogx (false);
 
-     proj = Project2D ("", zeeJetHists[0][iPer][0][1], "y", "z", p_lo, p_hi);
+     proj = Project2D ("", zeeJetHists[1][iPer][0][1], "y", "z", p_lo, p_hi);
      vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-     vJetHist->SetAxisRange (0.55, 1.85, "Y");
+     double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
+     if (10 * middle != floor (10*middle)) middle += 0.05;
+     vJetHist->SetAxisRange (middle - 0.35, middle + 0.35, "Y");
      vJetHist->SetMarkerStyle (dataStyle);
      vJetHist->SetMarkerColor (dataColor);
      vJetHist->SetLineColor (dataColor);
@@ -1094,10 +1098,10 @@ void ZGammaJetCrossCheckHist () {
      vJetHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
-     proj_lo = Project2D ("", zeeJetHists[0][iPer][0][0], "y", "z", p_lo, p_hi);
+     proj_lo = Project2D ("", zeeJetHists[1][iPer][0][0], "y", "z", p_lo, p_hi);
      vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numetabins, etabins, false);
 
-     proj_hi = Project2D ("", zeeJetHists[0][iPer][0][2], "y", "z", p_lo, p_hi);
+     proj_hi = Project2D ("", zeeJetHists[1][iPer][0][2], "y", "z", p_lo, p_hi);
      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, false);
 
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -1106,7 +1110,7 @@ void ZGammaJetCrossCheckHist () {
      vJetGraph_sys->SetFillColor (dataColor);
      vJetGraph_sys->SetFillStyle (3001);
 
-     proj_mc_overlay = Project2D ("", zeeJetHists[0][iPer][1][1], "y", "z", p_lo, p_hi);
+     proj_mc_overlay = Project2D ("", zeeJetHists[1][iPer][1][1], "y", "z", p_lo, p_hi);
      vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numetabins, etabins, false);
 
      vJetHist_mc_overlay->SetMarkerStyle (mcOverlayStyle);
@@ -1115,15 +1119,12 @@ void ZGammaJetCrossCheckHist () {
 
      vJetHist->DrawCopy ("e1 x0");
      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[0][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[0][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iP < numpzbins) {
-      if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-     }
+     if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
@@ -1203,9 +1204,11 @@ void ZGammaJetCrossCheckHist () {
 
     /**** Plots GammaJet info as a function of eta^jet****/
     for (short iYear = 0; iYear < 2; iYear++) {
-     const Style_t dataStyle = (iYear == 0 ? 20 : 24);
-     const Style_t mcOverlayStyle = (iYear == 0 ? 33 : 27);
-     const Style_t mcSignalStyle = (iYear == 0 ? 34 : 28);
+     if (skipOldInsitu && iYear == 0) continue;
+
+     const Style_t dataStyle = (iYear == 0 ? 24 : 20);
+     const Style_t mcOverlayStyle = (iYear == 0 ? 27 : 33);
+     const Style_t mcSignalStyle = (iYear == 0 ? 28 : 34);
 
      topPad->cd ();
      topPad->SetLogx (false);
@@ -1282,7 +1285,7 @@ void ZGammaJetCrossCheckHist () {
      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
 
-     if (iYear == 0) {
+     if (skipOldInsitu || iYear == 0) {
       vJetHist->DrawCopy ("e1 x0");
       vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
       if (iPer != 1) vJetHist_mc_signal->DrawCopy ("same e1 x0");
@@ -1290,20 +1293,19 @@ void ZGammaJetCrossCheckHist () {
      else {
       vJetHist->DrawCopy ("same e1 x0");
      }
-     vJetGraph_sys->Draw ("2");
+     ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
      //for (TLine* line : dplines) line->Draw ();
 
-     if (iYear == 0) {
+     if (skipOldInsitu || iYear == 0) {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       if (iPer != 1) myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nGammaJet[iYear][iPer][2][numetabins][iP]), 1.25, 0.04/uPadY);
-      myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
-      myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
-      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iP < numpbins) {
-       if (iPer == 2) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-       else myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
+      if (!skipOldInsitu) {
+       myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
+       myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
+      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      if (iP < numpbins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }
@@ -1345,7 +1347,7 @@ void ZGammaJetCrossCheckHist () {
       vJetHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
       vJetHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-      if (iYear == 0 && iMC == 1) vJetHist_rat->DrawCopy ("e1 x0");
+      if ((skipOldInsitu || iYear == 0) && iMC == 1) vJetHist_rat->DrawCopy ("e1 x0");
       else vJetHist_rat->DrawCopy ("same e1 x0");
       ((TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
       for (TLine* line : getalines) line->Draw ();
