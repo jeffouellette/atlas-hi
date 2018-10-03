@@ -49,9 +49,9 @@ void ZMassCalcHist () {
   vector<TString> dijetSampleIds (0);
   dijetSampleIds.push_back ("pPb_Signal_Dijet_Slice2");
 
-  TH1D**** zMassSpectra = Get3DArray <TH1D*> (2, 2, numetabins+1);
+  TH1D**** zMassSpectra = Get3DArray <TH1D*> (2, 2, numzetabins+1);
 
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
+  for (short iEta = 0; iEta <= numzetabins; iEta++) {
    for (short iData = 0; iData < 2; iData++) { // iData is 0 for data, 1 for MC
     const TString dataType = (iData == 0 ? "data":"mc");
     for (short iSpc = 0; iSpc < 2; iSpc++) {
@@ -63,8 +63,8 @@ void ZMassCalcHist () {
    }
   }
 
-  int*** nZeeMass = Get3DArray <int> (3, 2, numetabins+1);
-  int*** nZmumuMass = Get3DArray <int> (3, 2, numetabins+1);
+  int*** nZeeMass = Get3DArray <int> (3, 2, numzetabins+1);
+  int*** nZmumuMass = Get3DArray <int> (3, 2, numzetabins+1);
 
   {
    TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
@@ -95,10 +95,10 @@ void ZMassCalcHist () {
        nZeeMassVec = (TVectorD*)thisFile->Get (Form ("nZeeMassVec_%i", runNumber));
        nZmumuMassVec = (TVectorD*)thisFile->Get (Form ("nZmumuMassVec_%i", runNumber));
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = runNumber < 313500 && iEta < numetabins;
+       for (short iEta = 0; iEta <= numzetabins; iEta++) {
+        //const bool flipEta = runNumber < 313500 && iEta < numzetabins;
         const bool flipEta = false;
-        const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta);
+        const short act_iEta = (flipEta ? (numzetabins - iEta - 1) : iEta);
 
         nZeeMass[iPer][0][iEta] += (*nZeeMassVec)[iEta];
         nZeeMass[2][0][iEta] += (*nZeeMassVec)[act_iEta];
@@ -110,7 +110,7 @@ void ZMassCalcHist () {
        for (short iSpc = 0; iSpc < 2; iSpc++) {
         const TString species = (iSpc == 0 ? "mumu":"ee");
 
-        for (short iEta = 0; iEta <= numetabins; iEta++) {
+        for (short iEta = 0; iEta <= numzetabins; iEta++) {
          zMassSpectra[iSpc][0][iEta]->Add ( (TH1D*)thisFile->Get (Form ("z%sMassSpectrum_dataSet%i_data_iEta%i", species.Data (), runNumber, iEta)));
         }
        }
@@ -129,16 +129,16 @@ void ZMassCalcHist () {
        const short iPer = (zeeJetSampleId.Contains ("pPb") ? 0 : 1);
        nZeeMassVec = (TVectorD*)thisFile->Get (Form ("nZeeMassVec_%s", zeeJetSampleId.Data ()));
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = zeeJetSampleId.Contains ("pPb") && iEta < numetabins;
+       for (short iEta = 0; iEta <= numzetabins; iEta++) {
+        //const bool flipEta = zeeJetSampleId.Contains ("pPb") && iEta < numzetabins;
         const bool flipEta = false;
-        const short act_iEta = (flipEta ? numetabins - iEta - 1 : iEta); // period A condition
+        const short act_iEta = (flipEta ? numzetabins - iEta - 1 : iEta); // period A condition
 
         nZeeMass[iPer][1][iEta] += (*nZeeMassVec)[iEta];
         nZeeMass[2][1][iEta] += (*nZeeMassVec)[act_iEta];
        }
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
+       for (short iEta = 0; iEta <= numzetabins; iEta++) {
         zMassSpectra[1][1][iEta]->Add ( (TH1D*)thisFile->Get (Form ("zeeMassSpectrum_dataSet%s_mc_iEta%i", zeeJetSampleId.Data (), iEta)));
        }
 
@@ -156,16 +156,16 @@ void ZMassCalcHist () {
        const short iPer = (zmumuJetSampleId.Contains ("pPb") ? 0 : 1);
        nZmumuMassVec = (TVectorD*)thisFile->Get (Form ("nZmumuMassVec_%s", zmumuJetSampleId.Data ()));
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = zmumuJetSampleId.Contains ("pPb") && iEta < numetabins;
+       for (short iEta = 0; iEta <= numzetabins; iEta++) {
+        //const bool flipEta = zmumuJetSampleId.Contains ("pPb") && iEta < numzetabins;
         const bool flipEta = false;
-        const short act_iEta = (flipEta ? numetabins - iEta - 1 : iEta); // period A condition
+        const short act_iEta = (flipEta ? numzetabins - iEta - 1 : iEta); // period A condition
 
         nZmumuMass[iPer][1][iEta] += (*nZmumuMassVec)[iEta];
         nZmumuMass[2][1][iEta] += (*nZmumuMassVec)[act_iEta];
        }
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
+       for (short iEta = 0; iEta <= numzetabins; iEta++) {
         zMassSpectra[0][1][iEta]->Add ( (TH1D*)thisFile->Get (Form ("zmumuMassSpectrum_dataSet%s_mc_iEta%i", zmumuJetSampleId.Data (), iEta)));
        }
 
@@ -207,7 +207,7 @@ void ZMassCalcHist () {
 
 
   /**** Plot dilepton mass spectra ****/
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
+  for (short iEta = 0; iEta <= numzetabins; iEta++) {
    for (short iSpc = 0; iSpc < 2; iSpc++) {
     topPad->cd ();
     topPad->SetLogx (0);
@@ -274,20 +274,20 @@ void ZMassCalcHist () {
      else thisHist->Draw ("hist same");
      //fits[iData]->plot->Draw ("same");
      fits[iData]->Draw ("same");
-     if (iEta < numetabins) {
+     if (iEta < numzetabins) {
       if (iSpc == 0)
-       myText (0.175, 0.15, kBlack, Form ("%g < #eta_{Lab}^{#mu#mu} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       myText (0.175, 0.15, kBlack, Form ("%g < #eta_{Lab}^{Z} < %g", zetabins[iEta], zetabins[iEta+1]), 0.04/uPadY);
       else if (iSpc == 1)
-       myText (0.175, 0.15, kBlack, Form ("%g < #eta_{Lab}^{ee} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+       myText (0.175, 0.15, kBlack, Form ("%g < #eta_{Lab}^{Z} < %g", zetabins[iEta], zetabins[iEta+1]), 0.04/uPadY);
      }
     }
     if (iSpc == 0) {
-     myText (0.175, 0.88, kBlack, "Z (#mu#mu) + Jet", 0.04/uPadY);
+     myText (0.175, 0.88, kBlack, "Z (#mu#mu) events", 0.04/uPadY);
      myMarkerText (0.175, 0.80, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV (%i events)", nZmumuMass[2][0][iEta]), 1.25, 0.04/uPadY);
      myMarkerText (0.175, 0.55, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
     else if (iSpc == 1) {
-     myText (0.175, 0.88, kBlack, "Z (ee) + Jet", 0.04/uPadY);
+     myText (0.175, 0.88, kBlack, "Z (ee) events", 0.04/uPadY);
      myMarkerText (0.175, 0.80, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV (%i events)", nZeeMass[2][0][iEta]), 1.25, 0.04/uPadY);
      myMarkerText (0.175, 0.55, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeMass[2][1][iEta]), 1.25, 0.04/uPadY);
     }
@@ -300,7 +300,7 @@ void ZMassCalcHist () {
     bottomPad->SetLogx (0);
     TH1D* thisHist = (TH1D*)zMassSpectra[iSpc][0][iEta]->Clone (Form ("invMass_iSpc%i_clone", iSpc));
     thisHist->Divide (zMassSpectra[iSpc][1][iEta]);
-    thisHist->GetXaxis ()->SetTitle ("#font[12]{ll} Invariant Mass #left[GeV#right]");
+    thisHist->GetXaxis ()->SetTitle (Form ("#font[12]{%s} Invariant Mass #left[GeV#right]", (iSpc == 1 ? "ee":"#mu#mu")));
     thisHist->GetYaxis ()->SetTitle ("Data / MC");
     thisHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
     thisHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
@@ -321,7 +321,7 @@ void ZMassCalcHist () {
     thisHist->Draw ("p");
     for (TLine* line : lines) line->Draw ("same");
 
-    if (iEta != numetabins) {
+    if (iEta != numzetabins) {
      if (iSpc == 0) canvas->SaveAs (Form ("%s/zmumu_mass_comparison_iEta%i.pdf", plotPath.Data (), iEta));
      else if (iSpc == 1) canvas->SaveAs (Form ("%s/zee_mass_comparison_iEta%i.pdf", plotPath.Data (), iEta));
     }

@@ -251,17 +251,35 @@ Both sets of corrections are derived twice, once for each beam direction, becaus
 \end{center}
 
 %-------------------------------------------------------------------------------
-\section{Validation of the 2015 Cross-Calibration}
+\section{Testing the Application of the 2015 Cross-Calibration}
 \label{sec:EtaJES}
 %-------------------------------------------------------------------------------
 
-Additional corrections to reconstructed jet 4-momenta are required due to differences between the standard EMTopo jets studied in $pp$ collisions and HI jets, which cannot have the same insitu corrections applied. In order to provide jets with similar kinematics, performance of the HI algorithm with respect to the EMTopo algorithm can be studied in $pp$ collisions, so the corresponding corrections can be applied to HI jets in heavy ion systems. To understand how well the previous corrections from 2015 can be applied in the 2016 data, the $\pt$ balance of vector bosons with jets is studied in data and MC.\par
-Events are selected using the criteria found in Table \ref{tab:eventSelection}. All jets are corrected using the derived EtaJES calibrations relevant to the beam direction. In data, the 2015 cross calibration and insitu corrections are also applied. Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. An alternative to $x_{\text{J}}^{\text{V}}$, this $x_{\text{J}}^{\text{ref}}$ additionally accounts for soft radiation from the jet being missed by the jet finding algorithm.
+Additional corrections to reconstructed jet 4-momenta are required due to differences between the standard EMTopo jets studied in $pp$ collisions and HI jets, which should not have the same insitu corrections applied. Performance of the HI algorithm with respect to the EMTopo algorithm can be studied in $pp$ collisions, and the corresponding corrections can be applied to HI jets in heavy ion systems. To understand how well the previous cross-calibration corrections from 2015 can be applied in the 2016 data, the $\pt$ balance of vector bosons with jets is studied in data and MC.\par
+Events are selected using the criteria found in Table \ref{tab:eventSelection}. All jets are corrected using the derived EtaJES calibrations relevant to the beam direction. In data, the 2015 cross calibration and the 2016 insitu corrections are also applied. Figure \ref{fig:insituComp} shows a comparison of the insitu factors between 2015 and 2016 - a clear difference is seen, and the 2016 factors are applied.
+\begin{figure}[htbp]
+	\centering
+	\subfloat[]{
+		\includegraphics[width=0.45\textwidth]{../InsituComparison/CompareEtaInterCcalibration.pdf}
+		\label{fig:insituEtaComp}
+	}
+	\subfloat[]{
+		\includegraphics[width=0.45\textwidth]{../InsituComparison/CompareSummary.pdf}
+		\label{fig:insituCompSummary}
+	}
+	\caption{A comparison of the insitu factors from 2015 data to 2016 data. The origin of the difference is unclear, although it is not unsubstantial.}
+	\label{fig:insituComp}
+\end{figure}
+
+Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. The projection onto the antiparallel is intended to account for soft radiation from the jet that is missed by the jet finding algorithm.
 \begin{equation}
 	x_{\text{J}}^{\text{ref}} = \frac{\pt^{\text{jet}}}{\pt^{\text{V}} \cos{\Delta\phi}}
 	\label{eq:xjref}
 \end{equation}
-This quantity is averaged as a function of $\pt^{\text{ref}}$. For the $\gamma$-jet events, the results can be seen in Figure \ref{fig:xjgammaPABDO}. The \Zboson boson results are similarly shown in Figures \ref{fig:xjzeePABDO} and \ref{fig:xjzmumuPABDO}. Due to a lack of statistics in the latter, cross calibration uncertainties are derived using the $\gamma$-jet events and then checked in the \Zboson-jet events. The ratio of data to MC is shown to illustrate deficiencies stemming from the cross calibration being applied to data. At midrapidity, this ratio is generally close to 1, whereas systematic deviation between data and MC begins to occur at more forward and backward jets.\par
+This quantity is averaged as a function of $\pt^{\text{ref}}$ and $\eta$. For the $\gamma$-jet events, the results can be seen in Figure \ref{fig:xjgammaPABDO}. The \Zboson boson results are similarly shown in Figures \ref{fig:xjzeePABDO} and \ref{fig:xjzmumuPABDO}.
+
+
+Due to a lack of statistics in the latter, cross calibration uncertainties are derived using the $\gamma$-jet events and then checked in the \Zboson-jet events. The ratio of data to MC is shown to illustrate deficiencies stemming from the cross calibration being applied to data. At midrapidity, this ratio is generally close to 1, whereas systematic deviation between data and MC begins to occur at more forward and backward jets.\par
 To identify potential issues associated with reconstruction configuration of the MC samples containing data overlay, a signal-only $\gamma$-jet sample is also used in calculating $x_J^{ref}$, with results similar to the data overlay samples.
 
 \subsection{Derivation of additional uncertainties}

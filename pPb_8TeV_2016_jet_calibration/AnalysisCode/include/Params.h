@@ -32,13 +32,14 @@ const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
 const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit invariant mass peak
 
-const bool skipOldInsitu = true; // whether to skip plotting results with old insitu factors (2015)
+const bool skipOldInsitu = false; // whether to skip plotting results with old insitu factors (2015)
+const bool skipSignalMC = false; // whether to skip plotting results with signal only photon+jet MC
 
 const bool useGaussian = false; // whether to use Gaussian fits when creating custom TProfiles
 
 const bool plot_xjref = false; // whether to plot xjref distributions
 
-const bool calcPtClosure = true; // whether the energy scale calculations will use pT (true) or E (false)
+const bool calcPtClosure = false; // whether the energy scale calculations will use pT (true) or E (false)
 
 /** binning parameters **/
 
@@ -49,8 +50,8 @@ const double* xjrefbins = linspace (0, 2.0, numxjrefbins);
 const short numrtrkbins = 400;
 const double* rtrkbins = linspace (0, 2.0, numrtrkbins);
 
-const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
-//const double dpbins[2] = {60, 140};
+//const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
+const double dpbins[2] = {60, 140};
 const short numdpbins = sizeof (dpbins)/sizeof (dpbins[0]) - 1;
 
 //const double pbins[31] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 90., 100., 110., 120., 130., 140., 150., 165., 180., 200., 225., 250., 275., 300., 350., 420., 500.};
@@ -64,6 +65,9 @@ const short numpzbins = sizeof (pzbins)/sizeof (pzbins[0]) - 1;
 const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
 //const double etabins[37] = {-4.4, -3.6, -3.2, -3.0, -2.8, -2.6, -2.4, -2.2, -2.0, -1.8, -1.6, -1.4, -1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.6, 4.4};
 const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
+
+const double zetabins[7] = {-2.4, -1.5, -1.3, 0, 1.37, 1.52, 2.4};
+const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
 const short numXCalibEtabins = sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) - 1;

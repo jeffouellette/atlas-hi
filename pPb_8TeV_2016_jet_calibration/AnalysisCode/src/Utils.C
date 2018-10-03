@@ -170,7 +170,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
       dataAvg = gaus->GetParameter (1);
       dataErr = gaus->GetParError (1);
@@ -199,7 +199,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit && useGaussian && numNonzeroBins > 4) {
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), 2.0);//proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
       proj->Fit (gaus, "Q0R");
       mcAvg = gaus->GetParameter (1);
       mcErr = gaus->GetParError (1);

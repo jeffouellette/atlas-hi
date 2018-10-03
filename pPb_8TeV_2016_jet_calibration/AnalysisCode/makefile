@@ -1,64 +1,39 @@
-CXXFLAGS=-shared -Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH)/include -I$(CALIB_PATH)/AnalysisCode/include
-LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(CALIB_PATH)/AnalysisCode/lib -lGlobalParams -lInitialization -lTrigger -lAtlas -ldl
+#ANALY_PATH=$(CALIB_PATH)/AnalysisCode
 
-all : Utils TreeVariables RooZfit EMTopoComparison EMTopoComparisonHist ElectronContaminationStudy ElectronContaminationStudyHist EnergyScaleChecks EnergyScaleChecksHist FCalDistribution FCalDistributionHist JetInsituCorrectionCheck JetInsituCorrectionCheckHist RtrkComparison RtrkComparisonHist ZGammaJetCrossCheck ZGammaJetCrossCheckHist ZMassCalc ZMassCalcHist
+CXXFLAGS=-Ofast -fPIC -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH)/include -I./include
+#LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L./lib -lGlobalParams -lInitialization -lTrigger -lAtlas -ldl
+LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L./lib -lGlobalParams -lTrigger -lAtlas -ldl
 
-Utils : src/Utils.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(CALIB_PATH)/AnalysisCode/lib/libUtils.so $(CALIB_PATH)/AnalysisCode/src/Utils.C
+CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
-TreeVariables : src/TreeVariables.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(CALIB_PATH)/AnalysisCode/lib/libTreeVariables.so $(CALIB_PATH)/AnalysisCode/src/TreeVariables.C
+#hists = EMTopoComparisonHist ElectronContaminationStudyHist EnergyScaleChecksHist FCalDistributionHist GammaJetsHist JetInsituCorrectionCheckHist RtrkComparisonHist ZeeJetsHist ZGammaJetCrossCheckHist ZmumuJetsHist ZMassCalcHist
 
-RooZfit : src/RooZfit.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lRooFit -lRooFitCore -o $(CALIB_PATH)/AnalysisCode/lib/libRooZfit.so $(CALIB_PATH)/AnalysisCode/src/RooZfit.C
+analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution GammaJets JetInsituCorrectionCheck RtrkComparison ZeeJets ZGammaJetCrossCheck ZmumuJets ZMassCalc
 
-EMTopoComparison : src/EMTopoComparison.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libEMTopoComparison.so $(CALIB_PATH)/AnalysisCode/src/EMTopoComparison.C
+all : Utils TreeVariables $(analyses:%=lib/lib%.so) $(analyses:%=lib/lib%Hist.so)
 
-EMTopoComparisonHist : src/EMTopoComparisonHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS)  -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libEMTopoComparisonHist.so $(CALIB_PATH)/AnalysisCode/src/EMTopoComparisonHist.C
+# Utilities can be directly compiled straight to libraries since they do not depend on other libraries compiled here
+lib/lib%.so: obj/%.o Utils TreeVariables
+	$(CXX) $(LDFLAGS) -lUtils -lTreeVariables -shared $< -o $@
 
-ElectronContaminationStudy : src/ElectronContaminationStudy.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libElectronContaminationStudy.so $(CALIB_PATH)/AnalysisCode/src/ElectronContaminationStudy.C
+Utils:
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared src/Utils.C -o lib/libUtils.so
 
-ElectronContaminationStudyHist : src/ElectronContaminationStudyHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libElectronContaminationStudyHist.so $(CALIB_PATH)/AnalysisCode/src/ElectronContaminationStudyHist.C
+TreeVariables:
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared src/TreeVariables.C -o lib/libTreeVariables.so
 
-EnergyScaleChecks : src/EnergyScaleChecks.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libEnergyScaleChecks.so $(CALIB_PATH)/AnalysisCode/src/EnergyScaleChecks.C
+RooZfit:
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared -lRooFit -lRooFitCore src/RooZfit.C -o lib/libRooZfit.so
 
-EnergyScaleChecksHist : src/EnergyScaleChecksHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libEnergyScaleChecksHist.so $(CALIB_PATH)/AnalysisCode/src/EnergyScaleChecksHist.C
+# Libraries need to be compiled into object files and then migrated to a shared library
+lib/lib%.so: obj/%.o Utils TreeVariables
+	$(CXX) $(LDFLAGS) -lUtils -lTreeVariables -shared $< -o $@
 
-FCalDistribution : src/FCalDistribution.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libFCalDistribution.so $(CALIB_PATH)/AnalysisCode/src/FCalDistribution.C
+obj/%.o :	src/%.C
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-FCalDistributionHist : src/FCalDistributionHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libFCalDistributionHist.so $(CALIB_PATH)/AnalysisCode/src/FCalDistributionHist.C
-
-JetInsituCorrectionCheck : src/JetInsituCorrectionCheck.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libJetInsituCorrectionCheck.so $(CALIB_PATH)/AnalysisCode/src/JetInsituCorrectionCheck.C
-
-JetInsituCorrectionCheckHist : src/JetInsituCorrectionCheckHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libJetInsituCorrectionCheckHist.so $(CALIB_PATH)/AnalysisCode/src/JetInsituCorrectionCheckHist.C
-
-RtrkComparison : src/RtrkComparison.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libRtrkComparison.so $(CALIB_PATH)/AnalysisCode/src/RtrkComparison.C
-
-RtrkComparisonHist : src/RtrkComparisonHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libRtrkComparisonHist.so $(CALIB_PATH)/AnalysisCode/src/RtrkComparisonHist.C
-
-ZGammaJetCrossCheck : src/ZGammaJetCrossCheck.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libZGammaJetCrossCheck.so $(CALIB_PATH)/AnalysisCode/src/ZGammaJetCrossCheck.C
-
-ZGammaJetCrossCheckHist : src/ZGammaJetCrossCheckHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libZGammaJetCrossCheckHist.so $(CALIB_PATH)/AnalysisCode/src/ZGammaJetCrossCheckHist.C
-
-ZMassCalc : src/ZMassCalc.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lTreeVariables -o $(CALIB_PATH)/AnalysisCode/lib/libZMassCalc.so $(CALIB_PATH)/AnalysisCode/src/ZMassCalc.C
-
-ZMassCalcHist : src/ZMassCalcHist.C
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lUtils -o $(CALIB_PATH)/AnalysisCode/lib/libZMassCalcHist.so $(CALIB_PATH)/AnalysisCode/src/ZMassCalcHist.C
+% : obj/%.o
+	$(CXX) $(LDFLAGS) -lUtils -lTreeVariables -shared $< -o lib/lib$@.so
 
 clean :
 	rm -rf ./lib/*.so*

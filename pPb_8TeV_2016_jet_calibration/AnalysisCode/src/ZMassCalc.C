@@ -131,9 +131,9 @@ void ZMassCalc (const int dataSet,
   } // end branch triggers
 
   // initialize histograms
-  TH1D*** zMassSpectra = Get2DArray <TH1D*> (2, numetabins+1);
+  TH1D*** zMassSpectra = Get2DArray <TH1D*> (2, numzetabins+1);
 
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
+  for (short iEta = 0; iEta <= numzetabins; iEta++) {
    for (short spcType = 0; spcType < 2; spcType++) {
     const TString species = (spcType == 0 ? "mumu":"ee");
 
@@ -142,8 +142,8 @@ void ZMassCalc (const int dataSet,
    }
   }
 
-  int* nZeeMass = Get1DArray <int> (numetabins+1);
-  int* nZmumuMass = Get1DArray <int> (numetabins+1);
+  int* nZeeMass = Get1DArray <int> (numzetabins+1);
+  int* nZmumuMass = Get1DArray <int> (numzetabins+1);
 
   const long long numEntries = tree->GetEntries ();
 
@@ -246,16 +246,16 @@ void ZMassCalc (const int dataSet,
       continue; // opposite charge requirement
 
      // Fill dielectron mass spectra
-     zMassSpectra[1][numetabins]->Fill (Z_m, weight);
+     zMassSpectra[1][numzetabins]->Fill (Z_m, weight);
 
      // Increment total Z count
-     nZeeMass[numetabins]++;
+     nZeeMass[numzetabins]++;
 
      // Put the Z in the right eta bin
      short iEta = 0;
-     if (etabins[0] < Z_eta &&
-         Z_eta < etabins[numetabins]) {
-      while (etabins[iEta] < Z_eta) iEta++;
+     if (zetabins[0] < Z_eta &&
+         Z_eta < zetabins[numzetabins]) {
+      while (zetabins[iEta] < Z_eta) iEta++;
      }
      iEta--;
 
@@ -340,16 +340,16 @@ void ZMassCalc (const int dataSet,
       continue; // require oppositely charged muons
 
      // Fill dimuon mass spectrum
-     zMassSpectra[0][numetabins]->Fill (Z_m, weight);
+     zMassSpectra[0][numzetabins]->Fill (Z_m, weight);
 
      // Increment total Z counter
-     nZmumuMass[numetabins]++;
+     nZmumuMass[numzetabins]++;
 
      // Put the Z boson in the right eta bin
      short iEta = 0;
-     if (etabins[0] < Z_eta &&
-         Z_eta < etabins[numetabins]) {
-      while (etabins[iEta] < Z_eta) iEta++;
+     if (zetabins[0] < Z_eta &&
+         Z_eta < zetabins[numzetabins]) {
+      while (zetabins[iEta] < Z_eta) iEta++;
      }
      iEta--;
 
@@ -375,29 +375,29 @@ void ZMassCalc (const int dataSet,
   const char* outFileName = Form ("%s/ZMassCalc/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
+  for (short iEta = 0; iEta <= numzetabins; iEta++) {
    for (short spcType = 0; spcType < 2; spcType++) {
     zMassSpectra[spcType][iEta]->Write ();
    }
   }
-  Delete2DArray (zMassSpectra, 2, numetabins+1);
+  Delete2DArray (zMassSpectra, 2, numzetabins+1);
 
   TVectorD infoVec (2);
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
 
-  TVectorD nZeeMassVec (numetabins+1);
-  TVectorD nZmumuMassVec (numetabins+1);
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
+  TVectorD nZeeMassVec (numzetabins+1);
+  TVectorD nZmumuMassVec (numzetabins+1);
+  for (short iEta = 0; iEta <= numzetabins; iEta++) {
    nZeeMassVec[iEta] = (double)nZeeMass[iEta];
    nZmumuMassVec[iEta] = (double)nZmumuMass[iEta];
   }
   nZeeMassVec.Write (Form ("nZeeMassVec_%s", identifier.Data ()));
   nZmumuMassVec.Write (Form ("nZmumuMassVec_%s", identifier.Data ()));
 
-  Delete1DArray (nZeeMass, numetabins+1);
-  Delete1DArray (nZmumuMass, numetabins+1);
+  Delete1DArray (nZeeMass, numzetabins+1);
+  Delete1DArray (nZmumuMass, numzetabins+1);
 
   outFile->Close ();
   if (outFile) delete outFile;

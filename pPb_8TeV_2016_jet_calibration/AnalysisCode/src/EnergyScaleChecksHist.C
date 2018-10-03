@@ -21,7 +21,7 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-const short plotMC = 0; // 0 plots overlay
+const short plotMC = 1; // 0 plots overlay
 
 
 TString GetMCType (const short iMC) {
@@ -116,73 +116,71 @@ void EnergyScaleChecksHist () {
      if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data () << endl;
 
      // do this if gamma jet MC sample (OVERLAY)
-     for (TString gammaJetOverlaySampleId : gammaJetOverlaySampleIds) { // check for gamma jet MC
-      if (fname.Contains (gammaJetOverlaySampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetOverlaySampleId.Data ()));
-       nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetOverlaySampleId.Data ()));
+     if (plotMC == 0) {
+      for (TString gammaJetOverlaySampleId : gammaJetOverlaySampleIds) { // check for gamma jet MC
+       if (fname.Contains (gammaJetOverlaySampleId)) { // if gamma jet MC sample
+        numFiles++;
+        cout << "Reading in " << rootPath+fname << endl;
+        TFile* thisFile = new TFile (rootPath + fname, "READ");
+        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetOverlaySampleId.Data ()));
+        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetOverlaySampleId.Data ()));
 
-       int iDP = -1;
-       while (iDP < numdpbins && !gammaJetOverlaySampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
-       if (iDP == -1 || 6 <= iDP) continue;
+        int iDP = -1;
+        while (iDP < numdpbins && !gammaJetOverlaySampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
+        if (iDP == -1 || 6 <= iDP) continue;
 
-       //const int iDP = 0;
+        //const int iDP = 0;
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        for (short iP = 0; iP <= numpbins; iP++) {
-         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          if (plotMC == 0) {
-           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-           nJet[iDP][iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
-           jetEnergyResponseCalib[iDP][iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetOverlaySampleId.Data (), iP, iEta)));
-           jetEnergyResponseReco[iDP][iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetOverlaySampleId.Data (), iP, iEta)));
+        for (short iEta = 0; iEta <= numetabins; iEta++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
+          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+            const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+            nJet[iDP][iAlgo][0][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
+            jetEnergyResponseCalib[iDP][iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetOverlaySampleId.Data (), iP, iEta)));
+            jetEnergyResponseReco[iDP][iAlgo][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetOverlaySampleId.Data (), iP, iEta)));
           }
+          nGamma[iDP][0][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+          photonEnergyResponse[iDP][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetOverlaySampleId.Data (), iP, iEta)));
          }
-         nGamma[iDP][0][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
-         photonEnergyResponse[iDP][0][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetOverlaySampleId.Data (), iP, iEta)));
         }
-       }
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
+        thisFile->Close ();
+        delete thisFile;
+        break;
+       }
       }
-     }
-     // do this if gamma jet MC sample (SIGNAL)
-     for (TString gammaJetSignalSampleId : gammaJetSignalSampleIds) { // check for gamma jet MC
-      if (fname.Contains (gammaJetSignalSampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetSignalSampleId.Data ()));
-       nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetSignalSampleId.Data ()));
+      // do this if gamma jet MC sample (SIGNAL)
+      for (TString gammaJetSignalSampleId : gammaJetSignalSampleIds) { // check for gamma jet MC
+       if (fname.Contains (gammaJetSignalSampleId)) { // if gamma jet MC sample
+        numFiles++;
+        cout << "Reading in " << rootPath+fname << endl;
+        TFile* thisFile = new TFile (rootPath + fname, "READ");
+        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", gammaJetSignalSampleId.Data ()));
+        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", gammaJetSignalSampleId.Data ()));
 
-       int iDP = -1;
-       while (iDP < numdpbins && !gammaJetSignalSampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
-       if (iDP == -1 || 6 <= iDP) continue;
+        int iDP = -1;
+        while (iDP < numdpbins && !gammaJetSignalSampleId.Contains (Form ("Slice%i", iDP+1))) iDP++;
+        if (iDP == -1 || 6 <= iDP) continue;
 
-       //const int iDP = 0;
+        //const int iDP = 0;
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        for (short iP = 0; iP <= numpbins; iP++) {
-         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          if (plotMC == 0) {
-           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-           nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
-           jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetSignalSampleId.Data (), iP, iEta)));
-           jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetSignalSampleId.Data (), iP, iEta)));
+        for (short iEta = 0; iEta <= numetabins; iEta++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
+          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+            const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+            nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
+            jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetSignalSampleId.Data (), iP, iEta)));
+            jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), gammaJetSignalSampleId.Data (), iP, iEta)));
           }
+          nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+          photonEnergyResponse[iDP][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetSignalSampleId.Data (), iP, iEta)));
          }
-         nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
-         photonEnergyResponse[iDP][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", gammaJetSignalSampleId.Data (), iP, iEta)));
         }
-       }
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
+        thisFile->Close ();
+        delete thisFile;
+        break;
+       }
       }
      }
      // do this if Z->ee MC sample
@@ -237,66 +235,64 @@ void EnergyScaleChecksHist () {
      //}
 
      // do this if dijet MC sample (SIGNAL)
-     for (TString dijetSampleId : dijetSampleIds) { // check for gamma jet MC
-      if (fname.Contains (dijetSampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetSampleId.Data ()));
-       nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetSampleId.Data ()));
+     if (plotMC == 1) {
+      for (TString dijetSampleId : dijetSampleIds) { // check for gamma jet MC
+       if (fname.Contains (dijetSampleId)) { // if gamma jet MC sample
+        numFiles++;
+        cout << "Reading in " << rootPath+fname << endl;
+        TFile* thisFile = new TFile (rootPath + fname, "READ");
+        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetSampleId.Data ()));
+        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetSampleId.Data ()));
 
-       const short iDP = 0;
+        const short iDP = 0;
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        for (short iP = 0; iP <= numpbins; iP++) {
-         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          if (plotMC == 1) {
-           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-           nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
-           jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), dijetSampleId.Data (), iP, iEta)));
-           jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), dijetSampleId.Data (), iP, iEta)));
+        for (short iEta = 0; iEta <= numetabins; iEta++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
+          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+            const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+            nJet[iDP][iAlgo][1][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
+            jetEnergyResponseCalib[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), dijetSampleId.Data (), iP, iEta)));
+            jetEnergyResponseReco[iDP][iAlgo][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), dijetSampleId.Data (), iP, iEta)));
           }
+          //nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+          //photonEnergyResponse[iDP][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetSampleId.Data (), iP, iEta)));
          }
-         //nGamma[iDP][1][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
-         //photonEnergyResponse[iDP][1][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetSampleId.Data (), iP, iEta)));
         }
-       }
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
+        thisFile->Close ();
+        delete thisFile;
+        break;
+       }
       }
-     }
 
-     // do this if dijet MC sample (SIGNAL)
-     for (TString dijetValidSampleId : dijetValidSampleIds) { // check for gamma jet MC
-      if (fname.Contains (dijetValidSampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetValidSampleId.Data ()));
-       nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetValidSampleId.Data ()));
+      // do this if dijet MC sample (SIGNAL)
+      for (TString dijetValidSampleId : dijetValidSampleIds) { // check for gamma jet MC
+       if (fname.Contains (dijetValidSampleId)) { // if gamma jet MC sample
+        numFiles++;
+        cout << "Reading in " << rootPath+fname << endl;
+        TFile* thisFile = new TFile (rootPath + fname, "READ");
+        nJetVec = (TVectorD*)thisFile->Get (Form ("nJetVec_%s", dijetValidSampleId.Data ()));
+        nGammaVec = (TVectorD*)thisFile->Get (Form ("nGammaVec_%s", dijetValidSampleId.Data ()));
 
-       const short iDP = 0;
+        const short iDP = 0;
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        for (short iP = 0; iP <= numpbins; iP++) {
-         for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-          if (plotMC == 1) {
-           const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-           nJet[iDP][iAlgo][2][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
-           jetEnergyResponseCalib[iDP][iAlgo][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), dijetValidSampleId.Data (), iP, iEta)));
-           jetEnergyResponseReco[iDP][iAlgo][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), dijetValidSampleId.Data (), iP, iEta)));
+        for (short iEta = 0; iEta <= numetabins; iEta++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
+          for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+            const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+            nJet[iDP][iAlgo][2][iP][iEta] += (*nJetVec)[iP + (numpbins+1)*iEta + iAlgo* (numpbins+1)* (numetabins+1)];
+            jetEnergyResponseCalib[iDP][iAlgo][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseCalib_dataSet%s_iP%i_iEta%i", algo.Data (), dijetValidSampleId.Data (), iP, iEta)));
+            jetEnergyResponseReco[iDP][iAlgo][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("%s_jetEnergyResponseReco_dataSet%s_iP%i_iEta%i", algo.Data (), dijetValidSampleId.Data (), iP, iEta)));
           }
+          //nGamma[iDP][2][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
+          //photonEnergyResponse[iDP][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetValidSampleId.Data (), iP, iEta)));
          }
-         //nGamma[iDP][2][iP][iEta] += (*nGammaVec)[iP + (numpbins+1)*iEta];
-         //photonEnergyResponse[iDP][2][iP][iEta]->Add ( (TH1D*)thisFile->Get (Form ("photonEnergyResponse_dataSet%s_iP%i_iEta%i", dijetValidSampleId.Data (), iP, iEta)));
         }
-       }
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
+        thisFile->Close ();
+        delete thisFile;
+        break;
+       }
       }
      }
     }
@@ -310,27 +306,28 @@ void EnergyScaleChecksHist () {
   TH1D* thisHist = NULL;
   TGraphAsymmErrors* thisGraph = NULL;
   Color_t colors[15] = {kGray+2, kAzure, kViolet, kMagenta, kPink+10, kPink, kOrange+10, kOrange, kSpring+10, kSpring, kTeal+10, kTeal, kAzure+10, kGray, kBlack};
-  //TCanvas* energyScaleCanvas = new TCanvas ("energyScaleCanvas", "", 800, 600);
-  //TH1D* thisHist = electronEnergyScale;
-  //TF1* gausFit = new TF1 ("gausFit", "gaus (0)", 0, 2.0);
-  //energyScaleCanvas->cd ();
-  //const float ncounts = thisHist->Integral ();
-  //thisHist->Scale (1./ncounts);
-  //thisHist->Fit (gausFit, "R", "L");
-  //const float m = gausFit->GetParameter (1);
-  //const float s = gausFit->GetParameter (2);
-  //if (gausFit) delete gausFit;
-  //gausFit = new TF1 ("gausFit2", "gaus (0)", m - 1.6*s, m + 1.6*s);
-  //thisHist->Fit (gausFit, "R", "L");
 
-  //thisHist->GetYaxis ()->SetTitle ("Counts / Total");
-  ////thisHist->SetMarkerStyle (6);
-  //thisHist->Draw ("e1 x0");
-  //myText (0.18, 0.85, kBlack, "Electron energy response");
-  //myText (0.18, 0.78, kBlack, Form ("%i electrons", (int)ncounts));
-  //myText (0.18, 0.71, kBlack, Form ("En. Scale = %.5f #pm %.5f", gausFit->GetParameter (1), gausFit->GetParError (1)));
-  //myText (0.18, 0.64, kBlack, Form ("En. Res. = %.5f #pm %.5f", gausFit->GetParameter (2), gausFit->GetParError (2)));
-  //energyScaleCanvas->SaveAs (Form ("%s/electronEnergyScale.pdf", plotPath.Data ()));
+  TCanvas* energyScaleCanvas = new TCanvas ("energyScaleCanvas", "", 800, 600);
+  thisHist = electronEnergyScale;
+  TF1* gausFit = new TF1 ("gausFit", "gaus (0)", 0, 2.0);
+  energyScaleCanvas->cd ();
+  const float ncounts = thisHist->Integral ();
+  thisHist->Scale (1./ncounts);
+  thisHist->Fit (gausFit, "R");
+  const float m = gausFit->GetParameter (1);
+  const float s = gausFit->GetParameter (2);
+  if (gausFit) delete gausFit;
+  gausFit = new TF1 ("gausFit2", "gaus (0)", m - 1.6*s, m + 1.6*s);
+  thisHist->Fit (gausFit, "R");
+
+  thisHist->GetYaxis ()->SetTitle ("Counts / Total");
+  //thisHist->SetMarkerStyle (6);
+  thisHist->Draw ("e1 x0");
+  myText (0.18, 0.85, kBlack, "Electron energy response");
+  myText (0.18, 0.78, kBlack, Form ("%i electrons", (int)ncounts));
+  myText (0.18, 0.71, kBlack, Form ("En. Scale = %.5f #pm %.5f", gausFit->GetParameter (1), gausFit->GetParError (1)));
+  myText (0.18, 0.64, kBlack, Form ("En. Res. = %.5f #pm %.5f", gausFit->GetParameter (2), gausFit->GetParError (2)));
+  energyScaleCanvas->SaveAs (Form ("%s/electronEnergyScale.pdf", plotPath.Data ()));
 
 
   int** jetCounter = Get2DArray <int> (2, 3);
@@ -598,11 +595,11 @@ cout<<"e";
 
      if (calcPtClosure) {
       thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{true} #left[GeV#right]");
-      thisGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{calib} / #it{p}_{T}^{true}>");
+      thisGraph->GetYaxis ()->SetTitle ("#sigma#left[<#it{p}_{T}^{calib} / #it{p}_{T}^{true}>#right]");
      }
      else {
       thisGraph->GetXaxis ()->SetTitle ("#it{E}_{true} #left[GeV#right]");
-      thisGraph->GetYaxis ()->SetTitle ("<#it{E}_{calib} / #it{E}_{true}>");
+      thisGraph->GetYaxis ()->SetTitle ("#sigma#left[<#it{E}_{calib} / #it{E}_{true}>#right]");
      }
 
      if (plotMC == 1) {
@@ -803,7 +800,7 @@ cout<<"e";
    deltaize (thisGraph, t_delta, true);
 
    thisGraph->GetXaxis ()->SetTitle ("#it{E}_{T}^{#gamma} #left[GeV#right]");
-   thisGraph->GetYaxis ()->SetTitle ("Photon Energy Resolution");
+   thisGraph->GetYaxis ()->SetTitle ("#sigma#left[<#it{E}_{T}^{calib} / #it{E}_{T}^{true}>#right]");
    thisGraph->GetYaxis ()->SetRangeUser (0, 0.07);
    thisGraph->SetLineColor (colors[iEta]);
    thisGraph->SetMarkerColor (colors[iEta]);

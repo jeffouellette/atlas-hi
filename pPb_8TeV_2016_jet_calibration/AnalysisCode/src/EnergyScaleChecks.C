@@ -119,7 +119,7 @@ void EnergyScaleChecks (const int dataSet,
   /**** End find TTree ****/
 
   TreeVariables* t = new TreeVariables (tree, true);
-  if (crossSection_microbarns != 0)
+  if (crossSection_microbarns != 0.)
    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
   t->SetGetVertices ();
   t->SetGetHIJets ();
@@ -163,6 +163,10 @@ void EnergyScaleChecks (const int dataSet,
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
 
   const long long numEntries = tree->GetEntries ();
+
+  int* reco_jet_n = Get1DArray <int> (2);
+  int* truth_electron_matched_n = Get1DArray <int> (2);
+  int* truth_photon_matched_n = Get1DArray <int> (2);
 
   //////////////////////////////////////////////////////////////////////////////
   // begin loop over events
@@ -215,15 +219,28 @@ void EnergyScaleChecks (const int dataSet,
      double minDeltaR = 1000;
      // loop over truth electrons and photons
      for (int e = 0; e < t->truth_electron_n; e++) { // truth electrons
+      if (t->truth_electron_pt->at (e) < electron_pt_cut) continue; // pt cut on truth electrons
+
       const double dR = DeltaR (jet_eta->at (j), t->truth_electron_eta->at (e), jet_phi->at (j), t->truth_electron_phi->at (e));
-      if (dR < minDeltaR) minDeltaR = dR;
+      if (dR < minDeltaR)
+       minDeltaR = dR;
+      if (dR < 0.6)
+       truth_electron_matched_n[iAlgo]++;
      }
      for (int p = 0; p < t->truth_photon_n; p++) { // truth photons
+      if (t->truth_photon_pt->at (p) < photon_pt_cut) continue; // pt cut on truth photons
+
       const double dR = DeltaR (jet_eta->at (j), t->truth_photon_eta->at (p), jet_phi->at (j), t->truth_photon_phi->at (p));
-      if (dR < minDeltaR) minDeltaR = dR;
+      if (dR < minDeltaR)
+       minDeltaR = dR;
+      if (dR < 0.6)
+       truth_photon_matched_n[iAlgo]++;
      }
+     reco_jet_n[iAlgo]++;
+
      if (minDeltaR < 0.6)
       continue; // reject jets close to some other lepton or photon
+    
 
      minDeltaR = 1000;
      int truth_jet = -1;
@@ -402,6 +419,17 @@ void EnergyScaleChecks (const int dataSet,
   //////////////////////////////////////////////////////////////////////////////
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
+
+
+  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+   if (iAlgo == 0) cout << "Anti-kt 4 HI Jets:     ";
+   else cout << "Anti-kt 4 EMTopo Jets: ";
+   cout << "truth-matched to electrons > " << electron_pt_cut << " GeV / total jets = " << truth_electron_matched_n[iAlgo] << " / " << reco_jet_n[iAlgo] << " = " << 100. * truth_electron_matched_n[iAlgo] / reco_jet_n[iAlgo] << "\%" << endl;
+   if (iAlgo == 0) cout << "Anti-kt 4 HI Jets:     ";
+   else cout << "Anti-kt 4 EMTopo Jets: ";
+   cout << "truth-matched to photons > " << photon_pt_cut << " GeV / total jets =   " << truth_photon_matched_n[iAlgo] << " / " << reco_jet_n[iAlgo] << " = " << 100. * truth_photon_matched_n[iAlgo] / reco_jet_n[iAlgo] << "\%" << endl;
+  }
+
 
   const char* outFileName = Form ("%s/EnergyScaleChecks/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
