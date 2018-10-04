@@ -12,59 +12,70 @@ using namespace pPb8TeV2016JetCalibration;
  * Dated: 8/20/2018
  */
 int main (int argc, char** argv) {
-  if (argc < 2 || !argv[1]) { // needs at least 1 argument (+ executable)
+  if (argc < 3 || !argv[1] || !argv[2]) { // needs at least 2 argument (+ executable)
    cout << "Not enough arguments specified. Quitting." << endl;
    return 0;
   }
 
   int dataSet, nevt;
   bool isMC, isPeriodA;
-  TString fileName;
+  char* directory,* fileName;
   double lumi, xs, feff;
 
+  int argn = argc-1;
   switch (argc) {
+   case 10:
+    if (argv[argn]) nevt = atoi (argv[argn]);
+    argn--;
    case 9:
-    if (argv[8]) nevt = atoi (argv[8]);
+    if (argv[argn]) feff = atof (argv[argn]);
+    argn--;
    case 8:
-    if (argv[7]) feff = atof (argv[7]);
+    if (argv[argn]) xs = atof (argv[argn]);
+    argn--;
    case 7:
-    if (argv[6]) xs = atof (argv[6]);
+    if (argv[argn]) fileName = argv[argn];
+    argn--;
    case 6:
-    if (argv[5]) fileName = TString (argv[5]);
+    if (argv[argn]) isPeriodA = (string(argv[argn]) == "true" ? true : false);
+    argn--;
    case 5:
-    if (argv[4]) isPeriodA = (string(argv[4]) == "true" ? true : false);
+    if (argv[argn]) isMC = (string(argv[argn]) == "true" ? true : false);
+    argn--;
    case 4:
-    if (argv[3]) isMC = (string(argv[3]) == "true" ? true : false);
+    if (argv[argn]) lumi = atof (argv[argn]);
+    argn--;
    case 3:
-    if (argv[2]) lumi = atof (argv[2]);
-   case 2:
-    if (argv[1]) dataSet = atoi (argv[1]);
+    if (argv[argn]) dataSet = atoi (argv[argn]);
+    argn--;
+    if (argv[argn]) directory = argv[argn];
+    argn--;
   }
 
   switch (argc) {
-   case 2:
-    ZmumuJets (dataSet);
-    break;
    case 3:
-    ZmumuJets (dataSet, lumi);
+    ZmumuJets (directory, dataSet);
     break;
    case 4:
-    ZmumuJets (dataSet, lumi, isMC);
+    ZmumuJets (directory, dataSet, lumi);
     break;
    case 5:
-    ZmumuJets (dataSet, lumi, isMC, isPeriodA);
+    ZmumuJets (directory, dataSet, lumi, isMC);
     break;
    case 6:
-    ZmumuJets (dataSet, lumi, isMC, isPeriodA, fileName);
+    ZmumuJets (directory, dataSet, lumi, isMC, isPeriodA);
     break;
    case 7:
-    ZmumuJets (dataSet, lumi, isMC, isPeriodA, fileName, xs);
+    ZmumuJets (directory, dataSet, lumi, isMC, isPeriodA, fileName);
     break;
    case 8:
-    ZmumuJets (dataSet, lumi, isMC, isPeriodA, fileName, xs, feff);
+    ZmumuJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs);
     break;
    case 9:
-    ZmumuJets (dataSet, lumi, isMC, isPeriodA, fileName, xs, feff, nevt);
+    ZmumuJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff);
+    break;
+   case 10:
+    ZmumuJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff, nevt);
     break;
   }
 

@@ -1,14 +1,147 @@
 #include "Utils.h"
 #include "Params.h"
 
+#include <TSystemDirectory.h>
+#include <TList.h>
+#include <TSystemFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
-#include <TString.h>
 #include <TF1.h>
 
-using namespace atlashi;
-
 namespace pPb8TeV2016JetCalibration {
+
+/**
+ * Returns the appropriate file in the given directory.
+ * For MC, inFileName MUST be specified.
+ */
+TFile* GetFile (const char* directory, const int dataSet, const bool isMC, const char* inFileName) {
+  TFile* file = NULL;
+
+  // First figure out the file we are looking for
+  TString fileIdentifier;
+  if (TString (inFileName) == "") {
+   if (!isMC) fileIdentifier = to_string (dataSet);
+   else {
+    cout << "Error: In Utils.C: Cannot identify this MC file! Will return null!" << endl;
+    return NULL;
+   }
+  }
+  else fileIdentifier = inFileName;
+
+  // Now get the list of files
+  const TString dataPathTemp = dataPath + "/" + directory + "/";
+  TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
+  TList* sysfiles = dir.GetListOfFiles ();
+  if (!sysfiles) {
+   cout << "Error: In Utils.C: Cannot get list of files! Will return null!" << endl;
+   return NULL;
+  }
+  TSystemFile* sysfile;
+  TString fname;
+  TIter next (sysfiles);
+
+  while ( (sysfile = (TSystemFile*)next ())) {
+   fname = sysfile->GetName ();
+   if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
+    if (debugStatements) cout << "Status: In Utils.C: Found " << fname.Data () << endl;
+    
+    if (fname.Contains (fileIdentifier)) {
+     file = new TFile (dataPathTemp+fname, "READ");
+     break;
+    }
+   }
+  }
+
+  if (!file) {
+   cout << "Error: In Utils.C: TFile not obtained for given data set. Will return null!" << endl;
+   return NULL;
+  }
+  else return file;
+}
+  
+
+/**
+ * Returns an abbreviated, unique identifier for a given dataset.
+ */
+TString GetIdentifier (const int dataSet, const char* inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
+  if (!isMC) return to_string (dataSet);
+
+  TString id = (periodA ? "pPb_" : "Pbp_");
+
+  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
+
+  if (TString (inFileName).Contains ("jetjet")) { // dijet
+   if (dataSet <= 0) return "";
+   id = id + "Dijet_Slice" + to_string (dataSet);
+  }
+  else if (TString (inFileName).Contains ("42310") && TString (inFileName).Contains ("Slice")) { // gamma+jet
+   if (dataSet <= 0) return "";
+   id = id + "GammaJet_Slice" + to_string (dataSet);
+  }
+  else if (TString (inFileName).Contains ("ZeeJet")) { // Zee+jet
+   if (dataSet < 0) return "";
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
+  }
+  else if (TString (inFileName).Contains ("ZmumuJet")) { // Zmumu+jet
+   if (dataSet != 0) return "";
+   id = id + "ZmumuJet";
+  }
+
+  return id;
+}
+
+
+/**
+ * Returns the initial systematic error on the 2015 cross-calibration as a function of jet pT and eta.
+ * Requires xCalibSystematicsFile to be defined and open, else will return 0.
+ */
+double GetXCalibSystematicError (const double jpt, const double jeta) {
+  TFile* file = xCalibSystematicsFile;
+  if (!file || !file->IsOpen ())
+   return 0;
+
+  if (TMath::Abs (jeta) < xcalibEtabins[0] ||
+      xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {
+   return 0;
+  }
+
+  short iEta = 0;
+  while (xcalibEtabins[iEta] < TMath::Abs (jeta)) iEta++;
+  iEta--;
+
+  const TString hname = TString ("fsys_rel_") + Form ("%i", iEta);
+  TH1D* fsys_rel = (TH1D*)file->Get (hname.Data ());
+
+  return TMath::Abs (fsys_rel->GetBinContent (fsys_rel->FindBin (jpt)) - 1) * jpt;
+}
+
+
+/**
+ * Returns the additional systematics associated with applying the 2015 cross-calibration to the 2016 pPb, as a function of jet pT and eta.
+ * Requires dataOverMCFile to be defined and open, else will return 0.
+ */
+double GetNewXCalibSystematicError (const double jeta, const double refpt, const bool periodA) {
+  return 0;
+  TFile* file = dataOverMCFile;
+  if (!file || !file->IsOpen ())
+   return 0;
+
+  if (jeta < etabins[0] ||
+      etabins[numetabins] < jeta) {
+   return 0;
+  }
+
+  short bin = 0;
+  while (bin <= numetabins && etabins[bin] < jeta) bin++;
+  bin--;
+
+  const char* period = (periodA ?  "periodA" : "periodB");
+  const TString hname = TString (Form ("gJetPtRatio_diff%i_stat_%s", bin, period));
+  TH1D* hist = (TH1D*)file->Get (hname.Data ());
+
+  return hist->GetBinContent (hist->FindBin (refpt)) * refpt;
+}
+
 
 /**
  * Separates each point on a TGraphAsymmErrors by delta along the x axis, so that the errors don't overlap.

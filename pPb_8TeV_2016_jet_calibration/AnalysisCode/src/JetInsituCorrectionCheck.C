@@ -1,43 +1,16 @@
 #include "JetInsituCorrectionCheck.h"
 #include "Params.h"
 #include "TreeVariables.h"
+#include "Utils.h"
 
-#include <TFile.h>
-#include <TTree.h>
-#include <TSystemDirectory.h>
 #include <TH2D.h>
 
 #include <iostream>
 
 namespace pPb8TeV2016JetCalibration {
 
-TFile* xCalibSystematicsFile = NULL;
-
-
-double GetXCalibSystematicError (const double jpt, const double jeta) {
-  TFile* file = xCalibSystematicsFile;
-  if (!file || !file->IsOpen ()) {
-   cout << "Cannot find xCalib systematics file!" << endl;
-   return 0;
-  }
-
-  if (TMath::Abs (jeta) < xcalibEtabins[0] ||
-      xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {
-   return 0;
-  }
-
-  short iEta = 0;
-  while (xcalibEtabins[iEta] < TMath::Abs (jeta)) iEta++;
-  iEta--;
-
-  const TString hname = TString ("fsys_rel_") + Form ("%i", iEta);
-  TH1D* fsys_rel = (TH1D*)file->Get (hname.Data ());
-
-  return TMath::Abs (fsys_rel->GetBinContent (fsys_rel->FindBin (jpt)) - 1) * jpt;
-}
-
-
-void JetInsituCorrectionCheck (const int dataSet,
+void JetInsituCorrectionCheck (const char* directory,
+                               const int dataSet,
                                const double luminosity, 
                                const bool isPeriodA)
 {
@@ -47,36 +20,11 @@ void JetInsituCorrectionCheck (const int dataSet,
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
-  TFile* file = NULL;
+  TFile* file = GetFile (directory, dataSet, false);
   TTree* tree = NULL;
-  {
-   const TString fileIdentifier = to_string (dataSet);
-
-   TSystemDirectory dir (dataPath.Data (), dataPath.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile* sysfile;
-   TString fname;
-   TIter next (sysfiles);
-
-   while ( (sysfile = (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In JetInsituCorrectionCheck.C (breakpoint B): Found " << fname.Data () << endl;
-     
-     if (fname.Contains (fileIdentifier)) {
-      file = new TFile (dataPath+fname, "READ");
-      tree = (TTree*)file->Get ("tree");
-      break;
-     }
-    }
-   }
-  }
+  if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-   cout << "Error: In JetInsituCorrectionCheck.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+   cout << "Error: In JetInsituCorrectionCheck.C: TTree not obtained for given data set. Quitting." << endl;
    return;
   }
   /**** End find TTree ****/

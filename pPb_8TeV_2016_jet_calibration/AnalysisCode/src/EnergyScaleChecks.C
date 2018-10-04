@@ -1,12 +1,10 @@
 #include "EnergyScaleChecks.h"
 #include "Params.h"
 #include "TreeVariables.h"
+#include "Utils.h"
 
 #include <ArrayTemplates.h>
 
-#include <TFile.h>
-#include <TTree.h>
-#include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TVectorT.h>
 
@@ -14,60 +12,10 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-TFile* xCalibSystematicsFile = NULL;
-
-
-double GetXCalibSystematicError (const double jpt, const double jeta) {
-  TFile* file = xCalibSystematicsFile;
-  if (!file || !file->IsOpen ())
-   return 0;
-
-  if (TMath::Abs (jeta) < xcalibEtabins[0] ||
-      xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {
-   return 0;
-  }
-
-  short iEta = 0;
-  while (xcalibEtabins[iEta] < TMath::Abs (jeta)) iEta++;
-  iEta--;
-
-  const TString hname = TString ("fsys_rel_") + Form ("%i", iEta);
-  TH1D* fsys_rel = (TH1D*)file->Get (hname.Data ());
-
-  return TMath::Abs (fsys_rel->GetBinContent (fsys_rel->FindBin (jpt)) - 1) * jpt;
-}
-
-
-TString GetIdentifier (const int dataSet, const bool isPeriodA, const TString inFileName) {
-
-  TString id = TString (isPeriodA ? "pPb_" : "Pbp_") + TString (inFileName.Contains ("signalonly") ? "Signal" : "Overlay");
-
-  if (inFileName.Contains ("valid")) id = id + "_Valid";
-
-  if (inFileName.Contains ("jetjet")) { // dijet
-   if (dataSet <= 0) return "";
-   id = id + "_Dijet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
-   if (dataSet <= 0) return "";
-   id = id + "_GammaJet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
-   if (dataSet < 0) return "";
-   id = id + "_ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
-  }
-  else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
-   if (dataSet != 0) return "";
-   id = id + "_ZmumuJet";
-  }
-
-  return id;
-}
-
-
-void EnergyScaleChecks (const int dataSet,
+void EnergyScaleChecks (const char* directory,
+                        const int dataSet,
                         const bool isPeriodA,
-                        const TString inFileName,
+                        const char* inFileName,
                         const double crossSection_microbarns,
                         const double filterEfficiency,
                         const int numberEvents)
@@ -75,45 +23,16 @@ void EnergyScaleChecks (const int dataSet,
 
   SetupDirectories ("", "pPb_8TeV_2016_jet_calibration/");
 
-  const TString identifier = GetIdentifier (dataSet, isPeriodA, inFileName);
+  const bool isSignalOnlySample = TString (inFileName).Contains ("signalonly");
+  const TString identifier = GetIdentifier (dataSet, inFileName, true, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
-  TFile* file = NULL;
+  TFile* file = GetFile (directory, dataSet, true, inFileName);
   TTree* tree = NULL;
-  {
-   TString fileIdentifier = inFileName;
-   if (fileIdentifier == "") {
-    cout << "File name not provided! Exiting." << endl;
-    return;
-   }
-
-   const TString dataPathTemp = dataPath;// + "/rtrk_data/";
-   TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile* sysfile;
-   TString fname;
-   TIter next (sysfiles);
-
-   while ( (sysfile = (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In EnergyScaleChecks.C (breakpoint B): Found " << fname.Data () << endl;
-     
-     if (fname.Contains (fileIdentifier)) {
-      file = new TFile (dataPathTemp+fname, "READ");
-      tree = (TTree*)file->Get ("tree");
-      break;
-     }
-    }
-   }
-  }
+  if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-   cout << "Error: In EnergyScaleChecks.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+   cout << "Error: In EnergyScaleChecks.C: TTree not obtained for given data set. Quitting." << endl;
    return;
   }
   /**** End find TTree ****/

@@ -1,7 +1,8 @@
 #include "ElectronContaminationStudy.h"
 #include "Params.h"
+#include "TreeVariables.h"
+#include "Utils.h"
 
-#include <TFile.h>
 #include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TLorentzVector.h>
@@ -16,22 +17,13 @@ static const short numpebins = sizeof (pebins)/sizeof (pebins[0]) - 1;
 static const double eetabins[6] = { -2.37, -1.56, -1.37, 1.37, 1.56, 2.37};
 static const short numeetabins = sizeof (eetabins)/sizeof (eetabins[0]) - 1;
 
-TString GetIdentifier (const bool periodA) {
-  TString id = "";
-  if (periodA) id = "pPb_";
-  else id = "Pbp_";
-  id = id + "ZeeJet_Overlay";
-  return id;
-}
-
-
 void ElectronContaminationStudy (const bool isPeriodA,
                                  const TString inFileName)
 {
 
   SetupDirectories ("", "pPb_8TeV_2016_jet_calibration/");
 
-  const TString identifier = GetIdentifier (isPeriodA);
+  const TString identifier = GetIdentifier (0, inFileName, true, false, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/

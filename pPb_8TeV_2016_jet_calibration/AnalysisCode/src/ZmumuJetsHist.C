@@ -2,13 +2,11 @@
 #include "Params.h"
 #include "Utils.h"
 
-#include <GlobalParams.h>
 #include <ArrayTemplates.h>
 
 #include <TF1.h>
 #include <TH1D.h>
 #include <TH3D.h>
-#include <TFile.h>
 #include <TVectorT.h>
 #include <TLine.h>
 #include <TGraphAsymmErrors.h>
@@ -22,13 +20,12 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-
 void ZmumuJetsHist () {
 
   SetAtlasStyle ();
 
   // Setup trigger vectors
-  SetupDirectories ("ZmumuHists/", "pPb_8TeV_2016_jet_calibration/");
+  SetupDirectories ("ZmumuJets/", "pPb_8TeV_2016_jet_calibration/");
 
   // Setup list of data and lists of MC samples
   vector<int> runNumbers (0);

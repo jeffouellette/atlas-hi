@@ -1,73 +1,79 @@
+version=400
+
 # 2016 8TeV pPb main physics stream
-./lib/runZeeJets 313063 0.03 false true &
-./lib/runZeeJets 313067 1.24 false true &
-./lib/runZeeJets 313100 9.66 false true &
-./lib/runZeeJets 313107 11.92 false true & 
-./lib/runZeeJets 313136 10.4 false true & 
-./lib/runZeeJets 313187 3.67 false true &
+./lib/runZeeJets hion5_${version} 313063 0.03 false true &
+./lib/runZeeJets hion5_${version} 313067 1.24 false true &
+./lib/runZeeJets hion5_${version} 313100 9.66 false true &
+./lib/runZeeJets hion5_${version} 313107 11.92 false true & 
+./lib/runZeeJets hion5_${version} 313136 10.4 false true & 
+./lib/runZeeJets hion5_${version} 313187 3.67 false true &
 
 wait
 
-./lib/runZeeJets 313259 5.12 false true &
-./lib/runZeeJets 313285 4.74 false true &
-./lib/runZeeJets 313295 10.69 false true &
-./lib/runZeeJets 313333 4.13 false true &
-./lib/runZeeJets 313435 0.39 false true &
-./lib/runZeeJets 313572 0.01 false false &
+./lib/runZeeJets hion5_${version} 313259 5.12 false true &
+./lib/runZeeJets hion5_${version} 313285 4.74 false true &
+./lib/runZeeJets hion5_${version} 313295 10.69 false true &
+./lib/runZeeJets hion5_${version} 313333 4.13 false true &
+./lib/runZeeJets hion5_${version} 313435 0.39 false true &
+./lib/runZeeJets hion5_${version} 313572 0.01 false false &
 
 wait
 
-./lib/runZeeJets 313574 1.33 false false &
-./lib/runZeeJets 313575 7.54 false false &
-./lib/runZeeJets 313603 8.69 false false & 
-./lib/runZeeJets 313629 6.86 false false &
-./lib/runZeeJets 313630 7.90 false false & 
-./lib/runZeeJets 313688 7.96 false false &
+./lib/runZeeJets hion5_${version} 313574 1.33 false false &
+./lib/runZeeJets hion5_${version} 313575 7.54 false false &
+./lib/runZeeJets hion5_${version} 313603 8.69 false false & 
+./lib/runZeeJets hion5_${version} 313629 6.86 false false &
+./lib/runZeeJets hion5_${version} 313630 7.90 false false & 
+./lib/runZeeJets hion5_${version} 313688 7.96 false false &
 
 wait
 
-./lib/runZeeJets 313695 4.53 false false & 
-./lib/runZeeJets 313833 5.11 false false &
-./lib/runZeeJets 313878 2.16 false false & 
-./lib/runZeeJets 313929 0.63 false false & 
-./lib/runZeeJets 313935 10.96 false false &
-./lib/runZeeJets 313984 2.40 false false &
+./lib/runZeeJets hion5_${version} 313695 4.53 false false & 
+./lib/runZeeJets hion5_${version} 313833 5.11 false false &
+./lib/runZeeJets hion5_${version} 313878 2.16 false false & 
+./lib/runZeeJets hion5_${version} 313929 0.63 false false & 
+./lib/runZeeJets hion5_${version} 313935 10.96 false false &
+./lib/runZeeJets hion5_${version} 313984 2.40 false false &
 
 wait
 
-./lib/runZeeJets 314014 7.36 false false & 
-./lib/runZeeJets 314077 10.19 false false &
-./lib/runZeeJets 314105 6.50 false false &
-./lib/runZeeJets 314112 10.49 false false &
-./lib/runZeeJets 314157 9.83 false false & 
-./lib/runZeeJets 314170 4.92 false false & 
+./lib/runZeeJets hion5_${version} 314014 7.36 false false & 
+./lib/runZeeJets hion5_${version} 314077 10.19 false false &
+./lib/runZeeJets hion5_${version} 314105 6.50 false false &
+./lib/runZeeJets hion5_${version} 314112 10.49 false false &
+./lib/runZeeJets hion5_${version} 314157 9.83 false false & 
+./lib/runZeeJets hion5_${version} 314170 4.92 false false & 
 
 wait
+
+version=350
 
 # Zee (signal only) sample for period A
-./lib/runZGammaJetCrossCheck 0 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root &
+./lib/runZeeJets mc_${version} 0 true true user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root 1.1360E-03 1 167761 &
 
 # ... and for period B
-./lib/runZGammaJetCrossCheck 0 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root &
+./lib/runZeeJets mc_${version} 0 true false user.jeouelle.2.4.30hi.calibcheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root 1.1360E-03 1 302313 &
 
 wait
 
+#version=420
+#
 ## Alternative signal only Zee sample for period A
-#./lib/runZeeJets 1 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet1.pPb_myOutput.root &
-#./lib/runZeeJets 2 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet2.pPb_myOutput.root &
-#./lib/runZeeJets 3 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet3.pPb_myOutput.root &
-#./lib/runZeeJets 4 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet4.pPb_myOutput.root &
-#./lib/runZeeJets 5 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet5.pPb_myOutput.root &
+#./lib/runZeeJets mc_${version} 1 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet1.pPb_myOutput.root &
+#./lib/runZeeJets mc_${version} 2 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet2.pPb_myOutput.root &
+#./lib/runZeeJets mc_${version} 3 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet3.pPb_myOutput.root &
+#./lib/runZeeJets mc_${version} 4 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet4.pPb_myOutput.root &
+#./lib/runZeeJets mc_${version} 5 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet5.pPb_myOutput.root &
 #
 #wait
 #
 ## ... and for period B
-#./lib/runZeeJets 1 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet1.Pbp_myOutput.root &
-#./lib/runZeeJets 2 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet2.Pbp_myOutput.root &
-#./lib/runZeeJets 3 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet3.Pbp_myOutput.root &
-#./lib/runZeeJets 4 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet4.Pbp_myOutput.root &
-#./lib/runZeeJets 5 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet5.Pbp_myOutput.root &
+#./lib/runZeeJets mc_${version} 1 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet1.Pbp_myOutput.root &
+#./lib/runZeeJets mc_${version} 2 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet2.Pbp_myOutput.root &
+#./lib/runZeeJets mc_${version} 3 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet3.Pbp_myOutput.root &
+#./lib/runZeeJets mc_${version} 4 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet4.Pbp_myOutput.root &
+#./lib/runZeeJets mc_${version} 5 0 true false user.jeouelle.2.4.30hi.calibcheck.signalonly.420.mc15_8TeV.361106.ZeeJet5.Pbp_myOutput.root &
 #
 #wait
 
-./lib/runZeeJetsHist  
+./lib/runZeeJetsHist

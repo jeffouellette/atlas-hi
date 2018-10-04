@@ -1,6 +1,7 @@
 #ifndef __Params_h__
 #define __Params_h__
 
+#include <TFile.h>
 #include <GlobalParams.h>
 
 using namespace atlashi;
@@ -9,9 +10,12 @@ namespace pPb8TeV2016JetCalibration {
 
 /** General parameters **/
 
+TFile* xCalibSystematicsFile = NULL;
+TFile* dataOverMCFile = NULL;
+
 const bool runValidation = true; // Use validation (signal only) gamma+jet sample instead of data overlay
 
-// pT cuts
+// pT and analysis cuts
 const double trk_pt_cut = 0.5; // Cut on track pt in GeV
 const double jet_pt_cut = 20; // Cut on jet pt
 const double photon_pt_cut = 20; // Cut on photon pt
@@ -32,14 +36,15 @@ const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
 const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit invariant mass peak
 
-const bool skipOldInsitu = false; // whether to skip plotting results with old insitu factors (2015)
-const bool skipSignalMC = false; // whether to skip plotting results with signal only photon+jet MC
+const bool skipOldInsitu = true; // whether to skip plotting results with old insitu factors (2015)
+const bool skipSignalMC = true; // whether to skip plotting results with signal only photon+jet MC
 
 const bool useGaussian = false; // whether to use Gaussian fits when creating custom TProfiles
 
 const bool plot_xjref = false; // whether to plot xjref distributions
 
 const bool calcPtClosure = false; // whether the energy scale calculations will use pT (true) or E (false)
+
 
 /** binning parameters **/
 
@@ -66,6 +71,9 @@ const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.
 //const double etabins[37] = {-4.4, -3.6, -3.2, -3.0, -2.8, -2.6, -2.4, -2.2, -2.0, -1.8, -1.6, -1.4, -1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.6, 4.4};
 const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
 
+//const short numetabins = 98;
+//const double* etabins = linspace (-4.9, 4.9, numetabins);
+
 const double zetabins[7] = {-2.4, -1.5, -1.3, 0, 1.37, 1.52, 2.4};
 const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
@@ -74,6 +82,7 @@ const short numXCalibEtabins = sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) 
 
 const double maxSigma = 0.40;
 const short numSigmaBins = 80;
+
 
 /** Trigger declarations **/
 

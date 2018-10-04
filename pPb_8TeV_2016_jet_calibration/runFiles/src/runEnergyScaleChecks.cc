@@ -12,45 +12,52 @@ using namespace pPb8TeV2016JetCalibration;
  * Dated: 8/20/2018
  */
 int main (int argc, char** argv) {
+  if (argc < 3 || !argv[1] || !argv[2]) { // needs at least 2 argument (+ executable)
+   cout << "Not enough arguments specified. Quitting." << endl;
+   return 0;
+  }
 
   int dataSet, nevt;
   bool isPeriodA;
-  TString fileName;
+  char* directory,* fileName;
   double xs, feff;
 
+  int argn = argc-1;
   switch (argc) {
+   case 8:
+    if (argv[argn]) nevt = atoi (argv[argn--]);
    case 7:
-    if (argv[6]) nevt = atoi (argv[6]);
+    if (argv[argn]) feff = atof (argv[argn--]);
    case 6:
-    if (argv[5]) feff = atof (argv[5]);
+    if (argv[argn]) xs = atof (argv[argn--]);
    case 5:
-    if (argv[4]) xs = atof (argv[4]);
+    if (argv[argn]) fileName = argv[argn--];
    case 4:
-    if (argv[3]) fileName = TString (argv[3]);
+    if (argv[argn]) isPeriodA = (string(argv[argn--]) == "true" ? true : false);
    case 3:
-    if (argv[2]) isPeriodA = (string(argv[2]) == "true" ? true : false);
+    if (argv[argn]) dataSet = atoi (argv[argn--]);
    case 2:
-    if (argv[1]) dataSet = atoi (argv[1]);
+    if (argv[argn]) directory = argv[argn--];
   }
 
   switch (argc) {
-   case 2:
-    EnergyScaleChecks (dataSet);
-    break;
    case 3:
-    EnergyScaleChecks (dataSet, isPeriodA);
+    EnergyScaleChecks (directory, dataSet);
     break;
    case 4:
-    EnergyScaleChecks (dataSet, isPeriodA, fileName);
+    EnergyScaleChecks (directory, dataSet, isPeriodA);
     break;
    case 5:
-    EnergyScaleChecks (dataSet, isPeriodA, fileName, xs);
+    EnergyScaleChecks (directory, dataSet, isPeriodA, fileName);
     break;
    case 6:
-    EnergyScaleChecks (dataSet, isPeriodA, fileName, xs, feff);
+    EnergyScaleChecks (directory, dataSet, isPeriodA, fileName, xs);
     break;
    case 7:
-    EnergyScaleChecks (dataSet, isPeriodA, fileName, xs, feff, nevt);
+    EnergyScaleChecks (directory, dataSet, isPeriodA, fileName, xs, feff);
+    break;
+   case 8:
+    EnergyScaleChecks (directory, dataSet, isPeriodA, fileName, xs, feff, nevt);
     break;
   }
 

@@ -1,19 +1,12 @@
 #ifndef __ElectronContaminationStudy_h__
 #define __ElectronContaminationStudy_h__
 
-#include "Params.h"
-#include <Initialization.h>
-#include "TreeVariables.h"
-
-using namespace atlashi;
+#include <TString.h>
 
 namespace pPb8TeV2016JetCalibration {
 
 /**
  * Primary macro.
- * dataSet: Data set identifier. This should be a run number for data or some other identifier for MC (e.g., slice number).
- * luminosity: Integrated luminosity for this run. Presumed constant over the run period. Meaningless for MC.
- * isMC: is data/MC flag.
  * isPeriodA: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
  */

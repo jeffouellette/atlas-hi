@@ -1,30 +1,7 @@
 #ifndef __ZGammaJetCrossCheck_h__
 #define __ZGammaJetCrossCheck_h__
 
-#include "Params.h"
-#include <Initialization.h>
-#include "TreeVariables.h"
-
-using namespace atlashi;
-
 namespace pPb8TeV2016JetCalibration {
-
-/**
- * Calculates the original systematic error on this jet from the cross calib.
- * jpt: pt of the jet
- * jeta: eta of the jet
- */
-double GetXCalibSystematicError (const double jpt, const double jeta);
-
-
-/**
- * Calculates the additional systematic on jet pt given the jet eta and the
- * reference vector boson pt^ref.
- * jeta: eta of the jet
- * refpt: reference pt of the vector boson
- */
-double GetNewXCalibSystematicError (TFile* file, const double jeta, const double refpt, const bool periodA);
-
 
 /**
  * Primary macro.
@@ -33,12 +10,16 @@ double GetNewXCalibSystematicError (TFile* file, const double jeta, const double
  * isMC: is data/MC flag.
  * isPeriodA: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
+ * crossSection_microbarns: Total cross section of the process. Should only be defined for MC.
+ * filterEfficiency: Filtering efficiency in the MC generation.
+ * numberEvents: The total number of events generated in the MC sample.
  */
-void ZGammaJetCrossCheck (const int dataSet,
+void ZGammaJetCrossCheck (const char* directory,
+                          const int dataSet,
                           const double luminosity = 0, 
                           const bool isMC = false,
                           const bool isPeriodA = false, 
-                          const TString inFileName = "",
+                          const char* inFileName = "",
                           const double crossSection_microbarns = 0,
                           const double filterEfficiency = 0,
                           const int numberEvents = 0);

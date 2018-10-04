@@ -1,11 +1,11 @@
 #include "ZMassCalc.h"
 #include "Params.h"
+#include "TreeVariables.h"
+#include "Utils.h"
 
 #include <ArrayTemplates.h>
+#include <Trigger.h>
 
-#include <TFile.h>
-#include <TSystemDirectory.h>
-//#include <TH2D.h>
 #include <TH3D.h>
 #include <TLorentzVector.h>
 #include <TVectorT.h>
@@ -17,40 +17,12 @@ namespace pPb8TeV2016JetCalibration {
 vector<Trigger*> electronTriggers = {};
 vector<Trigger*> muonTriggers = {};
 
-
-TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
-  if (!isMC) return to_string (dataSet);
-
-  TString id = (periodA ? "pPb_" : "Pbp_");
-
-  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
-
-  if (inFileName.Contains ("jetjet")) { // dijet
-   if (dataSet <= 0) return "";
-   id = id + "Dijet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
-   if (dataSet <= 0) return "";
-   id = id + "GammaJet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
-   if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
-  }
-  else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
-   if (dataSet != 0) return "";
-   id = id + "ZmumuJet";
-  }
-
-  return id;
-}
-
-
-void ZMassCalc (const int dataSet,
+void ZMassCalc (const char* directory,
+                const int dataSet,
                 const double luminosity,
                 const bool isMC, 
                 const bool isPeriodA,
-                const TString inFileName,
+                const char* inFileName,
                 const double crossSection_microbarns,
                 const double filterEfficiency,
                 const int numberEvents)
@@ -63,41 +35,11 @@ void ZMassCalc (const int dataSet,
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
-  TFile* file = NULL;
+  TFile* file = GetFile (directory, dataSet, isMC, inFileName);
   TTree* tree = NULL;
-  {
-   TString fileIdentifier;
-   if (inFileName == "") {
-    if (!isMC) fileIdentifier = to_string (dataSet);
-    else fileIdentifier = TString (dataSet > 0 ? ("Slice" + to_string (dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string (-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
-   } else fileIdentifier = inFileName;
-
-   const TString dataPathTemp = dataPath;// + "/data810/";
-   TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile* sysfile;
-   TString fname;
-   TIter next (sysfiles);
-
-   while ( (sysfile = (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In ZMassCalc.C (breakpoint B): Found " << fname.Data () << endl;
-     
-     if (fname.Contains (fileIdentifier)) {
-      file = new TFile (dataPathTemp+fname, "READ");
-      tree = (TTree*)file->Get ("tree");
-      break;
-     }
-    }
-   }
-  }
+  if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-   cout << "Error: In ZMassCalc.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+   cout << "Error: In ZMassCalc.C: TTree not obtained for given data set. Quitting." << endl;
    return;
   }
   /**** End find TTree ****/

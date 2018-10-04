@@ -1,17 +1,7 @@
 #ifndef __RtrkComparison_h__
 #define __RtrkComparison_h__
 
-#include <TString.h>
-
 namespace pPb8TeV2016JetCalibration {
-
-/**
- * Calculates the original systematic error on this jet from the cross calib.
- * jpt: pt of the jet
- * jeta: eta of the jet
- */
-double GetXCalibSystematicError (const double jpt, const double jeta);
-
 
 /**
  * Primary macro.
@@ -20,12 +10,16 @@ double GetXCalibSystematicError (const double jpt, const double jeta);
  * isMC: is data/MC flag.
  * isPeriodA: flag that is raised for MC (meaningless if isMC is false)
  * inFileName: Input root file name where tree is stored; if == "" code will try to guess file name based on other info
+ * crossSection_microbarns: Total cross section of the process. Should only be defined for MC.
+ * filterEfficiency: Filtering efficiency in the MC generation.
+ * numberEvents: The total number of events generated in the MC sample.
  */
-void RtrkComparison (const int dataSet,
+void RtrkComparison (const char* directory,
+                     const int dataSet,
                      const double luminosity = 0, 
                      const bool isMC = false,
                      const bool isPeriodA = false, 
-                     const TString inFileName = "",
+                     const char* inFileName = "",
                      const double crossSection_microbarns = 0,
                      const double filterEfficiency = 0,
                      const int numberEvents = 0);

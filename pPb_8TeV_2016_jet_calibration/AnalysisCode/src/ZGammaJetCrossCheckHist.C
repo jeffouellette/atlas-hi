@@ -22,7 +22,6 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-
 void ZGammaJetCrossCheckHist () {
 
   SetAtlasStyle ();

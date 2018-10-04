@@ -2,8 +2,6 @@
 #include "Params.h"
 #include "Utils.h"
 
-#include <GlobalParams.h>
-
 #include <TF1.h>
 #include <TH1D.h>
 #include <TFile.h>
@@ -18,10 +16,7 @@
 #include <AtlasUtils.h>
 #include <AtlasStyle.h>
 
-using namespace atlashi;
-
 namespace pPb8TeV2016JetCalibration {
-
 
 void FCalDistributionHist () {
 

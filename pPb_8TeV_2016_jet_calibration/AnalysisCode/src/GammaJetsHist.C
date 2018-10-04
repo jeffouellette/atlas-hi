@@ -2,13 +2,11 @@
 #include "Params.h"
 #include "Utils.h"
 
-#include <GlobalParams.h>
 #include <ArrayTemplates.h>
 
 #include <TF1.h>
 #include <TH1D.h>
 #include <TH3D.h>
-#include <TFile.h>
 #include <TVectorT.h>
 #include <TLine.h>
 #include <TGraphAsymmErrors.h>
@@ -22,13 +20,12 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-
 void GammaJetsHist () {
 
   SetAtlasStyle ();
 
   // Setup trigger vectors
-  SetupDirectories ("GammaJetsHist/", "pPb_8TeV_2016_jet_calibration/");
+  SetupDirectories ("GammaJets/", "pPb_8TeV_2016_jet_calibration/");
 
   // Setup list of data and lists of MC samples
   vector<int> runNumbers (0);
@@ -128,6 +125,7 @@ void GammaJetsHist () {
         const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta);
 
         for (short iP = 0; iP <= numpbins; iP++) {
+         if (iEta == numetabins && pbins[iP] < 60) continue;
          nGammaJet[iYear][iPer][0][iEta][iP] += (*nGammaJetVec)[iEta + iP* (numetabins+1)];
          nGammaJet[iYear][2][0][iEta][iP] += (*nGammaJetVec)[act_iEta + iP* (numetabins+1)];
         }
@@ -274,8 +272,8 @@ void GammaJetsHist () {
     int eta_lo = iEta+1;
     int eta_hi = iEta+1;
     if (iEta == numetabins) {
-     eta_lo = 1;
-     eta_hi = numetabins;
+     eta_lo = 6;//1;
+     eta_hi = 9;//numetabins;
     }
 
     /**** Plots GammaJet info as a function of p_T^ref****/
@@ -381,7 +379,7 @@ void GammaJetsHist () {
        myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+      if (eta_lo != 1 || eta_hi != numetabins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }
@@ -603,10 +601,12 @@ void GammaJetsHist () {
    /**** Now loop over pT bins and plot response as function of eta^jet ****/
    for (short iP = 0; iP <= numpbins; iP++) {
 
+    if (pbins[iP] < 60) continue;
+
     int p_lo = iP+1;
     int p_hi = iP+1;
     if (iP == numpbins) {
-     p_lo = 1;
+     p_lo = 7;
      p_hi = numpbins;
     }
 
@@ -714,7 +714,7 @@ void GammaJetsHist () {
        myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iP < numpbins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
+      if (p_lo != 1 || p_hi != numpbins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }

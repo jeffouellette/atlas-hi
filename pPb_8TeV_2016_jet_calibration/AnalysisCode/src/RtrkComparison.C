@@ -1,12 +1,10 @@
 #include "RtrkComparison.h"
 #include "Params.h"
 #include "TreeVariables.h"
+#include "Utils.h"
 
 #include <Trigger.h>
 
-#include <TFile.h>
-#include <TTree.h>
-#include <TSystemDirectory.h>
 #include <TH2D.h>
 #include <TLorentzVector.h>
 #include <TVectorT.h>
@@ -15,65 +13,14 @@
 
 namespace pPb8TeV2016JetCalibration {
 
-TFile* xCalibSystematicsFile = NULL;
-
 vector<Trigger*> triggers = {};
 
-
-double GetXCalibSystematicError (const double jpt, const double jeta) {
-  TFile* file = xCalibSystematicsFile;
-  if (!file || !file->IsOpen ())
-   return 0;
-
-  if (TMath::Abs (jeta) < xcalibEtabins[0] ||
-      xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {
-   return 0;
-  }
-
-  short iEta = 0;
-  while (xcalibEtabins[iEta] < TMath::Abs (jeta)) iEta++;
-  iEta--;
-
-  const TString hname = TString ("fsys_rel_") + Form ("%i", iEta);
-  TH1D* fsys_rel = (TH1D*)file->Get (hname.Data ());
-
-  return TMath::Abs (fsys_rel->GetBinContent (fsys_rel->FindBin (jpt)) - 1) * jpt;
-}
-
-
-TString GetIdentifier (const int dataSet, const TString inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
-  if (!isMC) return to_string (dataSet);
-
-  TString id = (periodA ? "pPb_" : "Pbp_");
-
-  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
-
-  if (inFileName.Contains ("jetjet")) { // dijet
-   if (dataSet <= 0) return "";
-   id = id + "Dijet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("42310") && inFileName.Contains ("Slice")) { // gamma+jet
-   if (dataSet <= 0) return "";
-   id = id + "GammaJet_Slice" + to_string (dataSet);
-  }
-  else if (inFileName.Contains ("ZeeJet")) { // Zee+jet
-   if (dataSet < 0) return "";
-   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
-  }
-  else if (inFileName.Contains ("ZmumuJet")) { // Zmumu+jet
-   if (dataSet != 0) return "";
-   id = id + "ZmumuJet";
-  }
-
-  return id;
-}
-
-
-void RtrkComparison (const int dataSet,
+void RtrkComparison (const char* directory,
+                     const int dataSet,
                      const double luminosity,
                      const bool isMC, 
                      const bool isPeriodA,
-                     const TString inFileName,
+                     const char* inFileName,
                      const double crossSection_microbarns,
                      const double filterEfficiency,
                      const int numberEvents)
@@ -86,42 +33,11 @@ void RtrkComparison (const int dataSet,
   cout << "File Identifier: " << identifier << endl;
 
   /**** Find the relevant TTree for this run ****/
-  TFile* file = NULL;
+  TFile* file = GetFile (directory, dataSet, isMC, inFileName);
   TTree* tree = NULL;
-  {
-   TString fileIdentifier;
-   if (inFileName == "") {
-    if (!isMC) fileIdentifier = to_string (dataSet);
-    else fileIdentifier = TString (dataSet > 0 ? ("Slice" + to_string (dataSet)) : (dataSet==0 ? "ZmumuJet" : ("ZeeJet"+to_string (-dataSet)))) + (isPeriodA ? ".pPb":".Pbp");
-   }
-   else fileIdentifier = inFileName;
-
-   const TString path = dataPath + "/rtrk_data/";
-   TSystemDirectory dir (path.Data (), path.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile* sysfile;
-   TString fname;
-   TIter next (sysfiles);
-
-   while ( (sysfile = (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In RtrkComparison.C (breakpoint B): Found " << fname.Data () << endl;
-     
-     if (fname.Contains (fileIdentifier)) {
-      file = new TFile (path+fname, "READ");
-      tree = (TTree*)file->Get ("tree");
-      break;
-     }
-    }
-   }
-  }
+  if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-   cout << "Error: In RtrkComparison.C (breakpoint C): TTree not obtained for given run number. Quitting." << endl;
+   cout << "Error: In RtrkComparison.C: TTree not obtained for given data set. Quitting." << endl;
    return;
   }
   /**** End find TTree ****/

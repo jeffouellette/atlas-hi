@@ -7,7 +7,6 @@
 
 #include <TF1.h>
 #include <TH1D.h>
-#include <TFile.h>
 #include <TVectorT.h>
 #include <TLine.h>
 #include <TGraphAsymmErrors.h>
@@ -19,10 +18,7 @@
 #include <AtlasUtils.h>
 #include <AtlasStyle.h>
 
-using namespace atlashi;
-
 namespace pPb8TeV2016JetCalibration {
-
 
 void EMTopoComparisonHist () {
 
