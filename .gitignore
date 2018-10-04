@@ -37,7 +37,9 @@ pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
 pPb_8TeV_2016_jet_calibration/Plots
 pPb_8TeV_2016_jet_calibration/Slides
 pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
-pPb_8TeV_2016_jet_calibration/runFiles/lib
+pPb_8TeV_2016_jet_calibration/AnalysisCode/obj
+pPb_8TeV_2016_jet_calibration/runFiles/bin
+pPb_8TeV_2016_jet_calibration/runFiles/obj
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib

@@ -1,7 +1,6 @@
 #include <EMTopoComparison.h>
 #include <iostream>
 #include <string>
-#include <TString.h>
 
 using namespace std;
 using namespace pPb8TeV2016JetCalibration;
