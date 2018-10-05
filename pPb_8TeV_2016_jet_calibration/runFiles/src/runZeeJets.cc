@@ -24,31 +24,22 @@ int main (int argc, char** argv) {
   int argn = argc-1;
   switch (argc) {
    case 10:
-    if (argv[argn]) nevt = atoi (argv[argn]);
-    argn--;
+    if (argv[argn]) nevt = atoi (argv[argn--]);
    case 9:
-    if (argv[argn]) feff = atof (argv[argn]);
-    argn--;
+    if (argv[argn]) feff = atof (argv[argn--]);
    case 8:
-    if (argv[argn]) xs = atof (argv[argn]);
-    argn--;
+    if (argv[argn]) xs = atof (argv[argn--]);
    case 7:
-    if (argv[argn]) fileName = argv[argn];
-    argn--;
+    if (argv[argn]) fileName = argv[argn--];
    case 6:
-    if (argv[argn]) isPeriodA = (string(argv[argn]) == "true" ? true : false);
-    argn--;
+    if (argv[argn]) isPeriodA = string(argv[argn--]) == "true";
    case 5:
-    if (argv[argn]) isMC = (string(argv[argn]) == "true" ? true : false);
-    argn--;
+    if (argv[argn]) isMC = string(argv[argn--]) == "true";
    case 4:
-    if (argv[argn]) lumi = atof (argv[argn]);
-    argn--;
+    if (argv[argn]) lumi = atof (argv[argn--]);
    case 3:
-    if (argv[argn]) dataSet = atoi (argv[argn]);
-    argn--;
-    if (argv[argn]) directory = argv[argn];
-    argn--;
+    if (argv[argn]) dataSet = atoi (argv[argn--]);
+    if (argv[argn]) directory = argv[argn--];
   }
 
   switch (argc) {

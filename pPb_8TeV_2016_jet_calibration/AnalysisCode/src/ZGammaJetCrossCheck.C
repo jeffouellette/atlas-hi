@@ -699,7 +699,7 @@ void ZGammaJetCrossCheck (const char* directory,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form ("%sdataSet_%s.root", rootPath.Data (), identifier.Data ());
+  const char* outFileName = Form ("%s/ZGammaJetCrossCheck/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
 
 

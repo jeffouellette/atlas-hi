@@ -32,9 +32,9 @@ int main (int argc, char** argv) {
    case 7:
     if (argv[argn]) fileName = argv[argn--];
    case 6:
-    if (argv[argn]) isPeriodA = (string(argv[argn--]) == "true" ? true : false);
+    if (argv[argn]) isPeriodA = string(argv[argn--]) == "true";
    case 5:
-    if (argv[argn]) isMC = (string(argv[argn--]) == "true" ? true : false);
+    if (argv[argn]) isMC = string(argv[argn--]) == "true";
    case 4:
     if (argv[argn]) lumi = atof (argv[argn--]);
    case 3:

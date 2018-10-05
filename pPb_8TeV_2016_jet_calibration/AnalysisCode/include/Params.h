@@ -1,8 +1,8 @@
 #ifndef __Params_h__
 #define __Params_h__
 
-#include <TFile.h>
 #include <GlobalParams.h>
+#include <TFile.h>
 
 using namespace atlashi;
 
@@ -10,8 +10,8 @@ namespace pPb8TeV2016JetCalibration {
 
 /** General parameters **/
 
-TFile* xCalibSystematicsFile = NULL;
-TFile* dataOverMCFile = NULL;
+//TFile* xCalibSystematicsFile = NULL;
+//TFile* dataOverMCFile = NULL;
 
 const bool runValidation = true; // Use validation (signal only) gamma+jet sample instead of data overlay
 

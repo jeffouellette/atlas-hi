@@ -6,6 +6,9 @@
 
 namespace pPb8TeV2016JetCalibration {
 
+extern TFile* xCalibSystematicsFile;
+extern TFile* dataOverMCFile;
+
 /**
  * Returns the appropriate file in the given directory.
  * For MC, inFileName MUST be specified.

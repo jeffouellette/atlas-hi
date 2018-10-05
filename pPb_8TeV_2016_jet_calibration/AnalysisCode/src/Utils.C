@@ -10,6 +10,9 @@
 
 namespace pPb8TeV2016JetCalibration {
 
+TFile* xCalibSystematicsFile = NULL;
+TFile* dataOverMCFile = NULL;
+
 /**
  * Returns the appropriate file in the given directory.
  * For MC, inFileName MUST be specified.
@@ -97,8 +100,11 @@ TString GetIdentifier (const int dataSet, const char* inFileName, const bool isM
  */
 double GetXCalibSystematicError (const double jpt, const double jeta) {
   TFile* file = xCalibSystematicsFile;
-  if (!file || !file->IsOpen ())
+
+  if (!file || !file->IsOpen ()) {
+   cout << "Warning: In Utils.C: Cross calibration systematics file not open! Will return 0." << endl;
    return 0;
+  }
 
   if (TMath::Abs (jeta) < xcalibEtabins[0] ||
       xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {

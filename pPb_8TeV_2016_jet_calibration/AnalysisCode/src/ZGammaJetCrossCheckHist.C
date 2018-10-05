@@ -27,7 +27,7 @@ void ZGammaJetCrossCheckHist () {
   SetAtlasStyle ();
 
   // Setup trigger vectors
-  SetupDirectories ("", "pPb_8TeV_2016_jet_calibration/");
+  SetupDirectories ("ZGammaJetCrossCheck/", "pPb_8TeV_2016_jet_calibration/");
 
   // Setup list of data and lists of MC samples
   vector<int> runNumbers (0);

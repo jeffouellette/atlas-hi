@@ -209,8 +209,8 @@ void ZeeJetsHist () {
     int eta_lo = iEta+1;
     int eta_hi = iEta+1;
     if (iEta == numetabins) {
-     eta_lo = 1;
-     eta_hi = numetabins;
+     eta_lo = 6;//1;
+     eta_hi = 9;//numetabins;
     }
 
     /**** Plots ZeeJet info ****/
@@ -265,7 +265,7 @@ void ZeeJetsHist () {
      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+     if (eta_lo != 1 || eta_hi != numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
@@ -394,7 +394,7 @@ void ZeeJetsHist () {
      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
+     if (p_lo != 1 || p_hi != numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
      else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 

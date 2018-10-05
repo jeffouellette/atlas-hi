@@ -1,4 +1,4 @@
-version=400
+version=310
 
 # 2016 8TeV pPb main physics stream
 ./bin/runZeeJets hion5_${version} 313063 0.03 false true &
@@ -46,13 +46,13 @@ wait
 
 wait
 
-version=350
+version=200
 
 # Zee (signal only) sample for period A
-./bin/runZeeJets mc_${version} 0 true true user.jeouelle.2.4.30hi.cabincheck.200.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root 1.1360E-03 1 167761 &
+./bin/runZeeJets mc_${version} 0 true true user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root 1.1360E-03 1 167761 &
 
 # ... and for period B
-./bin/runZeeJets mc_${version} 0 true false user.jeouelle.2.4.30hi.cabincheck.200.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root 1.1360E-03 1 302313 &
+./bin/runZeeJets mc_${version} 0 true false user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root 1.1360E-03 1 302313 &
 
 wait
 
