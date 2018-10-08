@@ -65,12 +65,16 @@ void GammaJets (const char* directory,
 
   // initialize histograms
   TH3D** gJetHists = Get1DArray <TH3D*> (3);
+  TH2D* gJetCounts;
   //TH2D* gJetHistsSys[3][numetabins+1];
 
   {
    TString data = "data";
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
+
+   gJetCounts = new TH2D (Form ("gJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+   gJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
     TString error = "sys_lo";
@@ -87,7 +91,7 @@ void GammaJets (const char* directory,
    }
   }
 
-  int** nGammaJet = Get2DArray <int> (numetabins+1, numpbins+1);
+  //int** nGammaJet = Get2DArray <int> (numetabins+1, numpbins+1);
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
   dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
@@ -261,22 +265,13 @@ void GammaJets (const char* directory,
      gJetHists[iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
      //gJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
     }
+    gJetCounts->Fill (photon_pt, ljet_eta);
 
     //// if data, calculate additional systematics for this jet
     //if (!isMC) {
     // const double newJetPtSys = GetNewXCalibSystematicError (ljet_eta, photon_pt, isPeriodA) / ljet_pt;
     // if (iEta != -1) gJetHistsSys[1][iEta]->Fill (ljet_pt, newJetPtSys, weight);
     // gJetHistsSys[1][numetabins]->Fill (ljet_pt, newJetPtSys, weight);
-    //}
-
-    // Increment gamma+jet counters
-    if (iEta != -1 && iP != -1) nGammaJet[iEta][iP]++;
-    if (iEta != -1) nGammaJet[iEta][numpbins]++;
-    if (iP != -1) nGammaJet[numetabins][iP]++;
-    nGammaJet[numetabins][numpbins]++;
-
-    //if (90 < ptref && ptref < 110 && 0.6 < ptratio[1] && ptratio[1] < 0.8) {
-    // cout << "Found a weird event! Dataset: " << identifier.Data () << ", entry: " << entry << endl;
     //}
    }
     
@@ -304,6 +299,9 @@ void GammaJets (const char* directory,
 
   Delete1DArray (gJetHists, 3);
 
+  gJetCounts->Write();
+  if (gJetCounts) { delete gJetCounts; gJetCounts = NULL; }
+
   //gJetHistsSys[1][iEta]->Write ();
   //if (gJetHistsSys[1][iEta]) delete gJetHistsSys[1][iEta];
 
@@ -311,16 +309,6 @@ void GammaJets (const char* directory,
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
-
-  TVectorD nGammaJetVec ( (numetabins+1)* (numpbins+1));
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
-   for (int iP = 0; iP <= numpbins; iP++) {
-    nGammaJetVec[iEta+ (numetabins+1)*iP] = (double)nGammaJet[iEta][iP];
-   }
-  }
-  nGammaJetVec.Write (Form ("nGammaJetVec_%s", identifier.Data ()));
-
-  Delete2DArray (nGammaJet, numetabins+1, numpbins+1);
 
   outFile->Close ();
   if (outFile) delete outFile;

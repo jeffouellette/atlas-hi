@@ -67,11 +67,15 @@ void ZeeJets (const char* directory,
   // initialize histograms
   TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
   //TH2D* zeeJetHistsSys[3][numetabins];
+  TH2D* zeeJetCounts;
 
   {
    TString data = "data";
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
+
+   zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data(), data.Data()), "", numpzbins, pzbins, numetabins, etabins);
+   zeeJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
     TString error = "sys_lo";
@@ -84,8 +88,6 @@ void ZeeJets (const char* directory,
     //zeeJetHistsSys[iErr][iEta]->Sumw2 ();
    }
   }
-
-  int** nZeeJet = Get2DArray <int> (numetabins+1, numpzbins+1);
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
   dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
@@ -165,15 +167,6 @@ void ZeeJets (const char* directory,
           !electronTrigger->trigBool ||
           electronTrigger->trigPrescale <= 0.)
        continue;
-      //bool nonElectronTrigger = false;
-      //for (Trigger* trig : photonTriggers) {
-      // if (trig->trigBool) nonElectronTrigger = true;
-      //}
-      //for (Trigger* trig : muonTriggers) {
-      // if (trig->trigBool) nonElectronTrigger = true;
-      //}
-      //if (nonElectronTrigger)
-      // continue; // reject events where a non-electron trigger also fired.
       weight = electronTrigger->trigPrescale;
      }
      else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
@@ -280,12 +273,7 @@ void ZeeJets (const char* directory,
       zeeJetHists[iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
       //zeeJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
      }
-
-     // Increment Z+jet counters
-     if (iEta != -1 && iP != -1) nZeeJet[iEta][iP]++;
-     if (iEta != -1) nZeeJet[iEta][numpzbins]++;
-     if (iP != -1) nZeeJet[numetabins][iP]++;
-     nZeeJet[numetabins][numpzbins]++;
+     zeeJetCounts->Fill (Z_pt, ljet_eta);
 
      // Fill additional systematics histograms
      //for (short iErr = 0; iErr < 3; iErr++) zeeJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
@@ -317,20 +305,13 @@ void ZeeJets (const char* directory,
 
   Delete1DArray (zeeJetHists, 3);
 
+  zeeJetCounts->Write ();
+  if (zeeJetCounts) { delete zeeJetCounts; zeeJetCounts = NULL; }
+
   TVectorD infoVec (2);
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
-
-  TVectorD nZeeJetVec ( (numetabins+1)* (numpzbins+1));
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
-   for (int iP = 0; iP <= numpzbins; iP++) {
-    nZeeJetVec[iEta+ (numetabins+1)*iP] = (double)nZeeJet[iEta][iP];
-   }
-  }
-  nZeeJetVec.Write (Form ("nZeeJetVec_%s", identifier.Data ()));
-
-  Delete2DArray (nZeeJet, numetabins+1, numpzbins+1);
 
   outFile->Close ();
   if (outFile) delete outFile;

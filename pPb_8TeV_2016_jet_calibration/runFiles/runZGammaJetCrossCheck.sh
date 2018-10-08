@@ -87,9 +87,9 @@ version=200
 ./bin/runZGammaJetCrossCheck mc_${version} 0 0 true false user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361107.ZmumuJet.Pbp_myOutput.root 1.1360E-03 1 243320 &
 
 # Zee (signal only) sample for period A
-./bin/runZGammaJetCrossCheck mc_${version} 0 true true user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root 1.1360E-03 1 167761 &
+./bin/runZGammaJetCrossCheck mc_${version} 0 0 true true user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.pPb_myOutput.root 1.1360E-03 1 167761 &
 # ... and for period B
-./bin/runZGammaJetCrossCheck mc_${version} 0 true false user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root 1.1360E-03 1 302313 &
+./bin/runZGammaJetCrossCheck mc_${version} 0 0 true false user.jeouelle.2.4.30hi.calibcheck.${version}.mc15_8TeV.361106.ZeeJet.Pbp_myOutput.root 1.1360E-03 1 302313 &
 
 wait
 

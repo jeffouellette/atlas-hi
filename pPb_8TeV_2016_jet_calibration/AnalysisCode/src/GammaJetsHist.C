@@ -40,8 +40,9 @@ void GammaJetsHist () {
    gammaJetSignalSampleIds.push_back (TString ("pPb_Signal_GammaJet_Slice") + to_string (i+1));
   }
 
-  TH3D* gJetHists[2][3][3][3];
+  TH3D***** gJetHists = Get4DArray <TH3D*> (2, 3, 3, 3); // iYear, iPer, iData, iErr
   //TH2D* gJetHistsSys[3][numetabins+1][3][3];
+  TH2D**** gJetCounts = Get3DArray <TH2D*> (2, 3, 3);
 
   for (short iYear = 0; iYear < 2; iYear++) {
    const TString year = (iYear == 0 ? "2015" : "2016");
@@ -51,15 +52,15 @@ void GammaJetsHist () {
     if (iData == 1) dataType = "mc_overlay";
     else if (iData == 2) dataType = "mc_signalonly";
 
-    for (short iErr = 0; iErr < 3; iErr++) {
-     TString error = "sys_lo";
-     if (iErr == 1) error = "stat";
-     else if (iErr == 2) error = "sys_hi";
+    for (short iPer = 0; iPer < 3; iPer++) {
+     TString period = "periodA";
+     if (iPer == 1) period = "periodB";
+     else if (iPer == 2) period = "periodAB";
 
-     for (short iPer = 0; iPer < 3; iPer++) {
-      TString period = "periodA";
-      if (iPer == 1) period = "periodB";
-      else if (iPer == 2) period = "periodAB";
+     for (short iErr = 0; iErr < 3; iErr++) {
+      TString error = "sys_lo";
+      if (iErr == 1) error = "stat";
+      else if (iErr == 2) error = "sys_hi";
 
       gJetHists[iYear][iPer][iData][iErr] = new TH3D (Form ("gJetPtRatio_%s_%s_%s_%s", year.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
       gJetHists[iYear][iPer][iData][iErr]->Sumw2 ();
@@ -67,11 +68,14 @@ void GammaJetsHist () {
       //gJetHistsSys[iPer][iEta][iData][iErr] = new TH2D (Form ("gJetPtRatioSys_iEta%i_%s_%s_%s", iEta, dataType.Data (), error.Data (), period.Data ()), ";#it{p}_{T}^{jet} #left[GeV#right];#Delta#it{x}_{J}^{ref}#it{p}_{T}^{ref}/#it{p}_{T}^{jet}", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
       //gJetHistsSys[iPer][iEta][iData][iErr]->Sumw2 ();
      }
+
+     gJetCounts[iYear][iPer][iData] = new TH2D (Form ("gJetCounts_%s_%s_%s", year.Data (), dataType.Data (), period.Data()), "", numpbins, pbins, numetabins, etabins);
+     gJetCounts[iYear][iPer][iData]->Sumw2 ();
     }
    }
   }
 
-  int***** nGammaJet = Get5DArray <int> (2, 3, 3, numetabins+1, numpbins+1);
+  //int***** nGammaJet = Get5DArray <int> (2, 3, 3, numetabins+1, numpbins+1);
 
   for (short iYear = 0; iYear < 2; iYear++) {
    if (skipOldInsitu && iYear == 0) continue;
@@ -88,7 +92,6 @@ void GammaJetsHist () {
    TString fname;
    TString histName;
    TIter next (sysfiles);
-   TVectorD *nGammaJetVec;
    int numFiles = 0;
    while ( (sysfile= (TSystemFile*)next ())) {
     fname = sysfile->GetName ();
@@ -102,8 +105,6 @@ void GammaJetsHist () {
        cout << "Reading in " << path+fname << endl;
        TFile* thisFile = new TFile (path + fname, "READ");
        const short iPer = (runNumber < 313500 ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%i", runNumber));
-       nGammaJetVec = (TVectorD*)thisFile->Get (Form ("nGammaJetVec_%i", runNumber));
 
        for (short iErr = 0; iErr < 3; iErr++) {
         TString error = "sys_lo";
@@ -119,17 +120,9 @@ void GammaJetsHist () {
         ////gJetHistsSys[2][iEta][0][iErr]->Add ( (TH2D*)thisFile->Get (Form ("gJetPtRatioSys_dataSet%i_iEta%i_data_%s", runNumber, act_iEta, error.Data ())));
        }
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = runNumber < 313500 && iEta < numetabins;
-        const bool flipEta = false;
-        const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta);
-
-        for (short iP = 0; iP <= numpbins; iP++) {
-         if (iEta == numetabins && pbins[iP] < 60) continue;
-         nGammaJet[iYear][iPer][0][iEta][iP] += (*nGammaJetVec)[iEta + iP* (numetabins+1)];
-         nGammaJet[iYear][2][0][iEta][iP] += (*nGammaJetVec)[act_iEta + iP* (numetabins+1)];
-        }
-       }
+       TH2D* temp = (TH2D*)thisFile->Get (Form ("gJetCounts_dataSet%i_data", runNumber));
+       gJetCounts[iYear][iPer][0]->Add (temp);
+       gJetCounts[iYear][2][0]->Add (temp);
 
        thisFile->Close ();
        delete thisFile;
@@ -143,26 +136,14 @@ void GammaJetsHist () {
        cout << "Reading in " << path+fname << endl;
        TFile* thisFile = new TFile (path + fname, "READ");
        const short iPer = (gammaJetOverlaySampleId.Contains ("pPb") ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%s", gammaJetOverlaySampleId.Data ()));
-       nGammaJetVec = (TVectorD*)thisFile->Get (Form ("nGammaJetVec_%s", gammaJetOverlaySampleId.Data ()));
 
-       TH3D* temp = (TH3D*)thisFile->Get (Form ("gJetPtRatio_dataSet%s_mc_overlay_stat", gammaJetOverlaySampleId.Data ()));
-       gJetHists[iYear][iPer][1][1]->Add (temp);
-       gJetHists[iYear][2][1][1]->Add (temp);
+       TH3D* temp3 = (TH3D*)thisFile->Get (Form ("gJetPtRatio_dataSet%s_mc_overlay_stat", gammaJetOverlaySampleId.Data ()));
+       gJetHists[iYear][iPer][1][1]->Add (temp3);
+       gJetHists[iYear][2][1][1]->Add (temp3);
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = gammaJetOverlaySampleId.Contains ("pPb") && iEta < numetabins;
-        const bool flipEta = false;
-        const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta); // period A condition
-
-        for (short iP = 0; iP <= numpbins; iP++) {
-         nGammaJet[iYear][iPer][1][iEta][iP] += (*nGammaJetVec)[iEta + iP* (numetabins+1)];
-         nGammaJet[iYear][2][1][iEta][iP] += (*nGammaJetVec)[act_iEta + iP* (numetabins+1)];
-        }
-
-        //gJetHistsSys[iPer][iEta][1][1]->Add ( (TH2D*)thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_overlay_stat", gammaJetOverlaySampleId.Data (), iEta)));
-        ////gJetHistsSys[2][iEta][1][1]->Add ( (TH2D*)thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_overlay_stat", gammaJetOverlaySampleId.Data (), act_iEta)));
-       }
+       TH2D* temp2 = (TH2D*)thisFile->Get (Form ("gJetCounts_dataSet%s_mc_overlay", gammaJetOverlaySampleId.Data ()));
+       gJetCounts[iYear][iPer][1]->Add (temp2);
+       gJetCounts[iYear][2][1]->Add (temp2);
 
        thisFile->Close ();
        delete thisFile;
@@ -176,26 +157,14 @@ void GammaJetsHist () {
        cout << "Reading in " << path+fname << endl;
        TFile* thisFile = new TFile (path + fname, "READ");
        const short iPer = (gammaJetSignalSampleId.Contains ("pPb") ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%s", gammaJetSignalSampleId.Data ()));
-       nGammaJetVec = (TVectorD*)thisFile->Get (Form ("nGammaJetVec_%s", gammaJetSignalSampleId.Data ()));
 
        TH3D* temp = (TH3D*)thisFile->Get (Form ("gJetPtRatio_dataSet%s_mc_signal_stat", gammaJetSignalSampleId.Data ()));
        gJetHists[iYear][iPer][2][1]->Add (temp);
        gJetHists[iYear][2][2][1]->Add (temp);
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = gammaJetSignalSampleId.Contains ("pPb") && iEta < numetabins;
-        const bool flipEta = false;
-        const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta); // period A condition
-
-        for (short iP = 0; iP <= numpbins; iP++) {
-         nGammaJet[iYear][iPer][2][iEta][iP] += (*nGammaJetVec)[iEta + iP* (numetabins+1)];
-         nGammaJet[iYear][2][2][iEta][iP] += (*nGammaJetVec)[act_iEta + iP* (numetabins+1)];
-        }
-
-        //gJetHistsSys[iPer][iEta][1][1]->Add ( (TH2D*)thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_signal_stat", gammaJetSignalSampleId.Data (), iEta)));
-        ////gJetHistsSys[2][iEta][1][1]->Add ( (TH2D*)thisFile->Get (Form ("gJetPtRatioSys_dataSet%s_iEta%i_mc_signal_stat", gammaJetSignalSampleId.Data (), act_iEta)));
-       }
+       TH2D* temp2 = (TH2D*)thisFile->Get (Form ("gJetCounts_dataSet%s_mc_signal", gammaJetSignalSampleId.Data ()));
+       gJetCounts[iYear][iPer][2]->Add (temp2);
+       gJetCounts[iYear][2][2]->Add (temp2);
 
        thisFile->Close ();
        delete thisFile;
@@ -371,16 +340,23 @@ void GammaJetsHist () {
      //for (TLine* line : dplines) line->Draw ();
 
      if (skipOldInsitu || iYear == 0) {
-      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
-      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
-      if (iPer != 1 && !skipSignalMC) myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nGammaJet[iYear][iPer][2][iEta][numpbins]), 1.25, 0.04/uPadY);
+      const int countsData = gJetCounts[iYear][iPer][0]->Integral (1, gJetCounts[iYear][iPer][0]->GetNbinsX(), eta_lo, eta_hi);
+      const int countsMC = gJetCounts[iYear][iPer][1]->Integral (1, gJetCounts[iYear][iPer][1]->GetNbinsX(), eta_lo, eta_hi);
+      const int countsMC_sig = gJetCounts[iYear][iPer][2]->Integral (1, gJetCounts[iYear][iPer][2]->GetNbinsX(), eta_lo, eta_hi);
+
+      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
+      if (iPer != 1 && !skipSignalMC)
+       myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", countsMC_sig), 1.25, 0.04/uPadY);
       if (!skipOldInsitu) {
        myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
        myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (eta_lo != 1 || eta_hi != numetabins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
+      if (eta_lo != 1 || eta_hi != numetabins)
+       myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
+      else
+       myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }
 
@@ -440,7 +416,7 @@ void GammaJetsHist () {
      if (proj_mc_signal) { delete proj_mc_signal; proj_mc_signal = NULL; }
      if (proj_lo) { delete proj_lo; proj_lo = NULL; }
      if (proj_hi) { delete proj_hi; proj_hi = NULL; }
-    } 
+    } // end loop over insitu configurations
 
     if (iEta < numetabins) plotName = Form ("gamma_jet_iEta%i.pdf", iEta);
     else plotName = Form ("gamma_jet_iEta_combined.pdf");
@@ -454,15 +430,12 @@ void GammaJetsHist () {
      case 2:
       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
       break;
-    }
+    } // end switch
     //for (short iErr = 0; iErr < 3; iErr++)
     // if (gJetHistDifference[iPer][iEta][iErr])
     //  delete gJetHistDifference[iPer][iEta][iErr];
 
-    if (iEta == numetabins) continue;
-
-
-    if (!plot_xjref) continue;
+    if (!plot_xjref || iEta == numetabins) continue;
 
     /**** Plots xjref distributions, binned by ptref ****/
     for (short iP = 0; iP < numpbins; iP++) {
@@ -537,8 +510,11 @@ void GammaJetsHist () {
       }
 
       if (iYear == 0) {
-       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][iEta][iP]), 1.25, 0.04/uPadY);
-       myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with #it{p}-Pb Overlay"), nGammaJet[iYear][iPer][1][iEta][iP]), 1.25, 0.04/uPadY);
+       const int countData = gJetCounts[iYear][iPer][0]->GetBinContent (iP, iEta);
+       const int countMC = gJetCounts[iYear][iPer][1]->GetBinContent (iP, iEta);
+
+       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countData), 1.25, 0.04/uPadY);
+       myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with #it{p}-Pb Overlay"), countMC), 1.25, 0.04/uPadY);
 
        myText (0.155, 0.73, dataColor, Form ("<#it{x}_{J}^{ref}>^{data} = %.2f #pm %.2f", mean, mean_err), 0.04/uPadY);
        myText (0.155, 0.64, dataColor, Form ("<#it{x}_{J}^{ref}>^{MC} = %.2f #pm %.2f", mean_mc, mean_mc_err), 0.04/uPadY);
@@ -579,7 +555,7 @@ void GammaJetsHist () {
       if (proj_mc_overlay) { delete proj_mc_overlay; proj_mc_overlay = NULL; }
       if (proj_lo) { delete proj_lo; proj_lo = NULL; }
       if (proj_hi) { delete proj_hi; proj_hi = NULL; }
-     }
+     } // end loop over insitu configurations
 
      plotName = Form ("pref_slices/gamma_jet_iEta%i_iP%i.pdf", iEta, iP);
      switch (iPer) {
@@ -592,10 +568,10 @@ void GammaJetsHist () {
       case 2:
        canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
        break;
-     }
+     } // end switch
       
-    }
-   }
+    } // end loop over pT bins
+   } // end loop over etabins
 
 
    /**** Now loop over pT bins and plot response as function of eta^jet ****/
@@ -706,16 +682,23 @@ void GammaJetsHist () {
      //for (TLine* line : dplines) line->Draw ();
 
      if (skipOldInsitu || iYear == 0) {
-      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nGammaJet[iYear][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
-      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nGammaJet[iYear][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
-      if (iPer != 1 && !skipSignalMC) myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nGammaJet[iYear][iPer][2][numetabins][iP]), 1.25, 0.04/uPadY);
+      const int countsData = gJetCounts[iYear][iPer][0]->Integral (p_lo, p_hi, 1, gJetCounts[iYear][iPer][0]->GetNbinsY());
+      const int countsMC = gJetCounts[iYear][iPer][1]->Integral (p_lo, p_hi, 1, gJetCounts[iYear][iPer][1]->GetNbinsY());
+      const int countsMC_sig = gJetCounts[iYear][iPer][2]->Integral (p_lo, p_hi, 1, gJetCounts[iYear][iPer][2]->GetNbinsY());
+
+      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
+      if (iPer != 1 && !skipSignalMC)
+       myMarkerText (0.175, 0.74, mcSignalColor, kFullCross, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", countsMC_sig), 1.25, 0.04/uPadY);
       if (!skipOldInsitu) {
        myMarkerText (0.65, 0.66, dataColor, kFullCircle, "2016 Insitu Factors", 1.25, 0.04/uPadY);
        myMarkerText (0.65, 0.59, dataColor, kOpenCircle, "2015 Insitu Factors", 1.25, 0.04/uPadY);
       }
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (p_lo != 1 || p_hi != numpbins) myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-      else myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
+      if (p_lo != 1 || p_hi != numpbins)
+       myText (0.155, 0.15, dataColor, Form ("#gamma + Jet, %g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
+      else
+       myText (0.155, 0.15, dataColor, "#gamma + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
      }
 
@@ -764,7 +747,7 @@ void GammaJetsHist () {
 
       if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
       if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
-     }
+     } // end loop over MC types
      if (vJetHist) { delete vJetHist; vJetHist = NULL; }
      if (vJetHist_mc_overlay) { delete vJetHist_mc_overlay; vJetHist_mc_overlay = NULL; }
      if (vJetHist_mc_signal) { delete vJetHist_mc_signal; vJetHist_mc_signal = NULL; }
@@ -779,7 +762,7 @@ void GammaJetsHist () {
      //for (short iErr = 0; iErr < 3; iErr++)
      // if (gJetHistDifference[iPer][iP][iErr])
      //  delete gJetHistDifference[iPer][iP][iErr];
-    }
+    } // end loop over insitu configurations
 
     if (iP < numpbins) plotName = Form ("gamma_jet_iP%i.pdf", iP);
     else plotName = Form ("gamma_jet_iP_combined.pdf");
@@ -793,10 +776,10 @@ void GammaJetsHist () {
      case 2:
       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
       break;
-    }
+    } // end switch
 
-   }
-  }
+   } // end loop over pT bins
+  } // end loop over beam periods
 
 
 //  /**** Plots systematic errors vs jet pt ****/

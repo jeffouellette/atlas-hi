@@ -34,8 +34,9 @@ void ZeeJetsHist () {
   zeeJetSampleIds.push_back ("Pbp_Overlay_ZeeJet");
   zeeJetSampleIds.push_back ("pPb_Overlay_ZeeJet");
 
-  TH3D* zeeJetHists[2][3][3][3];
+  TH3D***** zeeJetHists = Get4DArray <TH3D*> (2, 3, 3, 3); // iYear, iPer, iData, iErr
   //TH2D* zeeJetHistsSys[3][numetabins][3][3];
+  TH2D**** zeeJetCounts = Get3DArray <TH2D*> (2, 3, 3);
 
   for (short iYear = 0; iYear < 2; iYear++) {
    const TString year = (iYear == 0 ? "2015" : "2016");
@@ -45,24 +46,27 @@ void ZeeJetsHist () {
     if (iData == 1) dataType = "mc_overlay";
     else if (iData == 2) dataType = "mc_signalonly";
 
-    for (short iErr = 0; iErr < 3; iErr++) {
-     TString error = "sys_lo";
-     if (iErr == 1) error = "stat";
-     else if (iErr == 2) error = "sys_hi";
+    for (short iPer = 0; iPer < 3; iPer++) {
+     TString period = "periodA";
+     if (iPer == 1) period = "periodB";
+     else if (iPer == 2) period = "periodAB";
 
-     for (short iPer = 0; iPer < 3; iPer++) {
-      TString period = "periodA";
-      if (iPer == 1) period = "periodB";
-      else if (iPer == 2) period = "periodAB";
+     for (short iErr = 0; iErr < 3; iErr++) {
+      TString error = "sys_lo";
+      if (iErr == 1) error = "stat";
+      else if (iErr == 2) error = "sys_hi";
 
       zeeJetHists[iYear][iPer][iData][iErr] = new TH3D (Form ("zeeJetPtRatio_%s_%s_%s_%s", year.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
       zeeJetHists[iYear][iPer][iData][iErr]->Sumw2 ();
      }
+
+     zeeJetCounts[iYear][iPer][iData] = new TH2D (Form ("zeeJetCounts_%s_%s_%s", year.Data (), dataType.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins);
+     zeeJetCounts[iYear][iPer][iData]->Sumw2();
     }
    }
   }
 
-  int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpzbins+1);
+  //int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpzbins+1);
 
   for (short iYear = 0; iYear < 2; iYear++) {
    if (skipOldInsitu && iYear == 0) continue;
@@ -79,12 +83,11 @@ void ZeeJetsHist () {
    TString fname;
    TString histName;
    TIter next (sysfiles);
-   TVectorD *nZeeJetVec;
    int numFiles = 0;
    while ( (sysfile= (TSystemFile*)next ())) {
     fname = sysfile->GetName ();
     if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data () << endl;
+     if (debugStatements) cout << "Status: In ZeeJetsHist.C: Found " << fname.Data () << endl;
 
      // do this if file is data
      for (int runNumber : runNumbers) { // check for data
@@ -93,29 +96,20 @@ void ZeeJetsHist () {
        cout << "Reading in " << path+fname << endl;
        TFile* thisFile = new TFile (path + fname, "READ");
        const short iPer = (runNumber < 313500 ? 0 : 1);
-       //infoVec = (TVectorD*)thisFile->Get (Form ("infoVec_%i", runNumber));
-       nZeeJetVec = (TVectorD*)thisFile->Get (Form ("nZeeJetVec_%i", runNumber));
 
        for (short iErr = 0; iErr < 3; iErr++) {
         TString error = "sys_lo";
         if (iErr == 1) error = "stat";
         else if (iErr == 2) error = "sys_hi";
 
-        TH3D* temp = (TH3D*)thisFile->Get (Form ("zeeJetPtRatio_dataSet%i_data_%s", runNumber, error.Data ()));
-        zeeJetHists[iYear][iPer][0][iErr]->Add (temp);
-        zeeJetHists[iYear][2][0][iErr]->Add (temp);
+        TH3D* temp3 = (TH3D*)thisFile->Get (Form ("zeeJetPtRatio_dataSet%i_data_%s", runNumber, error.Data ()));
+        zeeJetHists[iYear][iPer][0][iErr]->Add (temp3);
+        zeeJetHists[iYear][2][0][iErr]->Add (temp3);
        }
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = runNumber < 313500 && iEta < numetabins;
-        const bool flipEta = false;
-        const short act_iEta = (flipEta ? (numetabins - iEta - 1) : iEta);
-
-        for (short iP = 0; iP <= numpzbins; iP++) {
-         nZeeJet[iYear][iPer][0][iEta][iP] += (*nZeeJetVec)[iEta + iP* (numetabins+1)];
-         nZeeJet[iYear][2][0][iEta][iP] += (*nZeeJetVec)[act_iEta + iP* (numetabins+1)];
-        }
-       }
+       TH2D* temp2 = (TH2D*)thisFile->Get (Form ("zeeJetCounts_dataSet%i_data", runNumber));
+       zeeJetCounts[iYear][iPer][0]->Add (temp2);
+       zeeJetCounts[iYear][2][0]->Add (temp2);
 
        thisFile->Close ();
        delete thisFile;
@@ -129,22 +123,14 @@ void ZeeJetsHist () {
        cout << "Reading in " << path+fname << endl;
        TFile* thisFile = new TFile (path + fname, "READ");
        const short iPer = (zeeJetSampleId.Contains ("pPb") ? 0 : 1);
-       nZeeJetVec = (TVectorD*)thisFile->Get (Form ("nZeeJetVec_%s", zeeJetSampleId.Data ()));
 
-       TH3D* temp = (TH3D*)thisFile->Get (Form ("zeeJetPtRatio_dataSet%s_mc_overlay_stat", zeeJetSampleId.Data ()));
-       zeeJetHists[iYear][iPer][1][1]->Add (temp);
-       zeeJetHists[iYear][2][1][1]->Add (temp);
+       TH3D* temp3= (TH3D*)thisFile->Get (Form ("zeeJetPtRatio_dataSet%s_mc_overlay_stat", zeeJetSampleId.Data ()));
+       zeeJetHists[iYear][iPer][1][1]->Add (temp3);
+       zeeJetHists[iYear][2][1][1]->Add (temp3);
 
-       for (short iEta = 0; iEta <= numetabins; iEta++) {
-        //const bool flipEta = zeeJetSampleId.Contains ("pPb") && iEta < numetabins;
-        const bool flipEta = false;
-        const short act_iEta = (flipEta ? numetabins - iEta - 1 : iEta); // period A condition
-
-        for (short iP = 0; iP <= numpzbins; iP++) {
-         nZeeJet[iYear][iPer][1][iEta][iP] += (*nZeeJetVec)[iEta + iP* (numetabins+1)];
-         nZeeJet[iYear][2][1][iEta][iP] += (*nZeeJetVec)[act_iEta + iP* (numetabins+1)];
-        }
-       }
+       TH2D* temp2= (TH2D*)thisFile->Get (Form ("zeeJetCounts_dataSet%s_mc_overlay", zeeJetSampleId.Data ()));
+       zeeJetCounts[iYear][iPer][1]->Add (temp2);
+       zeeJetCounts[iYear][2][1]->Add (temp2);
 
        thisFile->Close ();
        delete thisFile;
@@ -214,8 +200,10 @@ void ZeeJetsHist () {
     }
 
     /**** Plots ZeeJet info ****/
-    {
-     const Style_t dataStyle = 20;
+    for (short iYear = 0; iYear < 2; iYear++) {
+     if (skipOldInsitu && iYear == 0) continue;
+
+     const Style_t dataStyle = (iYear == 0 ? 24 : 20);
      const Style_t mcOverlayStyle = 33;
      //const Style_t mcSignalStyle = 34;
 
@@ -258,15 +246,25 @@ void ZeeJetsHist () {
      vJetHist_mc_overlay->SetMarkerColor (mcOverlayColor);
      vJetHist_mc_overlay->SetLineColor (mcOverlayColor);
 
-     vJetHist->DrawCopy ("e1 x0");
-     vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
+     if (skipOldInsitu || iYear == 0) {
+      vJetHist->DrawCopy ("e1 x0");
+      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
+     }
+     else {
+      vJetHist->DrawCopy ("same e1 x0");
+     }
      ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+     const int countsData = zeeJetCounts[1][iPer][0]->Integral (1, zeeJetCounts[1][iPer][0]->GetNbinsX(), eta_lo, eta_hi);
+     const int countsMC = zeeJetCounts[1][iPer][1]->Integral (1, zeeJetCounts[1][iPer][1]->GetNbinsX(), eta_lo, eta_hi);
+
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (eta_lo != 1 || eta_hi != numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
-     else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
+     if (eta_lo != 1 || eta_hi != numetabins)
+      myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
+     else
+      myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
      bottomPad->cd ();
@@ -305,7 +303,8 @@ void ZeeJetsHist () {
      vJetHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
      vJetHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-     vJetHist_rat->DrawCopy ("e1 x0");
+     if (skipOldInsitu || iYear == 0) vJetHist_rat->DrawCopy ("e1 x0");
+     else vJetHist_rat->DrawCopy ("same e1 x0");
      ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
      for (TLine* line : zlines) line->Draw ();
 
@@ -314,23 +313,23 @@ void ZeeJetsHist () {
      if (vJetGraph_sys) { delete vJetGraph_sys; vJetGraph_sys = NULL; }
      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
+    } // end loop of insitu configurations
      
 
-     if (iEta < numetabins) plotName = Form ("z_ee_jet_iEta%i.pdf", iEta);
-     else plotName = Form ("z_ee_jet_iEta_combined.pdf");
-     switch (iPer) {
-      case 0:
-       canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-       break;
-      case 1:
-       canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-       break;
-      case 2:
-       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-       break;
-     }
-    }
-   }
+    if (iEta < numetabins) plotName = Form ("z_ee_jet_iEta%i.pdf", iEta);
+    else plotName = Form ("z_ee_jet_iEta_combined.pdf");
+    switch (iPer) {
+     case 0:
+      canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
+      break;
+     case 1:
+      canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
+      break;
+     case 2:
+      canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
+      break;
+    } // end switch
+   } // end loop over etabins
 
    /**** Now loop over pT bins and plot response as function of eta^jet ****/
    for (short iP = 0; iP <= numpzbins; iP++) {
@@ -343,8 +342,10 @@ void ZeeJetsHist () {
     }
 
     /**** Plots ZeeJet info ****/
-    {
-     const Style_t dataStyle = 20; 
+    for (short iYear = 0; iYear < 2; iYear++) {
+     if (skipOldInsitu && iYear == 0) continue;
+
+     const Style_t dataStyle = (iYear == 0 ? 24 : 20);
      const Style_t mcOverlayStyle = 33;
      //const Style_t mcSignalStyle = 34;
 
@@ -387,15 +388,25 @@ void ZeeJetsHist () {
      vJetHist_mc_overlay->SetMarkerColor (mcOverlayColor);
      vJetHist_mc_overlay->SetLineColor (mcOverlayColor);
 
-     vJetHist->DrawCopy ("e1 x0");
-     vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
+     if (skipOldInsitu || iYear == 0) {
+      vJetHist->DrawCopy ("e1 x0");
+      vJetHist_mc_overlay->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
+     }
+     else {
+      vJetHist->DrawCopy ("same e1 x0");
+     }
      ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", nZeeJet[1][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[1][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
+     const int countsData = zeeJetCounts[1][iPer][0]->Integral (p_lo, p_hi, 1, zeeJetCounts[1][iPer][0]->GetNbinsY());
+     const int countsMC = zeeJetCounts[1][iPer][1]->Integral (p_lo, p_hi, 1, zeeJetCounts[1][iPer][1]->GetNbinsY());
+
+     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04/uPadY);
+     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (p_lo != 1 || p_hi != numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
-     else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
+     if (p_lo != 1 || p_hi != numpzbins)
+      myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
+     else
+      myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
      myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
 
      bottomPad->cd ();
@@ -434,7 +445,8 @@ void ZeeJetsHist () {
      vJetHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
      vJetHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-     vJetHist_rat->DrawCopy ("e1 x0");
+     if (skipOldInsitu || iYear == 0) vJetHist_rat->DrawCopy ("e1 x0");
+     else vJetHist_rat->DrawCopy ("same e1 x0");
      ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
      for (TLine* line : zetalines) line->Draw ();
 
@@ -443,25 +455,24 @@ void ZeeJetsHist () {
      if (vJetGraph_sys) { delete vJetGraph_sys; vJetGraph_sys = NULL; }
      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
-     
+    } // end loop of insitu configurations
 
-     if (iP < numpzbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
-     else plotName = Form ("z_ee_jet_iP_combined.pdf");
-     switch (iPer) {
-      case 0:
-       canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-       break;
-      case 1:
-       canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-       break;
-      case 2:
-       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-       break;
-     }
-    }
+    if (iP < numpzbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
+    else plotName = Form ("z_ee_jet_iP_combined.pdf");
+    switch (iPer) {
+     case 0:
+      canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
+      break;
+     case 1:
+      canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
+      break;
+     case 2:
+      canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
+      break;
+    } // end switch
 
-   }
-  }
+   } // end loop over pT bins
+  } // end loop over beam periods
 
   return;
 }

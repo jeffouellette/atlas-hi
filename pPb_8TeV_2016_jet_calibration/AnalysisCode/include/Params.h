@@ -74,7 +74,7 @@ const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
 //const short numetabins = 98;
 //const double* etabins = linspace (-4.9, 4.9, numetabins);
 
-const double zetabins[7] = {-2.4, -1.5, -1.3, 0, 1.37, 1.52, 2.4};
+const double zetabins[7] = {-2.4, -1.52, -1.37, 0, 1.37, 1.52, 2.4};
 const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};

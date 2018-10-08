@@ -66,11 +66,15 @@ void ZmumuJets (const char* directory,
   // initialize histograms
   TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
   //TH2D* zmumuJetHistsSys[3][numetabins];
+  TH2D* zmumuJetCounts;
 
   {
    TString data = "data";
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
+
+   zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpzbins, pzbins, numetabins, etabins);
+   zmumuJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
     TString error = "sys_lo";
@@ -83,8 +87,6 @@ void ZmumuJets (const char* directory,
     //zmumuJetHistsSys[iErr][iEta]->Sumw2 ();
    }
   }
-
-  int** nZmumuJet = Get2DArray <int> (numetabins+1, numpzbins+1);
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
   dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
@@ -256,12 +258,7 @@ void ZmumuJets (const char* directory,
       zmumuJetHists[iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
       //zmumuJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
      }
-
-     // Increment Z+jet counters
-     if (iEta != -1 && iP != -1) nZmumuJet[iEta][iP]++;
-     if (iEta != -1) nZmumuJet[iEta][numpzbins]++;
-     if (iP != -1) nZmumuJet[numetabins][iP]++;
-     nZmumuJet[numetabins][numpzbins]++;
+     zmumuJetCounts->Fill (Z_pt, ljet_eta);
 
      // Fill additional systematics histograms
      //for (short iErr = 0; iErr < 3; iErr++)
@@ -294,20 +291,13 @@ void ZmumuJets (const char* directory,
 
   Delete1DArray (zmumuJetHists, 3);
 
+  zmumuJetCounts->Write ();
+  if (zmumuJetCounts) { delete zmumuJetCounts; zmumuJetCounts = NULL; }
+
   TVectorD infoVec (2);
   infoVec[0] = luminosity;
   infoVec[1] = dataSet;
   infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
-
-  TVectorD nZmumuJetVec ( (numetabins+1)* (numpzbins+1));
-  for (short iEta = 0; iEta <= numetabins; iEta++) {
-   for (int iP = 0; iP <= numpzbins; iP++) {
-    nZmumuJetVec[iEta+ (numetabins+1)*iP] = (double)nZmumuJet[iEta][iP];
-   }
-  }
-  nZmumuJetVec.Write (Form ("nZmumuJetVec_%s", identifier.Data ()));
-
-  Delete2DArray (nZmumuJet, numetabins+1, numpzbins+1);
 
   outFile->Close ();
   if (outFile) delete outFile;
