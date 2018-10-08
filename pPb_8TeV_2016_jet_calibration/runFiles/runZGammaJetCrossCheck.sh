@@ -67,17 +67,17 @@ wait
 
 wait
 
-#version=310
-#
-## alternative validation signal-only gamma+jet sample (period A only!)
-#./bin/runGammaJets mc_${version} 1 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423100.Slice1.pPb_myOutput.root 9.5180E+03 0.00002901 49900 &
-#./bin/runGammaJets mc_${version} 2 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423101.Slice2.pPb_myOutput.root 7.26290E+02 0.000026722 49899 &
-#./bin/runGammaJets mc_${version} 3 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423102.Slice3.pPb_myOutput.root 1.88010E+02 0.000030018 50000 &
-#./bin/runGammaJets mc_${version} 4 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423103.Slice4.pPb_myOutput.root 5.0077E+01 0.000042496 49900 &
-#./bin/runGammaJets mc_${version} 5 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423104.Slice5.pPb_myOutput.root 2.810E+00 0.000051607 48000 &
-#./bin/runGammaJets mc_${version} 6 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423105.Slice6.pPb_myOutput.root 1.23880E-01 0.000052662 49900 &
-#
-#wait
+version=310
+
+# alternative validation signal-only gamma+jet sample (period A only!)
+./bin/runGammaJets mc_${version} 1 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423100.Slice1.pPb_myOutput.root 9.5180E+03 0.00002901 49900 &
+./bin/runGammaJets mc_${version} 2 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423101.Slice2.pPb_myOutput.root 7.26290E+02 0.000026722 49899 &
+./bin/runGammaJets mc_${version} 3 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423102.Slice3.pPb_myOutput.root 1.88010E+02 0.000030018 50000 &
+./bin/runGammaJets mc_${version} 4 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423103.Slice4.pPb_myOutput.root 5.0077E+01 0.000042496 49900 &
+./bin/runGammaJets mc_${version} 5 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423104.Slice5.pPb_myOutput.root 2.810E+00 0.000051607 48000 &
+./bin/runGammaJets mc_${version} 6 0 true true user.jeouelle.2.4.30hi.calibcheck.signalonly.${version}.mc15_8TeV.423105.Slice6.pPb_myOutput.root 1.23880E-01 0.000052662 49900 &
+
+wait
 
 version=200
 

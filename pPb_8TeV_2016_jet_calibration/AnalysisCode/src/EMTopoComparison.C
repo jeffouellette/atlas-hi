@@ -103,10 +103,10 @@ void EMTopoComparison (const char* directory,
     if (iErr == 1) error = "stat";
     else if (iErr == 2) error = "sys_hi";
 
-    zeeJetHists[iAlgo][iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zeeJetHists[iAlgo][iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
     zeeJetHists[iAlgo][iErr]->Sumw2 ();
 
-    zmumuJetHists[iAlgo][iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iAlgo][iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
     zmumuJetHists[iAlgo][iErr]->Sumw2 ();
 
     gJetHists[iAlgo][iErr] = new TH3D (Form ("gJetPtRatio_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
@@ -114,8 +114,8 @@ void EMTopoComparison (const char* directory,
    }
   }
 
-  int*** nZeeJet = Get3DArray <int> (2, numetabins+1, numpzbins+1);
-  int*** nZmumuJet = Get3DArray <int> (2, numetabins+1, numpzbins+1);
+  int*** nZeeJet = Get3DArray <int> (2, numetabins+1, numpbins+1);
+  int*** nZmumuJet = Get3DArray <int> (2, numetabins+1, numpbins+1);
   int*** nGammaJet = Get3DArray <int> (2, numetabins+1, numpbins+1);
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
@@ -247,9 +247,9 @@ void EMTopoComparison (const char* directory,
 
       // Put Z in the right pt bin
       short iP = 0;
-      if (pzbins[0] < Z_pt &&
-          Z_pt < pzbins[numpzbins]) {
-       while (pzbins[iP] < Z_pt) iP++;
+      if (pbins[0] < Z_pt &&
+          Z_pt < pbins[numpbins]) {
+       while (pbins[iP] < Z_pt) iP++;
       }
       iP--;
 
@@ -333,9 +333,9 @@ void EMTopoComparison (const char* directory,
 
       // Increment Z+jet counters
       if (iEta != -1 && iP != -1) nZeeJet[iAlgo][iEta][iP]++;
-      if (iEta != -1) nZeeJet[iAlgo][iEta][numpzbins]++;
+      if (iEta != -1) nZeeJet[iAlgo][iEta][numpbins]++;
       if (iP != -1) nZeeJet[iAlgo][numetabins][iP]++;
-      nZeeJet[iAlgo][numetabins][numpzbins]++;
+      nZeeJet[iAlgo][numetabins][numpbins]++;
      }
     } // end loop over electron pairs
     // end Z->ee type events
@@ -416,9 +416,9 @@ void EMTopoComparison (const char* directory,
 
       // Put Z in the right pt bin
       short iP = 0;
-      if (pzbins[0] < Z_pt &&
-          Z_pt < pzbins[numpzbins]) {
-       while (pzbins[iP] < Z_pt) iP++;
+      if (pbins[0] < Z_pt &&
+          Z_pt < pbins[numpbins]) {
+       while (pbins[iP] < Z_pt) iP++;
       }
       iP--;
 
@@ -498,9 +498,9 @@ void EMTopoComparison (const char* directory,
 
       // Increment Z+jet counters
       if (iEta != -1 && iP != -1) nZmumuJet[iAlgo][iEta][iP]++;
-      if (iEta != -1) nZmumuJet[iAlgo][iEta][numpzbins]++;
+      if (iEta != -1) nZmumuJet[iAlgo][iEta][numpbins]++;
       if (iP != -1) nZmumuJet[iAlgo][numetabins][iP]++;
-      nZmumuJet[iAlgo][numetabins][numpzbins]++;
+      nZmumuJet[iAlgo][numetabins][numpbins]++;
      }
     } // end loop over muon pairs
     // end Z->mumu type events
@@ -708,13 +708,13 @@ void EMTopoComparison (const char* directory,
   jetCleaningVec[1] = nCleanJets;
   jetCleaningVec.Write (Form ("jetCleaningVec_%s", identifier.Data ()));
 
-  TVectorD nZeeJetVec (2* (numetabins+1)* (numpzbins+1));
-  TVectorD nZmumuJetVec (2* (numetabins+1)* (numpzbins+1));
+  TVectorD nZeeJetVec (2* (numetabins+1)* (numpbins+1));
+  TVectorD nZmumuJetVec (2* (numetabins+1)* (numpbins+1));
   TVectorD nGammaJetVec (2* (numetabins+1)* (numpbins+1));
 
   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
    for (short iEta = 0; iEta <= numetabins; iEta++) {
-    for (short iP = 0; iP <= numpzbins; iP++) {
+    for (short iP = 0; iP <= numpbins; iP++) {
      nZeeJetVec[iAlgo + 2* (iEta + iP* (numetabins+1))] = (double)nZeeJet[iAlgo][iEta][iP];
      nZmumuJetVec[iAlgo + 2* (iEta + iP* (numetabins+1))] = (double)nZmumuJet[iAlgo][iEta][iP];
     }
@@ -724,8 +724,8 @@ void EMTopoComparison (const char* directory,
    }
   }
 
-  Delete3DArray (nZeeJet, 2, numetabins+1, numpzbins+1);
-  Delete3DArray (nZmumuJet, 2, numetabins+1, numpzbins+1);
+  Delete3DArray (nZeeJet, 2, numetabins+1, numpbins+1);
+  Delete3DArray (nZmumuJet, 2, numetabins+1, numpbins+1);
   Delete3DArray (nGammaJet, 2, numetabins+1, numpbins+1);
 
   nZeeJetVec.Write (Form ("nZeeJetVec_%s", identifier.Data ()));

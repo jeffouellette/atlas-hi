@@ -63,8 +63,8 @@ const short numdpbins = sizeof (dpbins)/sizeof (dpbins[0]) - 1;
 const double pbins[16] = {20., 25., 30., 35., 40., 50., 60., 70., 90., 110., 140., 180., 220., 280., 350., 500.};
 const short numpbins = sizeof (pbins)/sizeof (pbins[0]) - 1;
 
-const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 220., 300.};
-const short numpzbins = sizeof (pzbins)/sizeof (pzbins[0]) - 1;
+//const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 220., 300.};
+//const short numpzbins = sizeof (pzbins)/sizeof (pzbins[0]) - 1;
 
 //const double etabins[7] = {-2.5, -1.3, -0.5, 0, 0.5, 1.3, 2.5};
 const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};

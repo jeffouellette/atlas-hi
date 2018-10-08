@@ -65,7 +65,7 @@ void GammaJetsHist () {
       gJetHists[iYear][iPer][iData][iErr] = new TH3D (Form ("gJetPtRatio_%s_%s_%s_%s", year.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
       gJetHists[iYear][iPer][iData][iErr]->Sumw2 ();
 
-      //gJetHistsSys[iPer][iEta][iData][iErr] = new TH2D (Form ("gJetPtRatioSys_iEta%i_%s_%s_%s", iEta, dataType.Data (), error.Data (), period.Data ()), ";#it{p}_{T}^{jet} #left[GeV#right];#Delta#it{x}_{J}^{ref}#it{p}_{T}^{ref}/#it{p}_{T}^{jet}", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
+      //gJetHistsSys[iPer][iEta][iData][iErr] = new TH2D (Form ("gJetPtRatioSys_iEta%i_%s_%s_%s", iEta, dataType.Data (), error.Data (), period.Data ()), ";#it{p}_{T}^{jet} #left[GeV#right];#Delta#it{x}_{J}^{ref}#it{p}_{T}^{ref}/#it{p}_{T}^{jet}", numpbins, pbins, numSigmaBins, -maxSigma, maxSigma);
       //gJetHistsSys[iPer][iEta][iData][iErr]->Sumw2 ();
      }
 
@@ -241,8 +241,8 @@ void GammaJetsHist () {
     int eta_lo = iEta+1;
     int eta_hi = iEta+1;
     if (iEta == numetabins) {
-     eta_lo = 6;//1;
-     eta_hi = 9;//numetabins;
+     eta_lo = 6;
+     eta_hi = 9;
     }
 
     /**** Plots GammaJet info as a function of p_T^ref****/
@@ -577,12 +577,10 @@ void GammaJetsHist () {
    /**** Now loop over pT bins and plot response as function of eta^jet ****/
    for (short iP = 0; iP <= numpbins; iP++) {
 
-    if (pbins[iP] < 60) continue;
-
     int p_lo = iP+1;
     int p_hi = iP+1;
     if (iP == numpbins) {
-     p_lo = 7;
+     p_lo = 8;
      p_hi = numpbins;
     }
 
@@ -789,18 +787,18 @@ void GammaJetsHist () {
 //   for (short iEta = 0; iEta < numetabins; iEta++) {
 //    topPad->cd ();
 //    TH2D* thisHist = gJetHistsSys[iPer][iEta][0][1];
-//    TH1D* rmsHist = new TH1D (Form ("rms_iEta%i_%s", iEta, (iPer==0?"pPb":"Pbp")), "", numpzbins, pzbins);
-//    for (short pzbin = 0; pzbin < numpzbins; pzbin++) {
+//    TH1D* rmsHist = new TH1D (Form ("rms_iEta%i_%s", iEta, (iPer==0?"pPb":"Pbp")), "", numpbins, pbins);
+//    for (short pbin = 0; pbin < numpbins; pbin++) {
 //     float rms = 0;
 //     float sumWeights = 0;
 //     for (short sigbin = 0; sigbin < numSigmaBins; sigbin++) {
 //      const float sig = thisHist->GetYaxis ()->GetBinCenter (sigbin+1);
-//      const float weight = thisHist->GetBinContent (pzbin+1, sigbin+1);
+//      const float weight = thisHist->GetBinContent (pbin+1, sigbin+1);
 //      rms += pow (sig, 2) * weight;
 //      sumWeights += weight;
 //     }
 //     if (sumWeights > 0) rms = sqrt (rms) / sqrt (sumWeights);
-//     rmsHist->SetBinContent (pzbin+1, rms);
+//     rmsHist->SetBinContent (pbin+1, rms);
 //    }
 //    topPad->SetLogz ();
 //    thisHist->Draw ("col");

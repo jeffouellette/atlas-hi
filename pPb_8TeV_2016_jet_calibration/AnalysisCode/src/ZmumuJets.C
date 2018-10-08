@@ -65,7 +65,6 @@ void ZmumuJets (const char* directory,
 
   // initialize histograms
   TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
-  //TH2D* zmumuJetHistsSys[3][numetabins];
   TH2D* zmumuJetCounts;
 
   {
@@ -73,7 +72,7 @@ void ZmumuJets (const char* directory,
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpzbins, pzbins, numetabins, etabins);
+   zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
    zmumuJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
@@ -81,15 +80,12 @@ void ZmumuJets (const char* directory,
     if (iErr == 1) error = "stat";
     else if (iErr == 2) error = "sys_hi";
 
-    zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
     zmumuJetHists[iErr]->Sumw2 ();
-    //zmumuJetHistsSys[iErr][iEta] = new TH2D (Form ("zmumuJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data (), iEta, data.Data (), error.Data ()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    //zmumuJetHistsSys[iErr][iEta]->Sumw2 ();
    }
   }
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
-  dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
 
   const long long numEntries = tree->GetEntries ();
 
@@ -139,7 +135,6 @@ void ZmumuJets (const char* directory,
      muon2.SetPtEtaPhiM (t->muon_pt->at (m2), t->muon_eta->at (m2), t->muon_phi->at (m2), muon_mass);
      const int lm = (t->muon_pt->at (m1) > t->muon_pt->at (m2) ? m1 : m2);
      const double leading_muon_pt = t->muon_pt->at (lm);
-     //const double leading_muon_eta = t->muon_eta->at (lm);
 
      // triggering and event weighting
      double weight = 1;
@@ -163,29 +158,25 @@ void ZmumuJets (const char* directory,
 
      // Reco mumu invariant 4-momentum (best guess for Z boson)
      const TLorentzVector Z = muon1 + muon2;
-     const double Z_pt = Z.Pt (); 
-     const double Z_phi = Z.Phi ();
-     const double Z_m = Z.M ();
 
      // Z boson, dimuon cuts
      if (t->muon_charge->at (m1) == t->muon_charge->at (m2))
       continue; // require oppositely charged muons
-     if (Z_m < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z_m)
+     if (Z.M () < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z.M ())
       continue; // cut on our sample Z boson mass
-     if (Z_pt < Z_pt_cut)
+     if (Z.Pt () < Z_pt_cut)
       continue; // pt cut on Z bosons
 
      // Put the Z in the right pt bin
      short iP = 0;
-     if (pzbins[0] < Z_pt &&
-         Z_pt < pzbins[numpzbins]) {
-      while (pzbins[iP] < Z_pt) iP++;
+     if (pbins[0] < Z.Pt () &&
+         Z.Pt () < pbins[numpbins]) {
+      while (pbins[iP] < Z.Pt ()) iP++;
      }
      iP--;
 
      // jet finding
      int lj = -1;
-     int sj = -1;
      for (int j = 0; j < t->jet_n; j++) {
       if (t->jet_pt->at (j) < jet_pt_cut)
        continue; // basic jet pT cut
@@ -194,22 +185,13 @@ void ZmumuJets (const char* directory,
       if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (j), t->muon_phi->at (m1), t->jet_phi->at (j)) < 0.2 ||
           DeltaR (t->muon_eta->at (m2), t->jet_eta->at (j), t->muon_phi->at (m2), t->jet_phi->at (j)) < 0.2)
        continue; // require jets to be isolated from both muons
-      if (DeltaPhi (t->jet_phi->at (j), Z_phi) < 3*pi/4)
+      if (DeltaPhi (t->jet_phi->at (j), Z.Phi ()) < 3*pi/4)
        continue; // require jet to be back-to-back with Z in transverse plane
 
       // compare to leading jet
       else if (lj == -1 ||
                t->jet_pt->at (lj) < t->jet_pt->at (j)) {
-       if (lj == -1 || !InDisabledHEC (t->jet_eta->at (lj), t->jet_phi->at (lj)))
-        sj = lj;
        lj = j;
-      }
-
-      // compare to subleading jet
-      else if ( (sj == -1 ||
-                t->jet_pt->at (sj) < t->jet_pt->at (j)) &&
-               !InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j))) {
-       sj = j;
       }
      } // end jet finding loop
      if (lj == -1) // true iff no candidate jet is found
@@ -219,8 +201,6 @@ void ZmumuJets (const char* directory,
      const double ljet_pt = t->jet_pt->at (lj);
      const double ljet_eta = t->jet_eta->at (lj);
      const double ljet_phi = t->jet_phi->at (lj);
-     const double sjet_pt = ( (0 <= sj && sj < t->jet_n) ? t->jet_pt->at (sj) : 0);
-     const double sjet_phi = ( (0 <= sj && sj < t->jet_n) ? t->jet_phi->at (sj) : 0);
 
      // Put the jet in the right eta, pt bins
      short iEta = 0;
@@ -235,34 +215,39 @@ void ZmumuJets (const char* directory,
       continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
-     if (sjet_pt > 12) {
-      const double subleading_dPhi = DeltaPhi (sjet_phi, Z_phi);
-      //if (sjet_pt / Z_pt > 0.3)
-      if (sjet_pt / (Z_pt * TMath::Cos (pi - subleading_dPhi)) > 0.2)
-      //if (sjet_pt * TMath::Cos (pi - subleading_dPhi) / Z_pt > 0.2)
-       continue; // suppress dijets by requiring leading jet to dominate ptref
+     bool hasOtherJet = false;
+     for (int j = 0; j < t->jet_n; j++) {
+      if (j == lj)
+       continue; // don't look at the leading jet, its our candidate :)
+      if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (j), t->muon_phi->at (m1), t->jet_phi->at (j)) < 0.2 ||
+          DeltaR (t->muon_eta->at (m2), t->jet_eta->at (j), t->muon_phi->at (m2), t->jet_phi->at (j)) < 0.2)
+       continue; // require jets to be isolated from both muons
+      if (t->jet_pt->at (j) < 12 || InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+       continue; // basic jet pT cut, also reject on the disabled HEC
+      //const double s_dphi = DeltaPhi (t->jet_phi->at (j), Z.Phi ());
+      if (0.1 < t->jet_pt->at (j) / (Z.Pt ())) {
+       hasOtherJet = true;
+       break;
+      }
      }
+     if (hasOtherJet)
+      continue; // cut on other jets that look back-to-back with gamma
 
      // Calculate opening angle in the transverse plane
-     const double dPhi = DeltaPhi (ljet_phi, Z_phi);
+     const double dPhi = DeltaPhi (ljet_phi, Z.Phi ());
 
      // Calculate systematics on jet pT
      const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
 
      // Calculate ptref and xjrefs
-     const double ptref = Z_pt * TMath::Cos (pi - dPhi);
+     const double ptref = Z.Pt () * TMath::Cos (pi - dPhi);
      const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
 
      // Fill dimuon xjref histograms
      for (short iErr = 0; iErr < 3; iErr++) {
-      zmumuJetHists[iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
-      //zmumuJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
+      zmumuJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
      }
-     zmumuJetCounts->Fill (Z_pt, ljet_eta);
-
-     // Fill additional systematics histograms
-     //for (short iErr = 0; iErr < 3; iErr++)
-     // zmumuJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
+     zmumuJetCounts->Fill (Z.Pt (), ljet_eta);
     }
    } // end loop over muon pairs
    // end Z->mumu type events
@@ -273,8 +258,6 @@ void ZmumuJets (const char* directory,
   // close root files with systematics
   xCalibSystematicsFile->Close ();
   if (xCalibSystematicsFile) delete xCalibSystematicsFile;
-  dataOverMCFile->Close ();
-  if (dataOverMCFile) delete dataOverMCFile;
   
   //////////////////////////////////////////////////////////////////////////////
   // End event loop
@@ -282,7 +265,6 @@ void ZmumuJets (const char* directory,
 
   const char* outFileName = Form ("%s/ZmumuJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
-
 
   // Write histograms to output and clean memory
   for (short iErr = 0; iErr < 3; iErr++) {

@@ -56,17 +56,17 @@ void ZeeJetsHist () {
       if (iErr == 1) error = "stat";
       else if (iErr == 2) error = "sys_hi";
 
-      zeeJetHists[iYear][iPer][iData][iErr] = new TH3D (Form ("zeeJetPtRatio_%s_%s_%s_%s", year.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+      zeeJetHists[iYear][iPer][iData][iErr] = new TH3D (Form ("zeeJetPtRatio_%s_%s_%s_%s", year.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
       zeeJetHists[iYear][iPer][iData][iErr]->Sumw2 ();
      }
 
-     zeeJetCounts[iYear][iPer][iData] = new TH2D (Form ("zeeJetCounts_%s_%s_%s", year.Data (), dataType.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins);
+     zeeJetCounts[iYear][iPer][iData] = new TH2D (Form ("zeeJetCounts_%s_%s_%s", year.Data (), dataType.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins);
      zeeJetCounts[iYear][iPer][iData]->Sumw2();
     }
    }
   }
 
-  //int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpzbins+1);
+  //int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpbins+1);
 
   for (short iYear = 0; iYear < 2; iYear++) {
    if (skipOldInsitu && iYear == 0) continue;
@@ -149,7 +149,7 @@ void ZeeJetsHist () {
   for (short i = 0; i < 5; i++) {
    const float dz = 0.05;
 
-   zlines[i] = new TLine (pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
+   zlines[i] = new TLine (pbins[0], 1.0-2*dz+dz*i, pbins[numpbins], 1.0-2*dz+dz*i);
    zetalines[i] = new TLine (etabins[0], 1.0-2*dz+dz*i, etabins[numetabins], 1.0-2*dz+dz*i);
 
    if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle (1);
@@ -195,8 +195,8 @@ void ZeeJetsHist () {
     int eta_lo = iEta+1;
     int eta_hi = iEta+1;
     if (iEta == numetabins) {
-     eta_lo = 6;//1;
-     eta_hi = 9;//numetabins;
+     eta_lo = 1;//6;
+     eta_hi = numetabins;//9;
     }
 
     /**** Plots ZeeJet info ****/
@@ -211,7 +211,7 @@ void ZeeJetsHist () {
      topPad->SetLogx ();
 
      proj = Project2D ("", zeeJetHists[1][iPer][0][1], "x", "z", eta_lo, eta_hi);
-     vJetHist = GetProfileX ("vJetHist", proj, numpzbins, pzbins, false);
+     vJetHist = GetProfileX ("vJetHist", proj, numpbins, pbins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      vJetHist->SetYTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
@@ -228,10 +228,10 @@ void ZeeJetsHist () {
 
      // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
      proj_lo = Project2D ("", zeeJetHists[1][iPer][0][0], "x", "z", eta_lo, eta_hi);
-     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpzbins, pzbins, false);
+     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpbins, pbins, false);
 
      proj_hi = Project2D ("", zeeJetHists[1][iPer][0][2], "x", "z", eta_lo, eta_hi);
-     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpzbins, pzbins, false);
+     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpbins, pbins, false);
 
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
@@ -240,7 +240,7 @@ void ZeeJetsHist () {
      vJetGraph_sys->SetFillStyle (3001);
 
      proj_mc_overlay = Project2D ("", zeeJetHists[1][iPer][1][1], "x", "z", eta_lo, eta_hi);
-     vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numpzbins, pzbins, false);
+     vJetHist_mc_overlay = GetProfileX ("vJetHist_mc_overlay", proj_mc_overlay, numpbins, pbins, false);
 
      vJetHist_mc_overlay->SetMarkerStyle (mcOverlayStyle);
      vJetHist_mc_overlay->SetMarkerColor (mcOverlayColor);
@@ -270,9 +270,9 @@ void ZeeJetsHist () {
      bottomPad->cd ();
      bottomPad->SetLogx ();
 
-     vJetHist_rat = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_iEta%i", iEta)), proj, proj_mc_overlay, numpzbins, pzbins, false, "x");
-     vJetHist_rat_lo = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_lo_iEta%i", iEta)), proj_lo, proj_mc_overlay, numpzbins, pzbins, false, "x");
-     vJetHist_rat_hi = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_hi_iEta%i", iEta)), proj_hi, proj_mc_overlay, numpzbins, pzbins, false, "x");
+     vJetHist_rat = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_iEta%i", iEta)), proj, proj_mc_overlay, numpbins, pbins, false, "x");
+     vJetHist_rat_lo = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_lo_iEta%i", iEta)), proj_lo, proj_mc_overlay, numpbins, pbins, false, "x");
+     vJetHist_rat_hi = GetDataOverMC (TString (Form ("zeeJetPtDataMCRatio_hi_iEta%i", iEta)), proj_hi, proj_mc_overlay, numpbins, pbins, false, "x");
 
      if (proj) { delete proj; proj = NULL; }
      if (proj_mc_overlay) { delete proj_mc_overlay; proj_mc_overlay = NULL; }
@@ -332,13 +332,13 @@ void ZeeJetsHist () {
    } // end loop over etabins
 
    /**** Now loop over pT bins and plot response as function of eta^jet ****/
-   for (short iP = 0; iP <= numpzbins; iP++) {
+   for (short iP = 0; iP <= numpbins; iP++) {
 
     int p_lo = iP+1;
     int p_hi = iP+1;
-    if (iP == numpzbins) {
+    if (iP == numpbins) {
      p_lo = 1;
-     p_hi = numpzbins;
+     p_hi = numpbins;
     }
 
     /**** Plots ZeeJet info ****/
@@ -403,7 +403,7 @@ void ZeeJetsHist () {
      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04/uPadY);
      myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
      myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     if (p_lo != 1 || p_hi != numpzbins)
+     if (p_lo != 1 || p_hi != numpbins)
       myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{ee} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
      else
       myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
@@ -457,7 +457,7 @@ void ZeeJetsHist () {
      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
     } // end loop of insitu configurations
 
-    if (iP < numpzbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
+    if (iP < numpbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
     else plotName = Form ("z_ee_jet_iP_combined.pdf");
     switch (iPer) {
      case 0:

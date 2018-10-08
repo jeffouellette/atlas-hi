@@ -85,7 +85,7 @@ void GammaJets (const char* directory,
     gJetHists[iErr]->Sumw2 ();
 
     //if (iErr == 1) {
-    // gJetHistsSys[iErr][iEta] = new TH2D (Form ("gJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data (), iEta, data.Data (), error.Data ()), "", numpzbins, pzbins, numSigmaBins, -maxSigma, maxSigma);
+    // gJetHistsSys[iErr][iEta] = new TH2D (Form ("gJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data (), iEta, data.Data (), error.Data ()), "", numpbins, pbins, numSigmaBins, -maxSigma, maxSigma);
     // gJetHistsSys[iErr][iEta]->Sumw2 ();
     //}
    }
@@ -94,7 +94,6 @@ void GammaJets (const char* directory,
   //int** nGammaJet = Get2DArray <int> (numetabins+1, numpbins+1);
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
-  dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
 
   const long long numEntries = tree->GetEntries ();
 
@@ -143,10 +142,6 @@ void GammaJets (const char* directory,
             trig->minPt <= photon_pt &&
             photon_pt <= trig->maxPt)))
        photonTrigger = trig;
-      //if (trig->trigPrescale > 0 &&
-      //    trig->minPt <= photon_pt &&
-      //    photon_pt <= trig->maxPt)
-      // photonTrigger = trig;
      }
      if (photonTrigger == NULL ||
          !photonTrigger->trigBool)
@@ -158,14 +153,13 @@ void GammaJets (const char* directory,
     // Put the photon in the right pt bin
     short iP = 0;
     if (pbins[0] < photon_pt &&
-        photon_pt < pbins[numpzbins]) {
+        photon_pt < pbins[numpbins]) {
      while (pbins[iP] < photon_pt) iP++;
     }
     iP--;
 
     // jet finding
     int lj = -1; // allowed to be in HEC when finding
-    int sj = -1; // not allowed to be in HEC when finding
     for (int j = 0; j < t->jet_n; j++) {
      // cuts on leading jet
      if (t->jet_pt->at (j) < jet_pt_cut)
@@ -182,23 +176,13 @@ void GammaJets (const char* directory,
      }
      if (minDeltaR < 0.4)
       continue; // require jet is not reconstructed as a photon
-     if (DeltaPhi (photon_phi, t->jet_phi->at (j)) < 3*pi/4)
+     if (DeltaPhi (photon_phi, t->jet_phi->at (j)) < 7*pi/8)
       continue; // cut on gamma+jet samples not back-to-back in the transverse plane
 
      // compare to the leading jet
      else if (lj == -1 ||
               t->jet_pt->at (lj) < t->jet_pt->at (j)) {
-      if (lj != -1 &&
-          !InDisabledHEC (t->jet_eta->at (lj), t->jet_phi->at (lj)))
-       sj = lj;
       lj = j;
-     }
-
-     // compare to the subleading jet
-     else if ( (sj == -1 ||
-               t->jet_pt->at (sj) < t->jet_pt->at (j)) &&
-              !InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j))) {
-      sj = j;
      }
     } // end jet finding loop
     if (lj == -1) // true iff there are no jets opposite photon
@@ -208,8 +192,6 @@ void GammaJets (const char* directory,
     const double ljet_pt = t->jet_pt->at (lj);
     const double ljet_eta = t->jet_eta->at (lj);
     const double ljet_phi = t->jet_phi->at (lj);
-    //const double sjet_pt = ( (0 <= sj && sj < t->jet_n) ? t->jet_pt->at (sj) : 0);
-    //const double sjet_phi = ( (0 <= sj && sj < t->jet_n) ? t->jet_phi->at (sj) : 0);
 
     // Put the jet in the right eta bin
     short iEta = 0;
@@ -241,14 +223,6 @@ void GammaJets (const char* directory,
     }
     if (hasOtherJet)
      continue; // cut on other jets that look back-to-back with gamma
-    //if (sjet_pt > 12) {
-    // const double subleading_dPhi = DeltaPhi (sjet_phi, photon_phi);
-    // //if (sjet_pt / photon_pt > 0.1)
-    // if (sjet_pt / (photon_pt * TMath::Cos (pi - subleading_dPhi)) > 0.2)
-    // //if (sjet_pt * TMath::Cos (pi - subleading_dPhi) / photon_pt > 0.2)
-    // //if (sjet_pt / photon_pt > 0.02)
-    //  continue; // suppress dijets by requiring leading jet to dominate ptref
-    //}
 
     // Calculate opening angle in the transverse plane
     const double dPhi = DeltaPhi (ljet_phi, photon_phi);
@@ -263,17 +237,9 @@ void GammaJets (const char* directory,
     // Fill xjref histograms
     for (short iErr = 0; iErr < 3; iErr++) {
      gJetHists[iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
-     //gJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
     }
     gJetCounts->Fill (photon_pt, ljet_eta);
-
-    //// if data, calculate additional systematics for this jet
-    //if (!isMC) {
-    // const double newJetPtSys = GetNewXCalibSystematicError (ljet_eta, photon_pt, isPeriodA) / ljet_pt;
-    // if (iEta != -1) gJetHistsSys[1][iEta]->Fill (ljet_pt, newJetPtSys, weight);
-    // gJetHistsSys[1][numetabins]->Fill (ljet_pt, newJetPtSys, weight);
-    //}
-   }
+   } // end loop over photons
     
   } // end loop over events
 
@@ -281,8 +247,6 @@ void GammaJets (const char* directory,
   // close root files with systematics
   xCalibSystematicsFile->Close ();
   if (xCalibSystematicsFile) delete xCalibSystematicsFile;
-  dataOverMCFile->Close ();
-  if (dataOverMCFile) delete dataOverMCFile;
   
   //////////////////////////////////////////////////////////////////////////////
   // End event loop
@@ -290,7 +254,6 @@ void GammaJets (const char* directory,
 
   const char* outFileName = Form ("%s/GammaJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
-
 
   // Write histograms to output and clean memory
   for (short iErr = 0; iErr < 3; iErr++) {

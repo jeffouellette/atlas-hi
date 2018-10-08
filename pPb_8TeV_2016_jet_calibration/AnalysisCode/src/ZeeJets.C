@@ -66,7 +66,6 @@ void ZeeJets (const char* directory,
 
   // initialize histograms
   TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
-  //TH2D* zeeJetHistsSys[3][numetabins];
   TH2D* zeeJetCounts;
 
   {
@@ -74,7 +73,7 @@ void ZeeJets (const char* directory,
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data(), data.Data()), "", numpzbins, pzbins, numetabins, etabins);
+   zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data(), data.Data()), "", numpbins, pbins, numetabins, etabins);
    zeeJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
@@ -82,15 +81,12 @@ void ZeeJets (const char* directory,
     if (iErr == 1) error = "stat";
     else if (iErr == 2) error = "sys_hi";
 
-    zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
     zeeJetHists[iErr]->Sumw2 ();
-    //zeeJetHistsSys[iErr][iEta] = new TH2D (Form ("zeeJetPtRatioSys_dataSet%s_iEta%i_%s_%s", identifier.Data (), iEta, data.Data (), error.Data ()), "", numpzbins, pzbins, numxjrefbins, xjrefbins);
-    //zeeJetHistsSys[iErr][iEta]->Sumw2 ();
    }
   }
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
-  dataOverMCFile = new TFile (rootPath + "cc_difference.root", "READ");
 
   const long long numEntries = tree->GetEntries ();
 
@@ -187,15 +183,14 @@ void ZeeJets (const char* directory,
 
      // Put the Z in the right pt bin
      short iP = 0;
-     if (pzbins[0] < Z_pt &&
-         Z_pt < pzbins[numpzbins]) {
-      while (pzbins[iP] < Z_pt) iP++;
+     if (pbins[0] < Z_pt &&
+         Z_pt < pbins[numpbins]) {
+      while (pbins[iP] < Z_pt) iP++;
      }
      iP--;
 
      // Jet finding
      int lj = -1; // allowed to be in disabled HEC while finding
-     int sj = -1; // not allowed to be in disabled HEC while finding
      for (int j = 0; j < t->jet_n; j++) {
       if (t->jet_pt->at (j) < jet_pt_cut)
        continue; // basic jet pT cut
@@ -211,30 +206,16 @@ void ZeeJets (const char* directory,
       // compare to leading jet
       else if (lj == -1 ||
                t->jet_pt->at (lj) < t->jet_pt->at (j)) {
-       if (lj != -1 && !InDisabledHEC (t->jet_eta->at (lj), t->jet_phi->at (lj)))
-        sj = lj;
        lj = j;
-      }
-
-      // compare to subleading jet
-      else if ( (sj == -1 ||
-                t->jet_pt->at (sj) < t->jet_pt->at (j)) &&
-               !InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j))) {
-       sj = j;
       }
      } // end jet finding loop
      if (lj == -1) // true iff no candidate jet is found
       continue; // reject on no candidate jet
 
-     // exclude uncorrected jets with pt < 20 GeV
-     //if (precalib_jet_pt->at (lj) < 20) continue;
-
      // relevant jet kinematic data
      const double ljet_pt = t->jet_pt->at (lj);
      const double ljet_eta = t->jet_eta->at (lj);
      const double ljet_phi = t->jet_phi->at (lj);
-     const double sjet_pt = ( (0 <= sj && sj < t->jet_n) ? t->jet_pt->at (sj) : 0);
-     const double sjet_phi = ( (0 <= sj && sj < t->jet_n) ? t->jet_phi->at (sj) : 0);
 
      // Put the jet in the right eta bin
      short iEta = 0;
@@ -244,19 +225,28 @@ void ZeeJets (const char* directory,
      }
      iEta--;
 
-
      // jet cuts
      if (iEta == -1)
       continue; // Reject jets outside eta bounds
      if (InDisabledHEC (ljet_eta, ljet_phi))
       continue; // Reject event on additional HEC cuts
-     if (sjet_pt > 12) {
-      const double subleading_dPhi = DeltaPhi (sjet_phi, Z_phi);
-      //if (sjet_pt / Z_pt > 0.3)
-      if (sjet_pt / (Z_pt * TMath::Cos (pi - subleading_dPhi)) > 0.2)
-      //if (sjet_pt * TMath::Cos (pi - subleading_dPhi) / Z_pt > 0.2)
-       continue; // suppress dijets by requiring leading jet to dominate ptref
+     bool hasOtherJet = false;
+     for (int j = 0; j < t->jet_n; j++) {
+      if (j == lj)
+       continue; // don't look at the leading jet, its our candidate :)
+      if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (j), t->electron_phi->at (e1), t->jet_phi->at (j)) < 0.2 ||
+          DeltaR (t->electron_eta->at (e2), t->jet_eta->at (j), t->electron_phi->at (e2), t->jet_phi->at (j)) < 0.2)
+       continue; // require jets to be isolated from both electrons
+      if (t->jet_pt->at (j) < 12 || InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+       continue; // basic jet pT cut, also reject on the disabled HEC
+      //const double s_dphi = DeltaPhi (t->jet_phi->at (j), Z.Phi ());
+      if (0.1 < t->jet_pt->at (j) / (Z.Pt ())) {
+       hasOtherJet = true;
+       break;
+      }
      }
+     if (hasOtherJet)
+      continue; // cut on other jets that look back-to-back with gamma
 
      // Calculate opening angle in the transverse plane
      const double dPhi = DeltaPhi (ljet_phi, Z_phi);
@@ -271,12 +261,8 @@ void ZeeJets (const char* directory,
      // Fill xjref histograms 
      for (short iErr = 0; iErr < 3; iErr++) {
       zeeJetHists[iErr]->Fill (Z_pt, ljet_eta, ptratio[iErr], weight);
-      //zeeJetHists[iErr]->Fill (ljet_pt, ljet_eta, ptratio[iErr], weight);
      }
      zeeJetCounts->Fill (Z_pt, ljet_eta);
-
-     // Fill additional systematics histograms
-     //for (short iErr = 0; iErr < 3; iErr++) zeeJetHistsSys[iErr][iEta]->Fill (ljet_pt, ptratio[iErr]/ptref, weight);
     }
    } // end loop over electron pairs
    // end Z->ee type events
@@ -287,8 +273,6 @@ void ZeeJets (const char* directory,
   // close root files with systematics
   xCalibSystematicsFile->Close ();
   if (xCalibSystematicsFile) delete xCalibSystematicsFile;
-  dataOverMCFile->Close ();
-  if (dataOverMCFile) delete dataOverMCFile;
   
   //////////////////////////////////////////////////////////////////////////////
   // End event loop
@@ -296,7 +280,6 @@ void ZeeJets (const char* directory,
 
   const char* outFileName = Form ("%s/ZeeJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
-
 
   // Write histograms to output and clean memory
   for (short iErr = 0; iErr < 3; iErr++) {

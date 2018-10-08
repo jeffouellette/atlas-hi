@@ -65,10 +65,10 @@ void EMTopoComparisonHist () {
       if (iPer == 1) period = "periodB";
       else if (iPer == 2) period = "periodAB";
 
-      zeeJetHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("zeeJetPtRatio_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+      zeeJetHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("zeeJetPtRatio_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
       zeeJetHists[iAlgo][iPer][iData][iErr]->Sumw2 ();
 
-      zmumuJetHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("zmumuJetPtRatio_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numetabins, etabins, numxjrefbins, xjrefbins);
+      zmumuJetHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("zmumuJetPtRatio_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
       zmumuJetHists[iAlgo][iPer][iData][iErr]->Sumw2 ();
 
       gJetHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("gJetPtRatio_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
@@ -78,8 +78,8 @@ void EMTopoComparisonHist () {
    }
   }
 
-  int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpzbins+1);
-  int***** nZmumuJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpzbins+1);
+  int***** nZeeJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpbins+1);
+  int***** nZmumuJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpbins+1);
   int***** nGammaJet = Get5DArray <int> (2, 3, 2, numetabins+1, numpbins+1);
 
   int nTotalJets[2] = {};
@@ -148,7 +148,7 @@ void EMTopoComparisonHist () {
          const bool flipEta = false;
          const short iEta_flip = (flipEta ? (numetabins - iEta - 1) : iEta);
 
-         for (short iP = 0; iP <= numpzbins; iP++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
           nZeeJet[iAlgo][iPer][0][iEta][iP] += (*nZeeJetVec)[iAlgo + 2* (iEta + iP* (numetabins+1))];
           nZeeJet[iAlgo][2][0][iEta][iP] += (*nZeeJetVec)[iAlgo + 2* (iEta_flip + iP* (numetabins+1))];
 
@@ -235,7 +235,7 @@ void EMTopoComparisonHist () {
          const bool flipEta = false;
          const short iEta_flip = (flipEta ? numetabins - iEta - 1 : iEta); // period A condition
 
-         for (short iP = 0; iP <= numpzbins; iP++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
           nZeeJet[iAlgo][iPer][1][iEta][iP] += (*nZeeJetVec)[iAlgo + 2* (iEta + iP* (numetabins+1))];
           nZeeJet[iAlgo][2][1][iEta][iP] += (*nZeeJetVec)[iAlgo + 2* (iEta_flip + iP* (numetabins+1))];
          }
@@ -274,7 +274,7 @@ void EMTopoComparisonHist () {
          const bool flipEta = false;
          const short iEta_flip = (flipEta ? numetabins - iEta - 1 : iEta); // period A condition
 
-         for (short iP = 0; iP <= numpzbins; iP++) {
+         for (short iP = 0; iP <= numpbins; iP++) {
           nZmumuJet[iAlgo][iPer][1][iEta][iP] += (*nZmumuJetVec)[iAlgo + 2* (iEta + iP* (numetabins+1))];
           nZmumuJet[iAlgo][2][1][iEta][iP] += (*nZmumuJetVec)[iAlgo + 2* (iEta_flip + iP* (numetabins+1))];
          }
@@ -304,7 +304,7 @@ void EMTopoComparisonHist () {
    const float dg = 0.05;
    const float dx = 0.2;
 
-   zlines[i] = new TLine (pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
+   zlines[i] = new TLine (pbins[0], 1.0-2*dz+dz*i, pbins[numpbins], 1.0-2*dz+dz*i);
    glines[i] = new TLine (pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
    xlines[i] = new TLine (xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
    dplines[i] = new TLine (dpbounds[i], 0.75, dpbounds[i], 2.15);
@@ -365,7 +365,7 @@ void EMTopoComparisonHist () {
      topPad->SetLogx ();
 
      proj = Project2D ("", zmumuJetHists[iAlgo][iPer][0][1], "x", "z", eta_lo, eta_hi);
-     vJetHist = GetProfileX ("vJetHist", proj, numpzbins, pzbins, false);
+     vJetHist = GetProfileX ("vJetHist", proj, numpbins, pbins, false);
 
      vJetHist->SetYTitle ("<#it{x}_{J}^{ref}>");
      double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
@@ -381,10 +381,10 @@ void EMTopoComparisonHist () {
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
      proj_lo = Project2D ("", zmumuJetHists[iAlgo][iPer][0][0], "x", "z", eta_lo, eta_hi);
-     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpzbins, pzbins, false);
+     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpbins, pbins, false);
 
      proj_hi = Project2D ("", zmumuJetHists[iAlgo][iPer][0][2], "x", "z", eta_lo, eta_hi);
-     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpzbins, pzbins, false);
+     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpbins, pbins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -395,8 +395,8 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->SetFillStyle (3001);
 
      proj_mc = Project2D ("", zmumuJetHists[iAlgo][iPer][1][1], "x", "z", eta_lo, eta_hi);
-     //vJetHist_mc = GetProfileX (Form ("zmumuJetHist_mc_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), zmumuJetHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false);
-     vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
+     //vJetHist_mc = GetProfileX (Form ("zmumuJetHist_mc_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), zmumuJetHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, false);
+     vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, false);
 
      vJetHist_mc->SetMarkerStyle (markerStyle);
      vJetHist_mc->SetMarkerColor (mcOverlayColor);
@@ -408,8 +408,8 @@ void EMTopoComparisonHist () {
      ((TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
      if (iAlgo == 0) {
-      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
       if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
@@ -421,9 +421,9 @@ void EMTopoComparisonHist () {
      bottomPad->cd ();
      bottomPad->SetLogx ();
 
-     vJetHist_rat = GetDataOverMC ("vJetHist_rat", proj, proj_mc, numpzbins, pzbins, false, "x");
-     vJetHist_rat_lo = GetDataOverMC ("vJetHist_rat_lo", proj_lo, proj_mc, numpzbins, pzbins, false, "x");
-     vJetHist_rat_hi = GetDataOverMC ("vJetHist_rat_hi", proj_hi, proj_mc, numpzbins, pzbins, false, "x");
+     vJetHist_rat = GetDataOverMC ("vJetHist_rat", proj, proj_mc, numpbins, pbins, false, "x");
+     vJetHist_rat_lo = GetDataOverMC ("vJetHist_rat_lo", proj_lo, proj_mc, numpbins, pbins, false, "x");
+     vJetHist_rat_hi = GetDataOverMC ("vJetHist_rat_hi", proj_hi, proj_mc, numpbins, pbins, false, "x");
 
      if (proj) { delete proj; proj = NULL; }
      if (proj_mc) { delete proj_mc; proj_mc = NULL; }
@@ -490,7 +490,7 @@ void EMTopoComparisonHist () {
      topPad->SetLogx ();
 
      proj = Project2D ("", zeeJetHists[iAlgo][iPer][0][1], "x", "z", eta_lo, eta_hi);
-     vJetHist = GetProfileX ("vJetHist", proj, numpzbins, pzbins, false);
+     vJetHist = GetProfileX ("vJetHist", proj, numpbins, pbins, false);
 
      vJetHist->SetYTitle ("<#it{x}_{J}^{ref}>");
      double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
@@ -506,10 +506,10 @@ void EMTopoComparisonHist () {
 
      // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
      proj_lo = Project2D ("", zeeJetHists[iAlgo][iPer][0][0], "x", "z", eta_lo, eta_hi);
-     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpzbins, pzbins, false);
+     vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpbins, pbins, false);
 
      proj_hi = Project2D ("", zeeJetHists[iAlgo][iPer][0][2], "x", "z", eta_lo, eta_hi);
-     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpzbins, pzbins, false);
+     vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpbins, pbins, false);
 
      vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
      CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -520,7 +520,7 @@ void EMTopoComparisonHist () {
      vJetGraph_sys->SetFillStyle (3001);
 
      proj_mc = Project2D ("", zeeJetHists[iAlgo][iPer][1][1], "x", "z", eta_lo, eta_hi);
-     vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpzbins, pzbins, false);
+     vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, false);
 
      vJetHist_mc->SetMarkerStyle (markerStyle);
      vJetHist_mc->SetMarkerColor (mcOverlayColor);
@@ -532,8 +532,8 @@ void EMTopoComparisonHist () {
      ((TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
 
      if (iAlgo == 0) {
-      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta][numpzbins]), 1.25, 0.04/uPadY);
-      myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta][numpzbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][iEta][numpbins]), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][iEta][numpbins]), 1.25, 0.04/uPadY);
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
       if (iEta < numetabins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
@@ -545,9 +545,9 @@ void EMTopoComparisonHist () {
      bottomPad->cd ();
      bottomPad->SetLogx ();
 
-     vJetHist_rat = GetDataOverMC ("vJetHist_rat", proj, proj_mc, numpzbins, pzbins, false, "x");
-     vJetHist_rat_lo = GetDataOverMC ("vJetHist_rat_lo", proj_lo, proj_mc, numpzbins, pzbins, false, "x");
-     vJetHist_rat_hi = GetDataOverMC ("vJetHist_rat_hi", proj_hi, proj_mc, numpzbins, pzbins, false, "x");
+     vJetHist_rat = GetDataOverMC ("vJetHist_rat", proj, proj_mc, numpbins, pbins, false, "x");
+     vJetHist_rat_lo = GetDataOverMC ("vJetHist_rat_lo", proj_lo, proj_mc, numpbins, pbins, false, "x");
+     vJetHist_rat_hi = GetDataOverMC ("vJetHist_rat_hi", proj_hi, proj_mc, numpbins, pbins, false, "x");
 
      if (proj) { delete proj; proj = NULL; }
      if (proj_mc) { delete proj_mc; proj_mc = NULL; }
@@ -731,10 +731,10 @@ void EMTopoComparisonHist () {
    }
 
 
-   for (short iP = 0; iP <= numpzbins; iP++) { // loop over bins in pt
+   for (short iP = 0; iP <= numpbins; iP++) { // loop over bins in pt
 
-    const int p_lo = (iP == numpzbins ? 1 : iP+1);
-    const int p_hi = (iP == numpzbins ? numpzbins : iP+1);
+    const int p_lo = (iP == numpbins ? 1 : iP+1);
+    const int p_hi = (iP == numpbins ? numpbins : iP+1);
 
     /**** Plot ZmumuJet info ****/
     for (short iAlgo = 0; iAlgo < 2; iAlgo++) { // loop over jet algorithms
@@ -791,7 +791,7 @@ void EMTopoComparisonHist () {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZmumuJet[iAlgo][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZmumuJet[iAlgo][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
+      if (iP < numpbins) myText (0.155, 0.15, dataColor, Form ("Z (#mu#mu) + Jet, %g < #it{p}_{T}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "Z (#mu#mu) + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
       myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
@@ -845,7 +845,7 @@ void EMTopoComparisonHist () {
      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
     }
 
-    if (iP < numpzbins) plotName = Form ("z_mumu_jet_iP%i.pdf", iP);
+    if (iP < numpbins) plotName = Form ("z_mumu_jet_iP%i.pdf", iP);
     else plotName = Form ("z_mumu_jet_iP_combined.pdf");
 
     switch (iPer) {
@@ -914,7 +914,7 @@ void EMTopoComparisonHist () {
       myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nZeeJet[iAlgo][iPer][0][numetabins][iP]), 1.25, 0.04/uPadY);
       myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV with #it{p}-Pb Overlay (%i events)", nZeeJet[iAlgo][iPer][1][numetabins][iP]), 1.25, 0.04/uPadY);
       myText (0.155, 0.22, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-      if (iP < numpzbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{Jet} < %g", pzbins[iP], pzbins[iP+1]), 0.04/uPadY);
+      if (iP < numpbins) myText (0.155, 0.15, dataColor, Form ("Z (ee) + Jet, %g < #it{p}_{T}^{Jet} < %g", pbins[iP], pbins[iP+1]), 0.04/uPadY);
       else myText (0.155, 0.15, dataColor, "Z (ee) + Jet", 0.04/uPadY);
       myText (0.155, 0.08, dataColor, period.Data (), 0.04/uPadY);
       myMarkerText (0.65, 0.66, dataColor, kFullCircle, "HI Jets", 1.25, 0.04/uPadY);
@@ -968,7 +968,7 @@ void EMTopoComparisonHist () {
      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
     }
 
-    if (iP < numpzbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
+    if (iP < numpbins) plotName = Form ("z_ee_jet_iP%i.pdf", iP);
     else plotName = Form ("z_ee_jet_iP_combined.pdf");
     switch (iPer) {
      case 0:
@@ -1114,8 +1114,8 @@ void EMTopoComparisonHist () {
    }
   }
 
-  Delete5DArray (nZeeJet, 2, 3, 2, numetabins+1, numpzbins+1);
-  Delete5DArray (nZmumuJet, 2, 3, 2, numetabins+1, numpzbins+1);
+  Delete5DArray (nZeeJet, 2, 3, 2, numetabins+1, numpbins+1);
+  Delete5DArray (nZmumuJet, 2, 3, 2, numetabins+1, numpbins+1);
   Delete5DArray (nGammaJet, 2, 3, 2, numetabins+1, numpbins+1);
 
   Delete4DArray (zeeJetHists, 2, 3, 2, 3);

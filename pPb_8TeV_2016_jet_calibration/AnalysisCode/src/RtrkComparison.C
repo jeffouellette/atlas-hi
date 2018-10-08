@@ -110,7 +110,7 @@ void RtrkComparison (const char* directory,
      if (iErr == 1) error = "stat";
      else if (iErr == 2) error = "sys_hi";
 
-     jetRtrkHists[iAlgo][iErr][iEta] = new TH2D (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_%s_%s", identifier.Data (), algo.Data (), iEta, (isMC ? "mc":"data"), error.Data ()), "", numpzbins, pzbins, numrtrkbins, rtrkbins);
+     jetRtrkHists[iAlgo][iErr][iEta] = new TH2D (Form ("jetRtrkDist_dataSet%s_%s_iEta%i_%s_%s", identifier.Data (), algo.Data (), iEta, (isMC ? "mc":"data"), error.Data ()), "", numpbins, pbins, numrtrkbins, rtrkbins);
      jetRtrkHists[iAlgo][iErr][iEta]->Sumw2 ();
     }
    }

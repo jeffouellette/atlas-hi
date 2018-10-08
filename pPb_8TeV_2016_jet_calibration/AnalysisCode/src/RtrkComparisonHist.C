@@ -62,7 +62,7 @@ void RtrkComparisonHist () {
        if (iPer == 1) period = "periodB";
        else if (iPer == 2) period = "periodAB";
 
-       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D (Form ("jetRtrkDist_iEta%i_%s_%s_%s_%s", iEta, algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpzbins, pzbins, numrtrkbins, rtrkbins);
+       jetRtrkHists[iAlgo][iPer][iEta][iData][iErr] = new TH2D (Form ("jetRtrkDist_iEta%i_%s_%s_%s_%s", iEta, algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numrtrkbins, rtrkbins);
        jetRtrkHists[iAlgo][iPer][iEta][iData][iErr]->Sumw2 ();
       }
      }
@@ -286,7 +286,7 @@ void RtrkComparisonHist () {
    const float dg = 0.05;
    const float dx = 0.2;
 
-   zlines[i] = new TLine (pzbins[0], 1.0-2*dz+dz*i, pzbins[numpzbins], 1.0-2*dz+dz*i);
+   zlines[i] = new TLine (pbins[0], 1.0-2*dz+dz*i, pbins[numpbins], 1.0-2*dz+dz*i);
    glines[i] = new TLine (pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
    xlines[i] = new TLine (xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
    dplines[i] = new TLine (dpbounds[i], 0.75, dpbounds[i], 2.15);
@@ -338,7 +338,7 @@ void RtrkComparisonHist () {
      const Style_t markerStyle = (iAlgo == 0 ? 20 : 24);
      topPad->cd ();
      topPad->SetLogx ();
-     jetRtrkHist = GetProfileX (Form ("jetRtrk_Hist_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpzbins, pzbins, true);
+     jetRtrkHist = GetProfileX (Form ("jetRtrk_Hist_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][0][1], numpbins, pbins, true);
      jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
      jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{calo}>");
      jetRtrkHist->SetAxisRange (0., 2.0, "Y");
@@ -351,15 +351,15 @@ void RtrkComparisonHist () {
      jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
 
      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpzbins, pzbins, true);
-     jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpzbins, pzbins, true);
+     jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", jetRtrkHists[iAlgo][iPer][iEta][0][0], numpbins, pbins, true);
+     jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", jetRtrkHists[iAlgo][iPer][iEta][0][2], numpbins, pbins, true);
      CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
      if (jetRtrkHist_lo) delete jetRtrkHist_lo;
      if (jetRtrkHist_hi) delete jetRtrkHist_hi;
      jetRtrkGraph_sys->SetFillColor (kBlack);
      jetRtrkGraph_sys->SetFillStyle (3001);
 
-     jetRtrkHist_mc = GetProfileX (Form ("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, true);
+     jetRtrkHist_mc = GetProfileX (Form ("jetRtrk_Hist_mc_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta), jetRtrkHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, true);
      jetRtrkHist_mc->SetMarkerStyle (markerStyle);
      jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
      jetRtrkHist_mc->SetLineColor (mcOverlayColor);
@@ -382,10 +382,10 @@ void RtrkComparisonHist () {
      bottomPad->cd ();
      bottomPad->SetLogx ();
 
-     jetRtrkHist_rat = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][1], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+     jetRtrkHist_rat = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_%s_%s_iEta%i", algo.Data (), perType.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][1], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, false, "x");
      jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
-     jetRtrkHist_rat_lo = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][0], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
-     jetRtrkHist_rat_hi = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][2], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpzbins, pzbins, false, "x");
+     jetRtrkHist_rat_lo = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][0], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, false, "x");
+     jetRtrkHist_rat_hi = GetDataOverMC (TString (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", algo.Data (), iEta)), jetRtrkHists[iAlgo][iPer][iEta][0][2], jetRtrkHists[iAlgo][iPer][iEta][1][1], numpbins, pbins, false, "x");
      CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
      if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
      if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
