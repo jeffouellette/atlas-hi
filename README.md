@@ -12,3 +12,6 @@ This subdirectory is allocated for offline electron performance analyses in the 
 ## pPb 8TeV 2016 Jet Calibration ##
 This subdirectory contains code and output from my ATLAS qualification task, which is primarily to perform a jet calibration on pPb 8TeV MC15 data.
 
+## pPb 8TeV 2016 Jet Track Analysis ##
+This subdirectory is for analyzing jet-track correlations in the 2016 p+Pb 8.16TeV dataset.
+
