@@ -2,11 +2,7 @@
 #define __GlobalParams_h__
 
 #include <TMath.h>
-#include <TH1.h>
 #include <TString.h>
-#include <TGraphAsymmErrors.h>
-#include <TH2D.h>
-#include <TH3D.h>
 
 using namespace std;
 
@@ -68,80 +64,6 @@ const double Z_width = 2.4952; // width of the Z peak in GeV
 const double pi = TMath::Pi();
 
 /** End general parameters **/
-
-
-/**
- * Returns a TString summarizing a measurement.
- * By default, there is only 1 significant digit in the error.
- * E.g., FormatMeasurement (40.58, 1.29) returns "40#pm1".
- * Or, FormatMeasurement (40.58, 1.29, 2) returns "40.6#pm1.3".
- */
-const char* FormatMeasurement (double val, double err, const int n=1);
-
-
-/**
- * Modifies the directory strings to point to the correct locations.
- */
-void SetupDirectories (const TString dataSubDir, const TString thisWorkPath);
-
-
-/**
- * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
- */
-double* linspace (double lo, double hi, int num);
-
-
-/**
- * Returns a logarithmically spaced array, where the 0th element is lo and the num-th element is hi.
- */
-double* logspace (double lo, double hi, int num);
-
-
-/**
- * Returns the equivalent angle in the range 0 to 2pi.
- */
-double InTwoPi (double phi);
-
-
-/**
- * Returns the difference between two angles in 0 to pi.
- */
-double DeltaPhi (double phi1, double phi2);
-
-
-/**
- * Returns dR between two eta, phi coordinates.
- */
-double DeltaR (const double eta1, const double eta2, const double phi1, const double phi2 );
-
-
-/**
- * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
- */
-bool InDisabledHEC (const double eta, double phi);
-
-
-/**
- * Returns true iff this eta lies within the EMCal.
- */
-bool InEMCal (const float eta);
-
-
-/**
- * Returns true iff this object is within a given radius in the HCal.
- */
-bool InHadCal (const float eta, const float R = 0.4);
-
-
-/**
- * Calculates the systematic errors on optimal, storing the results in graph.
- */
-void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo);
-
-/**
- * Creates a projection of a TH3 with the specified axes by integrating between min and max on the 3rd axis of the TH3.
- */
-TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxis, const int min, const int max);
 
 
 } // end namespace

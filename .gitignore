@@ -6,40 +6,48 @@ lib
 *.zip
 
 # 2016 pPb dijets
-pPb_8TeV_2016_dijetAnalysis/AnalysisCode/lib
-pPb_8TeV_2016_dijetAnalysis/data
-pPb_8TeV_2016_dijetAnalysis/rootFiles
-pPb_8TeV_2016_dijetAnalysis/HepData*
-pPb_8TeV_2016_dijetAnalysis/Slides
-pPb_8TeV_2016_dijetAnalysis/Derivation/*.root
-pPb_8TeV_2016_dijetAnalysis/Plots
+DijetAnalysis/AnalysisCode/lib
+DijetAnalysis/data
+DijetAnalysis/rootFiles
+DijetAnalysis/HepData*
+DijetAnalysis/Slides
+DijetAnalysis/Derivation/*.root
+DijetAnalysis/Plots
 
 # 2016 pPb data overlay
-pPb_8TeV_2016_dijetAnalysis/Validation/*.pdf
+DijetAnalysis/Validation/*.pdf
 
 # 2017 pp run
 pp_5TeV_2017_offlineElectronAnalysis/Data/
 
 # 2016 8TeV pPb jet calibration
-pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
-pPb_8TeV_2016_jet_calibration/data
-pPb_8TeV_2016_jet_calibration/rootFiles
-pPb_8TeV_2016_jet_calibration/old_calib
-pPb_8TeV_2016_jet_calibration/pPb_dR2
-pPb_8TeV_2016_jet_calibration/pPb_dR4
-pPb_8TeV_2016_jet_calibration/Pbp_dR2
-pPb_8TeV_2016_jet_calibration/Pbp_dR4
-pPb_8TeV_2016_jet_calibration/pPb_R4_dR2
-pPb_8TeV_2016_jet_calibration/pPb_R4_dR4
-pPb_8TeV_2016_jet_calibration/Pbp_R4_dR2
-pPb_8TeV_2016_jet_calibration/Pbp_R4_dR4
-pPb_8TeV_2016_jet_calibration/testCalibrationTrees/*
-pPb_8TeV_2016_jet_calibration/Plots
-pPb_8TeV_2016_jet_calibration/Slides
-pPb_8TeV_2016_jet_calibration/AnalysisCode/lib
-pPb_8TeV_2016_jet_calibration/AnalysisCode/obj
-pPb_8TeV_2016_jet_calibration/runFiles/bin
-pPb_8TeV_2016_jet_calibration/runFiles/obj
+JetCalibration/AnalysisCode/lib
+JetCalibration/data
+JetCalibration/rootFiles
+JetCalibration/old_calib
+JetCalibration/pPb_R4_dR2
+JetCalibration/Pbp_R4_dR2
+JetCalibration/pPb_R3_dR2
+JetCalibration/Pbp_R3_dR2
+JetCalibration/pPb_R2_dR2
+JetCalibration/Pbp_R2_dR2
+JetCalibration/testCalibrationTrees/*
+JetCalibration/Plots
+JetCalibration/Slides
+JetCalibration/AnalysisCode/lib
+JetCalibration/AnalysisCode/obj
+JetCalibration/runFiles/bin
+JetCalibration/runFiles/obj
+
+# 2016 8TeV pPb jet track analysis
+JetTrackAnalysis/AnalysisCode/lib
+JetTrackAnalysis/AnalysisCode/obj
+JetTrackAnalysis/Plots
+JetTrackAnalysis/Slides
+JetTrackAnalysis/rootFiles
+JetTrackAnalysis/runFiles/bin
+JetTrackAnalysis/runFiles/obj
+
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib
@@ -52,25 +60,25 @@ pythiaPhotonjet/*.root
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
 # PDF files in top-level directory
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.pdf
+JetCalibration/atlaslatex-05-06-00/*.pdf
 # PDF files produced by epstopdf
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*-eps-converted-to.pdf
+JetCalibration/atlaslatex-05-06-00/*-eps-converted-to.pdf
 
 # Generic files to ignore
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.aux
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.bcf
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.bbl
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*-blx.bib
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.blg
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/.*.lb
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.fdb_latexmk
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.fls
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.lof
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.log
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.lot
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.out
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.run.xml
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.spl
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.synctex.gz
-pPb_8TeV_2016_jet_calibration/atlaslatex-05-06-00/*.toc
+JetCalibration/atlaslatex-05-06-00/*.aux
+JetCalibration/atlaslatex-05-06-00/*.bcf
+JetCalibration/atlaslatex-05-06-00/*.bbl
+JetCalibration/atlaslatex-05-06-00/*-blx.bib
+JetCalibration/atlaslatex-05-06-00/*.blg
+JetCalibration/atlaslatex-05-06-00/.*.lb
+JetCalibration/atlaslatex-05-06-00/*.fdb_latexmk
+JetCalibration/atlaslatex-05-06-00/*.fls
+JetCalibration/atlaslatex-05-06-00/*.lof
+JetCalibration/atlaslatex-05-06-00/*.log
+JetCalibration/atlaslatex-05-06-00/*.lot
+JetCalibration/atlaslatex-05-06-00/*.out
+JetCalibration/atlaslatex-05-06-00/*.run.xml
+JetCalibration/atlaslatex-05-06-00/*.spl
+JetCalibration/atlaslatex-05-06-00/*.synctex.gz
+JetCalibration/atlaslatex-05-06-00/*.toc
 

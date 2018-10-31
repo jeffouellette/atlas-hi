@@ -1,8 +1,13 @@
 #include "Initialization.h"
+#include "GlobalParams.h"
+#include "Utils.h"
+
 #include <iostream>
 #include <fstream>
 
 namespace atlashi {
+
+vector<Trigger*> triggerVec (0);
 
 bool InTriggerVec(const string trigName) {
   for (Trigger* trig : triggerVec) {
@@ -75,8 +80,9 @@ void SetupTriggers (const int runNumber) {
   numtrigs = triggerVec.size();
 
   /**** Assign indices for tree branching. ****/
-  for (int i = 0; i < numtrigs; i++) {
-    triggerVec[i]->index = i;
+  int i = 0;
+  for (Trigger* trig : triggerVec) {
+    trig->index = i++;
   }
   /**** End assign indices ****/
   return;

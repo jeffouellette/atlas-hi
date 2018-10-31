@@ -2,7 +2,6 @@
 #define __Initialization_h__
 
 #include <vector>
-#include "GlobalParams.h"
 #include "Trigger.h"
 
 using namespace std;
@@ -15,9 +14,7 @@ namespace atlashi {
  * Dated: 4/25/2018
  */
 
-using namespace std;
-
-vector<Trigger*> triggerVec(0); // total list of triggers used.
+extern vector<Trigger*> triggerVec; // total list of triggers used.
 const int trigThres = 0; // Additional threshold requirement for triggers
 const string minbiasTriggerName = "HLT_mb_mbts_L1MBTS_1";
 
