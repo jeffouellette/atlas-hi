@@ -276,17 +276,7 @@ void ZmumuJetsHist () {
     if (iEta < numetabins) plotName = Form ("z_mumu_jet_iEta%i.pdf", iEta);
     else plotName = Form ("z_mumu_jet_iEta_combined.pdf");
 
-    switch (iPer) {
-     case 0:
-      canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-      break;
-     case 1:
-      canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-      break;
-     case 2:
-      canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-      break;
-    } // end switch
+    canvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
 
    } // end loop over etabins
 
@@ -450,17 +440,7 @@ void ZmumuJetsHist () {
     if (iP < numpbins) plotName = Form ("z_mumu_jet_iP%i.pdf", iP);
     else plotName = Form ("z_mumu_jet_iP_combined.pdf");
 
-    switch (iPer) {
-     case 0:
-      canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-      break;
-     case 1:
-      canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-      break;
-     case 2:
-      canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-      break;
-    } // end switch
+    canvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
 
    } // end loop over pT bins
   } // end loop over beam periods

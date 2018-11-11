@@ -31,7 +31,7 @@ const double isolationEnergyIntercept = 4.8; // Cut on photon isolation energy [
 const double isolationEnergySlope = 0.0042; // Slope of photon isolation energy cut
 
 // plotting variables
-const Color_t dataColor = kBlack; // plot color for data
+//const Color_t dataColor = kBlack; // plot color for data
 const Color_t mcOverlayColor = kRed; // plot color for MC overlay
 const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
@@ -42,7 +42,7 @@ const bool skipSignalMC = true; // whether to skip plotting results with signal 
 
 const bool useGaussian = false; // whether to use Gaussian fits when creating custom TProfiles
 
-const bool plot_xjref = false; // whether to plot xjref distributions
+const bool plot_xjref = true; // whether to plot xjref distributions
 
 const bool calcPtClosure = true; // whether the energy scale calculations will use pT (true) or E (false)
 

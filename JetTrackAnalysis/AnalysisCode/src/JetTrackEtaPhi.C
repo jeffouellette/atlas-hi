@@ -66,31 +66,34 @@ void JetTrackEtaPhi (const char* directory,
 
   vector <Trigger*> triggers = {};
   if (!isMC) {
-   //for (int iTrig = 0; iTrig < nJetTrig; iTrig++) {
-   // Trigger* trig = new Trigger (jetTrigNames[iTrig].Data (), jetTrigMinPtCuts[iTrig], jetTrigMinEtaCuts[iTrig], jetTrigMaxEtaCuts[iTrig]);
-   // trig->minPt = trig->thresPt;
-   // tree->SetBranchAddress (jetTrigNames[iTrig], &(trig->trigBool));
-   // tree->SetBranchAddress (jetTrigNames[iTrig]+"_prescale", &(trig->trigPrescale));
-   // triggers.push_back (trig);
+   for (int iTrig = 0; iTrig < nJetTrig; iTrig++) {
+    Trigger* trig = new Trigger (jetTrigNames[iTrig].Data (), jetTrigMinPtCuts[iTrig], jetTrigMinEtaCuts[iTrig], jetTrigMaxEtaCuts[iTrig]);
+    trig->minPt = jetTrigMinPtCuts[iTrig];
+    trig->maxPt = jetTrigMaxPtCuts[iTrig];
+    tree->SetBranchAddress (jetTrigNames[iTrig], &(trig->trigBool));
+    tree->SetBranchAddress (jetTrigNames[iTrig]+"_prescale", &(trig->trigPrescale));
+    triggers.push_back (trig);
+   }
+   //if (dataSet < 313629) {
+   // for (int iTrig = 0; iTrig < nJetTrigIon; iTrig++) {
+   //  Trigger* trig = new Trigger (jetTrigNamesIon[iTrig].Data (), jetTrigMinPtCutsIon[iTrig], jetTrigMinEtaCutsIon[iTrig], jetTrigMaxEtaCutsIon[iTrig]);
+   //  trig->minPt = jetTrigMinPtCutsIon[iTrig];
+   //  trig->maxPt = jetTrigMaxPtCutsIon[iTrig];
+   //  tree->SetBranchAddress (jetTrigNamesIon[iTrig], &(trig->trigBool));
+   //  tree->SetBranchAddress (jetTrigNamesIon[iTrig]+"_prescale", &(trig->trigPrescale));
+   //  triggers.push_back (trig);
+   // }
    //}
-   if (dataSet < 313629) {
-    for (int iTrig = 0; iTrig < nJetTrigIon; iTrig++) {
-     Trigger* trig = new Trigger (jetTrigNamesIon[iTrig].Data (), jetTrigMinPtCutsIon[iTrig], jetTrigMinEtaCutsIon[iTrig], jetTrigMaxEtaCutsIon[iTrig]);
-     trig->minPt = trig->thresPt;
-     tree->SetBranchAddress (jetTrigNamesIon[iTrig], &(trig->trigBool));
-     tree->SetBranchAddress (jetTrigNamesIon[iTrig]+"_prescale", &(trig->trigPrescale));
-     triggers.push_back (trig);
-    }
-   }
-   else {
-    for (int iTrig = 0; iTrig < nJetTrigPP; iTrig++) {
-     Trigger* trig = new Trigger (jetTrigNamesPP[iTrig].Data (), jetTrigMinPtCutsPP[iTrig], jetTrigMinEtaCutsPP[iTrig], jetTrigMaxEtaCutsPP[iTrig]);
-     trig->minPt = trig->thresPt;
-     tree->SetBranchAddress (jetTrigNamesPP[iTrig], &(trig->trigBool));
-     tree->SetBranchAddress (jetTrigNamesPP[iTrig]+"_prescale", &(trig->trigPrescale));
-     triggers.push_back (trig);
-    }
-   }
+   //else {
+   // for (int iTrig = 0; iTrig < nJetTrigPP; iTrig++) {
+   //  Trigger* trig = new Trigger (jetTrigNamesPP[iTrig].Data (), jetTrigMinPtCutsPP[iTrig], jetTrigMinEtaCutsPP[iTrig], jetTrigMaxEtaCutsPP[iTrig]);
+   //  trig->minPt = jetTrigMinPtCutsPP[iTrig];
+   //  trig->maxPt = jetTrigMaxPtCutsPP[iTrig];
+   //  tree->SetBranchAddress (jetTrigNamesPP[iTrig], &(trig->trigBool));
+   //  tree->SetBranchAddress (jetTrigNamesPP[iTrig]+"_prescale", &(trig->trigPrescale));
+   //  triggers.push_back (trig);
+   // }
+   //}
   }
 
   TH2D* JetTrackDeltaEtaDeltaPhi[numCentBins][2] = {};
@@ -112,10 +115,10 @@ void JetTrackEtaPhi (const char* directory,
     JetTrackDeltaEtaDeltaPhi[iCent][iCut]->Sumw2 ();
    }
 
-   JetPtSpectrum[iCent] = new TH2D (Form ("JetPtSpectrum_cent%i", iCent), "", 20, 20, 100, numetabins, etabins);
+   JetPtSpectrum[iCent] = new TH2D (Form ("JetPtSpectrum_cent%i", iCent), "", 28, 20, 140, numetabins, etabins);
    JetPtSpectrum[iCent]->Sumw2 ();
 
-   JetCounts[iCent] = new TH2D (Form ("JetCounts_cent%i", iCent), "", 20, 20, 100, numetabins, etabins);
+   JetCounts[iCent] = new TH2D (Form ("JetCounts_cent%i", iCent), "", 28, 20, 140, numetabins, etabins);
    JetCounts[iCent]->Sumw2 ();
 
    TrackPtSpectrum[iCent] = new TH2D (Form ("TrackPtSpectrum_cent%i", iCent), "", 99, 0.5, 50, 10, -2.5, 2.5);
@@ -194,7 +197,7 @@ void JetTrackEtaPhi (const char* directory,
    float prescale = -1;
    if (!isMC) {
     for (Trigger* trig : triggers) {
-     if (t->jet_pt->at (lj) < trig->thresPt || t->jet_eta->at (lj) < trig->lowerEta || trig->upperEta < t->jet_eta->at (lj)|| !trig->trigBool)
+     if (t->jet_pt->at (lj) < trig->minPt || trig->maxPt < t->jet_pt->at (lj) || t->jet_eta->at (lj) < trig->lowerEta || trig->upperEta < t->jet_eta->at (lj)|| !trig->trigBool)
       continue;
      else if (trig->trigPrescale > 0 && (prescale < 0 || trig->trigPrescale < prescale))
       prescale = trig->trigPrescale;
@@ -207,12 +210,14 @@ void JetTrackEtaPhi (const char* directory,
    }
    JetSelectionHist[iCent]->Fill (2); // trigger fired
 
-   //for (int iJet = 0; iJet < t->jet_n; iJet++) {
-   // JetPtSpectrum[iCent]->Fill (t->jet_pt->at (iJet), t->jet_eta->at (iJet), prescale);
-   // JetCounts[iCent]->Fill (t->jet_pt->at (iJet), t->jet_eta->at (iJet));
-   //}
-   JetPtSpectrum[iCent]->Fill (t->jet_pt->at (lj), t->jet_eta->at (lj), prescale);
-   JetCounts[iCent]->Fill (t->jet_pt->at (lj), t->jet_eta->at (lj));
+   for (int iJet = 0; iJet < t->jet_n; iJet++) {
+    if (InDisabledHEC (t->jet_eta->at (iJet), t->jet_phi->at (iJet)))
+     continue;
+    JetPtSpectrum[iCent]->Fill (t->jet_pt->at (iJet), t->jet_eta->at (iJet), prescale);
+    JetCounts[iCent]->Fill (t->jet_pt->at (iJet), t->jet_eta->at (iJet));
+   }
+   //JetPtSpectrum[iCent]->Fill (t->jet_pt->at (lj), t->jet_eta->at (lj), prescale);
+   //JetCounts[iCent]->Fill (t->jet_pt->at (lj), t->jet_eta->at (lj));
 
    {
     float dphi = DeltaPhi (t->jet_phi->at (lj), t->jet_phi->at (slj), true);
@@ -256,11 +261,16 @@ void JetTrackEtaPhi (const char* directory,
     continue; // jet pT cut
    JetSelectionHist[iCent]->Fill (7);
 
-   if (abs (t->jet_eta->at (lj)) > 2.5) 
-    continue; // reject jets outside barrel to avoid a centrality bias
+   if (isPeriodA && t->jet_eta->at (lj) > 3.2) 
+    continue; // reject leading jets outside barrel to avoid a centrality bias
+   else if (!isPeriodA && t->jet_eta->at (lj) < -3.2)
+    continue;
    JetSelectionHist[iCent]->Fill (8);
-   if (abs (t->jet_eta->at (slj)) > 2.5)
-    continue; // reject jets outside barrel to avoid a centrality bias
+
+   if (isPeriodA && t->jet_eta->at (slj) > 3.2) 
+    continue; // reject subleading jets outside barrel to avoid a centrality bias
+   else if (!isPeriodA && t->jet_eta->at (slj) < -3.2)
+    continue;
    JetSelectionHist[iCent]->Fill (9);
 
    for (int iTrk = 0; iTrk < t->ntrk; iTrk++) {
@@ -296,8 +306,8 @@ void JetTrackEtaPhi (const char* directory,
   for (short iCent = 0; iCent < numCentBins; iCent++) {
    JetPtSpectrum[iCent]->Scale (1., "width");
    TrackPtSpectrum[iCent]->Scale (1., "width");
-   JetTrackDeltaEtaDeltaPhi[iCent][0]->Scale (1., "width");
-   JetTrackDeltaEtaDeltaPhi[iCent][1]->Scale (1., "width");
+   //JetTrackDeltaEtaDeltaPhi[iCent][0]->Scale (1., "width");
+   //JetTrackDeltaEtaDeltaPhi[iCent][1]->Scale (1., "width");
    DijetDeltaEtaDeltaPhi[iCent]->Scale (1., "width");
    DijetEta1Eta2[iCent]->Scale (1., "width");
    DijetAj[iCent]->Scale (1., "width");

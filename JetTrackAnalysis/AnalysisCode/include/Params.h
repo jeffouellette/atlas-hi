@@ -39,56 +39,78 @@ const float centCuts[4] = {1000, 54.2686, 28.6388, 3.04914};
 const float centBins[4] = {0, 15, 40, 90};
 const int numCentBins = sizeof (centCuts) / sizeof (centCuts[0]) - 1;
 
-const int nJetTrigIon = 4;
+const int nJetTrigIon = 1;
 const TString jetTrigNamesIon[nJetTrigIon] = {
-  "HLT_j30_ion_0eta490_L1TE10",
-  "HLT_j15_ion_n320eta490_L1MBTS_1_1",
-  "HLT_j25_ion_n320eta490_L1TE5",
-  "HLT_j35_ion_n320eta490_L1TE10"
+//  "HLT_j30_ion_0eta490_L1TE10",
+//  "HLT_j15_ion_n320eta490_L1MBTS_1_1",
+//  "HLT_j25_ion_n320eta490_L1TE5",
+//  "HLT_j35_ion_n320eta490_L1TE10"
+  "HLT_j40_ion_L1J5"
 };
 const float jetTrigMinPtCutsIon[nJetTrigIon] = {
-  30,
-  15,
-  25,
-  35,
+//  30,
+//  15,
+//  25,
+//  35,
+  40
+};
+const float jetTrigMaxPtCutsIon[nJetTrigIon] = {
+//  10000,
+//  25,
+//  15,
+//  10000,
+  10000
 };
 const float jetTrigMinEtaCutsIon[nJetTrigIon] = {
-  -4.9,
-  -4.9,
-  -4.9,
-  -4.9
-};
-const float jetTrigMaxEtaCutsIon[nJetTrigIon] = {
-   4.9,
-  -3.2,
-  -3.2,
+//  -3.2,
+//  -4.9,
+//  -4.9,
+//  -4.9
   -3.2
 };
+const float jetTrigMaxEtaCutsIon[nJetTrigIon] = {
+//   4.9,
+//  -3.2,
+//  -3.2,
+//  -3.2
+  3.2
+};
 
-const int nJetTrigPP = 4;
+const int nJetTrigPP = 1;
 const TString jetTrigNamesPP[nJetTrigPP] = {
-  "HLT_j30_0eta490_L1TE10",
-  "HLT_j15_p320eta490_L1MBTS_1_1",
-  "HLT_j25_p320eta490_L1TE5",
-  "HLT_j35_p320eta490_L1TE10",
+//  "HLT_j30_0eta490_L1TE10",
+//  "HLT_j15_p320eta490_L1MBTS_1_1",
+//  "HLT_j25_p320eta490_L1TE5",
+//  "HLT_j35_p320eta490_L1TE10",
+  "HLT_j40_L1J5"
 };
 const float jetTrigMinPtCutsPP[nJetTrigPP] = {
-  30,
-  15,
-  25,
-  35,
+//  30,
+//  15,
+//  25,
+//  35,
+  40
+};
+const float jetTrigMaxPtCutsPP[nJetTrigPP] = {
+//  10000,
+//  25,
+//  35,
+//  10000,
+  10000
 };
 const float jetTrigMinEtaCutsPP[nJetTrigPP] = {
-  -4.9,
-   3.2,
-   3.2,
-   3.2,
+//  -4.9,
+//   3.2,
+//   3.2,
+//   3.2,
+ -3.2
 };
 const float jetTrigMaxEtaCutsPP[nJetTrigPP] = {
-   4.9,
-   4.9,
-   4.9,
-   4.9,
+//   3.2,
+//   4.9,
+//   4.9,
+//   4.9,
+  3.2
 };
 
 const int nJetTrig = 1;
@@ -97,6 +119,9 @@ const TString jetTrigNames [nJetTrig] = {
 };
 const float jetTrigMinPtCuts [nJetTrig] = {
   20
+};
+const float jetTrigMaxPtCuts [nJetTrig] = {
+  10000
 };
 const float jetTrigMinEtaCuts [nJetTrig] = {
   -4.9

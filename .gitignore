@@ -48,6 +48,14 @@ JetTrackAnalysis/rootFiles
 JetTrackAnalysis/runFiles/bin
 JetTrackAnalysis/runFiles/obj
 
+# 2018 5.02 TeV Pb+Pb offline analysis
+OfflineAnalysis/AnalysisCode/lib
+OfflineAnalysis/AnalysisCode/obj
+OfflineAnalysis/Plots
+OfflineAnalysis/Slides
+OfflineAnalysis/rootFiles
+OfflineAnalysis/runFiles/bin
+OfflineAnalysis/runFiles/obj
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib

@@ -351,7 +351,6 @@ TFile* GetFile (const char* directory, const int dataSet, const bool isMC, const
 
   // Now get the list of files
   const TString dataPathTemp = dataPath + "/" + directory + "/";
-  cout << "dataPathTemp = " << dataPathTemp << endl;
   TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
   TList* sysfiles = dir.GetListOfFiles ();
   if (!sysfiles) {

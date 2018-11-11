@@ -184,9 +184,14 @@ void JetTrackEtaPhiHist () {
      thisHist = JetTrackDeltaEtaDeltaPhi[iCent][iCut]->ProjectionY (Form ("JetTrackDeltaEtaDeltaPhi_py%i_cent%i", iEta, iCent), eta_lo*10 + 1, eta_hi*10);
      float scale = JetSelectionHist[iCent]->GetBinContent (11);
 
+     thisHist->Scale (0.1);
+
      thisHist->Rebin (4);
-     if (iEta >= 1)
-      thisHist->Rebin (2); // rebin again by 2
+     thisHist->Scale (0.25);
+     //if (iEta >= 1) {
+     // thisHist->Rebin (2); // rebin again by 2
+     // thisHist->Scale (0.5);
+     //}
 
      thisHist->Scale (1. / scale);
 
@@ -224,7 +229,7 @@ void JetTrackEtaPhiHist () {
      TH1D* thisHist = hArr[iCent];
 
      thisHist->GetYaxis ()->SetRangeUser (0, 1.1* max);
-     thisHist->GetYaxis ()->SetTitle ("d^{2}N_{trk} / N_{jet} d#Delta#phi");
+     thisHist->GetYaxis ()->SetTitle ("1/N_{jet} dN_{trk}/d#Delta#phi,  ZYAM");
      thisHist->GetXaxis ()->SetTitle ("#phi_{det}^{Jet} - #phi_{det}^{Trk}");
      thisHist->GetXaxis ()->SetTitleOffset (1);
      thisHist->GetYaxis ()->SetTitleOffset (1.2);
@@ -236,19 +241,37 @@ void JetTrackEtaPhiHist () {
       thisHist->DrawCopy ("same e1 x0");
      if (thisHist) { delete thisHist; hArr[iCent] = NULL; }
 
-     if (iEta == 0)
-      myMarkerText (0.74, 0.74 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
-    }
-    if (iEta == 0) {
-     myText (0.6, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-     myText (0.6, 0.795, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
-    }
-    else {
-     myText (0.2, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+     if (iEta == 0) {
+      if (iCut == 0) {
+       myMarkerText (0.74, 0.72 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
+      }
+      else {
+       myMarkerText (0.74, 0.72 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
+      }
+     }
     }
 
-    if (iEta == 1 && iCut == 1) {
-     myText (0.2, 0.79, kBlack, "#left|#Delta#eta_{sublead.}^{Trk}#right| > 2", 0.045/gPad->GetHNDC ());
+    if (iCut == 0) {
+     if (iEta == 0) {
+      myText (0.6, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.6, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
+     }
+     else {
+      myText (0.2, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.2, 0.81, kBlack, "#it{p}_{T}^{lead} > 20 GeV", 0.045/gPad->GetHNDC ());
+     }
+    }
+    else {
+     if (iEta == 0) {
+      myText (0.6, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.6, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
+     }
+     else {
+      myText (0.2, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.2, 0.81, kBlack, "#left|#Delta#eta_{sublead.}^{Trk}#right| > 2", 0.045/gPad->GetHNDC ());
+      myText (0.2, 0.73, kBlack, "#it{p}_{T}^{lead} > 20 GeV", 0.045/gPad->GetHNDC ());
+      myText (0.2, 0.65, kBlack, "#it{p}_{T}^{sublead} > 10 GeV", 0.045/gPad->GetHNDC ());
+     }
     }
    }
    JetTrackPhiCanvas->SaveAs (Form ("%s/JetTrackPhiCorr_cut%i.pdf", plotPath.Data (), iCut));

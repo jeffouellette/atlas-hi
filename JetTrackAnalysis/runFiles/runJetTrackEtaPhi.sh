@@ -1,10 +1,11 @@
 version=321
 
-#./bin/runJetTrackEtaPhi xAOD_${version} 313107 false true &
+./bin/runJetTrackEtaPhi xAOD_${version} 313107 false true &
 #./bin/runJetTrackEtaPhi xAOD_${version} 313136 false true &
 ./bin/runJetTrackEtaPhi xAOD_${version} 313295 false true &
 ./bin/runJetTrackEtaPhi xAOD_${version} 313935 false false &
-#./bin/runJetTrackEtaPhi xAOD_${version} 314077 false false &
+./bin/runJetTrackEtaPhi xAOD_${version} 314077 false false &
+./bin/runJetTrackEtaPhi xAOD_${version} 314112 false false &
 
 wait
 
