@@ -21,7 +21,7 @@ const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
 const short numphibins = 128;
 const double* phibins = linspace (-TMath::Pi ()/2., 3*TMath::Pi ()/2, numphibins);
 
-const float jet_pt_cut = 20;
+const float jet_pt_cut = 30;
 const float trk_pt_cut = 0.5;
 
 const float trijetMaxPtRatio = 0.4;

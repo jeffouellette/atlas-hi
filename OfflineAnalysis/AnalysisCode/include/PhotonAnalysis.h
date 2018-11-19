@@ -3,7 +3,7 @@
 
 namespace offlineAnalyses {
 
-void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir="Express");
+void PhotonAnalysis (const int dataSet, const bool isMC, const float lumi, const char* subdir="Express");
 
 } // end namespace
 

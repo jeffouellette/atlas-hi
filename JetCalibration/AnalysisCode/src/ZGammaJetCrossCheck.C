@@ -90,42 +90,43 @@ void ZGammaJetCrossCheck (const char* directory,
   } // end branch triggers
 
   // initialize histograms
-  //TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
-  //TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
-  //TH3D** gJetHists = Get1DArray <TH3D*> (3);
-  TH3D** vJetHists = Get1DArray <TH3D*> (3);
+  TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
+  TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
+  TH3D** gJetHists = Get1DArray <TH3D*> (3);
+  //TH3D** vJetHists = Get1DArray <TH3D*> (3);
 
-  TH2D* vJetCounts = NULL;//gJetCounts,* zeeJetCounts,* zmumuJetCounts;
+  //TH2D* vJetCounts = NULL;
+  TH2D *gJetCounts = NULL, *zeeJetCounts = NULL, *zmumuJetCounts = NULL;
 
   {
    TString data = "data";
    if (isMC && !isSignalOnlySample) data = "mc_overlay";
    else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   //gJetCounts = new TH2D (Form ("gJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
-   //gJetCounts->Sumw2();
-   //zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
-   //zeeJetCounts->Sumw2();
-   //zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
-   //zmumuJetCounts->Sumw2();
-   vJetCounts = new TH2D (Form ("vJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
-   vJetCounts->Sumw2();
+   gJetCounts = new TH2D (Form ("gJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+   gJetCounts->Sumw2();
+   zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+   zeeJetCounts->Sumw2();
+   zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+   zmumuJetCounts->Sumw2();
+   //vJetCounts = new TH2D (Form ("vJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+   //vJetCounts->Sumw2();
 
    for (short iErr = 0; iErr < 3; iErr++) {
     TString error = "sys_lo";
     if (iErr == 1) error = "stat";
     else if (iErr == 2) error = "sys_hi";
 
-    //zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    //zeeJetHists[iErr]->Sumw2 ();
+    zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zeeJetHists[iErr]->Sumw2 ();
 
-    //zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    //zmumuJetHists[iErr]->Sumw2 ();
+    zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    zmumuJetHists[iErr]->Sumw2 ();
 
-    //gJetHists[iErr] = new TH3D (Form ("gJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    //gJetHists[iErr]->Sumw2 ();
-    vJetHists[iErr] = new TH3D (Form ("vJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    vJetHists[iErr]->Sumw2 ();
+    gJetHists[iErr] = new TH3D (Form ("gJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    gJetHists[iErr]->Sumw2 ();
+    //vJetHists[iErr] = new TH3D (Form ("vJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+    //vJetHists[iErr]->Sumw2 ();
    }
   }
 
@@ -283,9 +284,9 @@ void ZGammaJetCrossCheck (const char* directory,
 
      // Fill xjref histograms 
      for (short iErr = 0; iErr < 3; iErr++) {
-      vJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
+      zeeJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
      }
-     vJetCounts->Fill (Z.Pt (), ljet_eta);
+     zeeJetCounts->Fill (Z.Pt (), ljet_eta);
     }
    } // end loop over electron pairs
    // end Z->ee type events
@@ -411,9 +412,9 @@ void ZGammaJetCrossCheck (const char* directory,
 
      // Fill dimuon xjref histograms
      for (short iErr = 0; iErr < 3; iErr++) {
-      vJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
+      zmumuJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
      }
-     vJetCounts->Fill (Z.Pt (), ljet_eta);
+     zmumuJetCounts->Fill (Z.Pt (), ljet_eta);
     }
    } // end loop over muon pairs
    // end Z->mumu type events
@@ -517,9 +518,9 @@ void ZGammaJetCrossCheck (const char* directory,
 
     // Fill xjref histograms
     for (short iErr = 0; iErr < 3; iErr++) {
-     vJetHists[iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
+     gJetHists[iErr]->Fill (photon_pt, ljet_eta, ptratio[iErr], weight);
     }
-    vJetCounts->Fill (photon_pt, ljet_eta);
+    gJetCounts->Fill (photon_pt, ljet_eta);
    }
     
   } // end loop over events

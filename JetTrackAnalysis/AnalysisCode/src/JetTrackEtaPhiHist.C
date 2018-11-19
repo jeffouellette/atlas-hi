@@ -22,6 +22,7 @@ void JetTrackEtaPhiHist () {
   SetupDirectories ("JetTrackEtaPhi/", "JetTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  //TFile* inFile = new TFile (Form ("%s/outFile_mc.root", rootPath.Data ()), "read");
 
   //vector<int> runNumbers (0);
   //for (short i = 0; i < sizeof (full_run_list)/sizeof (full_run_list[0]); i++) runNumbers.push_back (full_run_list[i]);
@@ -109,7 +110,7 @@ void JetTrackEtaPhiHist () {
    DijetDeltaPhiCanvas->cd ();
    gPad->SetLogy ();
    TH1D* th = DijetDeltaEtaDeltaPhi[iCent]->ProjectionY ();
-   th->GetYaxis ()->SetRangeUser (1e4, 1e7);
+   th->GetYaxis ()->SetRangeUser (1e6, 1e9);
    th->SetLineColor (colors[iCent]);
    th->SetMarkerColor (colors[iCent]);
    th->GetYaxis ()->SetTitle ("Relative counts");
@@ -118,10 +119,10 @@ void JetTrackEtaPhiHist () {
   
    if (iCent == numCentBins-1) {
     th->DrawCopy ("e1");
-    TLine* line1 = new TLine (3*pi/4, 1e4, 3*pi/4, 1e7);
+    TLine* line1 = new TLine (3*pi/4, 1e6, 3*pi/4, 1e9);
     line1->SetLineStyle (7);
     line1->Draw ();
-    TLine* line2 = new TLine (5*pi/4, 1e4, 5*pi/4, 1e7);
+    TLine* line2 = new TLine (5*pi/4, 1e6, 5*pi/4, 1e9);
     line2->SetLineStyle (7);
     line2->Draw ();
    }
@@ -158,9 +159,9 @@ void JetTrackEtaPhiHist () {
   TCanvas* JetTrackPhiCanvas = new TCanvas ("JetTrackPhiCanvas", "", 1200, 600);
   TPad* leftPad = new TPad ("leftPad", "", 0, 0, 0.50, 1);
   TPad* rightPad = new TPad ("rightPad", "", 0.50, 0, 1, 1);
-  leftPad->SetLeftMargin (0.15);
+  leftPad->SetLeftMargin (0.20);
   leftPad->SetRightMargin (0.02);
-  rightPad->SetLeftMargin (0.15);
+  rightPad->SetLeftMargin (0.20);
   rightPad->SetRightMargin (0.02);
   JetTrackPhiCanvas->Draw ();
   leftPad->Draw ();
@@ -232,7 +233,7 @@ void JetTrackEtaPhiHist () {
      thisHist->GetYaxis ()->SetTitle ("1/N_{jet} dN_{trk}/d#Delta#phi,  ZYAM");
      thisHist->GetXaxis ()->SetTitle ("#phi_{det}^{Jet} - #phi_{det}^{Trk}");
      thisHist->GetXaxis ()->SetTitleOffset (1);
-     thisHist->GetYaxis ()->SetTitleOffset (1.2);
+     thisHist->GetYaxis ()->SetTitleOffset (1.6);
      thisHist->SetLineColor (colors[iCent]);
      thisHist->SetMarkerColor (colors[iCent]);
      if (iCent == numCentBins-1)
@@ -253,24 +254,24 @@ void JetTrackEtaPhiHist () {
 
     if (iCut == 0) {
      if (iEta == 0) {
-      myText (0.6, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-      myText (0.6, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
+      myText (0.65, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.65, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
      }
      else {
-      myText (0.2, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-      myText (0.2, 0.81, kBlack, "#it{p}_{T}^{lead} > 20 GeV", 0.045/gPad->GetHNDC ());
+      myText (0.25, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.25, 0.81, kBlack, "#it{p}_{T}^{lead} > 30 GeV", 0.045/gPad->GetHNDC ());
      }
     }
     else {
      if (iEta == 0) {
-      myText (0.6, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-      myText (0.6, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
+      myText (0.65, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.65, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
      }
      else {
-      myText (0.2, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-      myText (0.2, 0.81, kBlack, "#left|#Delta#eta_{sublead.}^{Trk}#right| > 2", 0.045/gPad->GetHNDC ());
-      myText (0.2, 0.73, kBlack, "#it{p}_{T}^{lead} > 20 GeV", 0.045/gPad->GetHNDC ());
-      myText (0.2, 0.65, kBlack, "#it{p}_{T}^{sublead} > 10 GeV", 0.045/gPad->GetHNDC ());
+      myText (0.25, 0.89, kBlack, Form ("%g < #left|#Delta#eta^{Jet}_{Trk}#right| < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+      myText (0.25, 0.81, kBlack, "#left|#Delta#eta_{sublead.}^{Trk}#right| > 2", 0.045/gPad->GetHNDC ());
+      myText (0.25, 0.73, kBlack, "#it{p}_{T}^{lead} > 30 GeV", 0.045/gPad->GetHNDC ());
+      myText (0.25, 0.65, kBlack, "#it{p}_{T}^{sublead} > 30 GeV", 0.045/gPad->GetHNDC ());
      }
     }
    }

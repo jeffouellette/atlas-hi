@@ -14,7 +14,7 @@ void Compare () {
   insitu2016->SetLineColor(kBlue);
 
   insitu2015->GetXaxis()->SetTitle ("jet #it{p}_{T} #left[GeV#right]");
-  insitu2015->GetYaxis()->SetTitle ("<Insitu Factor>");
+  insitu2015->GetYaxis()->SetTitle ("Insitu Factor");
 
   insitu2015->Draw("hist");
   insitu2016->Draw("same hist");
@@ -28,24 +28,24 @@ void Compare () {
   myStyle->SetPalette(55);
   SetAtlasStyle();
 
-  TH2D* etaInsitu2015 = (TH2D*)f2015->Get("AntiKt4EMTopo_EtaInterCalibration");
-  TH2D* etaInsitu2016 = (TH2D*)f2016->Get("AntiKt4EMTopo_EtaInterCalibration");
+  TH2D* etaIntercalib2015 = (TH2D*)f2015->Get("AntiKt4EMTopo_EtaInterCalibration");
+  TH2D* etaIntercalib2016 = (TH2D*)f2016->Get("AntiKt4EMTopo_EtaInterCalibration");
 
-  etaInsitu2015->Draw("col");
+  etaIntercalib2015->Draw("col");
   c->SaveAs ("EtaInsitu2015.pdf");
 
-  etaInsitu2016->Draw("col");
+  etaIntercalib2016->Draw("col");
   c->SaveAs ("EtaInsitu2016.pdf");
 
   FormatTH2Canvas (c);
 
-  TH2D* ratio = (TH2D*)etaInsitu2016->Clone();
+  TH2D* ratio = (TH2D*)etaIntercalib2016->Clone();
   ratio->SetName("AntiKt4EMTopo_EtaInterCalibration_2016_over_2015");
-  ratio->Divide(etaInsitu2015);
+  ratio->Divide(etaIntercalib2015);
 
   ratio->GetYaxis()->SetTitleOffset (0.75);
   ratio->GetZaxis()->SetTitleOffset (1.3);
-  ratio->GetZaxis()->SetTitle ("Ratio of Insitu Factors, 2016 / 2015");
+  ratio->GetZaxis()->SetTitle ("Ratio of Intercalib. Factors, 2016 / 2015");
 
   ratio->Draw("colz");
 

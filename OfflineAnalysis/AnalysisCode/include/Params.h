@@ -5,6 +5,8 @@
 
 using namespace std;
 
+namespace offlineAnalyses {
+
 const int electronTrigN = 22;
 const string electronTrigNames[electronTrigN] = {
   "HLT_e13_etcut_ion",
@@ -76,10 +78,20 @@ const string jetTrigNames[jetTrigN] = {
   "HLT_j170_320eta490_ion"
 };
 
-const double pbins[22] = {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 100, 120, 150, 180, 220, 240, 300, 350};
+const double pbins[11] = {0, 20, 30, 40, 50, 60, 80, 100, 125, 150, 200};
 const int numpbins = sizeof (pbins) / sizeof (pbins[0]) - 1;
 
 const double etabins[4] = {0, 1.37, 1.52, 2.37};
 const int numetabins = sizeof (etabins) / sizeof (etabins[0]) - 1;
+
+const float showerShapeBinsLow[12] = {-0.02, -0.04, 0, 0.7, 0.5, 0.2, 0.005, 0.5, -0.2, 0, -10, 0.6};
+const float showerShapeBinsHigh[12] = {0.02, 0.04, 100000, 1, 1.1, 1, 0.02, 4, 0.6, 0.9, 350, 1};
+
+const int showerShapeMCRebinFactors[12] = {4, 4, 8, 8, 4, 8, 8, 4, 16, 8, 4, 4};
+
+const int runNumbers[15] = {365498, 365502, 365512, 365573, 365602, 365627, 365678, 365681, 365709, 365752, 365763, 365768, 365834, 365932, 366011};
+const int numRunNumbers = sizeof (runNumbers) / sizeof (runNumbers[0]);
+
+} // end namespace
 
 #endif

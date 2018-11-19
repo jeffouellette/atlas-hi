@@ -114,9 +114,13 @@
 \label{sec:intro}
 %-------------------------------------------------------------------------------
 
-The reconstruction of anti-$k_{\text{T}}$ jets is well-known to misestimate the jet energy scale and pseudorapidity. Here, a standard numerical inversion method is applied to the heavy ion jet algorithm to estimate the $\eta$-dependent jet energy scale in truth-matched MC \cite{ATL-COM-PHYS-2014-795}. Further, to apply the \textit{in situ} corrections to the heavy ions jet algorithm \cite{ATLAS-CONF-2015-017}, the cross-calibration used in 2015 Pb+Pb collisions is applied to jets in the 2016 pPb collisions . The applicability of the cross-calibration is studied via momentum balance in events containing a vector boson and a jet. Although the original configuration of the cross-calibration applied the 2015 \textit{in situ} factors for EMTopo jets, a known issue between software releases led to different \textit{in situ} factors in 2016 \cite{ATLAS-CONF-2015-017}, so a new configuration has been created.\par
+The reconstruction of anti-$k_{\text{T}}$ jets is well-known to misestimate the jet energy scale and pseudorapidity. Here, a standard numerical inversion method is applied to the heavy ion jet algorithm to estimate the $\eta$-dependent jet energy scale in truth-matched MC \cite{ATL-COM-PHYS-2014-795}. This initial calibration sequence is referred to as the EtaJES calibration. In \textit{pp} collisions, jets are further calibrated in data to account for smaller differences observed in Monte Carlo. For EMTopo jets --  the reference jet collection used in heavy ion collisions -- this amounts to two sequential calibrations. First, the intercalibration of jets at forward rapidity is performed relative to dijet partners at central rapidity, as the momentum balance is expected to be even at leading order in QCD (NC). Then, jets at central rapidity are calibrated by studying the direct balance of jets relative to Z bosons and photons. These two calibration sequences are performed together in what is referred to as the \textit{in situ} calibration.\par
+
+In heavy ion collisions, the \textit{in situ} calibration factors cannot be directly determined. Instead, the performance of heavy ion jets is studied relative to EMTopo jets in \textit{pp} collisions, and then used to extrapolate calibration factors for heavy ion jets. This additional calibration -- referred to as the cross-calibration \cite{ATLAS-CONF-2015-017} -- has been derived for the Pb+Pb and \textit{pp} collisions at $\sqrt{s}=\SI{5.02}{\TeV}$ from 2015 \cite{ATL-COM-PHYS-2016-1253}. Therefore, the applicability of these cross-calibration factors to the 2016 heavy ion data is studied via the direct balance method in events containing a Z boson or photon opposite to a jet. Although the original configuration of the cross-calibration applied the 2015 \textit{in situ} factors for EMTopo jets, a known issue between software releases led to different \textit{in situ} factors in 2016 \cite{ATLAS-CONF-2015-017}, so a new configuration has been created.\par
+
 To derive the EtaJES corrections, 10 total jet $\pt$ samples were generated with Pythia 8, with 5 slices per beam direction. In checking the cross-calibration, a combination of Pythia 8 $\gamma$ + jet, $Z\rightarrow\ee$, and $Z\rightarrow\mumu$ events were used. A complete list of the samples used can be found in Table \ref{tab:samples}.
 
+A full procedure for applying the derived calibration sequence to jets in the 2016 \textit{p}+Pb data at $\SI{8.16}{\TeV}$ can be found at \cite{HIRun2JESdata2016}.
 
 %-------------------------------------------------------------------------------
 \section{Reconstruction of jets}
@@ -138,7 +142,7 @@ Lastly, a portion of the hadronic calorimeter end cap (referred to as the ``HEC'
 %-------------------------------------------------------------------------------
 
 A standard procedure for deriving the EtaJES corrections in the ATLAS detector is provided on twiki using the \texttt{DeriveJES} tool \cite{DeriveMCJES2015}. Briefly, jets are reconstructed at the EM scale and truth matched within a radius of $0.4$ in MC. The jet energy response $E_{\text{reco}}/E_{\text{true}}$ is calculated in $\eta_{\text{reco}}$ bins from $-4.5$ to $4.5$ with width $\Delta\eta = 0.1$ and $E_{\text{true}}$ bins as shown in Table \ref{tab:etruebins}. The pseudorapidity response $\eta_{\text{reco}}-\eta_{\text{true}}$ is also calculated in the same bins. Calculating the numerical inversion imposes additional cuts on the jets. For the $\eta$ correction, reconstructed jets are required to have $p_{\text{T}} > \SI{8}{\GeV}$, and $\pt > \SI{10}{\GeV}$ is required for the JES correction. These cuts can be changed in a configuration file used by the \texttt{DeriveJES} tool.\par
-In each bin, the average energy response of the jets is calculated as a function of $E_{true}$ and $\eta_{\text{det}}$. This quantity is then inverted to calibrate jets in both data and MC. The response and closure curves are all fitted with gaussians around the mean using data within $1.7\sigma$ for the jet energy response and closure, $1.9\sigma$ for the $\pt$ closure, and $1.7\sigma$ for the $\eta$ response. A sample energy response is shown in Figure \ref{fig:SampleEnergyResponse}.
+In each bin, the average energy response of the jets is calculated as a function of $E_{\text{true}}$ and $\eta_{\text{det}}$. This quantity is then inverted to calibrate jets in both data and MC. The response and closure curves are all fitted with gaussians around the mean using data within $1.7\sigma$ for the jet energy response and closure, $1.9\sigma$ for the $\pt$ closure, and $1.7\sigma$ for the $\eta$ response. A sample energy response is shown in Figure \ref{fig:SampleEnergyResponse}.
 \begin{center}
 \begin{table}
 \resizebox{\linewidth}{!}{
@@ -150,14 +154,12 @@ $E_{\text{true}}$ bin edges (GeV) & \multicolumn{11}{c|}{} \\ \hline
 & 160 & 180 & 200 & 220 & 240 & 260 & 280 & 300 & 320 & 360 & 400 \\ 
 & 450 & 500 & 550 & 600 & 700 & 800 & 900 & 1000 & 1200 & 1400 & 1600 \\ 
 & 1800 & 2000 & 2200 & 2600 & 3000 & 3500 & 4000 & 5000 & & & \\ \hline
-
 \end{tabular}
 }
 \caption{$E_{\text{true}}$ bin edges used in deriving the EtaJES corrections.}
 \label{tab:etruebins}
 \end{table}
 \end{center}
-
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=\textwidth]{figures/pPb_R4_sampleEnergyResponse.pdf}
@@ -165,7 +167,7 @@ $E_{\text{true}}$ bin edges (GeV) & \multicolumn{11}{c|}{} \\ \hline
 	\label{fig:SampleEnergyResponse}
 \end{figure}\par
 The energy response in bins of $E_{\text{true}}$ can be seen in Figure \ref{fig:EnergyResponse}, and the closure can be seen in Figure \ref{fig:EnergyClosure}. Similarly, the pseudorapidity response is also corrected by the tool. The response in $\eta_{\text{det}}$ can be seen in Figure \ref{fig:EtaResponse} and the closure in Figure \ref{fig:EtaClosure}, all in the same bins in $E_{\text{True}}$.\par
-Both sets of corrections are derived twice, once for each beam direction, because the p+Pb collision system is inherently asymmetric in $\eta$. In the period A collision system, the lead ion is moving towards positive $\eta$ and the proton towards negative $\eta$, with reversed kinematics in period B. The procedure for applying these calibrations can be found on the twiki for $R=0.2, 0.3, 0.4$ jets \cite{HIRun2JESdata2016}. Additionally, the full calibration results for each collection and beam configuration can be downloaded at \cite{pPbR4,pPbR3,pPbR2,PbpR4,PbpR3,PbpR2}.
+Both sets of corrections are derived twice, once for each beam direction, as the \textit{p}+Pb collision system is inherently asymmetric in $\eta$. In the period A collision system, the lead ion is moving towards positive $\eta$ and the proton towards negative $\eta$, with reversed kinematics in period B. The procedure for applying these calibrations can be found on the twiki for $R=0.2, 0.3, 0.4$ jets \cite{HIRun2JESdata2016}. Additionally, the full calibration results for each collection and beam configuration can be downloaded at \cite{pPbR4,pPbR3,pPbR2,PbpR4,PbpR3,PbpR2}.
 
 \begin{figure}[htbp]
 	\centering
@@ -242,22 +244,21 @@ Both sets of corrections are derived twice, once for each beam direction, becaus
 	{\small $\text{dR}\left(\gamma, \text{jet}\right) > 0.4$} & {\small $\text{dR}\left(\text{e}, \text{jet}\right) > 0.2$ for both electrons} & {\small $\text{dR}\left(\mu, \text{jet}\right) > 0.2$ for both muons}  \\ \hline
 	{\small $\text{d}\phi_{\text{jet}, \gamma} > 3\pi/4$} & {\small $\text{d}\phi_{\text{jet}, \Zboson} > 3\pi/4$} & {\small $\text{d}\phi_{\text{jet}, \Zboson} > 3\pi/4$} \\ \hline
 	{\small $\pt^{\text{other jets}} / \pt^{\text{ref}} < 0.1$} & {\small $\pt^{\text{other jets}} / \pt^{\text{ref}} < 0.1$} & {\small $\pt^{\text{other jets}} / \pt^{\text{ref}} < 0.1$}  \\ \hline
-	{\small $\et^{\text{iso}} < \SI{4.8}{GeV} + 0.0042\et^{\gamma}$}& {\small $\SI{-25}{\GeV} < m_{\textit{ee}} - m_{\Zboson} < \SI{15}{GeV}$} & {\small $\SI{-25}{\GeV} < m_{\mu\mu} - m_{\Zboson} < \SI{15}{GeV}$} \\ \hline
+	{\small $\et^{\text{iso}} < \SI{4.8}{\GeV} + 0.0042\et^{\gamma}$}& {\small $\SI{-25}{\GeV} < m_{\textit{ee}} - m_{\Zboson} < \SI{15}{\GeV}$} & {\small $\SI{-25}{\GeV} < m_{\mu\mu} - m_{\Zboson} < \SI{15}{\GeV}$} \\ \hline
 \end{tabular}
 }
 \caption{Criteria used to select events containing a back-to-back vector boson and jet pair. For each type of event, one of the listed triggers is required to have fired in the data. Minimum $p_{\text{T}}$ requirements are imposed on each type of reconstructed particle or jet, as well as isolation requirements away from the jets to reduce misidentification. For Z events, a mass cut is also imposed and for photon events, a sufficiently low isolation energy is required.}
 \label{tab:eventSelection}
 \end{table}
 \end{center}
-
 %-------------------------------------------------------------------------------
-\section{Testing the Application of the 2015 Cross-Calibration}
+\section{Testing the Applicability of the 2015 Cross-Calibration}
 \label{sec:EtaJES}
 %-------------------------------------------------------------------------------
 
 Additional corrections to reconstructed jet 4-momenta are required due to differences between the standard EMTopo jets studied in $pp$ collisions and HI jets, which should not have the same \textit{in situ} corrections applied. Performance of the HI algorithm with respect to the EMTopo algorithm has been studied in $pp$ collisions, and the corresponding corrections are applied to HI jets in heavy ion systems. To understand how well the previous cross-calibration corrections from 2015 \cite{ATL-COM-PHYS-2016-1253} can be applied in the 2016 data, the $\pt$ balance of vector bosons with jets is studied in data and MC.\par
 \subsection{Event Selection}
-In addition to applying the good run list (in data) and \texttt{LooseBad} jet cleaning, events are selected using the criteria found in Table \ref{tab:eventSelection}. All jets have a radius $R=0.4$ and are corrected using the derived EtaJES calibrations relevant to the beam direction. In data, the 2015 cross calibration and the 2016 \textit{in situ} corrections are also applied. Figure \ref{fig:insituComp} shows a comparison of the \textit{in situ} factors between 2015 and 2016 - a clear difference is seen, so the 2016 factors are therefore applied instead \cite{ATLAS-CONF-2015-017}.
+In addition to applying the good run list in data and \texttt{LooseBad} jet cleaning, events are selected using the criteria found in Table \ref{tab:eventSelection}. All jets have a radius $R=0.4$ and are corrected using the derived EtaJES calibrations relevant to the beam direction. In data, the 2015 cross calibration and the 2016 \textit{in situ} corrections are also applied. Figure \ref{fig:insituComp} shows a comparison of the \textit{in situ} factors between 2015 and 2016 - a clear difference is seen, so the 2016 factors are therefore applied instead \cite{ATLAS-CONF-2015-017}.
 \begin{figure}[htbp]
 	\centering
 	\subfloat[]{
@@ -268,24 +269,23 @@ In addition to applying the good run list (in data) and \texttt{LooseBad} jet cl
 		\includegraphics[width=0.45\textwidth]{../InsituComparison/CompareSummary.pdf}
 		\label{fig:insituCompSummary}
 	}
-	\caption{A comparison of the \textit{in situ} factors from 2015 data to 2016 data. Left: the \textit{in situ} factors in 2016 are divided by those in 2015, as a function of $\eta$ and $\pt$. Right: the \textit{in situ} factors for each year are averaged over $\eta$ and displayed as a function of $\pt$, showing a substantial difference.}
+	\caption{A comparison of the recommended \textit{in situ} factors for EMTopo jets between 2015 and 2016. Left: the intercalibration factors in 2016 are divided by those in 2015, as a function of $\pt$ and $\eta$. Right: the \textit{in situ} factors for each year are displayed as a function of $\pt$, showing a substantial difference.}
 	\label{fig:insituComp}
 \end{figure}
 
-Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. The projection onto the antiparallel is intended to account for soft radiation from the jet that is (potentially) missed by the jet finding algorithm.
+Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. The projection onto the antiparallel is intended to account for soft radiation from the jet that is potentially missed by the jet finding algorithm.
 \begin{equation}
 	x_{\text{J}}^{\text{ref}} = \frac{\pt^{\text{jet}}}{\pt^{\text{V}} \cos{\Delta\phi}}
 	\label{eq:xjref}
 \end{equation}
 Because the jet response is $\pt$-dependent, and the cross-calibration factors depend on $\eta_{\text{det}}^{\text{Jet}}$, $x_{\text{J}}^{\text{ref}}$ has been averaged as a function of $\pt^{\text{ref}}$ and $\eta_{\text{det}}^{\text{Jet}}$. 
 
-Additionally, a hadronic background subtraction procedure is also performed exclusively in the $\gamma$-tagged events. Because the photon purity has been previously studied in this collision system, contributions from background photons can be estimated. Measured distributions of reconstructed photons marked as loose-non-tight (LNT) can be subtracted as a background, under the assumption that the shape of the loose-non-tight distribution matches the background shape:
+Additionally, a hadronic background subtraction procedure is also performed exclusively in the $\gamma$-tagged events. Because the photon purity has been previously studied in this data, contributions from background photons can be estimated. Measured distributions of reconstructed photons marked as loose-non-tight (LNT) can be subtracted as a background, under the assumption that the shape of the loose-non-tight distribution matches the background shape:
 \begin{equation}
 	\frac{dN_{\text{tight}}}{dx^{\text{ref}}_{\text{J}}}\bigg{|}_{\text{bkg}} = (1 - p) \times \frac{N_{\text{tight}}}{N_{\text{LNT}}} \times \frac{dN_{\text{LNT}}}{dx^{\text{ref}}_{\text{J}}}
 	\label{eq:bkg}
 \end{equation}
  where $p$ is the photon purity \cite{ATL-COM-PHYS-2017-999}.
- 
 % shown in Figure \ref{fig:purity}.
 %
 % \begin{figure}[htbp]
@@ -295,7 +295,7 @@ Additionally, a hadronic background subtraction procedure is also performed excl
 %	\label{fig:purity}
 %\end{figure}
 
-For the jets at central rapidity $\left|\eta_{\text{det}}^{\text{Jet}}\right| < 1.2$, the results can be seen in Figure \ref{fig:xjref_pT_central}. In addition to plotting the mean $x_{\text{J}}^{\text{ref}}$, a quadratic in $\text{log}(\pt^{\text{ref}})$ is fitted to the data-to-MC ratio to account for bin-to-bin statistical variation, using the form in Equation \ref{eq:fit} below. To reduce correlation of the fit parameters, an orthogonal Chebyshev basis is used. A 95\% confidence interval from the fit is also shown. For $\left|\eta_{\text{det}}^{\text{Jet}}\right| > 1.2$, the results are similarly in Figure \ref{fig:xjref_pT_forward}.
+Data-to-MC comparisons of the $\pt$ balance study can be seen in Figure \ref{fig:v_xjref_dataOverMC_pT}.  In addition to plotting the mean $x_{\text{J}}^{\text{ref}}$, a quadratic in $\text{log}(\pt^{\text{ref}})$ is fitted to the data-to-MC ratio to account for bin-to-bin statistical variation, using the form in Equation \ref{eq:fit} below. To reduce correlation of the fit parameters, an orthogonal Chebyshev basis is used. A $1\sigma$ (68\%) confidence interval from the fit is also shown.
 
 \begin{equation}
 	%f \left(\log \pt^{\text{ref}}\right) = f (x) = a_0 + a_1\left(\frac{\log \pt^{\text{ref}} - \log \pt^{\text{avg}}}{\log \Delta\pt}\right)  + a_2\left(2\left(\frac{\log \pt^{\text{ref}} - \log \pt^{\text{avg}}}{\log \Delta\pt}\right) ^2 - 1\right)
@@ -311,69 +311,91 @@ For the jets at central rapidity $\left|\eta_{\text{det}}^{\text{Jet}}\right| < 
 \begin{figure}[htbp]
 	\centering
 	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PA_iEta_combined.pdf}
-		\label{fig:g_PA_pT_central}
+		\includegraphics[width=0.48\textwidth]{figures/v_jet_dataOverMC_PA_iEta_combined.pdf}
+		\label{fig:v_dataOverMC_PA_pT_central}
 	}
 	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PB_iEta_combined.pdf}
-		\label{fig:g_PB_pT_central}
+		\includegraphics[width=0.48\textwidth]{figures/v_jet_dataOverMC_PB_iEta_combined.pdf}
+		\label{fig:v_dataOverMC_PB_pT_central}
 	} \\
 	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PA_iEta_combined.pdf}
-		\label{fig:zee_PA_pT_central}
+		\includegraphics[width=0.48\textwidth]{figures/v_jet_dataOverMC_PA_iEta_uncombined.pdf}
+		\label{fig:v_dataOverMC_PA_pT_forward}
 	}
 	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PB_iEta_combined.pdf}
-		\label{fig:zee_PB_pT_central}
-	} \\
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PA_iEta_combined.pdf}
-		\label{fig:zmumu_PA_pT_central}
+		\includegraphics[width=0.48\textwidth]{figures/v_jet_dataOverMC_PB_iEta_uncombined.pdf}
+		\label{fig:v_dataOverMC_PB_pT_forward}
 	}
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PB_iEta_combined.pdf}
-		\label{fig:zmumu_PB_pT_central}
-	}
-	\caption{$V$ + jet average $x_{\text{J}}^{\text{ref}}$ in both period A and period B collisions as a function of $p_{\text{T}}^{\gamma}$ for jets near mid-rapidity. Top row: $\gamma$ + jet events, middle row: $\Zboson\rightarrow\ee$ + jet events, \& bottom row: $\Zboson\rightarrow\mumu$ + jet events. Left column: period A collisions, right column: period B collisions.}
-	\label{fig:xjref_pT_central}
+	\caption{$V$ + jet average $x_{\text{J}}^{\text{ref}}$ in both period A (left column) and period B collisions (right column) as a function of $p_{\text{T}}^{V}$ for jets at mid-rapidity (top row) and at forward rapidities (bottom row).}
+	\label{fig:v_xjref_dataOverMC_pT}
 \end{figure}
 
-\begin{figure}[htbp]
-	\centering
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PA_iEta_uncombined.pdf}
-		\label{fig:g_PA_pT_forward}
-	}
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PB_iEta_uncombined.pdf}
-		\label{fig:g_PB_pT_forward}
-	} \\
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PA_iEta_uncombined.pdf}
-		\label{fig:zee_PA_pT_forward}
-	}
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PB_iEta_uncombined.pdf}
-		\label{fig:zee_PB_pT_forward}
-	} \\
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PA_iEta_uncombined.pdf}
-		\label{fig:zmumu_PA_pT_forward}
-	}
-	\subfloat[]{
-		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PB_iEta_uncombined.pdf}
-		\label{fig:zmumu_PB_pT_forward}
-	}
-	\caption{$V$ + jet average $x_{\text{J}}^{\text{ref}}$ in both period A and period B collisions as a function of $p_{\text{T}}^{\gamma}$ for jets away from mid-rapidity. Top row: $\gamma$ + jet events, middle row: $\Zboson\rightarrow\ee$ + jet events, \& bottom row: $\Zboson\rightarrow\mumu$ + jet events. Left column: period A collisions, right column: period B collisions.}
-	\label{fig:xjref_pT_forward}
-\end{figure}
+%\begin{figure}[htbp]
+%	\centering
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PA_iEta_combined.pdf}
+%		\label{fig:g_PA_pT_central}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PB_iEta_combined.pdf}
+%		\label{fig:g_PB_pT_central}
+%	} \\
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PA_iEta_combined.pdf}
+%		\label{fig:zee_PA_pT_central}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PB_iEta_combined.pdf}
+%		\label{fig:zee_PB_pT_central}
+%	} \\
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PA_iEta_combined.pdf}
+%		\label{fig:zmumu_PA_pT_central}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PB_iEta_combined.pdf}
+%		\label{fig:zmumu_PB_pT_central}
+%	}
+%	\caption{$V$ + jet average $x_{\text{J}}^{\text{ref}}$ in both period A and period B collisions as a function of $p_{\text{T}}^{\gamma}$ for jets near mid-rapidity. Top row: $\gamma$ + jet events, middle row: $\Zboson\rightarrow\ee$ + jet events, \& bottom row: $\Zboson\rightarrow\mumu$ + jet events. Left column: period A collisions, right column: period B collisions.}
+%	\label{fig:xjref_pT_central}
+%\end{figure}
+
+%\begin{figure}[htbp]
+%	\centering
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PA_iEta_uncombined.pdf}
+%		\label{fig:g_PA_pT_forward}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/gamma_jet_PB_iEta_uncombined.pdf}
+%		\label{fig:g_PB_pT_forward}
+%	} \\
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PA_iEta_uncombined.pdf}
+%		\label{fig:zee_PA_pT_forward}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_ee_jet_PB_iEta_uncombined.pdf}
+%		\label{fig:zee_PB_pT_forward}
+%	} \\
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PA_iEta_uncombined.pdf}
+%		\label{fig:zmumu_PA_pT_forward}
+%	}
+%	\subfloat[]{
+%		\includegraphics[width=0.45\textwidth]{figures/z_mumu_jet_PB_iEta_uncombined.pdf}
+%		\label{fig:zmumu_PB_pT_forward}
+%	}
+%	\caption{$V$ + jet average $x_{\text{J}}^{\text{ref}}$ in both period A and period B collisions as a function of $p_{\text{T}}^{\gamma}$ for jets away from mid-rapidity. Top row: $\gamma$ + jet events, middle row: $\Zboson\rightarrow\ee$ + jet events, \& bottom row: $\Zboson\rightarrow\mumu$ + jet events. Left column: period A collisions, right column: period B collisions.}
+%	\label{fig:xjref_pT_forward}
+%\end{figure}
 
 %-------------------------------------------------------------------------------
 \section{Conclusion}
 \label{sec:conclusion}
 %-------------------------------------------------------------------------------
 
-The jet energy scale corrections for anti-$k_{\text{T}}$ $R=0.4$ jets has been derived in $\SI{8.16}{\TeV}$ \textit{p}+Pb collisions. A new cross-calibration configuration with the 2016 \textit{in situ} factors and 2015 cross-calibration factors has been created and tested for applicability in the newer data. At mid-rapidity, only minor deviation is observed and is generally covered by errors, but larger deviations exist in the $\pt$ balance at forward and backward rapidities.  
+The jet energy scale corrections for anti-$k_{\text{T}}$ $R=0.4$ jets has been derived in $\SI{8.16}{\TeV}$ \textit{p}+Pb collisions. A new calibration configuration using the 2016 \textit{in situ} factors and 2015 cross-calibration factors has been created and tested for applicability in the newer data. At mid-rapidity, only minor deviation is observed and is generally covered by errors, but larger deviations exist in the $\pt$ balance at forward and backward rapidities. As the 2016 \textit{in situ} factors multiplied with the 2015 cross-calibration factors do not generally yield similar $\pt$ balance ratios in data and MC simulations, a new set of cross-calibration factors will be needed for a complete calibration of jets in the 2016 \textit{p}+Pb.
 
 
 %-------------------------------------------------------------------------------

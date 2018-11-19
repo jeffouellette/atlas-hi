@@ -51,6 +51,15 @@ T***** Get5DArray (const int n1, const int n2, const int n3, const int n4, const
   return arr;
 }
 
+template <typename T>
+T****** Get6DArray (const int n1, const int n2, const int n3, const int n4, const int n5, const int n6) {
+  T****** arr = new T*****[n1];
+  for (int i = 0; i < n1; i++) {
+   arr[i] = Get5DArray <T> (n2, n3, n4, n5, n6);
+  }
+  return arr;
+}
+
 /**
  * Each of the following functions deletes the given n-dimensional array of T's.
  * Since 2D, 3D, 4D,... arrays are always an array of pointers, they are all deleted the same way.
@@ -93,6 +102,13 @@ void Delete4DArray (T**** &arr, const int n1, const int n2, const int n3, const 
 template <typename T>
 void Delete5DArray (T***** &arr, const int n1, const int n2, const int n3, const int n4, const int n5) {
    for (int i = 0; i < n1; i++) Delete4DArray (arr[i], n2, n3, n4, n5);
+   delete[] arr;
+   arr = NULL;
+}
+
+template <typename T>
+void Delete6DArray (T****** &arr, const int n1, const int n2, const int n3, const int n4, const int n5, const int n6) {
+   for (int i = 0; i < n1; i++) Delete5DArray (arr[i], n2, n3, n4, n5, n6);
    delete[] arr;
    arr = NULL;
 }

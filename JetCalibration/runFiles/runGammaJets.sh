@@ -79,4 +79,6 @@ wait
 #
 #wait
 
+./bin/runGammaJetsComb
+
 ./bin/runGammaJetsHist

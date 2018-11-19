@@ -8,16 +8,18 @@ using namespace offlineAnalyses;
 int main (int argc, char** argv) {
   int dataSet = 0;
   bool isMC = false;
+  float lumi = 0;
 
-  if (argc >= 3 && argv[1] && argv[2]) {
+  if (argc >= 4 && argv[1] && argv[2] && argv[3]) {
    dataSet = atoi (argv[1]);
    isMC = (string (argv[2]) == "true");
+   lumi = atof (argv[3]);
   }
 
-  if (argc == 4 && argv[3])
-   PhotonAnalysis (dataSet, isMC, argv[3]);
-  else if (argc == 3)
-   PhotonAnalysis (dataSet, isMC);
+  if (argc == 5 && argv[4])
+   PhotonAnalysis (dataSet, isMC, lumi, argv[4]);
+  else if (argc == 4)
+   PhotonAnalysis (dataSet, isMC, lumi);
 
   return 0;
 }

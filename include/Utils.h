@@ -1,5 +1,5 @@
-#ifndef __JetTrackAnalysisUtils_h__
-#define __JetTrackAnalysisUtils_h__
+#ifndef __Utils_h__
+#define __Utils_h__
 
 #include <TFile.h>
 #include <TString.h>
@@ -77,7 +77,13 @@ bool InHadCal (const float eta, const float R = 0.4);
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGraphAsymmErrors* graph, TH1* optimal, TH1* sys_hi, TH1* sys_lo);
+void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);
+
+
+/**
+ * Calculates the systematic errors on optimal, storing the results in graph.
+ */
+void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal, const TGraph* sys_hi, const TGraph* sys_lo);
 
 
 /**

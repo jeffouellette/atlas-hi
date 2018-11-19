@@ -47,15 +47,15 @@ void JetTrackEtaPhi (const char* directory,
   if (crossSection_microbarns != 0)
    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
   t->SetGetTracks ();
-  t->SetGetHIJets ();
-  t->SetGetSimpleJets ();
+  t->SetGetHIJets (false);
+  t->SetGetSimpleJets (false);
   t->SetGetFCals ();
   t->SetBranchAddresses ();
-  //tree->SetBranchAddress ("akt4hi_njet", &t->jet_n);
-  //tree->SetBranchAddress ("akt4hi_xcalib_jet_pt", &t->jet_pt);
-  //tree->SetBranchAddress ("akt4hi_xcalib_jet_eta", &t->jet_eta);
-  //tree->SetBranchAddress ("akt4hi_xcalib_jet_phi", &t->jet_phi);
-  //tree->SetBranchAddress ("akt4hi_xcalib_jet_e", &t->jet_e);
+  tree->SetBranchAddress ("akt4hi_njet", &t->jet_n);
+  tree->SetBranchAddress ("akt4hi_xcalib_jet_pt", &t->jet_pt);
+  tree->SetBranchAddress ("akt4hi_xcalib_jet_eta", &t->jet_eta);
+  tree->SetBranchAddress ("akt4hi_xcalib_jet_phi", &t->jet_phi);
+  tree->SetBranchAddress ("akt4hi_xcalib_jet_e", &t->jet_e);
   if (isMC) {
    tree->SetBranchAddress ("akt4_truth_njet", &t->truth_jet_n);
    tree->SetBranchAddress ("akt4_truth_jet_pt", &t->truth_jet_pt);
@@ -147,7 +147,6 @@ void JetTrackEtaPhi (const char* directory,
   const int nentries = tree->GetEntries ();
 
   for (int entry = 0; entry < nentries; entry++) {
-   if (entry % 10000 == 0) cout << entry << endl;
 
    tree->GetEntry (entry);
 
@@ -174,7 +173,7 @@ void JetTrackEtaPhi (const char* directory,
 
    // find sub-leading jet
    for (int iJet = 0; iJet < t->jet_n; iJet++) {
-    if (iJet == lj || DeltaR (t->jet_eta->at (lj), t->jet_eta->at (iJet), t->jet_phi->at (lj), t->jet_phi->at (iJet)) < 0.8)
+    if (iJet == lj || DeltaR (t->jet_eta->at (lj), t->jet_eta->at (iJet), t->jet_phi->at (lj), t->jet_phi->at (iJet)) < 0.8 || t->jet_pt->at (iJet) < jet_pt_cut)
      continue;
     if (slj == -1 || t->jet_pt->at (slj) < t->jet_pt->at (iJet)) {
      slj = iJet;

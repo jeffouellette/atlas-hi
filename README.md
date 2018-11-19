@@ -15,3 +15,9 @@ This subdirectory contains code and output from my ATLAS qualification task, whi
 ## pPb 8TeV 2016 Jet Track Analysis ##
 This subdirectory is for analyzing jet-track correlations in the 2016 p+Pb 8.16TeV dataset.
 
+## Using shared libraries in a ROOT interactive session ##
+To compile these C++ files, simply run any of the relevant makefiles. This will produce shared libraries in the lib subdirectory. Due to the include interdependencies, the C++ source files cannot be directly run with ROOT as macros. However using ROOT 6 or higher it is possible to load from the shared library directly. To do this, open root:
+$  root
+root [0] R__LOAD_LIBRARY (/Users/jeffouellette/Research/atlas-hi/lib/libUtils.so)
+root [1] R__ADD_INCLUDE_PATH (/Users/jeffouellette/Research/atlas-hi/include)
+root [2] #include "Utils.h"
