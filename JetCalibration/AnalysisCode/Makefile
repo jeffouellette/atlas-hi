@@ -4,9 +4,11 @@ LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L./lib -l
 
 CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
-analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution PhotonJets Intercalibration JetInsituCorrectionCheck MCValidator RtrkComparison ZeeJets ZGammaJetCrossCheck ZmumuJets ZMassCalc
+analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution PhotonJets Intercalibration JetInsituCorrectionCheck MCValidator RtrkComparison ZeeJets ZmumuJets ZMassCalc
 
-all : $(analyses:%=lib/lib%.so) $(analyses:%=lib/lib%Hist.so)
+hists = $(analyses:%=%Hist) ZJetsHist EnergyScaleChecksNewHist ZGammaJetCrossCheckHist
+
+all : $(analyses:%=lib/lib%.so) $(hists:%=lib/lib%.so) 
 
 # Utilities can be directly compiled straight to libraries since they do not depend on other libraries compiled here
 lib/lib%.so: obj/%.o
