@@ -1,4 +1,4 @@
-#include <GammaJetsHist.h>
+#include <PhotonAnalysisHist.h>
 
 using namespace JetCalibration;
 
@@ -9,6 +9,6 @@ using namespace JetCalibration;
  */
 int main (int argc, char** argv) {
 
-  GammaJetsHist ();
+  PhotonAnalysisHist ();
   return 0;
 }

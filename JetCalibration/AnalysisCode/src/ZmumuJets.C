@@ -66,27 +66,50 @@ void ZmumuJets (const char* directory,
    }
   } // end branch triggers
 
-  // initialize histograms
-  TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
-  TH2D* zmumuJetCounts;
+  //// initialize histograms
+  //TH3D** zmumuJetHists = Get1DArray <TH3D*> (3);
+  //TH2D* zmumuJetCounts;
 
-  {
-   TString data = "data";
-   if (isMC && !isSignalOnlySample) data = "mc_overlay";
-   else if (isMC && isSignalOnlySample) data = "mc_signal";
+  //{
+  // TString data = "data";
+  // if (isMC && !isSignalOnlySample) data = "mc_overlay";
+  // else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
-   zmumuJetCounts->Sumw2();
+  // zmumuJetCounts = new TH2D (Form ("zmumuJetCounts_dataSet%s_%s", identifier.Data (), data.Data ()), "", numpbins, pbins, numetabins, etabins);
+  // zmumuJetCounts->Sumw2();
 
-   for (short iErr = 0; iErr < 3; iErr++) {
-    TString error = "sys_lo";
-    if (iErr == 1) error = "stat";
-    else if (iErr == 2) error = "sys_hi";
+  // for (short iErr = 0; iErr < 3; iErr++) {
+  //  TString error = "sys_lo";
+  //  if (iErr == 1) error = "stat";
+  //  else if (iErr == 2) error = "sys_hi";
 
-    zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    zmumuJetHists[iErr]->Sumw2 ();
-   }
-  }
+  //  zmumuJetHists[iErr] = new TH3D (Form ("zmumuJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+  //  zmumuJetHists[iErr]->Sumw2 ();
+  // }
+  //}
+
+  const char* outFileName = Form ("%s/ZmumuJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  TFile* outFile = new TFile (outFileName, "RECREATE");
+
+  TTree* outTree = new TTree ("jeffsztree", "jeffsztree");
+  outTree->SetDirectory (outFile);
+
+  float evtWeight = 0, zpt = 0, zeta = 0, zphi = 0, zm = 0, jpt = 0, jeta = 0, jphi = 0, je = 0, dPhi = 0, jpterr = 0;
+  bool _isMC = isMC, _isPeriodA = isPeriodA;
+
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/F");
+  outTree->Branch ("isMC", &_isMC, "isMC/O");
+  outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
+  outTree->Branch ("Z_pt", &zpt, "Z_pt/F");
+  outTree->Branch ("Z_eta", &zeta, "Z_eta/F");
+  outTree->Branch ("Z_phi", &zphi, "Z_phi/F");
+  outTree->Branch ("Z_m", &zm, "Z_m/F");
+  outTree->Branch ("jet_pt", &jpt, "jet_pt/F");
+  outTree->Branch ("jet_eta", &jeta, "jet_eta/F");
+  outTree->Branch ("jet_phi", &jphi, "jet_phi/F");
+  outTree->Branch ("jet_e", &je, "jet_e/F");
+  outTree->Branch ("delta_phi", &dPhi, "delta_phi/F");
+  outTree->Branch ("jet_pt_sys", &jpterr, "jet_pt_sys/F");
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
 
@@ -140,7 +163,7 @@ void ZmumuJets (const char* directory,
      const double leading_muon_pt = t->muon_pt->at (lm);
 
      // triggering and event weighting
-     double weight = 1;
+     evtWeight = 1;
      if (!isMC) {
       Trigger* muonTrigger = NULL;
       for (Trigger* trig : muonTriggers) {
@@ -155,12 +178,16 @@ void ZmumuJets (const char* directory,
           !muonTrigger->trigBool ||
           muonTrigger->trigPrescale <= 0.)
        continue;
-      weight = muonTrigger->trigPrescale;
+      evtWeight = muonTrigger->trigPrescale;
      }
-     else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+     else evtWeight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
 
      // Reco mumu invariant 4-momentum (best guess for Z boson)
      const TLorentzVector Z = muon1 + muon2;
+     zpt = Z.Pt ();
+     zeta = Z.Eta ();
+     zphi = Z.Phi ();
+     zm = Z.M ();
 
      // Z boson, dimuon cuts
      if (t->muon_charge->at (m1) == t->muon_charge->at (m2))
@@ -194,12 +221,13 @@ void ZmumuJets (const char* directory,
       continue; // reject on no candidate jet
 
      // relevant jet kinematic data
-     const double ljet_pt = t->jet_pt->at (lj);
-     const double ljet_eta = t->jet_eta->at (lj);
-     const double ljet_phi = t->jet_phi->at (lj);
+     jpt = t->jet_pt->at (lj);
+     jeta = t->jet_eta->at (lj);
+     jphi = t->jet_phi->at (lj);
+     je = t->jet_e->at (lj);
 
      // jet cuts
-     //if (InDisabledHEC (ljet_eta, ljet_phi))
+     //if (InDisabledHEC (jeta, jphi))
      // continue; // Reject event on additional HEC cuts
      bool hasOtherJet = false;
      for (int j = 0; j < t->jet_n; j++) {
@@ -220,20 +248,22 @@ void ZmumuJets (const char* directory,
       continue; // cut on other jets that look back-to-back with gamma
 
      // Calculate opening angle in the transverse plane
-     const double dPhi = DeltaPhi (ljet_phi, Z.Phi ());
+     dPhi = DeltaPhi (jphi, Z.Phi ());
 
      // Calculate systematics on jet pT
-     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
+     jpterr = (isMC ? 0:GetXCalibSystematicError (jpt, jeta));
 
-     // Calculate ptref and xjrefs
-     const double ptref = Z.Pt () * TMath::Cos (pi - dPhi);
-     const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
+     //// Calculate ptref and xjrefs
+     //const double ptref = Z.Pt () * TMath::Cos (pi - dPhi);
+     //const double ptratio[3] = { (jpt-jpterr)/ptref, jpt/ptref, (jpt+jpterr)/ptref};
 
-     // Fill dimuon xjref histograms
-     for (short iErr = 0; iErr < 3; iErr++) {
-      zmumuJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
-     }
-     zmumuJetCounts->Fill (Z.Pt (), ljet_eta);
+     //// Fill dimuon xjref histograms
+     //for (short iErr = 0; iErr < 3; iErr++) {
+     // zmumuJetHists[iErr]->Fill (Z.Pt (), jeta, ptratio[iErr], evtWeight);
+     //}
+     //zmumuJetCounts->Fill (Z.Pt (), jeta);
+
+     outTree->Fill ();
     }
    } // end loop over muon pairs
    // end Z->mumu type events
@@ -249,18 +279,20 @@ void ZmumuJets (const char* directory,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form ("%s/ZmumuJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
-  TFile* outFile = new TFile (outFileName, "RECREATE");
+  //const char* outFileName = Form ("%s/ZmumuJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  //TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  // Write histograms to output and clean memory
-  for (short iErr = 0; iErr < 3; iErr++) {
-   zmumuJetHists[iErr]->Write ();
-  }
+  //// Write histograms to output and clean memory
+  //for (short iErr = 0; iErr < 3; iErr++) {
+  // zmumuJetHists[iErr]->Write ();
+  //}
 
-  Delete1DArray (zmumuJetHists, 3);
+  //Delete1DArray (zmumuJetHists, 3);
 
-  zmumuJetCounts->Write ();
-  if (zmumuJetCounts) { delete zmumuJetCounts; zmumuJetCounts = NULL; }
+  //zmumuJetCounts->Write ();
+  //if (zmumuJetCounts) { delete zmumuJetCounts; zmumuJetCounts = NULL; }
+
+  outFile->Write ();
 
   outFile->Close ();
   if (outFile) delete outFile;

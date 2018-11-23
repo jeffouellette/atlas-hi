@@ -32,6 +32,7 @@ const double isolationEnergySlope = 0.0042; // Slope of photon isolation energy 
 
 // plotting variables
 //const Color_t dataColor = kBlack; // plot color for data
+const Color_t mcColor = kRed; // plot color for MC overlay
 const Color_t mcOverlayColor = kRed; // plot color for MC overlay
 const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
@@ -53,8 +54,8 @@ const bool exclusive = false; // whether to calculate xjref outside of eta bound
 
 /** binning parameters **/
 
-const short rebinFactor = 20;
-const short numxjrefbins = 400;
+const short rebinFactor = 50;
+const short numxjrefbins = 1000;
 const double* xjrefbins = linspace (0, 2.0, numxjrefbins);
 
 const short numrtrkbins = 400;
@@ -97,7 +98,7 @@ const double maxSigma = 0.40;
 const short numSigmaBins = 80;
 
 // bin min and max for combined results
-const int eta_lo_comb = 1;
+const int eta_lo_comb = 3;
 const int eta_hi_comb = 4;
 const int p_lo_comb = 3;
 const int p_hi_comb = numpbins;

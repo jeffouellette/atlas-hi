@@ -16,6 +16,52 @@ TFile* purityFile = NULL;
 
 
 /**
+ * Returns a new TH3D equal to tight - lnt.
+ */
+void SubtractLooseNonTight (TH3D* signal, const TH3D* tight, const TH3D* lnt, const TH3D* tightCounts, const TH3D* lntCounts) {
+  const int nx = tight->GetNbinsX ();
+  const int ny = tight->GetNbinsY ();
+  const int nz = tight->GetNbinsZ ();
+  for (int ix = 1; ix <= nx; ix++) {
+   for (int iy = 1; iy <= ny; iy++) {
+    double ntight, ntighterr, nlnt, nlnterr;
+    ntight = tightCounts->IntegralAndError (ix, ix, iy, iy, 1, tightCounts->GetNbinsZ (), ntighterr);
+    nlnt = lntCounts->IntegralAndError (ix, ix, iy, iy, 1, lntCounts->GetNbinsZ (), nlnterr);
+
+    //const double ntight = tightCounts->GetBinContent (ix, iy);
+    //const double ntighterr = tightCounts->GetBinError (ix, iy);
+    //const double nlnt = lntCounts->GetBinContent (ix, iy); 
+    //const double nlnterr = lntCounts->GetBinError (ix, iy);
+
+    double w = 0, werr = 0;
+    if (nlnt != 0) {
+     w = ntight / nlnt;
+     werr += pow (w * nlnterr / nlnt, 2);
+    } 
+    else
+     w = 0;
+
+    if (ntight != 0)
+     werr += pow (w * ntighterr / ntight, 2);
+
+    werr = sqrt (werr);
+
+    for (int iz = 1; iz <= nz; iz++) {
+     const double t = tight->GetBinContent (ix, iy, iz);
+     const double terr = tight->GetBinError (ix, iy, iz);
+     const double l = lnt->GetBinContent (ix, iy, iz);
+     const double lerr = lnt->GetBinError (ix, iy, iz);
+
+     signal->SetBinContent (ix, iy, iz, t - w * l);
+     signal->SetBinError (ix, iy, iz, sqrt (pow (terr, 2) + pow (werr * l, 2) + pow (w * lerr, 2)));
+    }
+   }
+  }
+  return;
+}
+
+
+/**
  * Returns the initial systematic error on the 2015 cross-calibration as a function of jet pT and eta.
  * Requires xCalibSystematicsFile to be defined and open, else will return 0.
  */

@@ -167,7 +167,7 @@ void EnergyScaleChecks (const char* directory,
 
      if (jpt < jet_pt_cut)
       continue; // basic jet pT cut
-     if (InDisabledHEC (jeta, jphi, 0.2))
+     if (InDisabledHEC (jeta, jphi, 0.1))
       continue; // only truth match jets outside disabled HEC
      if (!InHadCal (jeta))
       continue; // reject jets reconstructed outside reasonable HCal bounds.
@@ -330,7 +330,7 @@ void EnergyScaleChecks (const char* directory,
      continue; // require tight cuts on photons
     if (t->photon_topoetcone40->at (p) > isolationEnergyIntercept + isolationEnergySlope*ppt)
      continue; // require maximum isolation energy on gammas
-    if (!InEMCal (peta) || InDisabledHEC (peta, pphi))
+    if (!InEMCal (peta) || InDisabledHEC (peta, pphi, 0.1))
      continue; // require photon to be in EMCal
 
     // do photon truth matching to estimate photon energy scale

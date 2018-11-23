@@ -20,7 +20,7 @@ const bool debugStatements = false; // Print out periodic statements to monitor 
 const TString homePath = "/Users/jeffouellette/Research/atlas-hi/"; // ATLAS Heavy Ions home directory
 const TString drivePath = "/Volumes/My Passport/Research/atlas-hi/"; // ATLAS Heavy Ions external drive directory
 
-const double dR_HEC = 0.4; // details on the hadronic end cap data cuts.
+const double dR_HEC = 0.0; // details on the hadronic end cap data cuts.
 const double lowerPhiCut = TMath::Pi()-dR_HEC;
 const double upperPhiCut = 3.*TMath::Pi()/2.+dR_HEC;
 const double lowerEtaCut = 1.5-dR_HEC;

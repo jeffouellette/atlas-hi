@@ -67,27 +67,50 @@ void ZeeJets (const char* directory,
    }
   } // end branch triggers
 
-  // initialize histograms
-  TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
-  TH2D* zeeJetCounts;
+  //// initialize histograms
+  //TH3D** zeeJetHists = Get1DArray <TH3D*> (3);
+  //TH2D* zeeJetCounts;
 
-  {
-   TString data = "data";
-   if (isMC && !isSignalOnlySample) data = "mc_overlay";
-   else if (isMC && isSignalOnlySample) data = "mc_signal";
+  //{
+  // TString data = "data";
+  // if (isMC && !isSignalOnlySample) data = "mc_overlay";
+  // else if (isMC && isSignalOnlySample) data = "mc_signal";
 
-   zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data(), data.Data()), "", numpbins, pbins, numetabins, etabins);
-   zeeJetCounts->Sumw2();
+  // zeeJetCounts = new TH2D (Form ("zeeJetCounts_dataSet%s_%s", identifier.Data(), data.Data()), "", numpbins, pbins, numetabins, etabins);
+  // zeeJetCounts->Sumw2();
 
-   for (short iErr = 0; iErr < 3; iErr++) {
-    TString error = "sys_lo";
-    if (iErr == 1) error = "stat";
-    else if (iErr == 2) error = "sys_hi";
+  // for (short iErr = 0; iErr < 3; iErr++) {
+  //  TString error = "sys_lo";
+  //  if (iErr == 1) error = "stat";
+  //  else if (iErr == 2) error = "sys_hi";
 
-    zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
-    zeeJetHists[iErr]->Sumw2 ();
-   }
-  }
+  //  zeeJetHists[iErr] = new TH3D (Form ("zeeJetPtRatio_dataSet%s_%s_%s", identifier.Data (), data.Data (), error.Data ()), "", numpbins, pbins, numetabins, etabins, numxjrefbins, xjrefbins);
+  //  zeeJetHists[iErr]->Sumw2 ();
+  // }
+  //}
+
+  const char* outFileName = Form ("%s/ZeeJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  TFile* outFile = new TFile (outFileName, "RECREATE");
+
+  TTree* outTree = new TTree ("jeffsztree", "jeffsztree");
+  outTree->SetDirectory (outFile);
+
+  float evtWeight = 0, zpt = 0, zeta = 0, zphi = 0, zm = 0, jpt = 0, jeta = 0, jphi = 0, je = 0, dPhi = 0, jpterr = 0;
+  bool _isMC = isMC, _isPeriodA = isPeriodA;
+
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/F");
+  outTree->Branch ("isMC", &_isMC, "isMC/O");
+  outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
+  outTree->Branch ("Z_pt", &zpt, "Z_pt/F");
+  outTree->Branch ("Z_eta", &zeta, "Z_eta/F");
+  outTree->Branch ("Z_phi", &zphi, "Z_phi/F");
+  outTree->Branch ("Z_m", &zm, "Z_m/F");
+  outTree->Branch ("jet_pt", &jpt, "jet_pt/F");
+  outTree->Branch ("jet_eta", &jeta, "jet_eta/F");
+  outTree->Branch ("jet_phi", &jphi, "jet_phi/F");
+  outTree->Branch ("jet_e", &je, "jet_e/F");
+  outTree->Branch ("delta_phi", &dPhi, "delta_phi/F");
+  outTree->Branch ("jet_pt_sys", &jpterr, "jet_pt_sys/F");
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
 
@@ -150,7 +173,7 @@ void ZeeJets (const char* directory,
      const double leading_electron_pt = t->electron_pt->at (le);
 
      // triggering and event weighting
-     double weight = 1;
+     evtWeight = 1;
      if (!isMC) {
       Trigger* electronTrigger = NULL;
       for (Trigger* trig : electronTriggers) {
@@ -165,19 +188,23 @@ void ZeeJets (const char* directory,
           !electronTrigger->trigBool ||
           electronTrigger->trigPrescale <= 0.)
        continue;
-      weight = electronTrigger->trigPrescale;
+      evtWeight = electronTrigger->trigPrescale;
      }
-     else weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+     else evtWeight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
 
      // Reco ee invariant 4-momentum (best guess for Z boson)
      const TLorentzVector Z = electron1 + electron2;
+     zpt = Z.Pt ();
+     zeta = Z.Eta ();
+     zphi = Z.Phi ();
+     zm = Z.M ();
 
      // Z boson, dielectron cuts
      if (t->electron_charge->at (e1) == t->electron_charge->at (e2))
       continue; // opposite charge requirement
      if (Z.M () < Z_mass - Z_mass_lower_cut || Z_mass + Z_mass_upper_cut < Z.M ())
       continue; // cut on our sample Z boson mass
-     if (Z.Pt () < Z_pt_cut)
+     if (zpt < Z_pt_cut)
       continue; // pt cut on Z bosons
 
      // Jet finding
@@ -192,7 +219,7 @@ void ZeeJets (const char* directory,
       if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (j), t->electron_phi->at (e1), t->jet_phi->at (j)) < 0.2 ||
           DeltaR (t->electron_eta->at (e2), t->jet_eta->at (j), t->electron_phi->at (e2), t->jet_phi->at (j)) < 0.2)
        continue; // require jets to be isolated from both electrons
-      if (DeltaPhi (t->jet_phi->at (j), Z.Phi ()) < 3*pi/4)
+      if (DeltaPhi (t->jet_phi->at (j), zphi) < 3*pi/4)
        continue; // require jet to be back-to-back with Z in transverse plane
 
       // compare to leading jet
@@ -204,12 +231,13 @@ void ZeeJets (const char* directory,
       continue; // reject on no candidate jet
 
      // relevant jet kinematic data
-     const double ljet_pt = t->jet_pt->at (lj);
-     const double ljet_eta = t->jet_eta->at (lj);
-     const double ljet_phi = t->jet_phi->at (lj);
+     jpt = t->jet_pt->at (lj);
+     jeta = t->jet_eta->at (lj);
+     jphi = t->jet_phi->at (lj);
+     je = t->jet_e->at (lj);
 
      // jet cuts
-     //if (InDisabledHEC (ljet_eta, ljet_phi))
+     //if (InDisabledHEC (jeta, jphi))
      // continue; // Reject event on additional HEC cuts
      bool hasOtherJet = false;
      for (int j = 0; j < t->jet_n; j++) {
@@ -220,8 +248,8 @@ void ZeeJets (const char* directory,
        continue; // require jets to be isolated from both electrons
       if (t->jet_pt->at (j) < 12 || InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
        continue; // basic jet pT cut, also reject on the disabled HEC
-      const double s_dphi = DeltaPhi (t->jet_phi->at (j), Z.Phi ());
-      if (0.1 < t->jet_pt->at (j) / (Z.Pt () * cos (pi - s_dphi))) {
+      const double s_dphi = DeltaPhi (t->jet_phi->at (j), zphi);
+      if (0.1 < t->jet_pt->at (j) / (zpt * cos (pi - s_dphi))) {
        hasOtherJet = true;
        break;
       }
@@ -229,21 +257,23 @@ void ZeeJets (const char* directory,
      if (hasOtherJet)
       continue; // cut on other jets that look back-to-back with gamma
 
-     // Calculate opening angle in the transverse plane
-     const double dPhi = DeltaPhi (ljet_phi, Z.Phi ());
+     //// Calculate opening angle in the transverse plane
+     dPhi = DeltaPhi (jphi, zphi);
 
      // Calculate systematics on jet pT
-     const double ljet_pt_err = (isMC ? 0:GetXCalibSystematicError (ljet_pt, ljet_eta));
+     jpterr = (isMC ? 0:GetXCalibSystematicError (jpt, jeta));
 
-     // Calculate ptref and xjrefs
-     const double ptref = Z.Pt () * TMath::Cos (pi - dPhi);
-     const double ptratio[3] = { (ljet_pt-ljet_pt_err)/ptref, ljet_pt/ptref, (ljet_pt+ljet_pt_err)/ptref};
+     //// Calculate ptref and xjrefs
+     //const double ptref = zpt * TMath::Cos (pi - dPhi);
+     //const double ptratio[3] = { (jpt-jpterr)/ptref, jpt/ptref, (jpt+jpterr)/ptref};
 
-     // Fill xjref histograms 
-     for (short iErr = 0; iErr < 3; iErr++) {
-      zeeJetHists[iErr]->Fill (Z.Pt (), ljet_eta, ptratio[iErr], weight);
-     }
-     zeeJetCounts->Fill (Z.Pt (), ljet_eta);
+     //// Fill xjref histograms 
+     //for (short iErr = 0; iErr < 3; iErr++) {
+     // zeeJetHists[iErr]->Fill (zpt, jeta, ptratio[iErr], evtWeight);
+     //}
+     //zeeJetCounts->Fill (zpt, jeta);
+
+     outTree->Fill ();
     }
    } // end loop over electron pairs
    // end Z->ee type events
@@ -259,23 +289,25 @@ void ZeeJets (const char* directory,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form ("%s/ZeeJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
-  TFile* outFile = new TFile (outFileName, "RECREATE");
+  //const char* outFileName = Form ("%s/ZeeJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  //TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  // Write histograms to output and clean memory
-  for (short iErr = 0; iErr < 3; iErr++) {
-   zeeJetHists[iErr]->Write ();
-  }
+  //// Write histograms to output and clean memory
+  //for (short iErr = 0; iErr < 3; iErr++) {
+  // zeeJetHists[iErr]->Write ();
+  //}
 
-  Delete1DArray (zeeJetHists, 3);
+  //Delete1DArray (zeeJetHists, 3);
 
-  zeeJetCounts->Write ();
-  if (zeeJetCounts) { delete zeeJetCounts; zeeJetCounts = NULL; }
+  //zeeJetCounts->Write ();
+  //if (zeeJetCounts) { delete zeeJetCounts; zeeJetCounts = NULL; }
 
-  TVectorD infoVec (2);
-  infoVec[0] = luminosity;
-  infoVec[1] = dataSet;
-  infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
+  //TVectorD infoVec (2);
+  //infoVec[0] = luminosity;
+  //infoVec[1] = dataSet;
+  //infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
+
+  outFile->Write ();
 
   outFile->Close ();
   if (outFile) delete outFile;

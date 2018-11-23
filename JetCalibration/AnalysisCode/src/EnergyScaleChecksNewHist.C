@@ -60,8 +60,8 @@ void EnergyScaleChecksNewHist () {
 
   for (int iJ = 0; iJ < njets; iJ++) {
    JetTree->GetEntry (iJ);
-   //if (jeta < 1.5 || 3.2 < jeta)
-   // continue;
+   if (jeta < 1.5 || 3.2 < jeta)
+    continue;
    //if (jpt < 60)
    // continue;
 

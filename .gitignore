@@ -5,6 +5,15 @@ lib
 *.pdf
 *.zip
 
+# ROOT compilation tags
+*_h.d
+*_C.d
+*_h.so
+*_C.so
+*_h_ACLiC_dict_rdict.pcm
+*_C_ACLiC_dict_rdict.pcm
+
+
 # 2016 pPb dijets
 DijetAnalysis/AnalysisCode/lib
 DijetAnalysis/data

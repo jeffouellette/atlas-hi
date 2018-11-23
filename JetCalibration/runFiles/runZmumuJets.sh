@@ -56,4 +56,7 @@ version=270
 
 wait
 
+rm ../rootFiles/ZmumuJets/outFile.root
+hadd ../rootFiles/ZmumuJets/outFile.root ../rootFiles/ZmumuJets/dataSet_*.root
+
 ./bin/runZmumuJetsHist

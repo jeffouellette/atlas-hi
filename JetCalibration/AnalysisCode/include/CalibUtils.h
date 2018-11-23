@@ -2,13 +2,21 @@
 #define __CalibUtils_h__
 
 #include <GlobalParams.h>
+
 #include <TFile.h>
+#include <TH3D.h>
 
 namespace JetCalibration {
 
 extern TFile* xCalibSystematicsFile;
 extern TFile* dataOverMCFile;
 extern TFile* purityFile;
+
+/**
+ * Returns a new TH3D equal to tight - lnt.
+ */
+void SubtractLooseNonTight (TH3D* signal, const TH3D* tight, const TH3D* lnt, const TH3D* tightCounts, const TH3D* lntCounts);
+
 
 /**
  * Returns the initial systematic error on the 2015 cross-calibration as a function of jet pT and eta.

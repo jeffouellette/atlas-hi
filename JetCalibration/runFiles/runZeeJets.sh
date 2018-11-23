@@ -76,4 +76,7 @@ wait
 #
 #wait
 
+rm ../rootFiles/ZeeJets/outFile.root
+hadd ../rootFiles/ZeeJets/outFile.root ../rootFiles/ZeeJets/dataSet_*.root
+
 ./bin/runZeeJetsHist

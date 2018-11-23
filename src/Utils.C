@@ -213,10 +213,10 @@ double DeltaR (const double eta1, const double eta2, const double phi1, const do
 /**
  * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
  */
-bool InDisabledHEC (const double eta, double phi) {
+bool InDisabledHEC (const double eta, double phi, const double dr) {
   phi = InTwoPi (phi);
-  return lowerEtaCut < eta && eta < upperEtaCut &&
-         lowerPhiCut < phi && phi < upperPhiCut;
+  return 1.5-dr < eta && eta < 3.2+dr &&
+         pi-dr < phi && phi < 3*pi/2+dr;
 }
 
 
@@ -238,25 +238,32 @@ bool InHadCal (const float eta, const float R) {
 
 void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
   for (int ix = 1; ix <= optimal->GetNbinsX(); ix++) {
-   const double content = optimal->GetBinContent (ix);
-   const double lo = sys_lo->GetBinContent (ix);
-   const double hi = sys_hi->GetBinContent (ix);
+    const double content = optimal->GetBinContent (ix);
+    const double lo = sys_lo->GetBinContent (ix);
+    const double hi = sys_hi->GetBinContent (ix);
 
-   const double err_lo = content - lo;
-   const double err_hi = hi - content;
+    const double err_lo = content - lo;
+    const double err_hi = hi - content;
 
-   graph->SetPoint (ix-1, optimal->GetBinCenter (ix), content);
-   graph->SetPointEXlow (ix-1, optimal->GetBinCenter (ix) - optimal->GetBinLowEdge (ix));
-   graph->SetPointEXhigh (ix-1, optimal->GetBinLowEdge (ix+1) - optimal->GetBinCenter (ix));
+  
 
-   if (err_lo < 0 && err_hi < 0) {
-    graph->SetPointEYlow (ix-1, -err_hi);
-    graph->SetPointEYhigh (ix-1, -err_lo);
-   }
-   else {
-    graph->SetPointEYlow (ix-1, err_lo);
-    graph->SetPointEYhigh (ix-1, err_hi);
-   }
+    graph->SetPoint (ix-1, optimal->GetBinCenter (ix), content);
+    graph->SetPointEXlow (ix-1, optimal->GetBinCenter (ix) - optimal->GetBinLowEdge (ix));
+    graph->SetPointEXhigh (ix-1, optimal->GetBinLowEdge (ix+1) - optimal->GetBinCenter (ix));
+
+    if (err_lo < 0 && err_hi < 0) {
+      graph->SetPointEYlow (ix-1, -err_hi);
+      graph->SetPointEYhigh (ix-1, -err_lo);
+    }
+    else if (err_lo >= 0 && err_hi >= 0) {
+      graph->SetPointEYlow (ix-1, err_lo);
+      graph->SetPointEYhigh (ix-1, err_hi);
+    }
+    else {
+      graph->SetPointEYlow (ix-1, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYhigh (ix-1, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+    }
+
   }
   return;
 }
@@ -267,26 +274,30 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* s
  */
 void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal, const TGraph* sys_hi, const TGraph* sys_lo) {
   for (int ix = 0; ix < optimal->GetN(); ix++) {
-   double x, y, xl, yl, xh, yh;
-   optimal->GetPoint (ix, x, y);
-   sys_lo->GetPoint (ix, xl, yl);
-   sys_hi->GetPoint (ix, xh, yh);
+    double x, y, xl, yl, xh, yh;
+    optimal->GetPoint (ix, x, y);
+    sys_lo->GetPoint (ix, xl, yl);
+    sys_hi->GetPoint (ix, xh, yh);
 
-   const double err_lo = y - yl;
-   const double err_hi = yh - y;
+    const double err_lo = y - yl;
+    const double err_hi = yh - y;
 
-   graph->SetPoint (ix, x, y);
-   graph->SetPointEXlow (ix, optimal->GetErrorXlow (ix));
-   graph->SetPointEXhigh (ix, optimal->GetErrorXhigh (ix));
+    graph->SetPoint (ix, x, y);
+    graph->SetPointEXlow (ix, optimal->GetErrorXlow (ix));
+    graph->SetPointEXhigh (ix, optimal->GetErrorXhigh (ix));
 
-   if (err_lo < 0 && err_hi < 0) {
-    graph->SetPointEYlow (ix, -err_hi);
-    graph->SetPointEYhigh (ix, -err_lo);
-   }
-   else {
-    graph->SetPointEYlow (ix, err_lo);
-    graph->SetPointEYhigh (ix, err_hi);
-   }
+    if (err_lo < 0 && err_hi < 0) {
+      graph->SetPointEYlow (ix, -err_hi);
+      graph->SetPointEYhigh (ix, -err_lo);
+    }
+    else if (err_lo >= 0 && err_hi >= 0) {
+      graph->SetPointEYlow (ix, err_lo);
+      graph->SetPointEYhigh (ix, err_hi);
+    }
+    else {
+      graph->SetPointEYlow (ix, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYhigh (ix, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+    }
   }
   return;
 }
@@ -516,8 +527,8 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus (0)", projy->GetXaxis ()->GetBinLowEdge (1), projy->GetXaxis ()->GetBinUpEdge (projy->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", 0.5, 1.5);//projy->GetMean ()-1*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
+      //TF1* gaus = new TF1 ("gaus", "gaus(0)", projy->GetXaxis ()->GetBinLowEdge (1), projy->GetXaxis ()->GetBinUpEdge (projy->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", projy->GetMean ()-2.8*projy->GetStdDev (), projy->GetMean ()+2.8*projy->GetStdDev ());
       projy->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
@@ -560,8 +571,8 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus (0)", projx->GetXaxis ()->GetBinLowEdge (1), projx->GetXaxis ()->GetBinUpEdge (projx->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", 0.5, 1.5);//projx->GetMean ()-1*projx->GetStdDev (), projx->GetMean ()+2*projx->GetStdDev ());
+      //TF1* gaus = new TF1 ("gaus", "gaus(0)", projx->GetXaxis ()->GetBinLowEdge (1), projx->GetXaxis ()->GetBinUpEdge (projx->GetNbinsX ()));
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", projx->GetMean ()-2.8*projx->GetStdDev (), projx->GetMean ()+2.8*projx->GetStdDev ());
       projx->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
@@ -616,7 +627,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
       //TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", 0.5, 1.5);//proj->GetMean ()-1*proj->GetStdDev (), proj->GetMean ()+2*proj->GetStdDev ());
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       dataAvg = gaus->GetParameter (1);
       dataErr = gaus->GetParError (1);
@@ -644,7 +655,7 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
       //TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus (0)", 0.5, 1.5);//proj->GetMean ()-1*proj->GetStdDev (), proj->GetMean ()+2*proj->GetStdDev ());
+      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       mcAvg = gaus->GetParameter (1);
       mcErr = gaus->GetParError (1);

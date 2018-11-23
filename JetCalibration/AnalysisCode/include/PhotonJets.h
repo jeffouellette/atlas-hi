@@ -1,5 +1,5 @@
-#ifndef __GammaJets_h__
-#define __GammaJets_h__
+#ifndef __PhotonJets_h__
+#define __PhotonJets_h__
 
 namespace JetCalibration {
 
@@ -14,7 +14,7 @@ namespace JetCalibration {
  * filterEfficiency: Filtering efficiency in the MC generation.
  * numberEvents: The total number of events generated in the MC sample.
  */
-void GammaJets (const char* directory,
+void PhotonJets (const char* directory,
                 const int dataSet,
                 const double luminosity = 0, 
                 const bool isMC = false,

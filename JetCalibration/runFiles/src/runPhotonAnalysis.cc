@@ -1,4 +1,4 @@
-#include <GammaJets.h>
+#include <PhotonAnalysis.h>
 #include <iostream>
 #include <string>
 
@@ -6,7 +6,7 @@ using namespace std;
 using namespace JetCalibration;
 
 /**
- * Runs an instance of the GammaJets analysis routine.
+ * Runs an instance of the PhotonAnalysis analysis routine.
  * Author: Jeff Ouellette
  * Dated: 8/20/2018
  */
@@ -44,28 +44,28 @@ int main (int argc, char** argv) {
 
   switch (argc) {
    case 3:
-    GammaJets (directory, dataSet);
+    PhotonAnalysis (directory, dataSet);
     break;
    case 4:
-    GammaJets (directory, dataSet, lumi);
+    PhotonAnalysis (directory, dataSet, lumi);
     break;
    case 5:
-    GammaJets (directory, dataSet, lumi, isMC);
+    PhotonAnalysis (directory, dataSet, lumi, isMC);
     break;
    case 6:
-    GammaJets (directory, dataSet, lumi, isMC, isPeriodA);
+    PhotonAnalysis (directory, dataSet, lumi, isMC, isPeriodA);
     break;
    case 7:
-    GammaJets (directory, dataSet, lumi, isMC, isPeriodA, fileName);
+    PhotonAnalysis (directory, dataSet, lumi, isMC, isPeriodA, fileName);
     break;
    case 8:
-    GammaJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs);
+    PhotonAnalysis (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs);
     break;
    case 9:
-    GammaJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff);
+    PhotonAnalysis (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff);
     break;
    case 10:
-    GammaJets (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff, nevt);
+    PhotonAnalysis (directory, dataSet, lumi, isMC, isPeriodA, fileName, xs, feff, nevt);
     break;
   }
 

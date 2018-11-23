@@ -59,7 +59,7 @@ double DeltaR (const double eta1, const double eta2, const double phi1, const do
 /**
  * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
  */
-bool InDisabledHEC (const double eta, double phi);
+bool InDisabledHEC (const double eta, double phi, const double dr = 0.4);
 
 
 /**
