@@ -316,8 +316,12 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
               if (lJ == -1 || jet_pt->at (lJ) < jet_pt->at (iJ))
                 lJ = iJ;
             }
-            if (lJ != -1)
+            if (lJ != -1) {
               xJgDist[iTrig][iEta][iCent][iAngle]->Fill (jet_pt->at (lJ) / photon_pt->at (iP));
+              if (photon_pt->at (iP) > 250 && photon_tight->at (iP) && IsIsolated (photon_etcone30->at (iP)) && jet_pt->at(lJ) / photon_pt->at(iP) < 0.7)
+                cout << "Woah! Check out this event: run " << dataSet << ", event " << event_number << ", lumiblock " << lumi_block << ", tree entry " << entry << "!!" << endl;
+            }
+
           }
 
           // fill etcone distributions
@@ -351,8 +355,6 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
         else if (IsNonTight (photon_tight->at (iP), photon_tight_isemvalue->at (iP)) && IsNonIsolated (photon_etcone30->at (iP)))
           sidebandSpectrum[iTrig][iEta][3]->Fill (photon_pt->at (iP));
 
-        if (photon_pt->at (iP) > 200 && photon_tight->at (iP) && IsIsolated (photon_etcone30->at (iP)))
-          cout << "Woah! Check out this event: run " << dataSet << ", event " << event_number << ", lumiblock " << lumi_block << ", tree entry " << entry << "!!" << endl;
       }
     }
   }
