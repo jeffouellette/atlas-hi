@@ -1,5 +1,5 @@
-#ifndef __ZGammaJetCrossCheck_h__
-#define __ZGammaJetCrossCheck_h__
+#ifndef __JetAnalysis_h__
+#define __JetAnalysis_h__
 
 namespace JetCalibration {
 
@@ -14,15 +14,15 @@ namespace JetCalibration {
  * filterEfficiency: Filtering efficiency in the MC generation.
  * numberEvents: The total number of events generated in the MC sample.
  */
-void ZGammaJetCrossCheck (const char* directory,
-                          const int dataSet,
-                          const double luminosity = 0, 
-                          const bool isMC = false,
-                          const bool isPeriodA = false, 
-                          const char* inFileName = "",
-                          const double crossSection_microbarns = 0,
-                          const double filterEfficiency = 0,
-                          const int numberEvents = 0);
+void JetAnalysis (const char* directory,
+                  const int dataSet,
+                  const double luminosity = 0, 
+                  const bool isMC = false,
+                  const bool isPeriodA = false, 
+                  const char* inFileName = "",
+                  const double crossSection_microbarns = 0,
+                  const double filterEfficiency = 0,
+                  const int numberEvents = 0);
 
 } // end namespace
 

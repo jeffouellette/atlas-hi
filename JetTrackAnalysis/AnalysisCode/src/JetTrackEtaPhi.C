@@ -43,21 +43,21 @@ void JetTrackEtaPhi (const char* directory,
   }
   /**** End find TTree ****/
 
-  TreeVariables* t = new TreeVariables (tree, false);
+  TreeVariables* t = new TreeVariables (tree, isMC);
   if (crossSection_microbarns != 0)
    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
   t->SetGetTracks ();
-  t->SetGetHIJets (false);
-  t->SetGetSimpleJets (false);
+  t->SetGetHIJets ();
+  t->SetGetSimpleJets ();
   t->SetGetFCals ();
   t->SetBranchAddresses ();
-  tree->SetBranchAddress ("akt4hi_njet", &t->jet_n);
-  tree->SetBranchAddress ("akt4hi_xcalib_jet_pt", &t->jet_pt);
-  tree->SetBranchAddress ("akt4hi_xcalib_jet_eta", &t->jet_eta);
-  tree->SetBranchAddress ("akt4hi_xcalib_jet_phi", &t->jet_phi);
-  tree->SetBranchAddress ("akt4hi_xcalib_jet_e", &t->jet_e);
+  //tree->SetBranchAddress ("akt4hi_njet", &t->jet_n);
+  //tree->SetBranchAddress ("akt4hi_xcalib_jet_pt", &t->jet_pt);
+  //tree->SetBranchAddress ("akt4hi_xcalib_jet_eta", &t->jet_eta);
+  //tree->SetBranchAddress ("akt4hi_xcalib_jet_phi", &t->jet_phi);
+  //tree->SetBranchAddress ("akt4hi_xcalib_jet_e", &t->jet_e);
   if (isMC) {
-   tree->SetBranchAddress ("akt4_truth_njet", &t->truth_jet_n);
+   //tree->SetBranchAddress ("akt4_truth_jet_n", &t->truth_jet_n);
    tree->SetBranchAddress ("akt4_truth_jet_pt", &t->truth_jet_pt);
    tree->SetBranchAddress ("akt4_truth_jet_eta", &t->truth_jet_eta);
    tree->SetBranchAddress ("akt4_truth_jet_phi", &t->truth_jet_phi);
@@ -160,7 +160,6 @@ void JetTrackEtaPhi (const char* directory,
 
    // find leading jet
    int lj = -1;
-   int slj = -1;
    //int sslj = -1;
    for (int iJet = 0; iJet < t->jet_n; iJet++) {
     if (lj == -1 || t->jet_pt->at (lj) < t->jet_pt->at (iJet)) {
@@ -172,8 +171,9 @@ void JetTrackEtaPhi (const char* directory,
    JetSelectionHist[iCent]->Fill (0); // found leading jet
 
    // find sub-leading jet
+   int slj = -1;
    for (int iJet = 0; iJet < t->jet_n; iJet++) {
-    if (iJet == lj || DeltaR (t->jet_eta->at (lj), t->jet_eta->at (iJet), t->jet_phi->at (lj), t->jet_phi->at (iJet)) < 0.8 || t->jet_pt->at (iJet) < jet_pt_cut)
+    if (iJet == lj || /*DeltaR (t->jet_eta->at (lj), t->jet_eta->at (iJet), t->jet_phi->at (lj), t->jet_phi->at (iJet)) < 0.8 ||*/ t->jet_pt->at (iJet) < jet_pt_cut)
      continue;
     if (slj == -1 || t->jet_pt->at (slj) < t->jet_pt->at (iJet)) {
      slj = iJet;
@@ -246,7 +246,7 @@ void JetTrackEtaPhi (const char* directory,
    // fill jet spectra & track correlations
    if (isMC) {
     double minDeltaR = 1000;
-    for (int iTJet = 0; iTJet < t->truth_jet_n; iTJet++) {
+    for (int iTJet = 0; iTJet < t->truth_jet_pt->size (); iTJet++) {
      const double dR = DeltaR (t->jet_eta->at (lj), t->truth_jet_eta->at (iTJet), t->jet_phi->at (lj), t->truth_jet_phi->at (iTJet));
      if (dR < minDeltaR) {
       minDeltaR = dR;

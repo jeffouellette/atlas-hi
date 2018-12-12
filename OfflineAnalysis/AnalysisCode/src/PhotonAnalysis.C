@@ -44,9 +44,10 @@ const char* GetShowerShape (const int iShowerShape) {
    case 6:  return "weta2";
    case 7:  return "wtots1";
    case 8:  return "f1";
-   case 9:  return "fracs1"; // fside
-   case 10: return "DeltaE";
-   case 11: return "Eratio";
+   case 9:  return "f3";
+   case 10: return "fracs1"; // fside
+   case 11: return "DeltaE";
+   case 12: return "Eratio";
    default: return "";
   }
 }
@@ -103,6 +104,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
   vector<float>* photon_weta2 = 0;
   vector<float>* photon_wtots1 = 0;
   vector<float>* photon_f1 = 0;
+  vector<float>* photon_f3 = 0;
   vector<float>* photon_fracs1 = 0;
   vector<float>* photon_DeltaE = 0;
   vector<float>* photon_Eratio = 0;
@@ -142,6 +144,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
   tree->SetBranchAddress ("photon_weta2", &photon_weta2);
   tree->SetBranchAddress ("photon_wtots1", &photon_wtots1);
   tree->SetBranchAddress ("photon_f1", &photon_f1);
+  tree->SetBranchAddress ("photon_f3", &photon_f3);
   tree->SetBranchAddress ("photon_fracs1", &photon_fracs1);
   tree->SetBranchAddress ("photon_DeltaE", &photon_DeltaE);
   tree->SetBranchAddress ("photon_Eratio", &photon_Eratio);
@@ -167,7 +170,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
   TH1D*** fcal_et = Get2DArray <TH1D*> (photonTrigN, 2);
 
   TH1D**** sidebandSpectrum = Get3DArray <TH1D*> (photonTrigN, 2, 4);
-  TH1D**** showerShapeDists = Get3DArray <TH1D*> (photonTrigN, 2, 12);
+  TH1D**** showerShapeDists = Get3DArray <TH1D*> (photonTrigN, 2, 13);
 
   TH1D** photonCounts = Get1DArray <TH1D*> (photonTrigN);
   TH1D*** photonEventPlaneDist = Get2DArray <TH1D*> (photonTrigN, 2);
@@ -196,7 +199,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
 
       for (short iCent = 0; iCent < 2; iCent++) {
         const char* cent = iCent==0?"cent":"periph";
-        ptSpectrum[iTrig][iEta][iCent] = new TH1D (Form ("ptSpectrum_%s_%s_%s", triggers[iTrig]->name.c_str (), eta, cent), "", 150, 0, 300);
+        ptSpectrum[iTrig][iEta][iCent] = new TH1D (Form ("ptSpectrum_%s_%s_%s", triggers[iTrig]->name.c_str (), eta, cent), "", 600, 50, 650);
         ptSpectrum[iTrig][iEta][iCent]->Sumw2 ();
 
         for (short iAngle = 0; iAngle < 3; iAngle++) {
@@ -228,7 +231,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
         sidebandSpectrum[iTrig][iEta][iSide]->Sumw2 ();
       }
 
-      for (short iShower = 0; iShower < 12; iShower++) {
+      for (short iShower = 0; iShower < 13; iShower++) {
         showerShapeDists[iTrig][iEta][iShower] = new TH1D (Form ("showerShapeDist_%s_%s_%s", triggers[iTrig]->name.c_str (), eta, GetShowerShape (iShower)), "", 2000, showerShapeBinsLow[iShower], showerShapeBinsHigh[iShower]);
         showerShapeDists[iTrig][iEta][iShower]->Sumw2 ();
       }
@@ -299,9 +302,10 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
             showerShapeDists[iTrig][iEta][6]->Fill (photon_weta2->at (iP));
             showerShapeDists[iTrig][iEta][7]->Fill (photon_wtots1->at (iP));
             showerShapeDists[iTrig][iEta][8]->Fill (photon_f1->at (iP));
-            showerShapeDists[iTrig][iEta][9]->Fill (photon_fracs1->at (iP));
-            showerShapeDists[iTrig][iEta][10]->Fill (photon_DeltaE->at (iP));
-            showerShapeDists[iTrig][iEta][11]->Fill (photon_Eratio->at (iP));
+            showerShapeDists[iTrig][iEta][9]->Fill (photon_f3->at (iP));
+            showerShapeDists[iTrig][iEta][10]->Fill (photon_fracs1->at (iP));
+            showerShapeDists[iTrig][iEta][11]->Fill (photon_DeltaE->at (iP));
+            showerShapeDists[iTrig][iEta][12]->Fill (photon_Eratio->at (iP));
           }       
 
           // fill xJgamma distributions
@@ -397,7 +401,7 @@ void PhotonAnalysis (const int dataSet, const bool isMC, const char* subdir) {
         sidebandSpectrum[iTrig][iEta][iSide]->Write ();
       }
 
-      for (short iShower = 0; iShower < 12; iShower++) {
+      for (short iShower = 0; iShower < 13; iShower++) {
         showerShapeDists[iTrig][iEta][iShower]->Write ();
       }
     }

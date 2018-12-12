@@ -4,7 +4,7 @@ LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L./lib -l
 
 CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
-analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution PhotonJets Intercalibration JetInsituCorrectionCheck MCValidator RtrkComparison ZeeJets ZmumuJets ZMassCalc
+analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution Intercalibration JetAnalysis JetInsituCorrectionCheck MCValidator PhotonAnalysis PhotonJets RtrkComparison ZeeJets ZmumuJets ZMassCalc
 
 hists = $(analyses:%=%Hist) ZJetsHist EnergyScaleChecksNewHist ZGammaJetCrossCheckHist
 

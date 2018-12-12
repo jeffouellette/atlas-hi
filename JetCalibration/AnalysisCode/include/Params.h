@@ -49,6 +49,7 @@ const bool calcPtClosure = true; // whether the energy scale calculations will u
 
 const bool subtractBackground = true; // whether to subtract the calculated background
 
+//const bool exclusive = true; // whether to calculate xjref outside of eta bounds (vs. inside)
 const bool exclusive = false; // whether to calculate xjref outside of eta bounds (vs. inside)
 
 
@@ -58,17 +59,18 @@ const short rebinFactor = 50;
 const short numxjrefbins = 1000;
 const double* xjrefbins = linspace (0, 2.0, numxjrefbins);
 
-const short numrtrkbins = 400;
+const short numrtrkbins = 1000;
 const double* rtrkbins = linspace (0, 2.0, numrtrkbins);
 
 const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
 //const double dpbins[2] = {60, 140};
-const short numdpbins = sizeof (dpbins)/sizeof (dpbins[0]) - 1;
+const short numdpbins = sizeof (dpbins) / sizeof (dpbins[0]) - 1;
 
 //const double pbins[31] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 90., 100., 110., 120., 130., 140., 150., 165., 180., 200., 225., 250., 275., 300., 350., 420., 500.};
 //const double pbins[16] = {20., 25., 30., 35., 40., 50., 60., 70., 90., 110., 140., 180., 220., 280., 350., 500.};
 const double pbins[9] = {20., 30., 40., 60., 90., 140., 220., 350., 500.};
-const short numpbins = sizeof (pbins)/sizeof (pbins[0]) - 1;
+//const double pbins[11] = {20., 30., 40., 50., 60., 70., 90., 140., 220., 350., 500.};
+const short numpbins = sizeof (pbins) / sizeof (pbins[0]) - 1;
 
 //const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 220., 300.};
 //const short numpzbins = sizeof (pzbins)/sizeof (pzbins[0]) - 1;
@@ -77,7 +79,10 @@ const short numpbins = sizeof (pbins)/sizeof (pbins[0]) - 1;
 //const double etabins[15] = {-4.4, -3.6, -2.8, -2.1, -1.2, -0.8, -0.3, 0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
 const double etabins[7] = {-4.4, -2.5, -1.2, 0, 1.2, 2.5, 4.4};
 //const double etabins[37] = {-4.4, -3.6, -3.2, -3.0, -2.8, -2.6, -2.4, -2.2, -2.0, -1.8, -1.6, -1.4, -1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.6, 4.4};
-const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
+const short numetabins = sizeof (etabins) / sizeof (etabins[0]) - 1;
+
+const double trketabins[5] = {-2.1, -1.2, 0, 1.2, 2.1};
+const short numtrketabins = sizeof (trketabins) / sizeof (trketabins[0]) - 1;
 
 const short numphibins = 48;
 const double* phibins = linspace (-pi, pi, numphibins);
@@ -89,7 +94,7 @@ const double zetabins[7] = {-2.4, -1.52, -1.37, 0, 1.37, 1.52, 2.4};
 const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
-const short numXCalibEtabins = sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) - 1;
+const short numXCalibEtabins = sizeof (xcalibEtabins) / sizeof (xcalibEtabins[0]) - 1;
 
 const short numclosurebins = 100;
 const double* closurebins = linspace (0, 2.0, numclosurebins);
@@ -98,9 +103,9 @@ const double maxSigma = 0.40;
 const short numSigmaBins = 80;
 
 // bin min and max for combined results
-const int eta_lo_comb = 3;
-const int eta_hi_comb = 4;
-const int p_lo_comb = 3;
+const int eta_lo_comb = 1;
+const int eta_hi_comb = 6;
+const int p_lo_comb = 5;
 const int p_hi_comb = numpbins;
 
 

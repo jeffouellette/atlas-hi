@@ -5,6 +5,7 @@
 #include <Utils.h>
 #include <ArrayTemplates.h>
 
+#include <TTree.h>
 #include <TF1.h>
 #include <TH1D.h>
 #include <TH2D.h>
@@ -29,233 +30,116 @@ void RtrkComparisonHist () {
   // Setup trigger vectors
   SetupDirectories ("RtrkComparison/", "JetCalibration/");
 
-  // Setup list of data and lists of MC samples
-  vector<int> runNumbers (0);
-  for (short i = 0; i < sizeof (full_run_list)/sizeof (full_run_list[0]); i++) runNumbers.push_back (full_run_list[i]);
-  vector<TString> gammaJetSampleIds (0);
-  for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back (TString ("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
-   gammaJetSampleIds.push_back (TString ("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
-  }
-  vector<TString> zeeJetSampleIds (0);
-  zeeJetSampleIds.push_back ("Pbp_Overlay_ZeeJet");
-  zeeJetSampleIds.push_back ("pPb_Overlay_ZeeJet");
+  TH3D**** jetRtrkHists = Get3DArray <TH3D*> (3, 2, 3); // iPer, iData, iErr
+  TH2D*** jetRtrkCounts = Get2DArray <TH2D*> (3, 2);
 
-  vector<TString> zmumuJetSampleIds (0);
-  zmumuJetSampleIds.push_back ("Pbp_Overlay_ZmumuJet");
-  zmumuJetSampleIds.push_back ("pPb_Overlay_ZmumuJet");
-
-  vector<TString> dijetSampleIds (0);
-  dijetSampleIds.push_back ("pPb_Signal_Dijet_Slice2");
-
-  TH3D***** jetRtrkHists = Get4DArray <TH3D*> (2, 3, 2, 3); // iAlgo, iPer, iData, iErr
-  TH2D**** jetRtrkCounts = Get3DArray <TH2D*> (2, 3, 2);
-
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-   for (short iData = 0; iData < 2; iData++) { // iData is 0 for data, 1 for MC
-    const TString dataType = (iData == 0 ? "data":"mc");
-
-    for (short iPer = 0; iPer < 3; iPer++) {
-     TString period = "periodA";
-     if (iPer == 1) period = "periodB";
-     else if (iPer == 2) period = "periodAB";
-
-     for (short iErr = 0; iErr < 3; iErr++) {
-      TString error = "sys_lo";
-      if (iErr == 1) error = "stat";
-      else if (iErr == 2) error = "sys_hi";
-
-      jetRtrkHists[iAlgo][iPer][iData][iErr] = new TH3D (Form ("jetRtrkDist_%s_%s_%s_%s", algo.Data (), dataType.Data (), error.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins, numrtrkbins, rtrkbins);
-      jetRtrkHists[iAlgo][iPer][iData][iErr]->Sumw2 ();
-     }
-
-     jetRtrkCounts[iAlgo][iPer][iData] = new TH2D (Form ("jetRtrkCounts_%s_%s_%s", algo.Data (), dataType.Data (), period.Data ()), "", numpbins, pbins, numetabins, etabins);
-     jetRtrkCounts[iAlgo][iPer][iData]->Sumw2 ();
+  for (short iPer = 0; iPer < 3; iPer++) {
+    const char* period = (iPer == 0 ? "pA" : (iPer == 1 ? "pB" : "pAB"));
+ 
+    for (short iData = 0; iData < 2; iData++) { // iData is 0 for data, 1 for MC
+      const char* data = (iData == 0 ? "data" : "mc");
+  
+      for (short iErr = 0; iErr < 3; iErr++) {
+        const char* error = (iErr == 0 ? "sys_lo" : (iErr == 1 ? "stat" : "sys_hi"));
+   
+        jetRtrkHists[iPer][iData][iErr] = new TH3D (Form ("jetRtrkDist_%s_%s_%s", data, error, period), "", numpbins, pbins, numtrketabins, trketabins, numrtrkbins, rtrkbins);
+        jetRtrkHists[iPer][iData][iErr]->Sumw2 ();
+      }
+  
+      jetRtrkCounts[iPer][iData] = new TH2D (Form ("jetRtrkCounts_%s_%s", data, period), "", numpbins, pbins, numtrketabins, trketabins);
+      jetRtrkCounts[iPer][iData]->Sumw2 ();
     }
-   }
+  }
+  
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Load analyzed TTrees
+  //////////////////////////////////////////////////////////////////////////////
+  float jpt = 0, jeta = 0, jphi = 0, je = 0, jpterr = 0, jtrk500 = 0, jtrk1000 = 0;
+  double evtWeight = 0;
+  bool isMC = false, isPeriodA = false;
+
+  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TTree* inTree = (TTree*)inFile->Get ("RtrkTree");
+
+  inTree->SetBranchAddress ("evt_weight", &evtWeight);
+  inTree->SetBranchAddress ("jet_pt", &jpt);
+  inTree->SetBranchAddress ("jet_eta", &jeta);
+  inTree->SetBranchAddress ("jet_phi", &jphi);
+  inTree->SetBranchAddress ("jet_e", &je);
+  inTree->SetBranchAddress ("jet_pt_sys", &jpterr);
+  inTree->SetBranchAddress ("jet_SumPtTrkPt500", &jtrk500);
+  inTree->SetBranchAddress ("jet_SumPtTrkPt1000", &jtrk1000);
+  inTree->SetBranchAddress ("isMC", &isMC);
+  inTree->SetBranchAddress ("isPeriodA", &isPeriodA);
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Fill desired histograms
+  //////////////////////////////////////////////////////////////////////////////
+  const long nJets = inTree->GetEntries ();
+  for (long iJet = 0; iJet < nJets; iJet++) {
+    inTree->GetEntry (iJet);
+
+    const short iPer = isPeriodA ? 0 : 1;
+    const short iMC = isMC ? 1 : 0;
+
+    const float jtrk = jtrk1000;
+
+    jetRtrkHists[iPer][iMC][1]->Fill (jpt, jeta, jtrk/jpt, evtWeight);
+    jetRtrkHists[2][iMC][1]->Fill (jpt, jeta, jtrk/jpt, evtWeight);
+    jetRtrkCounts[iPer][iMC]->Fill (jpt, jeta);
+    jetRtrkCounts[2][iMC]->Fill (jpt, jeta);
+
+    jetRtrkHists[iPer][iMC][0]->Fill (jpt-jpterr, jeta, jtrk/jpt, evtWeight);
+    jetRtrkHists[2][iMC][0]->Fill (jpt-jpterr, jeta, jtrk/jpt, evtWeight);
+    jetRtrkHists[iPer][iMC][2]->Fill (jpt+jpterr, jeta, jtrk/jpt, evtWeight);
+    jetRtrkHists[2][iMC][2]->Fill (jpt+jpterr, jeta, jtrk/jpt, evtWeight);
   }
 
-  {
-   TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile *sysfile;
-   TString fname, histName;
-   TIter next (sysfiles);
-   int numFiles = 0;
-   while ( (sysfile= (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In RtrkComparisonHist.C: Found " << fname.Data () << endl;
 
-     // do this if file is data
-     for (int runNumber : runNumbers) { // check for data
-      if (fname.Contains (to_string (runNumber))) { // if data, do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       const short iPer = (runNumber < 313500 ? 0 : 1);
-
-       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-
-        for (short iErr = 0; iErr < 3; iErr++) {
-         TString error = "sys_lo";
-         if (iErr == 1) error = "stat";
-         else if (iErr == 2) error = "sys_hi";
-
-         TH3D* temp3 = (TH3D*)thisFile->Get (Form ("jetRtrkDist_dataSet%i_%s_data_%s", runNumber, algo.Data (), error.Data ()));
-         jetRtrkHists[iAlgo][iPer][0][iErr]->Add (temp3);
-         jetRtrkHists[iAlgo][2][0][iErr]->Add (temp3);
-        }
-        TH2D* temp2 = (TH2D*)thisFile->Get (Form ("jetRtrkCounts_dataSet%i_%s_data", runNumber, algo.Data ()));
-        jetRtrkCounts[iAlgo][iPer][0]->Add (temp2);
-        jetRtrkCounts[iAlgo][2][0]->Add (temp2);
-        
-       }
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
+  //////////////////////////////////////////////////////////////////////////////
+  // Save histograms for interactive access
+  //////////////////////////////////////////////////////////////////////////////
+  TFile* outFile = new TFile (Form ("%s/histograms.root", rootPath.Data ()), "recreate");
+  for (short iPer = 0; iPer < 3; iPer++) {
+    for (short iData = 0; iData < 2; iData++) { // iData is 0 for data, 1 for MC
+      for (short iErr = 0; iErr < 3; iErr++) {
+        if (iErr != 1 && iData != 0)
+          continue;
+        jetRtrkHists[iPer][iData][iErr]->Write ();
       }
-     }
-     // do this if gamma jet MC sample
-     for (TString gammaJetSampleId : gammaJetSampleIds) { // check for gamma jet MC
-      if (fname.Contains (gammaJetSampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       const short iPer = (gammaJetSampleId.Contains ("pPb") ? 0 : 1);
-
-       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-
-        // Only add the statistical error plots for MC (don't need to consider systematics)
-        TH3D* temp3 = (TH3D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_mc_stat", gammaJetSampleId.Data (), algo.Data ()));
-        jetRtrkHists[iAlgo][iPer][1][1]->Add (temp3);
-        jetRtrkHists[iAlgo][2][1][1]->Add (temp3);
-
-        TH2D* temp2 = (TH2D*)thisFile->Get (Form ("jetRtrkCounts_dataSet%s_%s_mc", gammaJetSampleId.Data (), algo.Data ()));
-        jetRtrkCounts[iAlgo][iPer][1]->Add (temp2);
-        jetRtrkCounts[iAlgo][2][1]->Add (temp2);
-       }
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if Z->ee MC sample
-     for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
-      if (fname.Contains (zeeJetSampleId)) { // if Z->ee MC do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       const short iPer = (zeeJetSampleId.Contains ("pPb") ? 0 : 1);
-
-       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-
-        // Only add the statistical error plots for MC (don't need to consider systematics)
-        TH3D* temp3 = (TH3D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_mc_stat", zeeJetSampleId.Data (), algo.Data ()));
-        jetRtrkHists[iAlgo][iPer][1][1]->Add (temp3);
-        jetRtrkHists[iAlgo][2][1][1]->Add (temp3);
-
-        TH2D* temp2 = (TH2D*)thisFile->Get (Form ("jetRtrkCounts_dataSet%s_%s_mc", zeeJetSampleId.Data (), algo.Data ()));
-        jetRtrkCounts[iAlgo][iPer][1]->Add (temp2);
-        jetRtrkCounts[iAlgo][2][1]->Add (temp2);
-       }
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if Z->mumu sample
-     for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
-      if (fname.Contains (zmumuJetSampleId)) { // if Z->mumu sample do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       const short iPer = (zmumuJetSampleId.Contains ("pPb") ? 0 : 1);
-
-       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-
-        // Only add the statistical error plots for MC (don't need to consider systematics)
-        TH3D* temp3 = (TH3D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_mc_stat", zmumuJetSampleId.Data (), algo.Data ()));
-        jetRtrkHists[iAlgo][iPer][1][1]->Add (temp3);
-        jetRtrkHists[iAlgo][2][1][1]->Add (temp3);
-
-        TH2D* temp2 = (TH2D*)thisFile->Get (Form ("jetRtrkCounts_dataSet%s_%s_mc", zmumuJetSampleId.Data (), algo.Data ()));
-        jetRtrkCounts[iAlgo][iPer][1]->Add (temp2);
-        jetRtrkCounts[iAlgo][2][1]->Add (temp2);
-       }
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if a dijet MC sample
-     for (TString dijetSampleId : dijetSampleIds) { // check for Z->ee MC
-      if (fname.Contains (dijetSampleId)) { // if Z->ee MC do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-       const short iPer = (dijetSampleId.Contains ("pPb") ? 0 : 1);
-
-       for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-        const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
-
-        // Only add the statistical error plots for MC (don't need to consider systematics)
-        TH3D* temp3 = (TH3D*)thisFile->Get (Form ("jetRtrkDist_dataSet%s_%s_mc_stat", dijetSampleId.Data (), algo.Data ()));
-        jetRtrkHists[iAlgo][iPer][1][1]->Add (temp3);
-        jetRtrkHists[iAlgo][2][1][1]->Add (temp3);
-
-        TH2D* temp2 = (TH2D*)thisFile->Get (Form ("jetRtrkCounts_dataSet%s_%s_mc", dijetSampleId.Data (), algo.Data ()));
-        jetRtrkCounts[iAlgo][iPer][1]->Add (temp2);
-        jetRtrkCounts[iAlgo][2][1]->Add (temp2);
-       }
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
+      
+      jetRtrkCounts[iPer][iData]->Write ();
     }
-   }
-   cout << numFiles << " files read in." << endl;
   }
-  /**** End loop over input files ****/
 
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Plotting elements 
+  //////////////////////////////////////////////////////////////////////////////
   TLine* zlines[5] = {};
   TLine* glines[5] = {};
   TLine* getalines[5] = {};
   TLine* xlines[5] = {};
   for (short i = 0; i < 5; i++) {
-   const float dz = 0.1;
-   const float dg = 0.05;
-   const float dx = 0.2;
+    const float dz = 0.1;
+    const float dg = 0.05;
+    const float dx = 0.2;
 
-   zlines[i] = new TLine (pbins[0], 1.0-2*dz+dz*i, pbins[numpbins], 1.0-2*dz+dz*i);
-   glines[i] = new TLine (pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
-   getalines[i] = new TLine (etabins[0], 1.0-1*dg+dg*i, etabins[numetabins], 1.0-1*dg+dg*i);
-   xlines[i] = new TLine (xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
+    zlines[i] = new TLine (pbins[0], 1.0-2*dz+dz*i, pbins[numpbins], 1.0-2*dz+dz*i);
+    glines[i] = new TLine (pbins[0], 1.0-1*dg+dg*i, pbins[numpbins], 1.0-1*dg+dg*i);
+    getalines[i] = new TLine (trketabins[0], 1.0-1*dg+dg*i, trketabins[numtrketabins], 1.0-1*dg+dg*i);
+    xlines[i] = new TLine (xjrefbins[0], 1.0-2*dx+dx*i, xjrefbins[numxjrefbins], 1.0-2*dx+dx*i);
 
-   if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle (1);
-   else zlines[i]->SetLineStyle (3);
-   if (1.0-1*dg+dg*i == 1) glines[i]->SetLineStyle (1);
-   else glines[i]->SetLineStyle (3);
-   if (1.0-1*dg+dg*i == 1) getalines[i]->SetLineStyle (1);
-   else getalines[i]->SetLineStyle (3);
-   if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle (1);
-   else xlines[i]->SetLineStyle (3);
+    if (1.0-2*dz+dz*i == 1) zlines[i]->SetLineStyle (1);
+    else zlines[i]->SetLineStyle (3);
+    if (1.0-1*dg+dg*i == 1) glines[i]->SetLineStyle (1);
+    else glines[i]->SetLineStyle (3);
+    if (1.0-1*dg+dg*i == 1) getalines[i]->SetLineStyle (1);
+    else getalines[i]->SetLineStyle (3);
+    if (1.0-2*dx+dx*i == 1) xlines[i]->SetLineStyle (1);
+    else xlines[i]->SetLineStyle (3);
   }
 
 
@@ -280,365 +164,412 @@ void RtrkComparisonHist () {
   TGraphAsymmErrors *jetRtrkGraph_sys, *jetRtrkGraph_rat_sys;
 
   for (short iPer = 0; iPer < 3; iPer++) { // loop over period configurations
-   TString period = "Period A";
-   if (iPer == 1) period = "Period B";
-   else if (iPer == 2) period = "Period A+B";
+    const char* period = (iPer == 0 ? "Period A" : (iPer == 1 ? "Period B" : "Period A+B"));
+    const char* per = (iPer == 0 ? "pA" : (iPer == 1 ? "pB" : "pAB"));
 
-   TString perType = "pA";
-   if (iPer == 1) perType = "pB";
-   else if (iPer == 2) perType = "pAB";
+    for (short iEta = 0; iEta <= numtrketabins; iEta++) { // loop over bins in eta
+      const short eta_lo = (iEta != numtrketabins ? iEta+1 : 1);
+      const short eta_hi = (iEta != numtrketabins ? iEta+1 : numtrketabins);
 
-   for (short iEta = 0; iEta <= numetabins; iEta++) { // loop over bins in eta
-    const short eta_lo = (iEta != numetabins ? iEta+1 : 5);
-    const short eta_hi = (iEta != numetabins ? iEta+1 : 10);
+      const Color_t dataColor = kBlack;
+      const Color_t mcColor = kRed;
+      const Style_t markerStyle = 20;
 
-    for (short iAlgo = 0; iAlgo < 2; iAlgo++) { // loop over jet algorithms
-     const Style_t markerStyle = kFullDotLarge;
-     topPad->cd ();
-     topPad->SetLogx ();
+      topPad->cd ();
+      topPad->SetLogx ();
 
-     proj2d = Project2D ("", jetRtrkHists[iAlgo][iPer][0][1], "x", "z", eta_lo, eta_hi);
-     jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numpbins, pbins, true);
-     jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{jet}>");
-     jetRtrkHist->SetAxisRange (0., 2.0, "Y");
-     jetRtrkHist->SetMarkerStyle (markerStyle);
-     jetRtrkHist->SetMarkerColor (dataColor);
-     jetRtrkHist->SetLineColor (dataColor);
-     jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
+      proj2d = Project2D ("", jetRtrkHists[iPer][0][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
+      proj2d->RebinY (rebinFactor);
+      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numpbins, pbins, true);
+      jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{jet}>");
+      jetRtrkHist->SetAxisRange (0., 2.0, "Y");
+      jetRtrkHist->SetMarkerStyle (markerStyle);
+      jetRtrkHist->SetMarkerColor (dataColor);
+      jetRtrkHist->SetLineColor (dataColor);
+      jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
 
-     // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     proj2d_lo = Project2D ("", jetRtrkHists[iAlgo][iPer][0][0], "x", "z", eta_lo, eta_hi);
-     jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numpbins, pbins, true);
+      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
+      proj2d_lo = Project2D ("", jetRtrkHists[iPer][0][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
+      proj2d_lo->RebinY (rebinFactor);
+      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numpbins, pbins, true);
 
-     proj2d_hi = Project2D ("", jetRtrkHists[iAlgo][iPer][0][2], "x", "z", eta_lo, eta_hi);
-     jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numpbins, pbins, true);
+      proj2d_hi = Project2D ("", jetRtrkHists[iPer][0][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
+      proj2d_hi->RebinY (rebinFactor);
+      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numpbins, pbins, true);
 
-     jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
-     CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
-     if (jetRtrkHist_lo) delete jetRtrkHist_lo;
-     if (jetRtrkHist_hi) delete jetRtrkHist_hi;
+      jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
+      CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
+      if (jetRtrkHist_lo) delete jetRtrkHist_lo;
+      if (jetRtrkHist_hi) delete jetRtrkHist_hi;
 
-     jetRtrkGraph_sys->SetFillColor (kBlack);
-     jetRtrkGraph_sys->SetFillStyle (3001);
+      jetRtrkGraph_sys->SetFillColor (kBlack);
+      jetRtrkGraph_sys->SetFillStyle (3001);
 
-     proj2d_mc = Project2D ("", jetRtrkHists[iAlgo][iPer][1][1], "x", "z", eta_lo, eta_hi);
-     jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numpbins, pbins, true);
-     jetRtrkHist_mc->SetMarkerStyle (markerStyle);
-     jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
-     jetRtrkHist_mc->SetLineColor (mcOverlayColor);
+      proj2d_mc = Project2D ("", jetRtrkHists[iPer][1][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
+      proj2d_mc->RebinY (rebinFactor);
+      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numpbins, pbins, true);
+      jetRtrkHist_mc->SetMarkerStyle (markerStyle);
+      jetRtrkHist_mc->SetMarkerColor (mcColor);
+      jetRtrkHist_mc->SetLineColor (mcColor);
 
-     jetRtrkHist->Draw ("e1 x0");
-     jetRtrkHist_mc->Draw ("same e1 x0");
-     jetRtrkGraph_sys->Draw ("2");
+      jetRtrkHist->Draw ("e1 x0");
+      jetRtrkHist_mc->Draw ("same e1 x0");
+      jetRtrkGraph_sys->Draw ("2");
 
-     const int nJetData = jetRtrkCounts[iAlgo][iPer][0]->Integral (1, numpbins, iEta, iEta);
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJetData), 1.25, 0.04/uPadY);
-     const int nJetMC = jetRtrkCounts[iAlgo][iPer][1]->Integral (1, numpbins, iEta, iEta);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nJetMC), 1.25, 0.04/uPadY);
-     if (eta_lo != 1 || eta_hi != numetabins)
-      myText (0.155, 0.65, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
-     myText (0.155, 0.73, kBlack, period.Data (), 0.04/uPadY);
+      int nJetData = 0, nJetMC = 0;
 
-     bottomPad->cd ();
-     bottomPad->SetLogx ();
+      if (exclusive && iEta == numtrketabins) {
+        nJetData = jetRtrkCounts[iPer][0]->Integral () - jetRtrkCounts[iPer][0]->Integral (1, numpbins, eta_lo, eta_hi);
+        nJetMC = jetRtrkCounts[iPer][1]->Integral () - jetRtrkCounts[iPer][1]->Integral (1, numpbins, eta_lo, eta_hi);
+      }
+      else {
+        nJetData = jetRtrkCounts[iPer][0]->Integral (1, numpbins, eta_lo, eta_hi);
+        nJetMC = jetRtrkCounts[iPer][1]->Integral (1, numpbins, eta_lo, eta_hi);
+      }
+      myMarkerText (0.175, 0.88, dataColor, markerStyle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJetData), 1.25, 0.04/uPadY);
+      myMarkerText (0.175, 0.81, mcColor, markerStyle, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nJetMC), 1.25, 0.04/uPadY);
+      if (eta_lo != 1 || eta_hi != numtrketabins) {
+        if (exclusive && iEta == numtrketabins) {
+          if (fabs (trketabins[eta_lo-1]) == fabs (trketabins[eta_hi]))
+            myText (0.155, 0.65, kBlack, Form ("#left|#eta_{det}^{Jet}#right| > %g", trketabins[eta_hi]), 0.04/uPadY);
+          else
+            myText (0.155, 0.65, kBlack, Form ("#eta_{det}^{Jet} < %g #union #eta_{det}^{Jet} > %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+        }
+        else
+          myText (0.155, 0.65, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+      }
+      myText (0.155, 0.73, kBlack, period, 0.04/uPadY);
 
-     jetRtrkHist_rat = GetDataOverMC (TString ("jetRtrk_DataMCRatio"), proj2d, proj2d_mc, numpbins, pbins, false, "x");
-     jetRtrkHist_rat_lo = GetDataOverMC (TString ("jetRtrk_DataMCRatio_lo"), proj2d_lo, proj2d_mc, numpbins, pbins, false, "x");
-     jetRtrkHist_rat_hi = GetDataOverMC (TString ("jetRtrk_DataMCRatio_hi"), proj2d_hi, proj2d_mc, numpbins, pbins, false, "x");
+      bottomPad->cd ();
+      bottomPad->SetLogx ();
 
-     jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
-     CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
-     if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
-     if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
+      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iEta%i", per, iEta), proj2d, proj2d_mc, numpbins, pbins, false, "x");
+      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc, numpbins, pbins, false, "x");
+      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc, numpbins, pbins, false, "x");
 
-     jetRtrkGraph_rat_sys->SetFillColor (kBlack);
-     jetRtrkGraph_rat_sys->SetFillStyle (3001);
+      jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
+      jetRtrkGraph_rat_sys->SetName (Form ("jetRtrk_DataMCRatio_sys_%s_iEta%i", per, iEta));
+      CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
+      if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
+      if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
 
-     jetRtrkHist_rat->SetXTitle ("#it{p}_{T}^{Jet} #left[GeV#right]");
-     jetRtrkHist_rat->SetYTitle ("Data / MC");
-     jetRtrkHist_rat->SetAxisRange (0.91, 1.09, "Y");
-     jetRtrkHist_rat->SetMarkerStyle (markerStyle);
-     jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-     jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
-     jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (dPadY);
-     jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-     jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
+      jetRtrkGraph_rat_sys->SetFillColor (kBlack);
+      jetRtrkGraph_rat_sys->SetFillStyle (3001);
 
-     jetRtrkHist_rat->Draw ("e1 x0");
-     jetRtrkGraph_rat_sys->Draw ("2");
-     for (TLine* line : zlines) line->Draw ("same");
+      jetRtrkHist_rat->SetMarkerStyle (markerStyle);
+      jetRtrkHist_rat->GetXaxis ()->SetTitle ("#it{p}_{T}^{Jet} #left[GeV#right]");
+      jetRtrkHist_rat->GetYaxis ()->SetTitle ("Data / MC");
+      jetRtrkHist_rat->GetYaxis ()->SetRangeUser (0.89, 1.11);
+      jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (dPadY);
+      jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
+      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
-     char* plotName;
-     if (iEta < numetabins) plotName = Form ("jet_rtrk_iEta%i.pdf", iEta);
-     else plotName = Form ("jet_rtrk_iEta_combined.pdf");
+      jetRtrkHist_rat->Draw ("e1 x0");
+      jetRtrkGraph_rat_sys->Draw ("2");
+      for (TLine* line : zlines) line->Draw ("same");
 
-     switch (iPer) {
-      case 0:
-       canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-       break;
-      case 1:
-       canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-       break;
-      case 2:
-       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-       break;
-     }
-     if (proj2d) { delete proj2d; proj2d = NULL; }
-     if (proj2d_lo) { delete proj2d_lo; proj2d_lo = NULL; }
-     if (proj2d_hi) { delete proj2d_hi; proj2d_hi = NULL; }
-     if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
+      char* plotName;
+      if (iEta < numtrketabins) plotName = Form ("jet_rtrk_iEta%i.pdf", iEta);
+      else plotName = Form ("jet_rtrk_iEta_combined.pdf");
 
-     if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
-     if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
-     if (jetRtrkGraph_sys) { delete jetRtrkGraph_sys; jetRtrkGraph_sys = NULL; }
-     if (jetRtrkHist_rat) { delete jetRtrkHist_rat; jetRtrkHist_rat = NULL; }
-     if (jetRtrkGraph_rat_sys) { delete jetRtrkGraph_rat_sys; jetRtrkGraph_rat_sys = NULL; }
-    } // end loop over jet algorithms
-   } // end loop over eta bins
+      switch (iPer) {
+        case 0:
+          canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
+          break;
+        case 1:
+          canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
+          break;
+        case 2:
+          canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
+          break;
+      }
 
-   for (short iP = 0; iP <= numpbins; iP++) { // loop over bins in p
-    const short p_lo = (iP != numpbins ? iP+1 : 7);
-    const short p_hi = (iP != numpbins ? iP+1 : 10);
+      jetRtrkHist_rat->Write ();
+      jetRtrkGraph_rat_sys->Write ();
 
-    for (short iAlgo = 0; iAlgo < 2; iAlgo++) { // loop over jet algorithms
-     const Style_t markerStyle = kFullDotLarge;
-     topPad->cd ();
-     topPad->SetLogx (false);
+      if (proj2d) { delete proj2d; proj2d = NULL; }
+      if (proj2d_lo) { delete proj2d_lo; proj2d_lo = NULL; }
+      if (proj2d_hi) { delete proj2d_hi; proj2d_hi = NULL; }
+      if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
 
-     proj2d = Project2D ("", jetRtrkHists[iAlgo][iPer][0][1], "y", "z", p_lo, p_hi);
-     jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numetabins, etabins, true);
-     jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{jet}>");
-     jetRtrkHist->SetAxisRange (0., 2.0, "Y");
-     jetRtrkHist->SetMarkerStyle (markerStyle);
-     jetRtrkHist->SetMarkerColor (dataColor);
-     jetRtrkHist->SetLineColor (dataColor);
-     jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
+      if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
+      if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
+      if (jetRtrkGraph_sys) { delete jetRtrkGraph_sys; jetRtrkGraph_sys = NULL; }
+      if (jetRtrkHist_rat) { delete jetRtrkHist_rat; jetRtrkHist_rat = NULL; }
+      if (jetRtrkGraph_rat_sys) { delete jetRtrkGraph_rat_sys; jetRtrkGraph_rat_sys = NULL; }
+    } // end loop over eta bins
 
-     // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
-     proj2d_lo = Project2D ("", jetRtrkHists[iAlgo][iPer][0][0], "y", "z", p_lo, p_hi);
-     jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numetabins, pbins, true);
+    for (short iP = 0; iP <= numpbins; iP++) { // loop over bins in p
+      const short p_lo = (iP != numpbins ? iP+1 : p_lo_comb);
+      const short p_hi = (iP != numpbins ? iP+1 : p_hi_comb);
 
-     proj2d_hi = Project2D ("", jetRtrkHists[iAlgo][iPer][0][2], "y", "z", p_lo, p_hi);
-     jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numetabins, pbins, true);
+      const Color_t dataColor = kBlack;
+      const Color_t mcColor = kRed;
+      const Style_t markerStyle = 20;
 
-     jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
-     CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
-     if (jetRtrkHist_lo) delete jetRtrkHist_lo;
-     if (jetRtrkHist_hi) delete jetRtrkHist_hi;
+      topPad->cd ();
+      topPad->SetLogx (false);
 
-     jetRtrkGraph_sys->SetFillColor (kBlack);
-     jetRtrkGraph_sys->SetFillStyle (3001);
+      proj2d = Project2D ("", jetRtrkHists[iPer][0][1], "y", "z", p_lo, p_hi);
+      proj2d->RebinY (rebinFactor);
+      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numtrketabins, trketabins, true);
+      jetRtrkHist->SetYTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{jet}>");
+      jetRtrkHist->SetAxisRange (0., 2.0, "Y");
+      jetRtrkHist->SetMarkerStyle (markerStyle);
+      jetRtrkHist->SetMarkerColor (dataColor);
+      jetRtrkHist->SetLineColor (dataColor);
+      jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      jetRtrkHist->GetYaxis ()->SetTitleOffset (uPadY);
 
-     proj2d_mc = Project2D ("", jetRtrkHists[iAlgo][iPer][1][1], "y", "z", p_lo, p_hi);
-     jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numetabins, etabins, true);
-     jetRtrkHist_mc->SetMarkerStyle (markerStyle);
-     jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
-     jetRtrkHist_mc->SetLineColor (mcOverlayColor);
+      // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
+      proj2d_lo = Project2D ("", jetRtrkHists[iPer][0][0], "y", "z", p_lo, p_hi);
+      proj2d_lo->RebinY (rebinFactor);
+      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numtrketabins, pbins, true);
 
-     jetRtrkHist->Draw ("e1 x0");
-     jetRtrkHist_mc->Draw ("same e1 x0");
-     jetRtrkGraph_sys->Draw ("2");
+      proj2d_hi = Project2D ("", jetRtrkHists[iPer][0][2], "y", "z", p_lo, p_hi);
+      proj2d_hi->RebinY (rebinFactor);
+      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numtrketabins, pbins, true);
 
-     const int nJetData = jetRtrkCounts[iAlgo][iPer][0]->Integral (p_lo, p_hi, 1, numetabins);
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJetData), 1.25, 0.04/uPadY);
-     const int nJetMC = jetRtrkCounts[iAlgo][iPer][1]->Integral (p_lo, p_hi, 1, numetabins);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullCircle, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nJetMC), 1.25, 0.04/uPadY);
-     if (p_lo != 1 || p_hi != numpbins)
-      myText (0.155, 0.65, kBlack, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-     myText (0.155, 0.73, kBlack, period.Data (), 0.04/uPadY);
+      jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
+      CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
+      if (jetRtrkHist_lo) delete jetRtrkHist_lo;
+      if (jetRtrkHist_hi) delete jetRtrkHist_hi;
 
-     bottomPad->cd ();
-     bottomPad->SetLogx (false);
+      jetRtrkGraph_sys->SetFillColor (kBlack);
+      jetRtrkGraph_sys->SetFillStyle (3001);
 
-     jetRtrkHist_rat = GetDataOverMC (TString ("jetRtrk_DataMCRatio"), proj2d, proj2d_mc, numetabins, etabins, false, "x");
-     jetRtrkHist_rat_lo = GetDataOverMC (TString ("jetRtrk_DataMCRatio_lo"), proj2d_lo, proj2d_mc, numetabins, etabins, false, "x");
-     jetRtrkHist_rat_hi = GetDataOverMC (TString ("jetRtrk_DataMCRatio_hi"), proj2d_hi, proj2d_mc, numetabins, etabins, false, "x");
+      proj2d_mc = Project2D ("", jetRtrkHists[iPer][1][1], "y", "z", p_lo, p_hi);
+      proj2d_mc->RebinY (rebinFactor);
+      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numtrketabins, trketabins, true);
+      jetRtrkHist_mc->SetMarkerStyle (markerStyle);
+      jetRtrkHist_mc->SetMarkerColor (mcColor);
+      jetRtrkHist_mc->SetLineColor (mcColor);
 
-     jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
-     CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
-     if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
-     if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
+      jetRtrkHist->Draw ("e1 x0");
+      jetRtrkHist_mc->Draw ("same e1 x0");
+      jetRtrkGraph_sys->Draw ("2");
 
-     jetRtrkGraph_rat_sys->SetFillColor (kBlack);
-     jetRtrkGraph_rat_sys->SetFillStyle (3001);
+      const int nJetData = jetRtrkCounts[iPer][0]->Integral (p_lo, p_hi, 1, numtrketabins);
+      myMarkerText (0.175, 0.88, dataColor, markerStyle, Form ("2016 #it{p}+Pb 8.16 TeV, with Insitu Corrections (%i events)", nJetData), 1.25, 0.04/uPadY);
+      const int nJetMC = jetRtrkCounts[iPer][1]->Integral (p_lo, p_hi, 1, numtrketabins);
+      myMarkerText (0.175, 0.81, mcColor, markerStyle, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", nJetMC), 1.25, 0.04/uPadY);
+      if (p_lo != 1 || p_hi != numpbins)
+       myText (0.155, 0.65, kBlack, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
+      myText (0.155, 0.73, kBlack, period, 0.04/uPadY);
 
-     jetRtrkHist_rat->SetXTitle ("#eta_{det}^{Jet}");
-     jetRtrkHist_rat->SetYTitle ("Data / MC");
-     jetRtrkHist_rat->SetAxisRange (0.91, 1.09, "Y");
-     jetRtrkHist_rat->SetMarkerStyle (markerStyle);
-     jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-     jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
-     jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (dPadY);
-     jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-     jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
+      bottomPad->cd ();
+      bottomPad->SetLogx (false);
 
-     jetRtrkHist_rat->Draw ("e1 x0");
-     jetRtrkGraph_rat_sys->Draw ("2");
-     for (TLine* line : getalines) line->Draw ("same");
+      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iP%i", per, iP), proj2d, proj2d_mc, numtrketabins, trketabins, false, "x");
+      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc, numtrketabins, trketabins, false, "x");
+      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc, numtrketabins, trketabins, false, "x");
 
-     char* plotName;
-     if (iP < numpbins) plotName = Form ("jet_rtrk_iP%i.pdf", iP);
-     else plotName = Form ("jet_rtrk_iP_combined.pdf");
+      jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
+      jetRtrkGraph_rat_sys->SetName (Form ("jetRtrk_DataMCRatio_sys_%s_iP%i", per, iP));
+      CalcSystematics (jetRtrkGraph_rat_sys, jetRtrkHist_rat, jetRtrkHist_rat_hi, jetRtrkHist_rat_lo);
+      if (jetRtrkHist_rat_lo) delete jetRtrkHist_rat_lo;
+      if (jetRtrkHist_rat_hi) delete jetRtrkHist_rat_hi;
 
-     switch (iPer) {
-      case 0:
-       canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-       break;
-      case 1:
-       canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-       break;
-      case 2:
-       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-       break;
-     }
-     if (proj2d) { delete proj2d; proj2d = NULL; }
-     if (proj2d_lo) { delete proj2d_lo; proj2d_lo = NULL; }
-     if (proj2d_hi) { delete proj2d_hi; proj2d_hi = NULL; }
-     if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
+      jetRtrkGraph_rat_sys->SetFillColor (kBlack);
+      jetRtrkGraph_rat_sys->SetFillStyle (3001);
 
-     if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
-     if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
-     if (jetRtrkGraph_sys) { delete jetRtrkGraph_sys; jetRtrkGraph_sys = NULL; }
-     if (jetRtrkHist_rat) { delete jetRtrkHist_rat; jetRtrkHist_rat = NULL; }
-     if (jetRtrkGraph_rat_sys) { delete jetRtrkGraph_rat_sys; jetRtrkGraph_rat_sys = NULL; }
-    } // end loop over jet algos
-   } // end loop over pT bins
+      jetRtrkHist_rat->SetXTitle ("#eta_{det}^{Jet}");
+      jetRtrkHist_rat->SetYTitle ("Data / MC");
+      jetRtrkHist_rat->SetAxisRange (0.89, 1.11, "Y");
+//      jetRtrkHist_rat->SetAxisRange (0.6, 1.4, "Y");
+      jetRtrkHist_rat->SetMarkerStyle (markerStyle);
+      jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (dPadY);
+      jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
+      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
+
+      jetRtrkHist_rat->Draw ("e1 x0");
+      jetRtrkGraph_rat_sys->Draw ("2");
+      for (TLine* line : getalines) line->Draw ("same");
+
+      char* plotName;
+      if (iP < numpbins) plotName = Form ("jet_rtrk_iP%i.pdf", iP);
+      else plotName = Form ("jet_rtrk_iP_combined.pdf");
+
+      switch (iPer) {
+        case 0:
+          canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
+          break;
+        case 1:
+          canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
+          break;
+        case 2:
+          canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
+          break;
+      }
+
+      jetRtrkHist_rat->Write ();
+      jetRtrkGraph_rat_sys->Write ();
+
+      if (proj2d) { delete proj2d; proj2d = NULL; }
+      if (proj2d_lo) { delete proj2d_lo; proj2d_lo = NULL; }
+      if (proj2d_hi) { delete proj2d_hi; proj2d_hi = NULL; }
+      if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
+
+      if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
+      if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
+      if (jetRtrkGraph_sys) { delete jetRtrkGraph_sys; jetRtrkGraph_sys = NULL; }
+      if (jetRtrkHist_rat) { delete jetRtrkHist_rat; jetRtrkHist_rat = NULL; }
+      if (jetRtrkGraph_rat_sys) { delete jetRtrkGraph_rat_sys; jetRtrkGraph_rat_sys = NULL; }
+    } // end loop over pT bins
 
 
-   /**** Plots rtrk distributions, binned by eta^jet ****/
-   for (short iEta = 0; iEta < numetabins; iEta++) {
-    const int p_lo = 7;
-    const int p_hi =  10;
+    /**** Plots rtrk distributions, binned by eta^jet ****/
+    for (short iEta = 0; iEta <= numtrketabins; iEta++) {
+      const short eta_lo = (iEta != numtrketabins ? iEta+1 : 1);
+      const short eta_hi = (iEta != numtrketabins ? iEta+1 : 4);
 
-    const Style_t dataStyle = kFullCircle;
-    const Style_t mcStyle = 33;
-    for (short iAlgo = 0; iAlgo < 2; iAlgo++) { // loop over jet algorithms
-     const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
+      for (short iP = 0; iP <= numpbins; iP++) {
+        const int p_lo = (iP != numpbins ? iP+1 : p_lo_comb);
+        const int p_hi =  (iP != numpbins ? iP+1 : p_hi_comb);
 
-     topPad->cd ();
-     topPad->SetLogx (0);
+        const Color_t dataColor = kBlack;
+        const Color_t mcColor = kRed;
+        const Style_t markerStyle = 20;
 
-     proj2d = Project2D ("", jetRtrkHists[iAlgo][iPer][0][1], "y", "z", p_lo, p_hi);
-     jetRtrkHist = proj2d->ProjectionY ("jetRtrkHist", iEta, iEta);
+        topPad->cd ();
+        topPad->SetLogx (0);
 
-     jetRtrkHist->Rebin (rebinFactor);
-     if (jetRtrkHist->Integral () != 0) jetRtrkHist->Scale (1./jetRtrkHist->Integral ());
-     jetRtrkHist->SetXTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}");
-     jetRtrkHist->SetYTitle ("Counts / Total");
-     jetRtrkHist->SetMarkerStyle (dataStyle);
-     jetRtrkHist->SetMarkerColor (dataColor);
-     jetRtrkHist->SetLineColor (dataColor);
-     //jetRtrkHist->GetXaxis ()->SetRangeUser (0., 2.);
-     jetRtrkHist->GetYaxis ()->SetRangeUser (0., 0.6);//jetRtrkHist->GetYaxis ()->GetXmax ());
+        proj2d = Project2D ("", jetRtrkHists[iPer][0][1], "y", "z", p_lo, p_hi);
+        proj2d->RebinY (rebinFactor);
+        jetRtrkHist = proj2d->ProjectionY ("jetRtrkHist", eta_lo, eta_hi);
 
-     jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/uPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleOffset (1.1*uPadY);
+        if (jetRtrkHist->Integral () != 0) jetRtrkHist->Scale (1./jetRtrkHist->Integral ());
 
-     proj2d_mc = Project2D ("", jetRtrkHists[iAlgo][iPer][1][1], "y", "z", p_lo, p_hi);
-     jetRtrkHist_mc = proj2d_mc->ProjectionY ("vJetProjection_mc", iEta, iEta);
+        proj2d_mc = Project2D ("", jetRtrkHists[iPer][1][1], "y", "z", p_lo, p_hi);
+        proj2d_mc->RebinY (rebinFactor);
+        jetRtrkHist_mc = proj2d_mc->ProjectionY ("vJetProjection_mc", eta_lo, eta_hi);
 
-     jetRtrkHist_mc->Rebin (rebinFactor);
-     if (jetRtrkHist_mc->Integral () != 0) jetRtrkHist_mc->Scale (1./jetRtrkHist_mc->Integral ()); 
+        if (jetRtrkHist_mc->Integral () != 0) jetRtrkHist_mc->Scale (1./jetRtrkHist_mc->Integral ()); 
 
-     jetRtrkHist_mc->SetMarkerStyle (mcStyle);
-     jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
-     jetRtrkHist_mc->SetLineColor (mcOverlayColor);
+        jetRtrkHist_mc->SetXTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}");
+        jetRtrkHist_mc->SetYTitle ("Counts / Total");
+        jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 1.6*jetRtrkHist->GetYaxis ()->GetXmax ());
+        jetRtrkHist_mc->SetMarkerStyle (markerStyle);
+        jetRtrkHist_mc->SetMarkerColor (mcColor);
+        jetRtrkHist_mc->SetLineColor (mcColor);
 
-     jetRtrkHist->DrawCopy ("e1 x0");
-     jetRtrkHist_mc->DrawCopy ("same e1 x0"); // insitu factors are not applied to MC
+        jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.1*uPadY);
 
-     float mean, mean_err, mean_mc, mean_mc_err;
+        float mean, mean_err, mean_mc, mean_mc_err;
+
+        TF1 *gaus_data = 0, *gaus_mc = 0;
   
-     if (useGaussian) {
-      TF1* gaus_data = new TF1 ("gaus_data", "gaus (0)", 0, 4.0);
-      jetRtrkHist->Fit (gaus_data, "Q0R");
-      TF1* gaus_mc = new TF1 ("gaus_mc", "gaus (0)", 0, 4.0);
-      jetRtrkHist_mc->Fit (gaus_mc, "Q0R");
-      mean = gaus_data->GetParameter (1);
-      mean_err = gaus_data->GetParError (1);
-      mean_mc = gaus_mc->GetParameter (1);
-      mean_mc_err = gaus_mc->GetParError (1);
-      if (gaus_data) delete gaus_data;
-      if (gaus_mc) delete gaus_mc;
-     }
-     else {
-      mean = jetRtrkHist->GetMean ();
-      mean_err = jetRtrkHist->GetMeanError ();
-      mean_mc = jetRtrkHist_mc->GetMean ();
-      mean_mc_err = jetRtrkHist_mc->GetMeanError ();
-     }
+        mean = jetRtrkHist->GetMean ();
+        float stddev = jetRtrkHist->GetStdDev ();
+        gaus_data = new TF1 ("gaus_data", "gaus (0)", 0.1, 2);
+        jetRtrkHist->Fit (gaus_data, "Q0R");
 
-     const int countData = jetRtrkCounts[iAlgo][iPer][0]->Integral (p_lo, p_hi, iEta, iEta);
-     const int countMC = jetRtrkCounts[iAlgo][iPer][1]->Integral (p_lo, p_hi, iEta, iEta);
+        mean = jetRtrkHist_mc->GetMean ();
+        stddev = jetRtrkHist_mc->GetStdDev ();
+        gaus_mc = new TF1 ("gaus_mc", "gaus (0)", 0.1, 2);
+        jetRtrkHist_mc->Fit (gaus_mc, "Q0R");
 
-     myMarkerText (0.175, 0.88, dataColor, kFullCircle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countData), 1.25, 0.04/uPadY);
-     myMarkerText (0.175, 0.81, mcOverlayColor, kFullDiamond, Form ("Pythia8 #it{pp} 8.16 TeV (%i events)", countMC), 1.25, 0.04/uPadY);
+        mean = gaus_data->GetParameter (1);
+        mean_err = gaus_data->GetParError (1);
+        mean_mc = gaus_mc->GetParameter (1);
+        mean_mc_err = gaus_mc->GetParError (1);
 
-     myText (0.155, 0.73, dataColor, Form ("<#it{r}_{trk}>^{data} = %.2f #pm %.2f", mean, mean_err), 0.04/uPadY);
-     myText (0.155, 0.64, dataColor, Form ("<#it{r}_{trk}>^{MC} = %.2f #pm %.2f", mean_mc, mean_mc_err), 0.04/uPadY);
+        jetRtrkHist->Scale (1./gaus_data->Integral (gaus_data->GetXmin (), gaus_data->GetXmax ()));
+        jetRtrkHist_mc->Scale (1./gaus_mc->Integral (gaus_mc->GetXmin (), gaus_mc->GetXmax ()));
+        gaus_data->SetParameter (0, gaus_data->GetParameter (0) / gaus_data->Integral (gaus_data->GetXmin (), gaus_data->GetXmax ()));
+        gaus_mc->SetParameter (0, gaus_mc->GetParameter (0) / gaus_mc->Integral (gaus_mc->GetXmin (), gaus_mc->GetXmax ()));
 
-     myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-     myText (0.68, 0.25, dataColor, period.Data (), 0.04/uPadY);
-     myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-     myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", etabins[iEta], etabins[iEta+1]), 0.04/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 1.6* std::max (jetRtrkHist->GetMaximum (), jetRtrkHist_mc->GetMaximum ()));
 
-     bottomPad->cd ();
-     bottomPad->SetLogx (false);
-     jetRtrkHist->Divide (jetRtrkHist_mc);
+        jetRtrkHist_mc->DrawCopy ("e1 x0");
+        jetRtrkHist->DrawCopy ("same e1 x0");
 
-     jetRtrkHist->SetYTitle ("Data / MC");
-     jetRtrkHist->SetAxisRange (0.45, 1.65, "Y");
-     jetRtrkHist->GetYaxis ()->SetNdivisions (605);
-     jetRtrkHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
-     jetRtrkHist->GetXaxis ()->SetTitleOffset (1);
-     jetRtrkHist->GetYaxis ()->SetTitleOffset (1.1*dPadY);
-     jetRtrkHist->GetYaxis ()->CenterTitle (true);
-     jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
-     jetRtrkHist->GetXaxis ()->SetTickLength (0.08);
+        gaus_data->SetLineColor (dataColor);
+        gaus_mc->SetLineColor (mcColor);
+        gaus_data->Draw ("same");
+        gaus_mc->Draw ("same");
 
-     jetRtrkHist->DrawCopy ("e1 x0"); 
-     for (TLine* line : xlines) line->Draw ();
+        const int countsData = jetRtrkCounts[iPer][0]->Integral (p_lo, p_hi, eta_lo, eta_hi);
+        const int countsMC = jetRtrkCounts[iPer][1]->Integral (p_lo, p_hi, eta_lo, eta_hi);
 
-     if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
-     if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
+        myMarkerText (0.175, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04/uPadY);
+        myMarkerText (0.175, 0.80, mcColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.04/uPadY);
 
-     if (proj2d) { delete proj2d; proj2d = NULL; }
-     if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
-      // end loop over insitu configurations
+        myText (0.65, 0.88, dataColor, Form ("#mu_{data} = %s", FormatMeasurement (mean, mean_err)), 0.04/uPadY);
+        myText (0.65, 0.80, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err)), 0.04/uPadY);
 
-     char* plotName = Form ("rtrk_dists/%s_jets_rtrk_iEta%i.pdf", algo.Data (), iEta);
-     switch (iPer) {
-      case 0:
-       canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
-       break;
-      case 1:
-       canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
-       break;
-      case 2:
-       canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
-       break;
-     } // end switch
-    } // end loop over jet algos 
-   } // end loop over eta bins
+        myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+        myText (0.68, 0.25, dataColor, period, 0.04/uPadY);
+        myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
+        myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", trketabins[iEta], trketabins[iEta+1]), 0.04/uPadY);
+
+        bottomPad->cd ();
+        bottomPad->SetLogx (false);
+        jetRtrkHist->Divide (jetRtrkHist_mc);
+
+        jetRtrkHist->SetYTitle ("Data / MC");
+        jetRtrkHist->SetAxisRange (0.45, 1.65, "Y");
+        jetRtrkHist->GetYaxis ()->SetNdivisions (605);
+        jetRtrkHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
+        jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
+        jetRtrkHist->GetXaxis ()->SetTitleOffset (1);
+        jetRtrkHist->GetYaxis ()->SetTitleOffset (1.1*dPadY);
+        jetRtrkHist->GetYaxis ()->CenterTitle (true);
+        jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/dPadY);
+        jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
+        jetRtrkHist->GetXaxis ()->SetTickLength (0.08);
+
+        jetRtrkHist->DrawCopy ("e1 x0"); 
+        for (TLine* line : xlines) line->Draw ();
+
+        char* plotName = Form ("rtrk_dists/rtrk_iEta%i_iP%i.pdf", iEta, iP);
+        switch (iPer) {
+          case 0:
+            canvas->SaveAs (Form ("%s/PeriodA/%s", plotPath.Data (), plotName));
+            break;
+          case 1:
+            canvas->SaveAs (Form ("%s/PeriodB/%s", plotPath.Data (), plotName));
+            break;
+          case 2:
+            canvas->SaveAs (Form ("%s/PeriodAB/%s", plotPath.Data (), plotName));
+            break;
+        } // end switch
+
+        if (gaus_data) delete gaus_data;
+        if (gaus_mc) delete gaus_mc;
+
+        if (jetRtrkHist) { delete jetRtrkHist; jetRtrkHist = NULL; }
+        if (jetRtrkHist_mc) { delete jetRtrkHist_mc; jetRtrkHist_mc = NULL; }
+
+        if (proj2d) { delete proj2d; proj2d = NULL; }
+        if (proj2d_mc) { delete proj2d_mc; proj2d_mc = NULL; }
+
+      } // end loop over pT bins
+    } // end loop over eta bins
   } // end loop over periods
+
+  outFile->Close ();
+  if (outFile) { delete outFile; outFile = NULL; }
 
   return;
 }

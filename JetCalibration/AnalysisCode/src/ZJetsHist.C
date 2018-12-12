@@ -62,8 +62,9 @@ void ZJetsHist () {
   //////////////////////////////////////////////////////////////////////////////
   // Load analyzed TTrees
   //////////////////////////////////////////////////////////////////////////////
-  float evtWeight, zpt, zeta, zphi, zm, jpt, jeta, jphi, je, jpterr, dPhi;
-  bool isMC, isPeriodA;
+  float zpt = 0, zeta = 0, zphi = 0, zm = 0, jpt = 0, jeta = 0, jphi = 0, je = 0, jpterr = 0, dPhi = 0;
+  double evtWeight = 0;
+  bool isMC = false, isPeriodA = false;
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
   TTree* inTree = (TTree*)inFile->Get ("jeffsztree");
@@ -90,9 +91,12 @@ void ZJetsHist () {
   for (int zJet = 0; zJet < nZJets; zJet++) {
     inTree->GetEntry (zJet);
 
-    if (zpt > 0) {
+    if (zpt > 0 && jpt > 0) {
       double xjref = jpt / (zpt*cos(pi-dPhi));
       double xjreferr = jpterr / (zpt*cos(pi-dPhi));
+
+      if (fabs (jeta) > 1.2 && 220 <= zpt && zpt < 350)
+        cout << "wtf? entry: " << zJet << endl;
 
       zJetHists_pt_eta[(short)isPeriodA][(short)isMC][1]->Fill (zpt, jeta, xjref, evtWeight);
       zJetHists_pt_eta[2][(short)isMC][1]->Fill (zpt, jeta, xjref, evtWeight);
@@ -157,8 +161,8 @@ void ZJetsHist () {
   rawDistCanvas->SetBottomMargin (-0.12);
   //rawDistCanvas->Divide (8, 6);
 
-  TCanvas* canvas = new TCanvas ("canvas", "", 800, 800);
-  const double padRatio = 1.5; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
+  TCanvas* canvas = new TCanvas ("canvas", "", 800, 1000);
+  const double padRatio = 1.2; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
   const double dPadY = 1.0/ (padRatio+1.0);
   const double uPadY = 1.0 - dPadY;
   TPad* topPad = new TPad ("topPad", "", 0, dPadY, 1, 1);
@@ -206,10 +210,6 @@ void ZJetsHist () {
       vJetGraph->SetMarkerStyle (dataStyle);
       vJetGraph->SetMarkerColor (dataColor);
       vJetGraph->SetLineColor (dataColor);
-      vJetGraph->GetXaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
       // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
       proj_lo = Project2D ("", zJetHists_pt_eta[iPer][0][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
@@ -233,7 +233,7 @@ void ZJetsHist () {
       vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, true);
 
       // set y axis range according to MC
-      double middle = 0.05 * floor (20 * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
+      double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
       if (10 * middle != floor (10*middle)) middle += 0.05;
 
       vJetGraph_mc = make_graph (vJetHist_mc);
@@ -241,9 +241,13 @@ void ZJetsHist () {
       vJetGraph_mc->SetMarkerStyle (mcStyle);
       vJetGraph_mc->SetMarkerColor (mcColor);
       vJetGraph_mc->SetLineColor (mcColor);
+      vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
-      vJetGraph->Draw ("ap");
-      vJetGraph_mc->Draw ("p"); // insitu factors are not applied to MC
+      vJetGraph_mc->Draw ("ap");
+      vJetGraph->Draw ("p");
       vJetGraph_sys->Draw ("2");
 
       int countsData = 0, countsMC = 0;
@@ -311,44 +315,44 @@ void ZJetsHist () {
 
       for (TLine* line : zlines) line->Draw ();
 
-      if (vJetHist_rat->Integral () != 0.) {
-        // add systematic errors
-        for (int ix = 1; ix < vJetHist_rat->GetNbinsX (); ix++) {
-          const double sys_err = max (vJetGraph_rat_sys->GetErrorYhigh (ix-1), vJetGraph_rat_sys->GetErrorYlow (ix-1));
-          vJetHist_rat->SetBinError (ix, sqrt (pow (vJetHist_rat->GetBinError (ix), 2) + pow (sys_err, 2)));
-        }
+      //if (vJetHist_rat->Integral () != 0.) {
+      //  // add systematic errors
+      //  for (int ix = 1; ix < vJetHist_rat->GetNbinsX (); ix++) {
+      //    const double sys_err = max (vJetGraph_rat_sys->GetErrorYhigh (ix-1), vJetGraph_rat_sys->GetErrorYlow (ix-1));
+      //    vJetHist_rat->SetBinError (ix, sqrt (pow (vJetHist_rat->GetBinError (ix), 2) + pow (sys_err, 2)));
+      //  }
 
-        //vJetRatSpline = new TSpline5 (vJetHist_rat);
-        //vJetRatSpline->SetLineColor (2);
-        //vJetRatSpline->SetFillColorAlpha (2, 0.4);
-        //( (TSpline5*)vJetRatSpline->Clone ())->Draw ("same");
+      //  //vJetRatSpline = new TSpline5 (vJetHist_rat);
+      //  //vJetRatSpline->SetLineColor (2);
+      //  //vJetRatSpline->SetFillColorAlpha (2, 0.4);
+      //  //( (TSpline5*)vJetRatSpline->Clone ())->Draw ("same");
 
-        //if (vJetRatSpline) { delete vJetRatSpline; vJetRatSpline = NULL; }
+      //  //if (vJetRatSpline) { delete vJetRatSpline; vJetRatSpline = NULL; }
 
-        const TString func = "[0] + [1]*((log(x)-[3])/[4]) + [2]*(2*((log(x)-[3])/[4])^2-1)";// + [3]*(4*((log(x)-[4])/[5])^3-3*(log(x)-[4])/[5])";// + [4]*(8*((log(x)-[5])/[6])^4-8*((log(x)-[5])/[6])^2+1)";
-        vJetRatioFit = new TF1 ("vJetPtDataMCRatioFit", func, pbins[0], pbins[numpbins]);
-        vJetRatioFit->SetParameter (0, 1);
-        vJetRatioFit->SetParameter (1, 0);
-        vJetRatioFit->SetParameter (2, 0);
-        vJetRatioFit->FixParameter (3, 0.5 * (log (pbins[numpbins]) + log (pbins[0])));
-        vJetRatioFit->FixParameter (4, 0.5 * (log (pbins[numpbins]) - log (pbins[0])));
-        vJetHist_rat->Fit (vJetRatioFit, "RN0Q");
+      //  const TString func = "[0] + [1]*((log(x)-[3])/[4]) + [2]*(2*((log(x)-[3])/[4])^2-1)";// + [3]*(4*((log(x)-[4])/[5])^3-3*(log(x)-[4])/[5])";// + [4]*(8*((log(x)-[5])/[6])^4-8*((log(x)-[5])/[6])^2+1)";
+      //  vJetRatioFit = new TF1 ("vJetPtDataMCRatioFit", func, pbins[0], pbins[numpbins]);
+      //  vJetRatioFit->SetParameter (0, 1);
+      //  vJetRatioFit->SetParameter (1, 0);
+      //  vJetRatioFit->SetParameter (2, 0);
+      //  vJetRatioFit->FixParameter (3, 0.5 * (log (pbins[numpbins]) + log (pbins[0])));
+      //  vJetRatioFit->FixParameter (4, 0.5 * (log (pbins[numpbins]) - log (pbins[0])));
+      //  vJetHist_rat->Fit (vJetRatioFit, "RN0Q");
 
-        const float chisq = vJetRatioFit->GetChisquare ();
-        myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
+      //  const float chisq = vJetRatioFit->GetChisquare ();
+      //  myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
 
-        vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numpbins, pbins);
-        (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
+      //  vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numpbins, pbins);
+      //  (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
 
-        vJetRatioFit->SetLineColor (2);
-        ( (TF1*)vJetRatioFit->Clone ())->Draw ("same");
-        vJetRatioCI->SetMarkerStyle (kDot);
-        vJetRatioCI->SetFillColorAlpha (2, 0.4);
-        vJetRatioCI->DrawCopy ("e3 same");
+      //  vJetRatioFit->SetLineColor (2);
+      //  ( (TF1*)vJetRatioFit->Clone ())->Draw ("same");
+      //  vJetRatioCI->SetMarkerStyle (kDot);
+      //  vJetRatioCI->SetFillColorAlpha (2, 0.4);
+      //  vJetRatioCI->DrawCopy ("e3 same");
 
-        if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
-        if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
-      }
+      //  if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
+      //  if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
+      //}
 
       if (iEta < numetabins) plotName = Form ("z_jet_iEta%i.pdf", iEta);
       else plotName = Form ("z_jet_iEta_combined.pdf");
@@ -389,10 +393,6 @@ void ZJetsHist () {
       vJetGraph->SetMarkerStyle (dataStyle);
       vJetGraph->SetMarkerColor (dataColor);
       vJetGraph->SetLineColor (dataColor);
-      vJetGraph->GetXaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
       // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
       proj_lo = Project2D ("", zJetHists_pt_eta[iPer][0][0], "y", "z", p_lo, p_hi);
@@ -416,7 +416,7 @@ void ZJetsHist () {
       vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, true);
 
       // set y axis range according to MC
-      double middle = 0.05 * floor (20 * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
+      double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
       if (10 * middle != floor (10*middle)) middle += 0.05;
 
       vJetGraph_mc = make_graph (vJetHist_mc);
@@ -424,9 +424,13 @@ void ZJetsHist () {
       vJetGraph_mc->SetMarkerStyle (mcStyle);
       vJetGraph_mc->SetMarkerColor (mcColor);
       vJetGraph_mc->SetLineColor (mcColor);
+      vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
-      vJetGraph->Draw ("ap");
-      vJetGraph_mc->Draw ("p");
+      vJetGraph_mc->Draw ("ap");
+      vJetGraph->Draw ("p");
       vJetGraph_sys->Draw ("2");
 
       const int countsData = zJetCounts[iPer][0]->Integral (p_lo, p_hi, 1, zJetCounts[iPer][0]->GetNbinsY(), 1, numphibins);
@@ -483,37 +487,37 @@ void ZJetsHist () {
       vJetGraph_rat_sys->Draw ("2");
       for (TLine* line : zetalines) line->Draw ();
 
-      if (vJetHist_rat->Integral () != 0.) {
-        // add systematic errors
-        for (int ix = 1; ix < vJetHist_rat->GetNbinsX (); ix++) {
-          const double sys_err = max (fabs (vJetGraph_rat_sys->GetErrorYhigh (ix-1)), fabs (vJetGraph_rat_sys->GetErrorYlow (ix-1)));
-          vJetHist_rat->SetBinError (ix, sqrt (pow (vJetHist_rat->GetBinError (ix), 2) + pow (sys_err, 2)));
-        }
+      //if (vJetHist_rat->Integral () != 0.) {
+      //  // add systematic errors
+      //  for (int ix = 1; ix < vJetHist_rat->GetNbinsX (); ix++) {
+      //    const double sys_err = max (fabs (vJetGraph_rat_sys->GetErrorYhigh (ix-1)), fabs (vJetGraph_rat_sys->GetErrorYlow (ix-1)));
+      //    vJetHist_rat->SetBinError (ix, sqrt (pow (vJetHist_rat->GetBinError (ix), 2) + pow (sys_err, 2)));
+      //  }
 
-        const TString func = "[0] + [1]*((x-[3])/[4]) + [2]*(2*((x-[3])/[4])^2-1)";// + [3]*(4*((x-[4])/[5])^3-3*(x-[4])/[5])";// + [4]*(8*((x-[5])/[6])^4-8*((x-[5])/[6])^2+1)";
-        TF1* vJetRatioFit = new TF1 ("vJetPtDataMCRatioFit", func, etabins[0], etabins[numetabins]);
-        vJetRatioFit->SetParameter (0, 1);
-        vJetRatioFit->SetParameter (1, 0);
-        vJetRatioFit->SetParameter (2, 0);
-        vJetRatioFit->FixParameter (3, 0.5 * (etabins[numetabins] + etabins[0]));
-        vJetRatioFit->FixParameter (4, 0.5 * (etabins[numetabins] - etabins[0]));
-        vJetHist_rat->Fit (vJetRatioFit, "RN0Q");
+      //  const TString func = "[0] + [1]*((x-[3])/[4]) + [2]*(2*((x-[3])/[4])^2-1)";// + [3]*(4*((x-[4])/[5])^3-3*(x-[4])/[5])";// + [4]*(8*((x-[5])/[6])^4-8*((x-[5])/[6])^2+1)";
+      //  TF1* vJetRatioFit = new TF1 ("vJetPtDataMCRatioFit", func, etabins[0], etabins[numetabins]);
+      //  vJetRatioFit->SetParameter (0, 1);
+      //  vJetRatioFit->SetParameter (1, 0);
+      //  vJetRatioFit->SetParameter (2, 0);
+      //  vJetRatioFit->FixParameter (3, 0.5 * (etabins[numetabins] + etabins[0]));
+      //  vJetRatioFit->FixParameter (4, 0.5 * (etabins[numetabins] - etabins[0]));
+      //  vJetHist_rat->Fit (vJetRatioFit, "RN0Q");
 
-        const float chisq = vJetRatioFit->GetChisquare ();
-        myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
+      //  const float chisq = vJetRatioFit->GetChisquare ();
+      //  myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
 
-        vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numetabins, etabins);
-        (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
+      //  vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numetabins, etabins);
+      //  (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
 
-        vJetRatioFit->SetLineColor (2);
-        ( (TF1*)vJetRatioFit->Clone ())->Draw ("same");
-        vJetRatioCI->SetMarkerStyle (kDot);
-        vJetRatioCI->SetFillColorAlpha (2, 0.4);
-        vJetRatioCI->DrawCopy ("e3 same");
+      //  vJetRatioFit->SetLineColor (2);
+      //  ( (TF1*)vJetRatioFit->Clone ())->Draw ("same");
+      //  vJetRatioCI->SetMarkerStyle (kDot);
+      //  vJetRatioCI->SetFillColorAlpha (2, 0.4);
+      //  vJetRatioCI->DrawCopy ("e3 same");
 
-        if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
-        if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
-      }
+      //  if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
+      //  if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
+      //}
 
       if (iP < numpbins) plotName = Form ("z_jet_iP%i.pdf", iP);
       else plotName = Form ("z_jet_iP_combined.pdf");
@@ -656,12 +660,12 @@ void ZJetsHist () {
 
         int countsData = 0, countsMC = 0;
         if (exclusive && iEta == numetabins) {
-          countsData = zJetCounts[iPer][0]->Integral () - zJetCounts[iPer][0]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
-          countsMC = zJetCounts[iPer][1]->Integral () - zJetCounts[iPer][1]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
+          countsData = zJetCounts[iPer][0]->Integral () - zJetCounts[iPer][0]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
+          countsMC = zJetCounts[iPer][1]->Integral () - zJetCounts[iPer][1]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
         }
         else {
-          countsData = zJetCounts[iPer][0]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
-          countsMC = zJetCounts[iPer][1]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
+          countsData = zJetCounts[iPer][0]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
+          countsMC = zJetCounts[iPer][1]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
         }
 
         myMarkerText (0.175, 0.88, dataColor, dataStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04);

@@ -34,6 +34,11 @@ void RtrkComparison (const char* directory,
   SetupDirectories ("", "JetCalibration/");
 
   const bool isSignalOnlySample = isMC && TString (inFileName).Contains ("signalonly");
+  //if (isSignalOnlySample) {
+  //  cout << "Not setup for signal MC samples! Quitting." << endl;
+  //  return;
+  //}
+
   const TString identifier = GetIdentifier (dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
@@ -51,51 +56,57 @@ void RtrkComparison (const char* directory,
   if (crossSection_microbarns != 0)
    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
   t->SetGetVertices ();
-  t->SetGetSimpleJets (false);
+  t->SetGetSimpleJets (true);
   t->SetGetHIJets ();
-  t->SetGetEMTopoJets ();
-  t->SetGetTracks ();
+  //t->SetGetTracks ();
   //t->SetGetElectrons ();
-  //t->SetGetPhotons ();
+  t->SetGetPhotons ();
+  if (isMC) t->SetGetTruthPhotons ();
   t->SetBranchAddresses ();
 
+  vector<float>* jtrkpt500_vec = 0, *jtrkpt1000_vec = 0;
+  tree->SetBranchAddress ("akt4hi_jet_SumPtTrkPt500", &jtrkpt500_vec);
+  tree->SetBranchAddress ("akt4hi_jet_SumPtTrkPt1000", &jtrkpt1000_vec);
+
   if (!isMC) {
-   for (int jetTriggerN = 0; jetTriggerN < jetTrigLength; jetTriggerN++) {
-    Trigger* trig = new Trigger (jetTriggerNames[jetTriggerN], jetTriggerMinPtCuts[jetTriggerN], -2.47, 2.47);
-    trig->minPt = jetTriggerMinPtCuts[jetTriggerN];
-    trig->maxPt = jetTriggerMaxPtCuts[jetTriggerN];
+   //for (int jetTriggerN = 0; jetTriggerN < jetTrigLength; jetTriggerN++) {
+   // Trigger* trig = new Trigger (jetTriggerNames[jetTriggerN], jetTriggerMinPtCuts[jetTriggerN], -2.47, 2.47);
+   // trig->minPt = jetTriggerMinPtCuts[jetTriggerN];
+   // trig->maxPt = jetTriggerMaxPtCuts[jetTriggerN];
+   // triggers.push_back (trig);
+   // tree->SetBranchAddress (jetTriggerNames[jetTriggerN], & (trig->trigBool));
+   // tree->SetBranchAddress (Form ("%s_prescale", jetTriggerNames[jetTriggerN]), & (trig->trigPrescale));
+   //}
+   for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
+    Trigger* trig = new Trigger (photonTriggerNames[photonTriggerN], photonTriggerMinPtCuts[photonTriggerN], -2.47, 2.47);
+    trig->minPt = photonTriggerMinPtCuts[photonTriggerN];
+    trig->maxPt = photonTriggerMaxPtCuts[photonTriggerN];
     triggers.push_back (trig);
-    tree->SetBranchAddress (jetTriggerNames[jetTriggerN], & (trig->trigBool));
-    tree->SetBranchAddress (Form ("%s_prescale", jetTriggerNames[jetTriggerN]), & (trig->trigPrescale));
+    tree->SetBranchAddress (photonTriggerNames[photonTriggerN], & (trig->trigBool));
+    tree->SetBranchAddress (Form ("%s_prescale", photonTriggerNames[photonTriggerN]), & (trig->trigPrescale));
    }
   } // end branch triggers
 
-  int jet_n;
-  vector<float>* jet_pt;
-  vector<float>* jet_eta;
-  vector<float>* jet_phi;
-  vector<float>* jet_e;
+  const char* outFileName = Form ("%s/RtrkComparison/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  // initialize histograms
-  TH3D*** jetRtrkHists = Get2DArray <TH3D*> (2, 3); // iAlgo, iErr
-  TH2D** jetRtrkCounts = Get1DArray <TH2D*> (2);
+  TTree* outTree = new TTree ("RtrkTree", "RtrkTree");
+  outTree->SetDirectory (outFile);
 
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   const TString algo = (iAlgo == 0 ? "akt4hi" : "akt4emtopo");
- 
-   for (short iErr = 0; iErr < 3; iErr++) {
-    TString error = "sys_lo";
-    if (iErr == 1) error = "stat";
-    else if (iErr == 2) error = "sys_hi";
+  float jpt = 0, jeta = 0, jphi = 0, je = 0, jpterr = 0, jtrkpt500 = 0, jtrkpt1000 = 0;
+  double evtWeight = 0;
+  bool _isMC = isMC, _isPeriodA = isPeriodA;
 
-    jetRtrkHists[iAlgo][iErr] = new TH3D (Form ("jetRtrkDist_dataSet%s_%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data"), error.Data ()), "", numpbins, pbins, numetabins, etabins, numrtrkbins, rtrkbins);
-    jetRtrkHists[iAlgo][iErr]->Sumw2 ();
-   }
-
-   jetRtrkCounts[iAlgo] = new TH2D (Form ("jetRtrkCounts_dataSet%s_%s_%s", identifier.Data (), algo.Data (), (isMC ? "mc":"data")), "", numpbins, pbins, numetabins, etabins);
-   jetRtrkCounts[iAlgo]->Sumw2 ();
-   
-  }
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
+  outTree->Branch ("isMC", &_isMC, "isMC/O");
+  outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
+  outTree->Branch ("jet_pt", &jpt, "jet_pt/F");
+  outTree->Branch ("jet_eta", &jeta, "jet_eta/F");
+  outTree->Branch ("jet_phi", &jphi, "jet_phi/F");
+  outTree->Branch ("jet_e", &je, "jet_e/F");
+  outTree->Branch ("jet_SumPtTrkPt500", &jtrkpt500, "jet_SumPtTrkPt500/F");
+  outTree->Branch ("jet_SumPtTrkPt1000", &jtrkpt1000, "jet_SumPtTrkPt1000/F");
+  outTree->Branch ("jet_pt_sys", &jpterr, "jet_pt_sys/F");
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
 
@@ -105,110 +116,137 @@ void RtrkComparison (const char* directory,
   // begin loop over events
   //////////////////////////////////////////////////////////////////////////////
   for (int entry = 0; entry < numEntries; entry++) {
-   if (isMC && entry >= 2900652) continue;
 
-   tree->GetEntry (entry);
-
-   // basically just do the full analysis twice, once for each algorithm
-   for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
+    tree->GetEntry (entry);
 
     /////////////////////////////////////////////////////////////////////////////
     // basic event selection: e.g., require a primary vertex
     /////////////////////////////////////////////////////////////////////////////
-    if ( (t->nvert <= 0) || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
-
-
-    if (iAlgo == 0) { // HI algorithm at the EM scale
-     jet_n = *(&(t->akt4hi_jet_n));
-     jet_pt = t->akt4hi_em_xcalib_jet_pt;
-     jet_eta = t->akt4hi_em_xcalib_jet_eta;
-     jet_phi = t->akt4hi_em_xcalib_jet_phi;
-     jet_e = t->akt4hi_em_xcalib_jet_e;
-    }
-    else { // EMTopo algorithm at the EM scale
-     jet_n = *(&(t->akt4emtopo_jet_n));
-     jet_pt = t->akt4emtopo_calib_jet_pt;
-     jet_eta = t->akt4emtopo_calib_jet_eta;
-     jet_phi = t->akt4emtopo_calib_jet_phi;
-     jet_e = t->akt4emtopo_calib_jet_e;
-    }
+    if ( (t->nvert <= 0) || (t->nvert >= 1 && t->vert_type->at (0) != 1))
+      continue;
 
 
     /////////////////////////////////////////////////////////////////////////////
-    // find the leading jet 
+    // find the leading photon and require it to trigger 
     /////////////////////////////////////////////////////////////////////////////
-    int lj = -1;
-    for (int j = 0; j < jet_n; j++) {
-     if (lj == -1 || jet_pt->at (lj) < jet_pt->at (j))
-      lj = j;
+    int lP = -1;
+    for (int iP = 0; iP < t->photon_n; iP++) {
+      if (!InEMCal (t->photon_eta->at (iP)))
+        continue;
+      if (!t->photon_tight->at (iP))
+        continue;
+      if (t->photon_topoetcone40->at (iP) > isolationEnergyIntercept + isolationEnergySlope*t->photon_pt->at (iP))
+        continue;
+      if (isMC && 1 <= dataSet && dataSet <= numdpbins && (t->photon_pt->at (iP) < dpbins[dataSet-1] || dpbins[dataSet] < t->photon_pt->at (iP)))
+        continue; // require matched truth photons to be in the DP slice
+
+      if (lP == -1 || t->photon_pt->at (lP) < t->photon_pt->at (iP))
+        lP = iP;
     }
-    if (lj == -1)
-     continue; // reject when can't find leading jet
+    if (lP == -1)
+      continue;
+
 
     /////////////////////////////////////////////////////////////////////////////
     // main event selection - check if a trigger fired (data only)
     /////////////////////////////////////////////////////////////////////////////
-    float weight = 0; // weight is 0 unless a trigger fired
+    evtWeight = -1; 
     if (!isMC) {
-     for (Trigger* trig : triggers) {
-      if (jet_pt->at (lj) < trig->minPt || trig->maxPt < jet_pt->at (lj))
-       continue; // if leading jet not in pT bounds of trigger
-      if (trig->trigBool && trig->trigPrescale > 0)
-       weight = trig->trigPrescale; // store prescale from trigger if fired
-      break; // only 1 trigger will correspond to each pT range
-     }
+      for (Trigger* trig : triggers) {
+        if (t->photon_pt->at (lP) < trig->minPt || trig->maxPt < t->photon_pt->at (lP))
+          continue; // if leading jet not in pT bounds of trigger
+        if (trig->trigBool && trig->trigPrescale > 0)
+          evtWeight = trig->trigPrescale; // store prescale from trigger if fired
+          break; // only 1 trigger will correspond to each pT range
+      }
     }
     else { // MC weight
-     weight = t->crossSection_microbarns / t->filterEfficiency / t->numberEvents;
+      evtWeight = (double)t->crossSection_microbarns * (double)t->filterEfficiency / (double)numEntries;
     }
-    if (weight == 0)
-     continue; // reject events which are weighted to 0
+    if (evtWeight <= 0)
+      continue; // reject events which are weighted to 0 or disable
+
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //// find the leading jet 
+    ///////////////////////////////////////////////////////////////////////////////
+    //int lj = -1;
+    //for (int j = 0; j < jet_n; j++) {
+    //  if (lj == -1 || jet_pt->at (lj) < jet_pt->at (j))
+    //    lj = j;
+    //}
+    //if (lj == -1)
+    //  continue; // reject when can't find leading jet
 
 
     /////////////////////////////////////////////////////////////////////////////
     // main jet loop
     /////////////////////////////////////////////////////////////////////////////
-    for (int j = 0; j < jet_n; j++) {
-     const float jpt = jet_pt->at (j);
-     const float jeta = jet_eta->at (j);
-     const float jphi = jet_phi->at (j);
+    for (int j = 0; j < t->jet_n; j++) {
+      jpt = t->jet_pt->at (j);
+      jeta = t->jet_eta->at (j);
+      jphi = t->jet_phi->at (j);
+      je = t->jet_e->at (j);
+      jtrkpt500 = jtrkpt500_vec->at (j);
+      jtrkpt1000 = jtrkpt1000_vec->at (j);
 
-     if (jpt < jet_pt_cut)
-      continue; // basic jet pT cut
-     if (!InHadCal (jeta, 0.4))
-      continue; // require jets inside hadronic calorimeter
-     if (InDisabledHEC (jeta, jphi))
-      continue; // Reject event on additional HEC cuts
+      if (jpt < jet_pt_cut)
+        continue; // basic jet pT cut
+      if (!InHadCal (jeta, 2.8)) // 2.8 since jets must be within 2.1 to have tracks
+        continue; // require jets inside hadronic calorimeter
+      if (InDisabledHEC (jeta, jphi, 0.4))
+        continue; // Reject event on additional HEC cuts
+      //if (isMC && 1 <= dataSet && dataSet <= numdpbins && (jpt < dpbins[dataSet-1] || dpbins[dataSet] < jpt))
+      //  continue;
+      if (DeltaPhi (jphi, t->photon_phi->at (lP)) < 7*pi/8)
+        continue;
 
-     /////////////////////////////////////////////////////////////////////////////
-     // loop over tracks to calculate Rtrk
-     /////////////////////////////////////////////////////////////////////////////
-     TLorentzVector sumTracks, newTrack;
-     sumTracks.SetPtEtaPhiM (0, 0, 0, 0);
-     for (int iTrk = 0; iTrk < t->ntrk; iTrk++) {
-      if (1e-3 * (t->trk_pt->at (iTrk)) < trk_pt_cut)
-       continue; // reject tracks below pT threshold for consistency in data & MC
-      if (t->trk_quality_4->at (iTrk))
-       continue; // cut on track quality
-      if (DeltaR (jeta, t->trk_eta->at (iTrk), jphi, t->trk_phi->at (iTrk)) < 0.4) { // if track is within jet cone
-       newTrack.SetPtEtaPhiM (1e-3 * (t->trk_pt->at (iTrk)), t->trk_eta->at (iTrk), t->trk_phi->at (iTrk), 0);
-       sumTracks = sumTracks + newTrack;
+      bool isPhoton = false;
+      for (int iP = 0; iP < t->photon_n; iP++) {
+        if (!InEMCal (t->photon_eta->at (iP)))
+          continue;
+        if (!t->photon_tight->at (iP))
+          continue;
+        if (t->photon_topoetcone40->at (iP) > isolationEnergyIntercept + isolationEnergySlope*t->photon_pt->at (iP))
+          continue;
+        if (isMC && 1 <= dataSet && dataSet <= numdpbins && (t->photon_pt->at (iP) < dpbins[dataSet-1] || dpbins[dataSet] < t->photon_pt->at (iP)))
+          continue;
+
+        if (DeltaR (jeta, t->photon_eta->at (iP), jphi, t->photon_phi->at (iP)) < 0.4) {
+          isPhoton = true;
+          break;
+        }
       }
-     }
-     float sum_trk_pt = sumTracks.Pt ();
+      if (isPhoton)
+        continue;
 
-     const float jptsys = GetXCalibSystematicError (jpt, jeta);
-     const float jpts[3] = {jpt-jptsys, jpt, jpt+jptsys};
+      ///////////////////////////////////////////////////////////////////////////////
+      //// loop over tracks to calculate Rtrk
+      ///////////////////////////////////////////////////////////////////////////////
+      //jtrkpt500 = 0;
+      //jtrkpt1000 = 0;
+      //for (int iTrk = 0; iTrk < t->ntrk; iTrk++) {
+      //  //if (1e-3 * (t->trk_pt->at (iTrk)) < trk_pt_cut)
+      //  //  continue; // reject tracks below pT threshold for consistency in data & MC
+      //  if (t->trk_quality_4->at (iTrk))
+      //    continue; // cut on track quality
+      //  if (DeltaR (jeta, t->trk_eta->at (iTrk), jphi, t->trk_phi->at (iTrk)) > 0.4) { // if track is within jet cone
+      //    continue;
+      //  }
+      //  if (t->trk_pt->at (iTrk) < 0.5)
+      //    continue;
+      //  jtrkpt500 += t->trk_pt->at (iTrk);
+      //  if (t->trk_pt->at (iTrk) < 1.0)
+      //    continue;
+      //  jtrkpt1000 += t->trk_pt->at (iTrk);
+      //}
 
-     for (short iErr = 0; iErr < 3; iErr++) {
-      jetRtrkHists[iAlgo][iErr]->Fill (jpt, jeta, sum_trk_pt / jpts[iErr], weight);
-     }
-     jetRtrkCounts[iAlgo]->Fill (jpt, jeta);
+      jpterr = GetXCalibSystematicError (jpt, jeta);
+
+      outTree->Fill ();
      
     } // end jet loop
 
-   } // end loop over jet algorithms
-    
   } // end loop over events
 
   // close root files with systematics
@@ -219,24 +257,7 @@ void RtrkComparison (const char* directory,
   // End event loop
   //////////////////////////////////////////////////////////////////////////////
 
-  const char* outFileName = Form ("%s/RtrkComparison/dataSet_%s.root", rootPath.Data (), identifier.Data ());
-  TFile* outFile = new TFile (outFileName, "recreate");
-
-  // Write histograms to output and clean memory
-  for (short iAlgo = 0; iAlgo < 2; iAlgo++) {
-   for (short iErr = 0; iErr < 3; iErr++) {
-    jetRtrkHists[iAlgo][iErr]->Write ();
-   }
-   jetRtrkCounts[iAlgo]->Write ();
-  }
-
-  Delete2DArray (jetRtrkHists, 2, 3);
-  Delete1DArray (jetRtrkCounts, 2);
-
-  TVectorD infoVec (2);
-  infoVec[0] = luminosity;
-  infoVec[1] = dataSet;
-  infoVec.Write (Form ("infoVec_%s", identifier.Data ()));
+  outFile->Write ();
 
   outFile->Close ();
   if (outFile) delete outFile;

@@ -21,8 +21,8 @@ void JetTrackEtaPhiHist () {
 
   SetupDirectories ("JetTrackEtaPhi/", "JetTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
-  //TFile* inFile = new TFile (Form ("%s/outFile_mc.root", rootPath.Data ()), "read");
+  //TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/outFile_mc.root", rootPath.Data ()), "read");
 
   //vector<int> runNumbers (0);
   //for (short i = 0; i < sizeof (full_run_list)/sizeof (full_run_list[0]); i++) runNumbers.push_back (full_run_list[i]);

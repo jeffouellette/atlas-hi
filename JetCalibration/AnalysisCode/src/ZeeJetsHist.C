@@ -61,8 +61,9 @@ void ZeeJetsHist () {
   //////////////////////////////////////////////////////////////////////////////
   // Load analyzed TTrees
   //////////////////////////////////////////////////////////////////////////////
-  float evtWeight, zpt, zeta, zphi, zm, jpt, jeta, jphi, je, jpterr, dPhi;
-  bool isMC, isPeriodA;
+  float zpt = 0, zeta = 0, zphi = 0, zm = 0, jpt = 0, jeta = 0, jphi = 0, je = 0, jpterr = 0, dPhi = 0;
+  double evtWeight = 0;
+  bool isMC = false, isPeriodA = false;
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
   TTree* inTree = (TTree*)inFile->Get ("jeffsztree");

@@ -59,14 +59,14 @@ void EnergyScaleChecksHist () {
   const int njets = JetTree->GetEntries ();
 
   for (int iJ = 0; iJ < njets; iJ++) {
-   JetTree->GetEntry (iJ);
-   if (jeta < 1.5 || 3.2 < jeta)
-    continue;
-   //if (jpt < 60)
-   // continue;
+    JetTree->GetEntry (iJ);
+    //if (jeta < 1.5 || 3.2 < jeta)
+    // continue;
+    //if (jpt < 60)
+    // continue;
 
-   jetEnergyRespDist_phi->Fill (jphi, jes, evtWeight);
-   jetEnergyRespDist_pt_eta->Fill (jpt, jeta, jes, evtWeight);
+    jetEnergyRespDist_phi->Fill (jphi, jes, evtWeight);
+    jetEnergyRespDist_pt_eta->Fill (jpt, jeta, jes, evtWeight);
   }
 
 
@@ -76,24 +76,24 @@ void EnergyScaleChecksHist () {
   TH1D* jetEnergyScale_phi = new TH1D ("jetEnergyScale_phi", "", numphibins, phibins);
   TH1D* jetEnergyRes_phi = new TH1D ("jetEnergyRes_phi", "", numphibins, phibins);
   for (int iPhi = 1; iPhi <= numphibins; iPhi++) {
-   TH1D* projy = jetEnergyRespDist_phi->ProjectionY ("_py", iPhi, iPhi);
+    TH1D* projy = jetEnergyRespDist_phi->ProjectionY ("_py", iPhi, iPhi);
 
-   TF1* fit = new TF1 ("fit", "gaus(0)", projy->GetMean ()-2*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
-   projy->Fit (fit, "R0Q");
+    TF1* fit = new TF1 ("fit", "gaus(0)", projy->GetMean ()-2*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
+    projy->Fit (fit, "R0Q");
 
-   float m = fit->GetParameter (1);
-   float me = fit->GetParError (1);
-   float s = fit->GetParameter (2);
-   float se = fit->GetParError (2);
+    float m = fit->GetParameter (1);
+    float me = fit->GetParError (1);
+    float s = fit->GetParameter (2);
+    float se = fit->GetParError (2);
 
-   if (projy) { delete projy; projy = NULL; }
-   if (fit) { delete fit; fit = NULL; }
+    if (projy) { delete projy; projy = NULL; }
+    if (fit) { delete fit; fit = NULL; }
 
-   jetEnergyScale_phi->SetBinContent (iPhi, m);
-   jetEnergyScale_phi->SetBinError (iPhi, me);
+    jetEnergyScale_phi->SetBinContent (iPhi, m);
+    jetEnergyScale_phi->SetBinError (iPhi, me);
 
-   jetEnergyRes_phi->SetBinContent (iPhi, s);
-   jetEnergyRes_phi->SetBinError (iPhi, se);
+    jetEnergyRes_phi->SetBinContent (iPhi, s);
+    jetEnergyRes_phi->SetBinError (iPhi, se);
   }
 
   TCanvas* jetEnergyScale_phi_canvas = new TCanvas ("jetEnergyScale_phi_canvas", "", 800, 600);
@@ -129,68 +129,68 @@ void EnergyScaleChecksHist () {
   TCanvas* jetEnergyScale_pt_canvas = new TCanvas ("jetEnergyScale_pt_canvas", "", 800, 600);
   TCanvas* jetEnergyRes_pt_canvas = new TCanvas ("jetEnergyRes_pt_canvas", "", 800, 600);
   for (short iEta = 1; iEta <= numetabins; iEta++) {
-   TH2D* proj2d = Project2D ("proj2d", jetEnergyRespDist_pt_eta, "x", "z", iEta, iEta, false);
+    TH2D* proj2d = Project2D ("proj2d", jetEnergyRespDist_pt_eta, "x", "z", iEta, iEta, false);
 
-   TH1D* jetEnergyScale_pt = new TH1D (Form ("jetEnergyScale_pt_iEta%i", iEta), "", numpbins, pbins);
-   TH1D* jetEnergyRes_pt = new TH1D (Form ("jetEnergyRes_pt_iEta%i", iEta), "", numpbins, pbins);
+    TH1D* jetEnergyScale_pt = new TH1D (Form ("jetEnergyScale_pt_iEta%i", iEta), "", numpbins, pbins);
+    TH1D* jetEnergyRes_pt = new TH1D (Form ("jetEnergyRes_pt_iEta%i", iEta), "", numpbins, pbins);
 
-   for (short iP = 1; iP <= numpbins; iP++) {
-    TH1D* projy = proj2d->ProjectionY ("_py", iP, iP);
+    for (short iP = 1; iP <= numpbins; iP++) {
+      TH1D* projy = proj2d->ProjectionY ("_py", iP, iP);
 
-    TF1* fit = new TF1 ("fit", "gaus(0)", projy->GetMean ()-2*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
-    projy->Fit (fit, "R0Q");
+      TF1* fit = new TF1 ("fit", "gaus(0)", projy->GetMean ()-2*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
+      projy->Fit (fit, "R0Q");
 
-    float m = fit->GetParameter (1);
-    float me = fit->GetParError (1);
-    float s = fit->GetParameter (2);
-    float se = fit->GetParError (2);
+      float m = fit->GetParameter (1);
+      float me = fit->GetParError (1);
+      float s = fit->GetParameter (2);
+      float se = fit->GetParError (2);
 
-    if (projy) { delete projy; projy = NULL; }
-    if (fit) { delete fit; fit = NULL; }
+      if (projy) { delete projy; projy = NULL; }
+      if (fit) { delete fit; fit = NULL; }
 
-    jetEnergyScale_pt->SetBinContent (iP, m);
-    jetEnergyScale_pt->SetBinError (iP, me);
+      jetEnergyScale_pt->SetBinContent (iP, m);
+      jetEnergyScale_pt->SetBinError (iP, me);
 
-    jetEnergyRes_pt->SetBinContent (iP, s);
-    jetEnergyRes_pt->SetBinError (iP, se);
-   }
-   if (proj2d) { delete proj2d; proj2d = NULL; }
-
-
-   jetEnergyScale_pt_canvas->cd ();
-   gPad->SetLogx ();
-
-   TGraphAsymmErrors* jetEnergyScale_pt_graph = make_graph (jetEnergyScale_pt);
-   deltaize (jetEnergyScale_pt_graph, (numetabins/2-iEta), false);
-
-   jetEnergyScale_pt_graph->SetLineColor (colors[iEta]);
-   jetEnergyScale_pt_graph->SetMarkerColor (colors[iEta]);
-   jetEnergyScale_pt_graph->GetXaxis ()->SetTitle ("#it{p}_{T}^{Jet}");
-   jetEnergyScale_pt_graph->GetYaxis ()->SetTitle ("#mu, JES");
-   jetEnergyScale_pt_graph->GetYaxis ()->SetRangeUser (0.9, 1.2);
-
-   ( (TGraphAsymmErrors*)jetEnergyScale_pt_graph->Clone ())->Draw (iEta==1?"ap":"p");
+      jetEnergyRes_pt->SetBinContent (iP, s);
+      jetEnergyRes_pt->SetBinError (iP, se);
+    }
+    if (proj2d) { delete proj2d; proj2d = NULL; }
 
 
-   jetEnergyRes_pt_canvas->cd ();
-   gPad->SetLogx ();
+    jetEnergyScale_pt_canvas->cd ();
+    gPad->SetLogx ();
 
-   TGraphAsymmErrors* jetEnergyRes_pt_graph = make_graph (jetEnergyRes_pt);
-   deltaize (jetEnergyScale_pt_graph, (numetabins/2-iEta), false);
+    TGraphAsymmErrors* jetEnergyScale_pt_graph = make_graph (jetEnergyScale_pt);
+    deltaize (jetEnergyScale_pt_graph, (numetabins/2-iEta), false);
 
-   jetEnergyRes_pt_graph->SetLineColor (colors[iEta]);
-   jetEnergyRes_pt_graph->SetMarkerColor (colors[iEta]);
-   jetEnergyRes_pt_graph->GetXaxis ()->SetTitle ("#it{p}_{T}^{Jet}");
-   jetEnergyRes_pt_graph->GetYaxis ()->SetTitle ("#sigma, JER");
-   ( (TGraphAsymmErrors*)jetEnergyRes_pt_graph->Clone ())->Draw (iEta==1?"ap":"p");
+    jetEnergyScale_pt_graph->SetLineColor (colors[iEta]);
+    jetEnergyScale_pt_graph->SetMarkerColor (colors[iEta]);
+    jetEnergyScale_pt_graph->GetXaxis ()->SetTitle ("#it{p}_{T}^{Jet}");
+    jetEnergyScale_pt_graph->GetYaxis ()->SetTitle ("#mu, JES");
+    jetEnergyScale_pt_graph->GetYaxis ()->SetRangeUser (0.9, 1.2);
 
-   jetEnergyScale_pt->Write ();
-   jetEnergyRes_pt->Write ();
+    ( (TGraphAsymmErrors*)jetEnergyScale_pt_graph->Clone ())->Draw (iEta==1?"ap":"p");
 
-   if (jetEnergyScale_pt) { delete jetEnergyScale_pt; jetEnergyScale_pt = NULL; }
-   if (jetEnergyRes_pt) { delete jetEnergyRes_pt; jetEnergyRes_pt = NULL; }
-   if (jetEnergyScale_pt_graph) { delete jetEnergyScale_pt_graph; jetEnergyScale_pt_graph = NULL; }
-   if (jetEnergyRes_pt_graph) { delete jetEnergyRes_pt_graph; jetEnergyRes_pt_graph = NULL; }
+
+    jetEnergyRes_pt_canvas->cd ();
+    gPad->SetLogx ();
+
+    TGraphAsymmErrors* jetEnergyRes_pt_graph = make_graph (jetEnergyRes_pt);
+    deltaize (jetEnergyScale_pt_graph, (numetabins/2-iEta), false);
+
+    jetEnergyRes_pt_graph->SetLineColor (colors[iEta]);
+    jetEnergyRes_pt_graph->SetMarkerColor (colors[iEta]);
+    jetEnergyRes_pt_graph->GetXaxis ()->SetTitle ("#it{p}_{T}^{Jet}");
+    jetEnergyRes_pt_graph->GetYaxis ()->SetTitle ("#sigma, JER");
+    ( (TGraphAsymmErrors*)jetEnergyRes_pt_graph->Clone ())->Draw (iEta==1?"ap":"p");
+
+    jetEnergyScale_pt->Write ();
+    jetEnergyRes_pt->Write ();
+
+    if (jetEnergyScale_pt) { delete jetEnergyScale_pt; jetEnergyScale_pt = NULL; }
+    if (jetEnergyRes_pt) { delete jetEnergyRes_pt; jetEnergyRes_pt = NULL; }
+    if (jetEnergyScale_pt_graph) { delete jetEnergyScale_pt_graph; jetEnergyScale_pt_graph = NULL; }
+    if (jetEnergyRes_pt_graph) { delete jetEnergyRes_pt_graph; jetEnergyRes_pt_graph = NULL; }
   }
 
   jetEnergyScale_pt_canvas->SaveAs (Form ("%s/jetEnergyScale_pt.pdf", plotPath.Data ()));
@@ -199,8 +199,6 @@ void EnergyScaleChecksHist () {
   jetEnergyRespDist_pt_eta->Write ();
 
   outFile->Close ();
-  
-
 }
 
 } // end namespace

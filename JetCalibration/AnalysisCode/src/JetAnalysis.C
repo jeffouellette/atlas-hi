@@ -1,4 +1,4 @@
-#include "PhotonAnalysis.h"
+#include "JetAnalysis.h"
 #include "Params.h"
 #include "CalibUtils.h"
 
@@ -19,15 +19,15 @@ namespace JetCalibration {
 
 vector<Trigger*> photonTriggers = {};
 
-void PhotonAnalysis (const char* directory,
-                     const int dataSet,
-                     const double luminosity,
-                     const bool isMC, 
-                     const bool isPeriodA,
-                     const char* inFileName,
-                     const double crossSection_microbarns,
-                     const double filterEfficiency,
-                     const int numberEvents)
+void JetAnalysis (const char* directory,
+                  const int dataSet,
+                  const double luminosity,
+                  const bool isMC, 
+                  const bool isPeriodA,
+                  const char* inFileName,
+                  const double crossSection_microbarns,
+                  const double filterEfficiency,
+                  const int numberEvents)
 {
 
   SetupDirectories ("", "JetCalibration/");
@@ -48,7 +48,7 @@ void PhotonAnalysis (const char* directory,
   TTree* tree = NULL;
   if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-    cout << "Error: In PhotonAnalysis.C: TTree not obtained for given data set. Quitting." << endl;
+    cout << "Error: In JetAnalysis.C: TTree not obtained for given data set. Quitting." << endl;
     return;
   }
 
@@ -61,6 +61,7 @@ void PhotonAnalysis (const char* directory,
   t->SetGetVertices ();
   t->SetGetHIJets ();
   t->SetGetSimpleJets ();
+  t->SetGetTruthJets ();
   t->SetGetPhotons ();
   t->SetGetTruthPhotons ();
   t->SetBranchAddresses ();
@@ -82,22 +83,26 @@ void PhotonAnalysis (const char* directory,
   //////////////////////////////////////////////////////////////////////////////
   // Setup output tree
   //////////////////////////////////////////////////////////////////////////////
-  const char* outFileName = Form ("%s/PhotonAnalysis/dataSet_%s.root", rootPath.Data (), identifier.Data ());
+  const char* outFileName = Form ("%s/JetAnalysis/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  TTree* outPhotonTree = new TTree ("jeffsphotons", "jeffsphotons");
-  outPhotonTree->SetDirectory (outFile);
+  TTree* outTree = new TTree ("jeffsjets", "jeffsjets");
+  outTree->SetDirectory (outFile);
 
-  float ppt = 0, peta = 0, pphi = 0; 
+  float jpt = 0, jeta = 0, jphi = 0, je = 0, ppt = 0, peta = 0, pphi = 0;
   double evtWeight = 0;
   bool _isPeriodA = isPeriodA, _isMC = isMC;
-  outPhotonTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
 
-  outPhotonTree->Branch ("photon_pt", &ppt, "photon_pt/F");
-  outPhotonTree->Branch ("photon_eta", &peta, "photon_eta/F");
-  outPhotonTree->Branch ("photon_phi", &pphi, "photon_phi/F");
-  outPhotonTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
-  outPhotonTree->Branch ("isMC", &_isMC, "isMC/O");
+  outTree->Branch ("jet_pt", &jpt, "jet_pt/F");
+  outTree->Branch ("jet_eta", &jeta, "jet_eta/F");
+  outTree->Branch ("jet_phi", &jphi, "jet_phi/F");
+  outTree->Branch ("jet_e", &je, "jet_e/F");
+  outTree->Branch ("photon_pt", &ppt, "photon_pt/F");
+  outTree->Branch ("photon_eta", &peta, "photon_eta/F");
+  outTree->Branch ("photon_phi", &pphi, "photon_phi/F");
+  outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
+  outTree->Branch ("isMC", &_isMC, "isMC/O");
 
   //////////////////////////////////////////////////////////////////////////////
   // begin loop over events
@@ -112,12 +117,13 @@ void PhotonAnalysis (const char* directory,
     if (t->nvert <= 0 || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
 
     /////////////////////////////////////////////////////////////////////////////
-    // photon + jet type events
+    // find leading photon
     /////////////////////////////////////////////////////////////////////////////
-    for (short iP = 0; iP < t->photon_n; iP++) { // loop over all photons
+    short lP = -1;
+    for (short iP = 0; iP < t->photon_n; iP++) {
 
       /////////////////////////////////////////////////////////////////////////////
-      // relevant photon kinematic data
+      // photon kinematic info
       /////////////////////////////////////////////////////////////////////////////
       ppt = t->photon_pt->at (iP);
       peta = t->photon_eta->at (iP);
@@ -134,6 +140,7 @@ void PhotonAnalysis (const char* directory,
         continue; // require maximum isolation energy on gammas
       if (!InEMCal (peta) || InDisabledHEC (peta, pphi))
         continue; // require photon to be in EMCal
+
       if (isMC && 1 <= dataSet && dataSet <= numdpbins) {
         short tp = -1;
         float minDeltaR = 1000;
@@ -150,79 +157,81 @@ void PhotonAnalysis (const char* directory,
           continue; // require matched truth photons to be in the DP slice
       }
 
-      /////////////////////////////////////////////////////////////////////////////
-      // triggering and event weighting
-      /////////////////////////////////////////////////////////////////////////////
-      evtWeight = -1;
-      if (!isMC) {
-        Trigger* photonTrigger = NULL;
-        for (Trigger* trig : photonTriggers) {
-          if (trig->trigPrescale > 0 &&
-              (photonTrigger == NULL ||
-               (trig->trigPrescale < photonTrigger->trigPrescale &&
-                trig->minPt <= ppt &&
-                ppt <= trig->maxPt)))
-            photonTrigger = trig;
-        }
-        if (photonTrigger == NULL ||
-            !photonTrigger->trigBool)
-          continue;
-        evtWeight = photonTrigger->trigPrescale;
+      if (lP == -1 || t->photon_pt->at (lP) < ppt)
+        lP = iP;
+    }
+    if (lP == -1)
+      continue; // require a leading photon
+    ppt = t->photon_pt->at (lP);
+    peta = t->photon_eta->at (lP);
+    pphi = t->photon_phi->at (lP);
+
+    /////////////////////////////////////////////////////////////////////////////
+    // triggering and event weighting
+    /////////////////////////////////////////////////////////////////////////////
+    evtWeight = -1;
+    if (!isMC) {
+      Trigger* photonTrigger = NULL;
+      for (Trigger* trig : photonTriggers) {
+        if (trig->trigPrescale > 0 &&
+            (photonTrigger == NULL ||
+             (trig->trigPrescale < photonTrigger->trigPrescale &&
+              trig->minPt <= ppt &&
+              ppt <= trig->maxPt)))
+          photonTrigger = trig;
       }
-      else
-        evtWeight = (double)t->crossSection_microbarns * (double)t->filterEfficiency / (double)numEntries; //t->numberEvents;
-      if (evtWeight <= 0)
+      if (photonTrigger == NULL ||
+          !photonTrigger->trigBool)
         continue;
+      evtWeight = photonTrigger->trigPrescale;
+    }
+    else
+      evtWeight = (double)t->crossSection_microbarns * (double)t->filterEfficiency / (double)numEntries;
+    if (evtWeight <= 0)
+      continue;
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    // loop over jets
+    /////////////////////////////////////////////////////////////////////////////
+    for (short iJ = 0; iJ < t->jet_n; iJ++) { // loop over all jets
 
       /////////////////////////////////////////////////////////////////////////////
-      // find best partner jet
+      // relevant jet kinematic data
       /////////////////////////////////////////////////////////////////////////////
-      short lJ = -1;
-      for (short iJ = 0; iJ < t->jet_n; iJ++) {
-        // cuts on leading jet
-        if (t->jet_pt->at (iJ) < jet_pt_cut)
-          continue; // basic jet pT cut
-        if (!InHadCal (t->jet_eta->at (iJ), 0.4))
-          continue; // require jets inside hadronic calorimeter
-        if (InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at(iJ)))
-          continue; // require jet to be outside of disabled HEC
-        if (DeltaPhi (pphi, t->jet_phi->at (iJ)) < 7*pi/8)
-          continue; // cut on gamma+jet samples not back-to-back in the transverse plane
-
-        // compare to the leading jet
-        else if (lJ == -1 || t->jet_pt->at (lJ) < t->jet_pt->at (iJ)) {
-          lJ = iJ;
-        }
-      } // end jet finding loop
-      if (lJ == -1) // true iff there are no jets opposite photon
-        continue; // reject on no jets
+      jpt = t->jet_pt->at (iJ);
+      jeta = t->jet_eta->at (iJ);
+      jphi = t->jet_phi->at (iJ);
+      je = t->jet_e->at (iJ);
 
       /////////////////////////////////////////////////////////////////////////////
       // jet cuts
       /////////////////////////////////////////////////////////////////////////////
-      bool hasOtherJet = false;
-      for (short iJ = 0; iJ < t->jet_n; iJ++) {
-        if (iJ == lJ)
-          continue; // don't look at the leading jet, its our candidate :)
-        if (DeltaR (t->jet_eta->at (iJ), peta, t->jet_phi->at (iJ), pphi) < 0.4)
-          continue; // reject jets that are just this photon
-        if (t->jet_pt->at (iJ) < 12)
-          continue; // basic jet pT cut
-        if (InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at (iJ)))
-          continue; // reject on the disabled HEC
-        const double s_dphi = DeltaPhi (t->jet_phi->at (iJ), pphi);
-        const double s_xjref = t->jet_pt->at (iJ) / (ppt * TMath::Cos (pi - s_dphi));
-        if (0.1 < s_xjref) {
-          hasOtherJet = true;
-          break;
+      if (jpt < jet_pt_cut)
+        continue; // basic pT cut on jets
+      if (!InHadCal (jeta) || InDisabledHEC (jeta, jphi))
+        continue; // require jet to be in EMCal
+      if (DeltaPhi (t->photon_phi->at (lP), jphi) < 7*pi/8)
+        continue; // require jet to be opposite to photon
+      if (isMC && 1 <= dataSet && dataSet <= numdpbins) {
+        short tj = -1;
+        float minDeltaR = 1000;
+        for (short iTJ = 0; iTJ < t->truth_jet_n; iTJ++) {
+          const float deltaR = DeltaR (t->truth_jet_eta->at (iTJ), jeta, t->truth_jet_phi->at (iTJ), jphi);
+          if (deltaR < minDeltaR) {
+            tj = iTJ;
+            minDeltaR = deltaR;
+          }
         }
+        if (minDeltaR > 0.2)
+          continue; // require jets to be truth-matched in MC
+        if (t->truth_jet_pt->at (tj) < dpbins[dataSet-1] || dpbins[dataSet] < t->truth_jet_pt->at (tj))
+          continue; // require matched truth jets to be in the DP slice
       }
-      if (hasOtherJet)
-        continue; // cut on other jets that look back-to-back with gamma
 
-      outPhotonTree->Fill ();
-    } // end loop over photons
-    
+      outTree->Fill ();
+    } // end loop over jets
+     
   } // end loop over events
 
 
@@ -231,8 +240,9 @@ void PhotonAnalysis (const char* directory,
   //////////////////////////////////////////////////////////////////////////////
 
   outFile->Write ();
+
   outFile->Close ();
-  if (outFile) { delete outFile; outFile = NULL; }
+  if (outFile) delete outFile;
   return;
 }
 

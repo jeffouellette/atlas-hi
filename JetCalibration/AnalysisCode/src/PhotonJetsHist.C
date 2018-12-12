@@ -70,8 +70,9 @@ void PhotonJetsHist () {
   //////////////////////////////////////////////////////////////////////////////
   // Load analyzed TTrees
   //////////////////////////////////////////////////////////////////////////////
-  float evtWeight, purityFactor, ppt, peta, pphi, jpt, jeta, jphi, je, jpterr, dPhi;
-  bool ptight, isMC, isPeriodA;
+  float purityFactor = 0, ppt = 0, peta = 0, pphi = 0, jpt = 0, jeta = 0, jphi = 0, je = 0, jpterr = 0, dPhi = 0;
+  double evtWeight = 0;
+  bool ptight = false, isMC = false, isPeriodA = false;
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
   TTree* inTree = (TTree*)inFile->Get ("PhotonJetTree");
@@ -211,7 +212,7 @@ void PhotonJetsHist () {
   rawDistCanvas->SetBottomMargin (-0.12);
   //rawDistCanvas->Divide (8, 6);
 
-  TCanvas* canvas = new TCanvas ("canvas", "", 800, 800);
+  TCanvas* canvas = new TCanvas ("canvas", "", 800, 1000);
   const double padRatio = 1.2; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
   const double dPadY = 1.0/ (padRatio+1.0);
   const double uPadY = 1.0 - dPadY;
@@ -255,23 +256,11 @@ void PhotonJetsHist () {
       TString name = Form ("photonJetHist_%s_data_stat_signal_iEta%i", per, iEta);
       vJetHist = GetProfileX (name, proj, numpbins, pbins, true);
 
-      double middle = 0.05 * floor (20*vJetHist->GetMean (2)); //* 0.5 * (vJetHist->GetMaximum () + std::max (vJetHist->GetMinimum (), 0)));
-      if (10 * middle != floor (10*middle)) middle += 0.05;
-      double stddev = 0.05 * floor (20*vJetHist->GetStdDev (2));
-      if (10 * stddev != floor (10*stddev)) stddev += 0.05;
-
       vJetGraph = make_graph (vJetHist);
-      vJetGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-      vJetGraph->GetYaxis ()->SetRangeUser (0.6, 1.4);
-      //vJetGraph->GetYaxis ()->SetRangeUser (middle - 2*stddev, middle + 2*stddev);
       vJetGraph->SetMarkerStyle (dataStyle);
       vJetGraph->SetMarkerColor (dataColor);
       vJetGraph->SetLineColor (dataColor);
       vJetGraph->SetLineWidth (2);
-      vJetGraph->GetXaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
       // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
       proj_lo = Project2D ("", photonJetHists_pt_eta[iPer][0][0][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
@@ -286,6 +275,9 @@ void PhotonJetsHist () {
 
       vJetGraph_sys = make_graph (vJetHist); // for plotting systematics
       CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
+      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
+      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
+
       vJetGraph_sys->SetFillColor (dataColor);
       vJetGraph_sys->SetFillStyle (3001);
 
@@ -294,35 +286,24 @@ void PhotonJetsHist () {
       name = Form ("photonJetHist_%s_mc_stat_signal_iEta%i", per, iEta);
       vJetHist_mc = GetProfileX (name, proj_mc, numpbins, pbins, true);
 
+      double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
+      if (10 * middle != floor (10*middle)) middle += 0.05;
+
       vJetGraph_mc = make_graph (vJetHist_mc);
+      vJetGraph_mc->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
+      vJetGraph_mc->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
       vJetGraph_mc->SetMarkerStyle (mcStyle);
       vJetGraph_mc->SetMarkerColor (mcColor);
       vJetGraph_mc->SetLineColor (mcColor);
       vJetGraph_mc->SetLineWidth (2);
+      vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleOffset (1.2*uPadY);
 
-      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
-      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
-
-      topPad->cd ();
-      ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("ap");
-      ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw ("p");
-      ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
-
-      //if (iPer < 2) {
-      // perCombCanvas->cd ();
-      // perCombCanvas->SetLogx ();
-      // vJetGraph->SetMarkerStyle (iPer == 0 ? 20 : 24);
-      // vJetGraph_mc->SetMarkerStyle (iPer == 0 ? 33 : 27);
-      // deltaize (vJetGraph, 0.97+(0.04*iPer), true);
-      // deltaize (vJetGraph_mc, 0.99+(0.04*iPer), true);
-      // vJetGraph->GetYaxis ()->SetRangeUser (0.91, 1.08);
-      // if (iPer == 0)
-      //  ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("ap");
-      // else
-      //  ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("p");
-      // ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw ("p");
-      // ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
-      //}
+      vJetGraph_mc->Draw ("ap");
+      vJetGraph->Draw ("p");
+      vJetGraph_sys->Draw ("2");
 
       int countsData = 0, countsMC = 0;
       if (exclusive && iEta == numetabins) {
@@ -359,7 +340,6 @@ void PhotonJetsHist () {
       CalcSystematics (vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
       if (vJetHist_rat_lo) { delete vJetHist_rat_lo; vJetHist_rat_lo = NULL; }
       if (vJetHist_rat_hi) { delete vJetHist_rat_hi; vJetHist_rat_hi = NULL; }
-      //vJetGraph_rat_sys->SetFillColor (dataColor);
       vJetGraph_rat_sys->SetFillColor (dataColor);
       vJetGraph_rat_sys->SetFillStyle (3001);
 
@@ -381,36 +361,31 @@ void PhotonJetsHist () {
       vJetGraph_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       vJetGraph_rat->GetXaxis ()->SetTickLength (0.08);
 
-      ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("ap");
-      ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
+      vJetGraph_rat->Draw ("ap");
+      vJetGraph_rat_sys->Draw ("2");
       for (TLine* line : glines) line->Draw ();
-
-      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
-      if (vJetGraph_rat) { delete vJetGraph_rat; vJetGraph_rat = NULL; }
-      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
-      
-      if (vJetHist) { delete vJetHist; vJetHist = NULL; }
-      if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
-      if (vJetGraph) { delete vJetGraph; vJetGraph = NULL; }
-      if (vJetGraph_mc) { delete vJetGraph_mc; vJetGraph_mc = NULL; }
-      if (vJetGraph_sys) { delete vJetGraph_sys; vJetGraph_sys = NULL; }
-
-      if (proj) { delete proj; proj = NULL; }
-      if (proj_mc) { delete proj_mc; proj_mc = NULL; }
-      if (proj_lo) { delete proj_lo; proj_lo = NULL; }
-      if (proj_hi) { delete proj_hi; proj_hi = NULL; }
 
       if (iEta < numetabins) plotName = Form ("gamma_jet_iEta%i.pdf", iEta);
       else plotName = Form ("gamma_jet_iEta_combined.pdf");
 
       canvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
 
+      if (vJetHist) { delete vJetHist; vJetHist = NULL; }
+      if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
+      if (vJetGraph) { delete vJetGraph; vJetGraph = NULL; }
+      if (vJetGraph_mc) { delete vJetGraph_mc; vJetGraph_mc = NULL; }
+      if (vJetGraph_sys) { delete vJetGraph_sys; vJetGraph_sys = NULL; }
+
+      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
+      if (vJetGraph_rat) { delete vJetGraph_rat; vJetGraph_rat = NULL; }
+      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
+
+      if (proj) { delete proj; proj = NULL; }
+      if (proj_mc) { delete proj_mc; proj_mc = NULL; }
+      if (proj_lo) { delete proj_lo; proj_lo = NULL; }
+      if (proj_hi) { delete proj_hi; proj_hi = NULL; }
 
     } // end loop over etabins
-
-//    if (iEta < numetabins) plotName = Form ("gamma_jet_iEta%i.pdf", iEta);
-//    else plotName = Form ("gamma_jet_iEta_combined.pdf");
-//    perCombCanvas->SaveAs (Form ("%s/PeriodSuperimposed/%s.pdf", plotPath.Data (), plotName));
 
 
     /**** Now loop over pT bins and plot response as function of eta^jet ****/
@@ -431,20 +406,11 @@ void PhotonJetsHist () {
       proj->RebinY (rebinFactor);
       vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, true);
 
-      double middle = 0.05 * floor (20 * 0.5 * (vJetHist->GetMaximum () + vJetHist->GetMinimum ()));
-      if (10 * middle != floor (10*middle)) middle += 0.05;
-
       vJetGraph = make_graph (vJetHist);
-      vJetGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-      vJetGraph->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
       vJetGraph->SetMarkerStyle (dataStyle);
       vJetGraph->SetMarkerColor (dataColor);
       vJetGraph->SetLineColor (dataColor);
       vJetGraph->SetLineWidth (2);
-      vJetGraph->GetXaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetLabelSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleSize (0.032/uPadY);
-      vJetGraph->GetYaxis ()->SetTitleOffset (uPadY);
 
       // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
       proj_lo = Project2D ("", photonJetHists_pt_eta[iPer][0][0][2], "y", "z", p_lo, p_hi);
@@ -457,6 +423,9 @@ void PhotonJetsHist () {
 
       vJetGraph_sys = make_graph (vJetHist); // for plotting systematics
       CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
+      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
+      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
+
       vJetGraph_sys->SetFillColor (dataColor);
       vJetGraph_sys->SetFillStyle (3001);
 
@@ -464,18 +433,24 @@ void PhotonJetsHist () {
       proj_mc->RebinY (rebinFactor);
       vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, true);
 
+      double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
+      if (10 * middle != floor (10*middle)) middle += 0.05;
+
       vJetGraph_mc = make_graph (vJetHist_mc);
+      vJetGraph_mc->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
+      vJetGraph_mc->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
       vJetGraph_mc->SetMarkerStyle (mcStyle);
       vJetGraph_mc->SetMarkerColor (mcColor);
       vJetGraph_mc->SetLineColor (mcColor);
       vJetGraph_mc->SetLineWidth (2);
+      vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+      vJetGraph_mc->GetYaxis ()->SetTitleOffset (uPadY);
 
-      if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
-      if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
-
-      ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("ap");
-      ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw ("p");
-      ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
+      vJetGraph_mc->Draw ("ap");
+      vJetGraph->Draw ("p");
+      vJetGraph_sys->Draw ("2");
 
       int countsData = 0, countsMC = 0;
       countsData = photonJetCounts[iPer][0][0][0]->Integral (p_lo, p_hi, 1, numetabins, 1, numphibins);
@@ -523,29 +498,29 @@ void PhotonJetsHist () {
       vJetGraph_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       vJetGraph_rat->GetXaxis ()->SetTickLength (0.08);
 
-      ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("ap");
-      ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("p");
-      ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
+      vJetGraph_rat->Draw ("ap");
+      vJetGraph_rat_sys->Draw ("2");
       for (TLine* line : getalines) line->Draw ();
 
-      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
-      if (vJetGraph_rat) { delete vJetGraph_rat; vJetGraph_rat = NULL; }
-      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
+      if (iP < numpbins) plotName = Form ("gamma_jet_iP%i.pdf", iP);
+      else plotName = Form ("gamma_jet_iP_combined.pdf");
+
+      canvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
+
       if (vJetHist) { delete vJetHist; vJetHist = NULL; }
       if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
       if (vJetGraph) { delete vJetGraph; vJetGraph = NULL; }
       if (vJetGraph_mc) { delete vJetGraph_mc; vJetGraph_mc = NULL; }
       if (vJetGraph_sys) { delete vJetGraph_sys; vJetGraph_sys = NULL; }
 
+      if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
+      if (vJetGraph_rat) { delete vJetGraph_rat; vJetGraph_rat = NULL; }
+      if (vJetGraph_rat_sys) { delete vJetGraph_rat_sys; vJetGraph_rat_sys = NULL; }
+
       if (proj) { delete proj; proj = NULL; }
       if (proj_mc) { delete proj_mc; proj_mc = NULL; }
       if (proj_lo) { delete proj_lo; proj_lo = NULL; }
       if (proj_hi) { delete proj_hi; proj_hi = NULL; }
-
-      if (iP < numpbins) plotName = Form ("gamma_jet_iP%i.pdf", iP);
-      else plotName = Form ("gamma_jet_iP_combined.pdf");
-
-      canvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
 
     } // end loop over pT bins
 
@@ -693,6 +668,9 @@ void PhotonJetsHist () {
         myText (0.155, 0.31, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04);
         myText (0.155, 0.25, dataColor, "#bf{#it{ATLAS}} Internal", 0.04);
 
+        plotName = Form ("xjref_dists/gamma_jet_iEta%i_iP%i.pdf", iEta, iP);
+        rawDistCanvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
+        
         if (vJetHist) { delete vJetHist; vJetHist = NULL; }
         if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
         if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
@@ -702,17 +680,12 @@ void PhotonJetsHist () {
         if (proj_mc) { delete proj_mc; proj_mc = NULL; }
         if (proj_lo) { delete proj_lo; proj_lo = NULL; }
         if (proj_hi) { delete proj_hi; proj_hi = NULL; }
-
-        plotName = Form ("xjref_dists/gamma_jet_iEta%i_iP%i.pdf", iEta, iP);
-        rawDistCanvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
         
       } // end loop over pT bins
 
     } // end loop over eta bins
 
   } // end loop over periods
-
-  //outFile->Close ();
 
   return;
 }

@@ -30,7 +30,8 @@ void PhotonAnalysisHist () {
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
   TTree* photonTree = (TTree*)inFile->Get ("jeffsphotons");
-  float ppt = 0, peta = 0, pphi = 0, evtWeight = 0;
+  float ppt = 0, peta = 0, pphi = 0;
+  double evtWeight = 0;
   bool isPeriodA = false, isMC = false;
   photonTree->SetBranchAddress ("photon_pt", &ppt);
   photonTree->SetBranchAddress ("photon_eta", &peta);
@@ -53,7 +54,7 @@ void PhotonAnalysisHist () {
       for (short iWgt = 0; iWgt < 2; iWgt++) {
         const char* wgt = iWgt == 0 ? "weighted" : "unweighted";
 
-        photonSpectrum[iPer][iData][iWgt] = new TH2D (Form ("photonSpectrum_%s_%s_%s", per, data, wgt), "", numpbins, pbins, 240, 0, 2.40);
+        photonSpectrum[iPer][iData][iWgt] = new TH2D (Form ("photonSpectrum_%s_%s_%s", per, data, wgt), "", 50, logspace (20, 500, 50), 240, 0, 2.40);
         photonSpectrum[iPer][iData][iWgt]->Sumw2 ();
 
         photonEtaPhi[iPer][iData][iWgt] = new TH2D (Form ("photonEtaPhi_%s_%s_%s", per, data, wgt), "", 240, -2.4, 2.4, numphibins, phibins);
@@ -66,59 +67,84 @@ void PhotonAnalysisHist () {
   for (int iPhoton = 0; iPhoton < nPhotons; iPhoton++) {
     photonTree->GetEntry (iPhoton);
 
-    photonSpectrum[(short)isPeriodA][(short)isMC][0]->Fill (ppt, peta, evtWeight); // period A or B, data or MC, weighted
-    photonSpectrum[(short)isPeriodA][(short)isMC][1]->Fill (ppt, peta); // etc.
-    photonSpectrum[2][(short)isMC][0]->Fill (ppt, peta, evtWeight);
-    photonSpectrum[2][(short)isMC][1]->Fill (ppt, peta);
+    const short iPer = isPeriodA ? 0 : 1;
+    const short iMC = isMC ? 1 : 0;
 
-    photonEtaPhi[(short)isPeriodA][(short)isMC][0]->Fill (peta, pphi, evtWeight); // period A or B, data or MC, weighted
-    photonEtaPhi[(short)isPeriodA][(short)isMC][1]->Fill (peta, pphi); // etc.
-    photonEtaPhi[2][(short)isMC][0]->Fill (peta, pphi, evtWeight);
-    photonEtaPhi[2][(short)isMC][1]->Fill (peta, pphi);
+    photonSpectrum[iPer][iMC][0]->Fill (ppt, peta, evtWeight); // period A or B, data or MC, weighted
+    photonSpectrum[iPer][iMC][1]->Fill (ppt, peta); // etc.
+    photonSpectrum[2][iMC][0]->Fill (ppt, peta, evtWeight);
+    photonSpectrum[2][iMC][1]->Fill (ppt, peta);
+
+    photonEtaPhi[iPer][iMC][0]->Fill (peta, pphi, evtWeight); // period A or B, data or MC, weighted
+    photonEtaPhi[iPer][iMC][1]->Fill (peta, pphi); // etc.
+    photonEtaPhi[2][iMC][0]->Fill (peta, pphi, evtWeight);
+    photonEtaPhi[2][iMC][1]->Fill (peta, pphi);
   }
 
 
   TCanvas* canvas = new TCanvas ("canvas", "", 800, 600);
+  TCanvas* etaPhiCanvas = new TCanvas ("etaPhiCanvas", "", 800, 600);
+  FormatTH2Canvas (etaPhiCanvas);
 
   for (short iPer = 0; iPer < 3; iPer++) {
+    canvas->cd ();
     gPad->SetLogx ();
     gPad->SetLogy ();
 
-    for (short iEta = 0; iEta < 2; iEta++) {
-      TH1D* thisHist = photonSpectrum[iPer][0][0]->ProjectionX ("_py", iEta==0?1:153,iEta==0?137:240);
-      thisHist->Scale (1.0/(iEta==0?1.37:0.88), "width");
+    for (short iData = 1; iData >= 0; iData--) {
+      for (short iEta = 0; iEta < 2; iEta++) {
+        TH1D* thisHist = photonSpectrum[iPer][iData][0]->ProjectionX ("_py", iEta==0?1:153,iEta==0?137:240);
+        thisHist->Scale (1.0/(thisHist->Integral () * (iEta==0?1.37:0.88)), "width");
+        //thisHist->GetYaxis ()->SetRangeUser (1e-2, 1e8);
 
-      TGraphAsymmErrors* thisGraph = make_graph (thisHist);
-      deltaize (thisGraph, 1+0.002*(iEta-numetabins/2), true);
+        TGraphAsymmErrors* thisGraph = make_graph (thisHist);
+        deltaize (thisGraph, 1+0.005*(iEta-numetabins/2), true);
 
-      thisGraph->SetLineColor (iEta==0? kBlack:kBlue);
-      thisGraph->SetMarkerColor (iEta==0? kBlack:kBlue);
+        thisGraph->GetYaxis ()->SetRangeUser (1e-8, 5e-1);
+        thisGraph->SetMarkerStyle (iData == 0 ? kFullCircle : kOpenCircle);
+        thisGraph->SetMarkerSize (0.5);
+        thisGraph->SetLineColor (iEta == 0 ? kBlack : kBlue);
+        thisGraph->SetMarkerColor (iEta == 0 ? kBlack : kBlue);
 
-      thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
-      thisGraph->GetYaxis ()->SetTitle ("Counts");
+        thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
+        thisGraph->GetYaxis ()->SetTitle ("1 / N^{#gamma} d^{2}N^{#gamma} / d#it{p}_{T} d#eta #left[GeV^{-1}#right]");
 
-      ( (TGraphAsymmErrors*)thisGraph->Clone ())->Draw (iEta == 0 ? "ap":"p");
+        if (iEta == 0 && iData == 1)
+          ( (TGraphAsymmErrors*)thisGraph->Clone ())->Draw ("ap");
+        else
+          ( (TGraphAsymmErrors*)thisGraph->Clone ())->Draw ("p");
 
-      if (thisHist) { delete thisHist; thisHist = NULL; }
-      if (thisGraph) { delete thisGraph; thisGraph = NULL; }
+        if (thisHist) { delete thisHist; thisHist = NULL; }
+        if (thisGraph) { delete thisGraph; thisGraph = NULL; }
+      }
     }
 
-    myText (0.65, 0.88, kBlack, "Barrel, #left|#eta#right| < 1.37", 0.04);
-    myText (0.65, 0.81, kBlue, "Endcaps, 1.52 < #left|#eta#right| < 2.40", 0.04);
+    myText (0.25, 0.48, kBlack, "Barrel, #left|#eta#right| < 1.37", 0.04);
+    myText (0.25, 0.42, kBlue, "Endcaps, 1.52 < #left|#eta#right| < 2.40", 0.04);
 
     canvas->SaveAs (Form ("%s/%s/photonSpectrum.pdf", plotPath.Data (), iPer == 0 ? "PeriodA" : (iPer == 1 ? "PeriodB" : "PeriodAB")));
 
+    etaPhiCanvas->cd ();
     gPad->SetLogx (false);
     gPad->SetLogy (false);
     gStyle->SetPalette (kRainBow);
     photonEtaPhi[iPer][0][0]->Draw ("colz");
-    canvas->SaveAs (Form ("%s/%s/photonEtaPhi_data.pdf", plotPath.Data (), iPer == 0 ? "PeriodA" : (iPer == 1 ? "PeriodB" : "PeriodAB")));
+    photonEtaPhi[iPer][0][0]->GetXaxis ()->SetTitle ("Photon #eta");
+    photonEtaPhi[iPer][0][0]->GetYaxis ()->SetTitle ("Photon #phi");
+    photonEtaPhi[iPer][0][0]->GetXaxis ()->SetTitleOffset (1.1);
+    photonEtaPhi[iPer][0][0]->GetYaxis ()->SetTitleOffset (1.1);
+    etaPhiCanvas->SaveAs (Form ("%s/%s/photonEtaPhi_data.pdf", plotPath.Data (), iPer == 0 ? "PeriodA" : (iPer == 1 ? "PeriodB" : "PeriodAB")));
 
+    etaPhiCanvas->cd ();
     gPad->SetLogx (false);
     gPad->SetLogy (false);
     gStyle->SetPalette (kRainBow);
     photonEtaPhi[iPer][1][0]->Draw ("colz");
-    canvas->SaveAs (Form ("%s/%s/photonEtaPhi_mc.pdf", plotPath.Data (), iPer == 0 ? "PeriodA" : (iPer == 1 ? "PeriodB" : "PeriodAB")));
+    photonEtaPhi[iPer][1][0]->GetXaxis ()->SetTitle ("Photon #eta");
+    photonEtaPhi[iPer][1][0]->GetYaxis ()->SetTitle ("Photon #phi");
+    photonEtaPhi[iPer][1][0]->GetXaxis ()->SetTitleOffset (1.1);
+    photonEtaPhi[iPer][1][0]->GetYaxis ()->SetTitleOffset (1.1);
+    etaPhiCanvas->SaveAs (Form ("%s/%s/photonEtaPhi_mc.pdf", plotPath.Data (), iPer == 0 ? "PeriodA" : (iPer == 1 ? "PeriodB" : "PeriodAB")));
 
   }
 

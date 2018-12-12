@@ -52,4 +52,4 @@ wait
 rm ../rootFiles/EnergyScaleChecks/outFile.root
 hadd ../rootFiles/EnergyScaleChecks/outFile.root ../rootFiles/EnergyScaleChecks/dataSet_*_Overlay_GammaJet_Slice*.root
 
-./bin/runEnergyScaleChecksNewHist
+./bin/runEnergyScaleChecksHist

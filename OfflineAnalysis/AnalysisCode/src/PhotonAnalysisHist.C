@@ -38,9 +38,10 @@ const char* GetShowerShape (const int iShowerShape) {
     case 6:  return "weta2";
     case 7:  return "wtots1";
     case 8:  return "f1";
-    case 9:  return "fracs1"; // fside
-    case 10: return "DeltaE";
-    case 11: return "Eratio";
+    case 9:  return "f3";
+    case 10: return "fracs1"; // fside
+    case 11: return "DeltaE";
+    case 12: return "Eratio";
     default: return "";
   }
 }
@@ -71,7 +72,7 @@ void PhotonAnalysisHist () {
   TH1D*** fcal_et = Get2DArray <TH1D*> (photonTrigN, 2);
 
   TH1D**** sidebandSpectrum = Get3DArray <TH1D*> (photonTrigN, 2, 4);
-  TH1D**** showerShapeDists = Get3DArray <TH1D*> (photonTrigN+1, 2, 12);
+  TH1D**** showerShapeDists = Get3DArray <TH1D*> (photonTrigN+1, 2, 13);
 
   for (int iTrig = 0; iTrig < photonTrigN; iTrig++) {
     photonCounts[iTrig] = (TH1D*)inFile->Get (Form ("photonCounts_%s", photonTrigNames[iTrig].c_str ()));
@@ -124,7 +125,7 @@ void PhotonAnalysisHist () {
         sidebandSpectrum[iTrig][iEta][iSide] = (TH1D*)inFile->Get (Form ("sidebandSpectrum_%s_%s_%c", photonTrigNames[iTrig].c_str(), eta, side));
       }
 
-      for (short iShower = 0; iShower < 12; iShower++) {
+      for (short iShower = 0; iShower < 13; iShower++) {
         showerShapeDists[iTrig][iEta][iShower] = (TH1D*)inFile->Get (Form ("showerShapeDist_%s_%s_%s", photonTrigNames[iTrig].c_str(), eta, GetShowerShape (iShower)));
       }
     }
@@ -141,10 +142,11 @@ void PhotonAnalysisHist () {
     showerShapeDists[photonTrigN][iEta][6] = (TH1D*)inFile_mc->Get (Form ("hph_weta2_eta%i", iEta));
     showerShapeDists[photonTrigN][iEta][7] = (TH1D*)inFile_mc->Get (Form ("hph_wtots1_eta%i", iEta));
     showerShapeDists[photonTrigN][iEta][8] = (TH1D*)inFile_mc->Get (Form ("hph_f1_eta%i", iEta));
-    showerShapeDists[photonTrigN][iEta][9] = (TH1D*)inFile_mc->Get (Form ("hph_fracs1_eta%i", iEta));
-    showerShapeDists[photonTrigN][iEta][10] = (TH1D*)inFile_mc->Get (Form ("hph_DeltaE_eta%i", iEta));
-    showerShapeDists[photonTrigN][iEta][11] = (TH1D*)inFile_mc->Get (Form ("hph_Eratio_eta%i", iEta));
-    for (short iShower = 0; iShower < 12; iShower++) {
+    showerShapeDists[photonTrigN][iEta][9] = (TH1D*)inFile_mc->Get (Form ("hph_f3_eta%i", iEta));
+    showerShapeDists[photonTrigN][iEta][10] = (TH1D*)inFile_mc->Get (Form ("hph_fracs1_eta%i", iEta));
+    showerShapeDists[photonTrigN][iEta][11] = (TH1D*)inFile_mc->Get (Form ("hph_DeltaE_eta%i", iEta));
+    showerShapeDists[photonTrigN][iEta][12] = (TH1D*)inFile_mc->Get (Form ("hph_Eratio_eta%i", iEta));
+    for (short iShower = 0; iShower < 13; iShower++) {
       TH1D* h = showerShapeDists[photonTrigN][iEta][iShower];
       h->Rebin (showerShapeMCRebinFactors[iShower]);
       //const float integral = h->Integral (h->FindBin (showerShapeBinsLow[iShower]), h->FindBin (showerShapeBinsHigh[iShower]));
@@ -195,36 +197,57 @@ void PhotonAnalysisHist () {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     gPad->SetLogy ();
     double max = 0;
+    TH1D** ptSpectra = Get1DArray <TH1D*> (2);
+    //canvas->SetLeftMargin (-0.1);
     for (int iEta = 0; iEta < 2; iEta++) {
+      ptSpectra[iEta] = new TH1D (Form ("ptSpectrum_%s", iEta==0?"barrel":"endcap"), "", 600, 50, 650);
+      ptSpectra[iEta]->Sumw2 ();
       for (int iCent = 0; iCent < 2; iCent++) {
         TH1D* thisHist = ptSpectrum[iTrig][iEta][iCent];
-        if (max < thisHist->GetMaximum ())
-          max = thisHist->GetMaximum ();
+        ptSpectra[iEta]->Add (thisHist);
       }
+      ptSpectra[iEta]->Rebin(25);
+      //ptSpectra[iEta]->Scale (1/pi);
+      if (max < ptSpectra[iEta]->GetMaximum ())
+        max = ptSpectra[iEta]->GetMaximum ();
     }
-
+    TGraphAsymmErrors** ptSpectraGraphs = Get1DArray <TGraphAsymmErrors*> (2);
     for (int iEta = 0; iEta < 2; iEta++) {
-      for (int iCent = 0; iCent < 2; iCent++) {
-        TH1D* thisHist = ptSpectrum[iTrig][iEta][iCent];
+      //for (int iCent = 0; iCent < 2; iCent++) {
+      TGraphAsymmErrors* thisGraph = make_graph (ptSpectra[iEta], 0.5);
+      ptSpectraGraphs[iEta] = thisGraph;
 
-        thisHist->GetYaxis ()->SetRangeUser (0.5, 1.1*max);
-        thisHist->SetMarkerColor (colors[iEta]);
-        thisHist->SetLineColor (colors[iEta]);
-        thisHist->SetLineStyle (iCent==0?2:1);
-        thisHist->GetXaxis ()->SetTitle ("Offline Tight #it{p}_{T}^{#gamma} #left[GeV#right]");
-        thisHist->GetYaxis ()->SetTitle ("Counts");
-        if (iEta == 0 && iCent == 0)
-          thisHist->Draw ("hist");
-        else
-          thisHist->Draw ("same hist");
-      }
+      thisGraph->SetMarkerColor (colors[iEta]);
+      thisGraph->SetLineColor (colors[iEta]);
+      thisGraph->SetLineWidth (2);
+      //thisGraph->SetLineStyle (iCent==0?2:1);
+
+      thisGraph->GetXaxis ()->SetTitle ("Photon #it{p}_{T} #left[GeV#right]");
+      //thisGraph->GetYaxis ()->SetTitle ("Entries / bin");
+      thisGraph->GetYaxis ()->SetTitle ("Counts");
+
+      thisGraph->GetXaxis ()->SetRangeUser (50, 550);
+      thisGraph->GetYaxis ()->SetRangeUser (0.3, 3*max);
+
+      //thisGraph->GetYaxis ()->SetTitleOffset (0.2);
+      //thisGraph->GetYaxis ()->SetTitleSize (0.04);
+      //thisGraph->GetYaxis ()->SetLabelSize (0);
+
+      if (iEta == 0)
+        thisGraph->Draw ("ap");
+      else
+        thisGraph->Draw ("p");
     }
-    myText (0.6, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
-    myText (0.6, 0.805, kBlack, "Barrel", 0.04);
-    myText (0.6, 0.745, kBlue, "Endcaps", 0.04);
-    myText (0.6, 0.665, kBlack, "Dashed: #Sigma#it{E}_{T}^{FCal} > 2 TeV", 0.04);
-    myText (0.6, 0.605, kBlack, "Solid: #Sigma#it{E}_{T}^{FCal} < 2 TeV", 0.04);
+    //myText (0.56, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.045);
+    myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+    myText (0.56, 0.82, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.2f nb^{-1}", lumi_int*1e-3), 0.045);
+    myMarkerText (0.56, 0.76, kBlack, kFullCircle, "0 < #left|#eta#right| < 1.37", 1.25, 0.045);
+    myMarkerText (0.56, 0.70, kBlue, kFullCircle, "1.52 < #left|#eta#right| < 2.37", 1.25, 0.045);
+    //myText (0.56, 0.665, kBlack, "Dashed: #Sigma#it{E}_{T}^{FCal} > 2 TeV", 0.045);
+    //myText (0.56, 0.605, kBlack, "Solid: #Sigma#it{E}_{T}^{FCal} < 2 TeV", 0.045);
     canvas->SaveAs (Form ("%s/ptSpectrum/%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str ()));
+    Delete1DArray (ptSpectra, 2);
+    Delete1DArray (ptSpectraGraphs, 2);
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,23 +315,25 @@ void PhotonAnalysisHist () {
           thisHist->SetMarkerColor (colors[iEtcone]);
           thisHist->SetLineColor (colors[iEtcone]);
 
-          thisHist->GetXaxis ()->SetTitle ("Isolation Etcone Value #left[GeV#right]");
+          thisHist->GetXaxis ()->SetTitle ("Etcone Value #left[GeV#right]");
           thisHist->GetYaxis ()->SetTitle ("Counts");
 
           if (iEtcone == 0 && iCent == 0) {
             thisHist->Draw ("hist");
-            myText (0.6, 0.53, kBlack, "Dashed: #Sigma#it{E}_{T}^{FCal} > 2 TeV", 0.04);
-            myText (0.6, 0.475, kBlack, "Solid: #Sigma#it{E}_{T}^{FCal} < 2 TeV", 0.04);
+            myText (0.56, 0.54, kBlack, "Dashed: #Sigma#it{E}_{T}^{FCal} > 2 TeV", 0.04);
+            myText (0.56, 0.485, kBlack, "Solid: #Sigma#it{E}_{T}^{FCal} < 2 TeV", 0.04);
           }
           else
             thisHist->Draw ("same hist");
 
           if (iCent == 0)
-            myText (0.6, 0.725-0.055*iEtcone, colors[iEtcone], etconeStrs[iEtcone], 0.04);
+            myText (0.56, 0.69-0.05*iEtcone, colors[iEtcone], etconeStrs[iEtcone], 0.04);
         }
       }
-      myText (0.6, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
-      myText (0.6, 0.81, kBlack, (string(iEta==0?"Barrel":"Endcaps") + ", tight photons > 20 GeV").c_str(), 0.04);
+      //myText (0.6, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
+      myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+      myText (0.56, 0.82, kBlack, (string(iEta==0?"Barrel":"Endcaps") + ", tight photons > 20 GeV").c_str(), 0.04);
+      myText (0.56, 0.76, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.1f #mub^{-1}", lumi_int), 0.04);
       canvas->SaveAs (Form ("%s/etcones/%s_%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str (), iEta==0?"barrel":"endcap"));
     }
 
@@ -498,14 +523,14 @@ void PhotonAnalysisHist () {
     canvas->cd ();
     max = 0;
     for (short iEta = 0; iEta < 2; iEta++) {
-      fcal_et[iTrig][iEta]->Rebin(2);
+      fcal_et[iTrig][iEta]->Rebin(4);
       if (max < fcal_et[iTrig][iEta]->GetMaximum ())
         max = fcal_et[iTrig][iEta]->GetMaximum ();
     }    
     
     for (short iEta = 0; iEta < 2; iEta++) {
       TH1D* thisHist = fcal_et[iTrig][iEta];
-      thisHist->GetYaxis ()->SetRangeUser (0.5, 1.1*max);
+      thisHist->GetYaxis ()->SetRangeUser (0.5, 1.3*max);
       thisHist->SetMarkerColor (colors[iEta]);
       thisHist->SetLineColor (colors[iEta]);
 
@@ -517,10 +542,12 @@ void PhotonAnalysisHist () {
       else
         thisHist->Draw ("same hist");
 
-      myText (0.25, 0.88-0.07*iEta, colors[iEta], iEta==0?"Barrel":"Endcaps", 0.04);
+      myText (0.2, 0.74-0.06*iEta, colors[iEta], iEta==0?"Barrel":"Endcaps", 0.04);
     }    
-    myText (0.6, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
-    myText (0.6, 0.81, kBlack, "Tight photons, #it{p}_{T}^{#gamma} > 20 GeV", 0.04);
+    //myText (0.2, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
+    myText (0.65, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+    myText (0.2, 0.88, kBlack, "Tight photons, #it{p}_{T}^{#gamma} > 20 GeV", 0.04);
+    myText (0.2, 0.82, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.1f #mub^{-1}", lumi_int), 0.04);
     canvas->SaveAs (Form ("%s/fcal_et/%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str ()));
 
 
@@ -572,9 +599,14 @@ void PhotonAnalysisHist () {
     gStyle->SetPalette (kRainBow);
     etaPhiMap[iTrig]->GetXaxis ()->SetTitle ("#eta");
     etaPhiMap[iTrig]->GetYaxis ()->SetTitle ("#phi");
+    etaPhiMap[iTrig]->GetZaxis ()->SetTitle ("Counts");
     etaPhiMap[iTrig]->GetXaxis ()->SetTitleOffset (1);
     etaPhiMap[iTrig]->GetYaxis ()->SetTitleOffset (1);
     etaPhiMap[iTrig]->Draw ("colz");
+    //myText (0.6, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+    //myText (0.2, 0.32, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.1f #mub^{-1}", lumi_int), 0.04);
+    //myText (0.2, 0.26, kBlack, "Tight photons, #it{p}_{T}^{#gamma} > 20 GeV", 0.04);
+
     etaPhiMapCanvas->SaveAs (Form ("%s/etaPhiMaps/%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str ())); 
 
 
@@ -610,7 +642,7 @@ void PhotonAnalysisHist () {
       thisGraph->SetMarkerColor (colors[iEta]);
       thisGraph->SetLineColor (colors[iEta]);
 
-      thisGraph->GetXaxis ()->SetTitle ("Offline #it{p}_{T}^{#gamma} #left[GeV#right]");
+      thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
       thisGraph->GetYaxis ()->SetTitle ("1 - BC/AD");
 
       thisGraph->GetXaxis ()->SetRangeUser (0, 200);
@@ -624,9 +656,11 @@ void PhotonAnalysisHist () {
         thisGraph->Draw ("p");
 
       if (iEta == 0) {
-        myText (0.2, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
+        myText (0.66, 0.24, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+        //myText (0.2, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.04);
+        myText (0.2, 0.88, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.1f #mub^{-1}", lumi_int), 0.04);
       }
-      myText (0.2, 0.79-0.07*iEta, colors[iEta], iEta==0?"Barrel":"Endcaps", 0.04);
+      myText (0.2, 0.82-0.06*iEta, colors[iEta], iEta==0?"0 < |#eta| < 1.37":"1.52 < |#eta| < 2.37", 0.04);
 
     }
     purityCanvas->SaveAs (Form ("%s/purities/%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str ())); 
@@ -663,12 +697,13 @@ void PhotonAnalysisHist () {
         TGraphAsymmErrors* thisGraph = make_graph (thisHist);
         deltaize (thisGraph, 0.5*(-3+2*iSide), false);
 
+        thisGraph->GetXaxis ()->SetRangeUser (50, 205);
         thisGraph->GetYaxis ()->SetRangeUser (0.5, 2*max);
 
         thisGraph->SetLineColor (colors[iSide]);
         thisGraph->SetMarkerColor (colors[iSide]);
 
-        thisGraph->GetXaxis ()->SetTitle ("Offline #it{p}_{T}^{#gamma} #left[GeV#right]");
+        thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
         thisGraph->GetYaxis ()->SetTitle ("N");
 
         thisGraph->GetXaxis ()->SetTitleSize (0.04/uPadY);
@@ -690,11 +725,13 @@ void PhotonAnalysisHist () {
           case 2: sidebandStr = sidebandStr + "C (non-tight, etcone 30 < 10 GeV)"; break;
           case 3: sidebandStr = sidebandStr + "D (non-tight, etcone30 > 12 GeV)"; break;
         }
-        myText (0.42, 0.81-0.07*iSide, colors[iSide], sidebandStr, 0.035/uPadY);
+        myText (0.2, 0.3-0.065*iSide, colors[iSide], sidebandStr, 0.03/uPadY);
 
         if (thisGraph) delete thisGraph;
       }
-      myText (0.42, 0.88, kBlack, (photonTrigNames[iTrig] + (iEta==0?", Barrel":", Endcaps")).c_str(), 0.035/uPadY);
+      myText (0.65, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.03/uPadY);
+      myText (0.52, 0.76, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.1f #mub^{-1}", lumi_int), 0.03/uPadY);
+      myText (0.2, 0.36, kBlack, /*(photonTrigNames[iTrig] + */(iEta==0?"Barrel, 0 < |#eta| < 1.37":"Endcaps, 1.52 < |#eta| < 2.37"), 0.03/uPadY);
 
       bottomPad->cd ();
       max = 0;
@@ -707,12 +744,14 @@ void PhotonAnalysisHist () {
         TH1D* thisHist = sidebandSpectrum[iTrig][iEta][iSide];
         TGraphAsymmErrors* thisGraph = make_graph (thisHist);
         deltaize (thisGraph, 0.5*(-3+2*iSide), false);
+
+        thisGraph->GetXaxis ()->SetRangeUser (50, 205);
         thisGraph->GetYaxis ()->SetRangeUser (0, 1);
 
         thisGraph->SetLineColor (colors[iSide]);
         thisGraph->SetMarkerColor (colors[iSide]);
 
-        thisGraph->GetXaxis ()->SetTitle ("Offline #it{p}_{T}^{#gamma} #left[GeV#right]");
+        thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
         thisGraph->GetYaxis ()->SetTitle ("N / N_{A}");
 
         thisGraph->GetXaxis ()->SetTitleSize (0.04/dPadY);
@@ -728,7 +767,7 @@ void PhotonAnalysisHist () {
           ( (TGraphAsymmErrors*)thisGraph->Clone ())->Draw ("p");
 
         const TString sidebandStr = TString (iSide==1?"B":(iSide==2?"C":"D")) + " / A";
-        myText (0.78, 0.95-0.07*iSide, colors[iSide], sidebandStr, 0.04/dPadY);
+        myText (0.78, 0.95-0.07*iSide, colors[iSide], sidebandStr, 0.03/dPadY);
 
         if (thisGraph) delete thisGraph;
       }
@@ -739,13 +778,13 @@ void PhotonAnalysisHist () {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Plot shower shapes
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    TCanvas* showerShapeCanvas = new TCanvas (Form ("showerShapeCanvas_%s", photonTrigNames[iTrig].c_str ()), "", 800, 600);
-    showerShapeCanvas->Divide (4, 3);
+    TCanvas* showerShapeCanvas = new TCanvas (Form ("showerShapeCanvas_%s", photonTrigNames[iTrig].c_str ()), "", 800, 800);
+    showerShapeCanvas->Divide (3, 3);
     showerShapeCanvas->cd ();
     for (short iEta = 0; iEta < 2; iEta++) {
       int iCanvas = 1;
-      for (short iShower = 0; iShower < 12; iShower++) {
-        if (iShower == 2) continue; // don't plot e277 for now!
+      for (short iShower = 3; iShower < 13; iShower++) {
+        if (iShower == 2 || iShower == 7 || iShower == 10) continue; // don't plot e277 or wtots1 for now!
  
         showerShapeCanvas->cd (iCanvas++);
 
@@ -762,7 +801,22 @@ void PhotonAnalysisHist () {
         thisHist_mc->GetYaxis ()->SetRangeUser (0, 1.01*max);
 
         thisHist_mc->GetXaxis ()->SetTitle (GetShowerShape (iShower));
-        thisHist_mc->GetYaxis ()->SetTitle ("Counts / Total");
+        thisHist_mc->GetYaxis ()->SetTitle ("Counts");
+
+        thisHist_mc->GetXaxis ()->SetTitleSize (0);
+        if (iCanvas == 1)
+          thisHist_mc->GetYaxis ()->SetTitleSize (0.12);
+        else
+          thisHist_mc->GetYaxis ()->SetTitleSize (0);
+
+        thisHist_mc->GetXaxis ()->SetTitleOffset (1);
+        thisHist_mc->GetYaxis ()->SetTitleOffset (0.4);
+
+        thisHist_mc->GetXaxis ()->SetLabelSize (0.1);
+        thisHist_mc->GetYaxis ()->SetLabelSize (0);
+
+        thisHist_mc->GetXaxis ()->SetNdivisions (404);
+        thisHist_mc->GetYaxis ()->SetNdivisions (404);
 
         thisHist_mc->SetLineWidth (2);
         thisHist_mc->SetLineColor (kRed);
@@ -770,12 +824,16 @@ void PhotonAnalysisHist () {
         thisHist_mc->Draw ("hist");
         thisHist->Draw ("same hist");
 
-        myText (0.2, 0.9, kBlack, GetShowerShape (iShower), 0.12);
+        myText (0.2, 0.88, kBlack, GetShowerShape (iShower), 0.1);
       }
-      showerShapeCanvas->cd (12);
-      myText (0, 0.9, kBlack, photonTrigNames[iTrig].c_str (), 0.12);
-      myText (0, 0.75, kBlack, "Tight, iso photons", 0.12);
-      myText (0, 0.6, kBlack, "#it{p}_{T}^{#gamma} > 50 GeV", 0.12);
+      showerShapeCanvas->cd (9);
+      gPad->Clear ();
+      //myText (0.1, 0.9, kBlack, photonTrigNames[iTrig].c_str (), 0.1);
+      myText (0.1, 0.9, kBlack, "#bf{#it{ATLAS}} Internal", 0.1);
+      myText (0.1, 0.75, kBlack, "Tight, iso photons", 0.1);
+      myText (0.1, 0.6, kBlack, (iEta == 0 ? "0 < |#eta| < 1.37" : "1.37 < |#eta| < 2.37"), 0.1);
+      myText (0.1, 0.35, kBlack, Form ("Data, %.0f #mub^{-1}", lumi_int), 0.1);
+      myText (0.1, 0.2, kRed, "Pythia8 + HIJING", 0.1);
 
       showerShapeCanvas->SaveAs (Form ("%s/showerShapes/%s_%s.pdf", plotPath.Data (), photonTrigNames[iTrig].c_str (), iEta==0?"barrel":"endcap"));
     }

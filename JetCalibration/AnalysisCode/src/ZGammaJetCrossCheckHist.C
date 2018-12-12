@@ -96,8 +96,9 @@ TGraphAsymmErrors* Divide (const TGraphAsymmErrors* num, const TGraphAsymmErrors
     re = sqrt (pow (ne / dy, 2) + pow (ry * de / dy, 2));
    }
    else {
-    ry = 0;
-    re = 0;
+    continue;
+    //ry = 0;
+    //re = 0;
    }
 
    rat->SetPoint (ix, rx, ry);
@@ -426,9 +427,7 @@ void ZGammaJetCrossCheckHist () {
       }
       combinedRatio[0]->SetFillColor (kBlack);
       combinedRatio[0]->SetFillStyle (3001);
-      ( (TGraphAsymmErrors*)(combinedRatio[0])->Clone ())->Draw ("2");
       combinedRatio[0]->Draw ("2");
-      ( (TGraphAsymmErrors*)(combinedRatio[1])->Clone ())->Draw ("p");
       combinedRatio[1]->Draw ("p");
 
       myMarkerText (0.205, 0.34, kBlack, kFullCircle, "Combined Z/#gamma + Jet", 1.25, 0.04/uPadY);
@@ -470,7 +469,8 @@ void ZGammaJetCrossCheckHist () {
       vJetRatioFit->SetParameter (4, 0);
       vJetRatioFit->FixParameter (5, 0.5 * (log (pbins[numpbins]) + log (pbins[0])));
       vJetRatioFit->FixParameter (6, 0.5 * (log (pbins[numpbins]) - log (pbins[0])));
-      sysCombinedRatioHist->Fit (vJetRatioFit, "RN0Q");
+      //sysCombinedRatioHist->Fit (vJetRatioFit, "RN0Q");
+      combinedRatio[1]->Fit (vJetRatioFit, "RN0Q");
 
       const float chisq = vJetRatioFit->GetChisquare ();
       myText (0.175, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.04/dPadY);
@@ -484,18 +484,6 @@ void ZGammaJetCrossCheckHist () {
       vJetRatioCI->SetFillColorAlpha (kGray+2, 0.3);
       vJetRatioCI->DrawCopy ("e3 same");
 
-      //if (polyN) { delete polyN; polyN = NULL; }
-      //if (logShift) { delete logShift; logShift = NULL; }
-      if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
-      if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
-      if (sysCombinedRatioHist) { delete sysCombinedRatioHist; sysCombinedRatioHist = NULL; }
-
-      Delete1DArray (combinedNum, 3);
-      Delete1DArray (combinedDen, 3);
-      Delete1DArray (combinedRatio, 2);
-
-      //} // end loop over insitu configurations
-       
       if (iEta < numetabins)
         plotName = Form ("v_jet_xjref_iEta%i.pdf", iEta);
       else
@@ -509,6 +497,16 @@ void ZGammaJetCrossCheckHist () {
         plotName = Form ("v_jet_dataOverMC_iEta_combined.pdf");
 
       bottomCanvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
+
+      //if (polyN) { delete polyN; polyN = NULL; }
+      //if (logShift) { delete logShift; logShift = NULL; }
+      if (vJetRatioFit) { delete vJetRatioFit; vJetRatioFit = NULL; }
+      if (vJetRatioCI) { delete vJetRatioCI; vJetRatioCI = NULL; }
+      if (sysCombinedRatioHist) { delete sysCombinedRatioHist; sysCombinedRatioHist = NULL; }
+
+      Delete1DArray (combinedNum, 3);
+      Delete1DArray (combinedDen, 3);
+      Delete1DArray (combinedRatio, 2);
 
     } // end loop over etabins
 
