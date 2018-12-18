@@ -22,7 +22,6 @@ using namespace atlashi;
 
 namespace JetCalibration {
 
-
 void PhotonJetsHist () {
 
   SetAtlasStyle ();
@@ -156,7 +155,6 @@ void PhotonJetsHist () {
     }
   }
 
-
   //////////////////////////////////////////////////////////////////////////////
   // Save histograms for interactive access
   //////////////////////////////////////////////////////////////////////////////
@@ -177,9 +175,6 @@ void PhotonJetsHist () {
       }
     }
   }
-  outFile->Close ();
-  if (outFile) { delete outFile; outFile = NULL; }
-
 
   //////////////////////////////////////////////////////////////////////////////
   // Plotting elements 
@@ -203,7 +198,6 @@ void PhotonJetsHist () {
    else xlines[i]->SetLineStyle (3);
   }
 
-
   //////////////////////////////////////////////////////////////////////////////
   // Canvas definitions
   //////////////////////////////////////////////////////////////////////////////
@@ -226,14 +220,11 @@ void PhotonJetsHist () {
   topPad->Draw ();
   bottomPad->Draw ();
 
-
   /**** Define local histograms, graphs, etc. ****/
   TH1D *vJetHist = NULL, *vJetHist_mc = NULL, *vJetHist_lo = NULL, *vJetHist_hi = NULL, *vJetHist_rat = NULL, *vJetHist_rat_lo = NULL, *vJetHist_rat_hi = NULL;
   TH2D *proj = NULL, *proj_mc = NULL, *proj_lo = NULL, *proj_hi = NULL;
   TGraphAsymmErrors *vJetGraph = NULL, *vJetGraph_mc = NULL, *vJetGraph_sys = NULL, *vJetGraph_rat = NULL, *vJetGraph_rat_sys = NULL;
   char* plotName;
-
-  //TFile* outFile = new TFile (Form ("%s/histograms.root", rootPath.Data ()), "recreate");
 
   for (short iPer = 0; iPer < 3; iPer++) { // loop over period configurations
     const char* period = (iPer == 0 ? "Period A" : (iPer == 1 ? "Period B" : "Period A+B"));
@@ -254,7 +245,7 @@ void PhotonJetsHist () {
       proj = Project2D ("", photonJetHists_pt_eta[iPer][0][1][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
       proj->RebinY (rebinFactor);
       TString name = Form ("photonJetHist_%s_data_stat_signal_iEta%i", per, iEta);
-      vJetHist = GetProfileX (name, proj, numpbins, pbins, true);
+      vJetHist = GetProfileX (name, proj, numpbins, pbins, true, 0.8, 1.2);
 
       vJetGraph = make_graph (vJetHist);
       vJetGraph->SetMarkerStyle (dataStyle);
@@ -266,12 +257,12 @@ void PhotonJetsHist () {
       proj_lo = Project2D ("", photonJetHists_pt_eta[iPer][0][0][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
       proj_lo->RebinY (rebinFactor);
       name = Form ("photonJetHist_%s_data_sys_lo_signal_iEta%i", per, iEta);
-      vJetHist_lo = GetProfileX (name, proj_lo, numpbins, pbins, true);
+      vJetHist_lo = GetProfileX (name, proj_lo, numpbins, pbins, true, 0.8, 1.2);
 
       proj_hi = Project2D ("", photonJetHists_pt_eta[iPer][0][2][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
       proj_hi->RebinY (rebinFactor);
       name = Form ("photonJetHist_%s_data_sys_hi_signal_iEta%i", per, iEta);
-      vJetHist_hi = GetProfileX (name, proj_hi, numpbins, pbins, true);
+      vJetHist_hi = GetProfileX (name, proj_hi, numpbins, pbins, true, 0.8, 1.2);
 
       vJetGraph_sys = make_graph (vJetHist); // for plotting systematics
       CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -284,7 +275,7 @@ void PhotonJetsHist () {
       proj_mc = Project2D ("", photonJetHists_pt_eta[iPer][1][1][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
       proj_mc->RebinY (rebinFactor);
       name = Form ("photonJetHist_%s_mc_stat_signal_iEta%i", per, iEta);
-      vJetHist_mc = GetProfileX (name, proj_mc, numpbins, pbins, true);
+      vJetHist_mc = GetProfileX (name, proj_mc, numpbins, pbins, true, 0.8, 1.2);
 
       double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
       if (10 * middle != floor (10*middle)) middle += 0.05;
@@ -332,9 +323,9 @@ void PhotonJetsHist () {
       bottomPad->cd ();
       bottomPad->SetLogx ();
 
-      vJetHist_rat = GetDataOverMC (Form ("photonJetPtDataMCRatio_mc_iEta%i", iEta), proj, proj_mc, numpbins, pbins, true, "x");
-      vJetHist_rat_lo = GetDataOverMC (Form ("photonJetPtDataMCRatio_lo_mc_iEta%i", iEta), proj_lo, proj_mc, numpbins, pbins, true, "x");
-      vJetHist_rat_hi = GetDataOverMC (Form ("photonJetPtDataMCRatio_hi_mc_iEta%i", iEta), proj_hi, proj_mc, numpbins, pbins, true, "x");
+      vJetHist_rat = GetDataOverMC (Form ("photonJetPtDataMCRatio_mc_iEta%i", iEta), proj, proj_mc, numpbins, pbins, true, "x", 0.8, 1.2);
+      vJetHist_rat_lo = GetDataOverMC (Form ("photonJetPtDataMCRatio_lo_mc_iEta%i", iEta), proj_lo, proj_mc, numpbins, pbins, true, "x", 0.8, 1.2);
+      vJetHist_rat_hi = GetDataOverMC (Form ("photonJetPtDataMCRatio_hi_mc_iEta%i", iEta), proj_hi, proj_mc, numpbins, pbins, true, "x", 0.8, 1.2);
 
       vJetGraph_rat_sys = make_graph (vJetHist_rat);
       CalcSystematics (vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
@@ -404,7 +395,7 @@ void PhotonJetsHist () {
 
       proj = Project2D ("", photonJetHists_pt_eta[iPer][0][1][2], "y", "z", p_lo, p_hi);
       proj->RebinY (rebinFactor);
-      vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, true);
+      vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, true, 0.8, 1.2);
 
       vJetGraph = make_graph (vJetHist);
       vJetGraph->SetMarkerStyle (dataStyle);
@@ -415,11 +406,11 @@ void PhotonJetsHist () {
       // Now calculate systematics by taking the TProfile of the pt+err and pt-err samples, then set as the errors to the TGraphAsymmErrors object
       proj_lo = Project2D ("", photonJetHists_pt_eta[iPer][0][0][2], "y", "z", p_lo, p_hi);
       proj_lo->RebinY (rebinFactor);
-      vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numetabins, etabins, true);
+      vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numetabins, etabins, true, 0.8, 1.2);
 
       proj_hi = Project2D ("", photonJetHists_pt_eta[iPer][0][2][2], "y", "z", p_lo, p_hi);
       proj_hi->RebinY (rebinFactor);
-      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, true);
+      vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, true, 0.8, 1.2);
 
       vJetGraph_sys = make_graph (vJetHist); // for plotting systematics
       CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
@@ -431,7 +422,7 @@ void PhotonJetsHist () {
 
       proj_mc = Project2D ("", photonJetHists_pt_eta[iPer][1][1][2], "y", "z", p_lo, p_hi);
       proj_mc->RebinY (rebinFactor);
-      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, true);
+      vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, true, 0.8, 1.2);
 
       double middle = 0.05 * floor (20. * vJetHist_mc->Integral () / vJetHist_mc->GetNbinsX ()); // gets mean along y
       if (10 * middle != floor (10*middle)) middle += 0.05;
@@ -469,9 +460,9 @@ void PhotonJetsHist () {
       bottomPad->cd ();
       bottomPad->SetLogx (false);
 
-      vJetHist_rat = GetDataOverMC (Form ("photonJetPtDataMCRatio_iP%i", iP), proj, proj_mc, numetabins, etabins, true, "x");
-      vJetHist_rat_lo = GetDataOverMC (Form ("photonJetPtDataMCRatio_lo_iP%i", iP), proj_lo, proj_mc, numetabins, etabins, true, "x");
-      vJetHist_rat_hi = GetDataOverMC (Form ("photonJetPtDataMCRatio_hi_iP%i", iP), proj_hi, proj_mc, numetabins, etabins, true, "x");
+      vJetHist_rat = GetDataOverMC (Form ("photonJetPtDataMCRatio_iP%i", iP), proj, proj_mc, numetabins, etabins, true, "x", 0.8, 1.2);
+      vJetHist_rat_lo = GetDataOverMC (Form ("photonJetPtDataMCRatio_lo_iP%i", iP), proj_lo, proj_mc, numetabins, etabins, true, "x", 0.8, 1.2);
+      vJetHist_rat_hi = GetDataOverMC (Form ("photonJetPtDataMCRatio_hi_iP%i", iP), proj_hi, proj_mc, numetabins, etabins, true, "x", 0.8, 1.2);
 
       vJetGraph_rat_sys = make_graph (vJetHist_rat);
       CalcSystematics (vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
@@ -545,7 +536,7 @@ void PhotonJetsHist () {
 
         // get data hist
         proj = Project2D ("", photonJetHists_pt_eta[iPer][0][1][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        vJetHist = proj->ProjectionY ("vJetProjection", p_lo, p_hi);
+        vJetHist = proj->ProjectionY (Form ("vJetProjection_%s_iEta%i_iP%i", per, iEta, iP), p_lo, p_hi);
         // rebin & scale data hist
         vJetHist->Rebin (rebinFactor);
         if (vJetHist->Integral () != 0) vJetHist->Scale (1./vJetHist->Integral ());
@@ -558,7 +549,7 @@ void PhotonJetsHist () {
 
         // get MC hist
         proj_mc = Project2D ("", photonJetHists_pt_eta[iPer][1][1][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        vJetHist_mc = proj_mc->ProjectionY ("vJetProjection_mc", p_lo, p_hi);
+        vJetHist_mc = proj_mc->ProjectionY (Form ("vJetProjection_mc_%s_iEta%i_iP%i", per, iEta, iP), p_lo, p_hi);
         // rebin & scale MC hist
         vJetHist_mc->Rebin (rebinFactor);
         if (vJetHist_mc->Integral () != 0) vJetHist_mc->Scale (1./vJetHist_mc->Integral ()); 
@@ -590,7 +581,8 @@ void PhotonJetsHist () {
         if (useGaussian) {
           mean = vJetHist->GetMean ();
           stddev = vJetHist->GetStdDev ();
-          fit_data = new TF1 ("fit_data", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
+          fit_data = new TF1 (Form ("fit_data_%s_iEta%i_iP%i", per, iEta, iP), "gaus (0)", 0.8, 1.2);
+          //fit_data = new TF1 (Form ("fit_data_%s_iEta%i_iP%i", per, iEta, iP), "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
           //fit_data = new TF1 ("fit_data", "[0]*x^([1])*e^(-x/[2])", 0, 2);// mean - 1*stddev, mean + 2*stddev);
           //fit_data = new TF1 ("fit_data", "[0]/(sqrt(2*pi)*[2])  *e^(-(x-[1])^2/(2*[2]^2))  *(1+erf([3]/sqrt(2)*(x-[1])/[2]))", mean-3*stddev, mean+3*stddev);
           //fit_data->SetParameter (0, 1);
@@ -601,7 +593,8 @@ void PhotonJetsHist () {
 
           mean = vJetHist_mc->GetMean ();
           stddev = vJetHist_mc->GetStdDev ();
-          fit_mc = new TF1 ("fit_mc", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
+          fit_mc = new TF1 (Form ("fit_mc_%s_iEta%i_iP%i", per, iEta, iP), "gaus (0)", 0.8, 1.2);
+          //fit_mc = new TF1 (Form ("fit_mc_%s_iEta%i_iP%i", per, iEta, iP), "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
           //fit_mc = new TF1 ("fit_mc", "[0]*x^([1])*e^(-x/[2])", 0, 2);//, mean - 1*stddev, mean + 2*stddev);
           //fit_mc = new TF1 ("fit_mc", "[0]/(sqrt(2*pi)*[2]) * e^(-(x-[1])^2/(2*[2]^2)) * (1+erf([3]/sqrt(2)*(x-[1])/[2]))", mean-3*stddev, mean+3*stddev);
           //fit_mc->SetParameter (0, 1);
@@ -644,9 +637,6 @@ void PhotonJetsHist () {
         ( (TF1*)fit_mc->Clone ())->Draw ("same");
         ( (TF1*)fit_data->Clone ())->Draw ("same");
 
-        if (fit_data) delete fit_data;
-        if (fit_mc) delete fit_mc;
-
         int countsData = 0, countsMC = 0;
         if (exclusive && iEta == numetabins) {
           countsData = photonJetCounts[iPer][0][0][0]->Integral () - photonJetCounts[iPer][0][0][0]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
@@ -657,8 +647,8 @@ void PhotonJetsHist () {
           countsMC = photonJetCounts[iPer][1][0][0]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
         }
 
-        myMarkerText (0.175, 0.88, dataColor, dataStyle, Form ("2016 #it{p}+Pb 8.16 TeV with Insitu Corrections (%i events)", countsData), 1.25, 0.04);
-        myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 #it{pp} 8.16 TeV %s (%i events)", (runValidation ? "":"with #it{p}-Pb Overlay"), countsMC), 1.25, 0.04);
+        myMarkerText (0.175, 0.88, dataColor, dataStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04);
+        myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.04);
 
         myText (0.155, 0.72, dataColor, Form ("#mu_{Data} = %s", FormatMeasurement (mean, mean_err, 1)), 0.04);
         myText (0.155, 0.66, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err, 1)), 0.04);
@@ -670,6 +660,11 @@ void PhotonJetsHist () {
 
         plotName = Form ("xjref_dists/gamma_jet_iEta%i_iP%i.pdf", iEta, iP);
         rawDistCanvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
+
+        if (vJetHist) vJetHist->Write ();
+        if (vJetHist_mc) vJetHist_mc->Write ();
+        if (fit_data) fit_data->Write ();
+        if (fit_mc) fit_mc->Write ();
         
         if (vJetHist) { delete vJetHist; vJetHist = NULL; }
         if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
@@ -680,12 +675,18 @@ void PhotonJetsHist () {
         if (proj_mc) { delete proj_mc; proj_mc = NULL; }
         if (proj_lo) { delete proj_lo; proj_lo = NULL; }
         if (proj_hi) { delete proj_hi; proj_hi = NULL; }
+
+        if (fit_data) { delete fit_data; fit_data = NULL; }
+        if (fit_mc) { delete fit_mc; fit_mc = NULL; }
         
       } // end loop over pT bins
 
     } // end loop over eta bins
 
   } // end loop over periods
+
+  outFile->Close ();
+  if (outFile) { delete outFile; outFile = NULL; }
 
   return;
 }

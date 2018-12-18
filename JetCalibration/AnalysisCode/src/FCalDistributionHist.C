@@ -4,6 +4,7 @@
 
 #include <Utils.h>
 
+#include <TTree.h>
 #include <TF1.h>
 #include <TH1D.h>
 #include <TFile.h>
@@ -27,123 +28,61 @@ void FCalDistributionHist () {
   // Setup trigger vectors
   SetupDirectories ("FCalDistribution/", "JetCalibration/");
 
-  // Setup list of data and lists of MC samples
-  vector<int> runNumbers (0);
-  for (short i = 0; i < sizeof (full_run_list)/sizeof (full_run_list[0]); i++) runNumbers.push_back (full_run_list[i]);
-  vector<TString> gammaJetSampleIds (0);
-  for (short i = 0; i < 6; i++) {
-   gammaJetSampleIds.push_back (TString ("Pbp") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
-   gammaJetSampleIds.push_back (TString ("pPb") + (runValidation ? "_Signal":"_Overlay") + "_GammaJet_Slice" + to_string (i+1));
-  }
-  vector<TString> zeeJetSampleIds (0);
-  zeeJetSampleIds.push_back ("Pbp_Overlay_ZeeJet");
-  zeeJetSampleIds.push_back ("pPb_Overlay_ZeeJet");
-
-  vector<TString> zmumuJetSampleIds (0);
-  zmumuJetSampleIds.push_back ("Pbp_Overlay_ZmumuJet");
-  zmumuJetSampleIds.push_back ("pPb_Overlay_ZmumuJet");
-
-  vector<TString> dijetSampleIds (0);
-  dijetSampleIds.push_back ("pPb_Signal_Dijet_Slice2");
-
   TH1D* fCal_p_et[2];
-  fCal_p_et[0] = new TH1D ("fCal_p_et_data", "", 125, -50, 200);
+  fCal_p_et[0] = new TH1D ("fCal_p_et_data", "", 350, -50, 300);
   fCal_p_et[0]->Sumw2 ();
-  fCal_p_et[1] = new TH1D ("fCal_p_et_mc", "", 125, -50, 200);
+  fCal_p_et[1] = new TH1D ("fCal_p_et_mc", "", 350, -50, 300);
   fCal_p_et[1]->Sumw2 ();
 
   TH1D* fCal_Pb_et[2];
-  fCal_Pb_et[0] = new TH1D ("fCal_Pb_et_data", "", 125, -50, 200);
+  fCal_Pb_et[0] = new TH1D ("fCal_Pb_et_data", "", 350, -50, 300);
   fCal_Pb_et[0]->Sumw2 ();
-  fCal_Pb_et[1] = new TH1D ("fCal_Pb_et_mc", "", 125, -50, 200);
+  fCal_Pb_et[1] = new TH1D ("fCal_Pb_et_mc", "", 350, -50, 300);
   fCal_Pb_et[1]->Sumw2 ();
 
-  {
-   TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile *sysfile;
-   TString fname;
-   TString histName;
-   TIter next (sysfiles);
-   int numFiles = 0;
-   while ( (sysfile= (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-     if (debugStatements) cout << "Status: In triggers_pt_counts.C (breakpoint I): Found " << fname.Data () << endl;
+  //////////////////////////////////////////////////////////////////////////////
+  // Load analyzed TTrees
+  //////////////////////////////////////////////////////////////////////////////
+  double evtWeight = 0, fcal_p_et = 0, fcal_Pb_et = 0;
+  bool isMC = false, isPeriodA = false;
 
-     // do this if file is data
-     for (int runNumber : runNumbers) { // check for data
-      if (fname.Contains (to_string (runNumber))) { // if data, do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
+  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TTree* inTree = (TTree*)inFile->Get ("FCalTree");
 
-       fCal_p_et[0]->Add ( (TH1D*)thisFile->Get (Form ("fCal_p_et_dataSet%i", runNumber)));
-       fCal_Pb_et[0]->Add ( (TH1D*)thisFile->Get (Form ("fCal_Pb_et_dataSet%i", runNumber)));
-    
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if gamma jet MC sample
-     for (TString gammaJetSampleId : gammaJetSampleIds) { // check for gamma jet MC
-      if (fname.Contains (gammaJetSampleId)) { // if gamma jet MC sample
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
+  inTree->SetBranchAddress ("evt_weight", &evtWeight);
+  inTree->SetBranchAddress ("fCal_p_et", &fcal_p_et);
+  inTree->SetBranchAddress ("fCal_Pb_et", &fcal_Pb_et);
+  inTree->SetBranchAddress ("isMC", &isMC);
+  inTree->SetBranchAddress ("isPeriodA", &isPeriodA);
 
-       fCal_p_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_p_et_dataSet%s", gammaJetSampleId.Data ())));
-       fCal_Pb_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_Pb_et_dataSet%s", gammaJetSampleId.Data ())));
+  //////////////////////////////////////////////////////////////////////////////
+  // Fill desired histograms
+  //////////////////////////////////////////////////////////////////////////////
+  const long nEvents = inTree->GetEntries ();
+  for (long iEvent = 0; iEvent < nEvents; iEvent++) {
+    inTree->GetEntry (iEvent);
 
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if Z->ee MC sample
-     for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
-      if (fname.Contains (zeeJetSampleId)) { // if Z->ee MC do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
+    //const short iPer = isPeriodA ? 0 : 1;
+    const short iMC = isMC ? 1 : 0;
 
-       fCal_p_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_p_et_dataSet%s", zeeJetSampleId.Data ())));
-       fCal_Pb_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_Pb_et_dataSet%s", zeeJetSampleId.Data ())));
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-     // do this if Z->mumu sample
-     for (TString zmumuJetSampleId : zmumuJetSampleIds) { // check for Z->mumu MC
-      if (fname.Contains (zmumuJetSampleId)) { // if Z->mumu sample do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-
-       fCal_p_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_p_et_dataSet%s", zmumuJetSampleId.Data ())));
-       fCal_Pb_et[1]->Add ( (TH1D*)thisFile->Get (Form ("fCal_Pb_et_dataSet%s", zmumuJetSampleId.Data ())));
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
-    }
-   }
-   cout << numFiles << " files read in." << endl;
+    fCal_p_et[iMC]->Fill (fcal_p_et, evtWeight);
+    fCal_Pb_et[iMC]->Fill (fcal_Pb_et, evtWeight);
   }
-  /**** End loop over input files ****/
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Save histograms for interactive access
+  //////////////////////////////////////////////////////////////////////////////
+  TFile* outFile = new TFile (Form ("%s/histograms.root", rootPath.Data ()), "recreate");
+  fCal_p_et[0]->Write ();
+  fCal_p_et[1]->Write ();
+  fCal_Pb_et[0]->Write ();
+  fCal_Pb_et[1]->Write ();
+  outFile->Close ();
+  if (outFile) { delete outFile; outFile = NULL; }
 
-
-  /**** Canvas definitions ****/
+  //////////////////////////////////////////////////////////////////////////////
+  // Canvas definitions
+  //////////////////////////////////////////////////////////////////////////////
   TCanvas* canvas = new TCanvas ("canvas", "", 800, 600);
   canvas->Draw ();
 

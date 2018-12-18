@@ -4,6 +4,7 @@ cernvm3-micro-2.8-6.iso
 lib
 *.pdf
 *.zip
+*.swp
 
 # ROOT compilation tags
 *_h.d

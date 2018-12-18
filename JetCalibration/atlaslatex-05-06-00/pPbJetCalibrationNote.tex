@@ -116,7 +116,7 @@
 
 The reconstruction of anti-$k_{\text{T}}$ jets is well-known to misestimate the jet energy scale and pseudorapidity. Here, a standard numerical inversion method is applied to the heavy ion jet algorithm to estimate the $\eta$-dependent jet energy scale in truth-matched MC \cite{ATL-COM-PHYS-2014-795}. This initial calibration sequence is referred to as the EtaJES calibration. In \textit{pp} collisions, jets are further calibrated in data to account for smaller differences observed in Monte Carlo. For EMTopo jets --  the reference jet collection used in heavy ion collisions -- this amounts to two sequential calibrations. First, the intercalibration of jets at forward rapidity is performed relative to dijet partners at central rapidity, as the momentum balance is expected to be even at leading order in QCD (NC). Then, jets at central rapidity are calibrated by studying the direct balance of jets relative to Z bosons and photons. These two calibration sequences are performed together in what is referred to as the \textit{in situ} calibration.\par
 
-In heavy ion collisions, the \textit{in situ} calibration factors cannot be directly determined. Instead, the performance of heavy ion jets is studied relative to EMTopo jets in \textit{pp} collisions, and then used to extrapolate calibration factors for heavy ion jets. This additional calibration -- referred to as the cross-calibration \cite{ATLAS-CONF-2015-017} -- has been derived for the Pb+Pb and \textit{pp} collisions at $\sqrt{s}=\SI{5.02}{\TeV}$ from 2015 \cite{ATL-COM-PHYS-2016-1253}. Therefore, the applicability of these cross-calibration factors to the 2016 heavy ion data is studied via the direct balance method in events containing a Z boson or photon opposite to a jet. Although the original configuration of the cross-calibration applied the 2015 \textit{in situ} factors for EMTopo jets, a known issue between software releases led to different \textit{in situ} factors in 2016 \cite{ATLAS-CONF-2015-017}, so a new configuration has been created.\par
+In heavy ion collisions, the \textit{in situ} calibration factors cannot be directly determined. Instead, the performance of heavy ion jets is studied relative to EMTopo jets in \textit{pp} collisions, and then used to extrapolate calibration factors for heavy ion jets. This additional calibration -- referred to as the cross-calibration \cite{ATLAS-CONF-2015-017} -- has been derived for the Pb+Pb and \textit{pp} collisions at $\sqrt{s}=\SI{5.02}{\TeV}$ from 2015 \cite{ATL-COM-PHYS-2016-1253}. Therefore, the applicability of these cross-calibration factors to the 2016 heavy ion data is studied via 2 methods: (1) the direct balance method in events containing a Z boson or photon opposite to a jet, and (2) the ratio of track momenta within the jet cone to the calorimeter momentum. Although the original configuration of the cross-calibration applied the 2015 \textit{in situ} factors for EMTopo jets, a known issue between software releases led to different \textit{in situ} factors in 2016 \cite{ATLAS-CONF-2015-017}, so a new configuration has also been created.\par
 
 To derive the EtaJES corrections, 10 total jet $\pt$ samples were generated with Pythia 8, with 5 slices per beam direction. In checking the cross-calibration, a combination of Pythia 8 $\gamma$ + jet, $Z\rightarrow\ee$, and $Z\rightarrow\mumu$ events were used. A complete list of the samples used can be found in Table \ref{tab:samples}.
 
@@ -127,10 +127,10 @@ A full procedure for applying the derived calibration sequence to jets in the 20
 \label{sec:reconstruction}
 %-------------------------------------------------------------------------------
 
-The anti-$k_{\text{T}}$ heavy ion jet algorithm works differently than the standard EMTopo algorithm, which is well understood in \textit{pp} collisions \cite{Cacciari:2008gp}. The heavy ion algorithm takes $\Delta\eta\times\Delta\phi=0.1\times0.1$ calorimeter towers as input, subtracting the average energy from identified jets. This allows the underlying event energy to be uniformly subtracted away. While used primarily for large nuclear systems with significant underlying events such as Pb+Pb, the algorithm can be also applied to small systems, such as \textit{p}+Pb, as is presented here. A similar discussion can be found in the 2015 calibration \cite{ATL-COM-PHYS-2016-101}.\par
+The anti-$k_{\text{T}}$ heavy ion jet algorithm works differently than the standard EMTopo algorithm, which is well understood in \textit{pp} collisions \cite{Cacciari:2008gp}. The heavy ion algorithm takes $\Delta\eta\times\Delta\phi=0.1\times0.1$ calorimeter towers as input, subtracting the average energy from identified jets. This allows the underlying event energy to be subtracted away. Typically, a modulation of the underlying event in $\phi$ is fitted for the subtraction in Pb+Pb, but in \textit{p}+Pb collisions, the underlying event is less dependent on $\phi$ and the subtraction is assumed to be constant. While used primarily for large nuclear systems with significant underlying events such as Pb+Pb, the algorithm can be also applied to small systems, such as \textit{p}+Pb, as is presented here. A similar discussion can be found in the 2015 calibration \cite{ATL-COM-PHYS-2016-101}.\par
 \subsection{Jet selection criteria}
 For deriving the EtaJES calibration, jets are reconstructed at the EM scale with anti-$k_{\text{T}}$ radii $R=0.2, 0.3, 0.4$. After satisfying the physicality condition (where jets must have an energy strictly greater than their mass), reconstructed jets must meet a jet cleaning criterion at the \texttt{LooseBad} level. Events affected by pile-up are skipped by selecting on a minimum $\pt$ quality ratio, which is defined as the ratio of the average $\pt$ between the 2 leading reconstructed jets and the leading truth jet. This ratio is selected to be less than 1.4. Additionally, truth jets must satisfy $\pt > \SI{7}{\GeV}$ and have an isolation of $\Delta R > 1.0$ from all other truth jets. Reconstructed jets are similarly required to have $\pt > \SI{7}{\GeV}$ and have an isolation of $\Delta R > 0.6$ from all other reconstructed jets. Matching is performed with $\Delta R < 0.3$ between truth and reconstructed jets.
-\subsection{Hadronic Calorimeter cuts}
+\subsection{Hadronic calorimeter cuts}
 Lastly, a portion of the hadronic calorimeter end cap (referred to as the ``HEC'') was turned off during the entire 2016 \textit{p}+Pb data taking period. For this reason, jets within the disabled region, defined by $1.5<\eta<3.2$ and $-\pi<\phi<-\pi/2$, were selected against at both the truth and reconstructed level. Jets were also required to have additional $\Delta\eta, \Delta\phi \geq 0.2$ from the disabled region in order to avoid edge effects, although for analyses it is recommended to use $\Delta R$ equal to the jet cone size (e.g., $0.4$) to avoid edge effects.
 
 %\input{atlas-snippets}
@@ -273,6 +273,7 @@ In addition to applying the good run list in data and \texttt{LooseBad} jet clea
 	\label{fig:insituComp}
 \end{figure}
 
+\subsection{Momentum balance study}
 Jet transverse momentum is then compared to vector boson transverse momentum using the quantity $x_{\text{J}}^{\text{ref}}$, as defined in equation \ref{eq:xjref}, binned by jet pseudorapidity. The projection onto the antiparallel is intended to account for soft radiation from the jet that is potentially missed by the jet finding algorithm.
 \begin{equation}
 	x_{\text{J}}^{\text{ref}} = \frac{\pt^{\text{jet}}}{\pt^{\text{V}} \cos{\Delta\phi}}
@@ -295,15 +296,19 @@ Additionally, a hadronic background subtraction procedure is also performed excl
 %	\label{fig:purity}
 %\end{figure}
 
-Data-to-MC comparisons of the $\pt$ balance study can be seen in Figure \ref{fig:v_xjref_dataOverMC_pT}.  In addition to plotting the mean $x_{\text{J}}^{\text{ref}}$, a quadratic in $\text{log}(\pt^{\text{ref}})$ is fitted to the data-to-MC ratio to account for bin-to-bin statistical variation, using the form in Equation \ref{eq:fit} below. To reduce correlation of the fit parameters, an orthogonal Chebyshev basis is used. A $1\sigma$ (68\%) confidence interval from the fit is also shown.
+Data-to-MC comparisons of the $\pt$ balance study can be seen in Figure \ref{fig:v_xjref_dataOverMC_pT}.  In addition to plotting the mean $x_{\text{J}}^{\text{ref}}$, a quartic in $\text{log}(\pt^{\text{ref}})$ is fitted to the data-to-MC ratio to account for bin-to-bin statistical variation, using the form in Equation \ref{eq:fit} below. To reduce correlation of the fit parameters, an orthogonal Chebyshev basis is used. A $1\sigma$ (68\%) confidence interval from the fit is also shown.
 
 \begin{equation}
 	%f \left(\log \pt^{\text{ref}}\right) = f (x) = a_0 + a_1\left(\frac{\log \pt^{\text{ref}} - \log \pt^{\text{avg}}}{\log \Delta\pt}\right)  + a_2\left(2\left(\frac{\log \pt^{\text{ref}} - \log \pt^{\text{avg}}}{\log \Delta\pt}\right) ^2 - 1\right)
 	%f \left(\log \pt^{\text{ref}}\right) = f (x) = a_0 + a_1x  + a_2\left(2x^2 - 1\right)
-	f (x) = a_0 + a_1x  + a_2\left(2x^2 - 1\right)
+	f (x) = a_0 + a_1x  + a_2\left(2x^2 - 1\right) + a_3\left(4x^3-3x\right) + a_4\left(8x^4-8x^2+1\right)
 	\label{eq:fit}
 \end{equation}
 
+\subsection{Study of tracks in the jet cone}
+The ATLAS tracker has sufficient precision to compare the $\pt$ of tracks in the jet cone to the $\pt$ of the entire jet and is also used to check the jet calibration. For this study, only $\gamma$ + jet events are used for simplicity. Events use the same $\gamma$ + jet selection as in the momentum balance study, but the jets are only required to match to the candidate photon. Additionally, tracks within the jet cone are selected at the ``TightPrimary'' level and are required to have $\pt \geq \SI{1}{\GeV}$. Due to limitations of the tracker coverage, $R=0.4$ jets are only considered within $\left|\eta\right| < 2.1$.
+
+In these events, the quantity $\left<R_{trk}\right> \equiv \left<\Sigma p_{T}^{trk} / p_{T}^{Calo}\right>$ is calculated as a function of $p_{T}^{Calo}$. By comparing this in data and MC, the jet calibration can be similarly tested as before. Results are shown in Figure \ref{fig:rtrk_summary}. The mean of the data-to-MC ratio is also shown. In the combined period A \& B result, any difference between data and MC is shown to be at the level $0.6\%$ at most. However, additional uncertainties in the jet energy scale are expected to dominate of this; for instance, the jet energy closure in MC statistically fluctuates at the level of $1\%$, as seen in Figure \ref{fig:EnergyClosure}. Therefore, this study suggests that the cross-calibration is applicable to the \textit{p}+Pb data, at this level of precision.
 
 %\subsection{Derivation of additional uncertainties}
 %For jets in each $\eta$ bin, the additional systematic uncertainty from the cross calibration can be estimated as the change in $\pt^{\text{jet}}$ required to match the data to MC. Since $p_{\text{T}}^{\text{ref}}$ is plotted on the horizontal axis, this can be done by taking the root-mean-square of the quantity $\sigma \left(\pt^{\text{ref}}\right) = \pt^{\text{ref}} \times\left( \left< x_{\text{J}}^{\text{ref}} \right>_{\text{data}} - \left< x_{\text{J}}^{\text{ref}} \right>_{\text{MC}} \right)$ as a function of $\pt^{\text{jet}}$.
@@ -390,12 +395,19 @@ Data-to-MC comparisons of the $\pt$ balance study can be seen in Figure \ref{fig
 %	\label{fig:xjref_pT_forward}
 %\end{figure}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{figures/jet_rtrk_PAB_iEta_combined.pdf}
+	\caption{Average $\left<R_{trk}\right>$ as a function of jet (calorimeter) $p_{T}$ in both period A and period B collisions. In the bottom panel, the data-to-MC ratio is shown along with its average value, which suggests that data and MC are different at the level of $0.6\%$.}
+	\label{fig:rtrk_summary}
+\end{figure}
+
 %-------------------------------------------------------------------------------
 \section{Conclusion}
 \label{sec:conclusion}
 %-------------------------------------------------------------------------------
 
-The jet energy scale corrections for anti-$k_{\text{T}}$ $R=0.4$ jets has been derived in $\SI{8.16}{\TeV}$ \textit{p}+Pb collisions. A new calibration configuration using the 2016 \textit{in situ} factors and 2015 cross-calibration factors has been created and tested for applicability in the newer data. At mid-rapidity, only minor deviation is observed and is generally covered by errors, but larger deviations exist in the $\pt$ balance at forward and backward rapidities. As the 2016 \textit{in situ} factors multiplied with the 2015 cross-calibration factors do not generally yield similar $\pt$ balance ratios in data and MC simulations, a new set of cross-calibration factors will be needed for a complete calibration of jets in the 2016 \textit{p}+Pb.
+The jet energy scale corrections for anti-$k_{\text{T}}$ $R=0.4$ jets has been derived in $\SI{8.16}{\TeV}$ \textit{p}+Pb collisions. A new calibration configuration using the 2016 \textit{in situ} factors and 2015 cross-calibration factors has been created and tested for applicability in the newer data. At mid-rapidity, only minor deviation is observed, but larger deviations exist in the $\pt$ balance at forward and backward rapidities. However, by studying the tracks within the jet cone, any differences in the jet energy scale between data and MC are suggested to be at the level of, or less than, $0.6\%$. This difference is certainly subdominant to additional jet systematic uncertainties, which suggests that the cross-calibration procedure is accurate and applicable in the \textit{p}+{Pb}. The inconsistency with the momentum balance study is possibly related to photon purities or the photon energy calibration, and is left for future studies. 
 
 
 %-------------------------------------------------------------------------------

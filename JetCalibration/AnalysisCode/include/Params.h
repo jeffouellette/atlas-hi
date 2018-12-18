@@ -55,7 +55,7 @@ const bool exclusive = false; // whether to calculate xjref outside of eta bound
 
 /** binning parameters **/
 
-const short rebinFactor = 50;
+const short rebinFactor = 25;
 const short numxjrefbins = 1000;
 const double* xjrefbins = linspace (0, 2.0, numxjrefbins);
 
@@ -90,7 +90,7 @@ const double* phibins = linspace (-pi, pi, numphibins);
 //const short numetabins = 98;
 //const double* etabins = linspace (-4.9, 4.9, numetabins);
 
-const double zetabins[7] = {-2.4, -1.52, -1.37, 0, 1.37, 1.52, 2.4};
+const double zetabins[5] = {-2.4, -1, 0, 1, 2.4};
 const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
@@ -103,9 +103,9 @@ const double maxSigma = 0.40;
 const short numSigmaBins = 80;
 
 // bin min and max for combined results
-const int eta_lo_comb = 1;
-const int eta_hi_comb = 6;
-const int p_lo_comb = 5;
+const int eta_lo_comb = 3;
+const int eta_hi_comb = 4;
+const int p_lo_comb = 4;
 const int p_hi_comb = numpbins;
 
 

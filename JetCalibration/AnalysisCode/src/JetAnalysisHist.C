@@ -37,9 +37,9 @@ void JetAnalysisHist () {
   inTree->SetBranchAddress ("jet_eta", &jeta);
   inTree->SetBranchAddress ("jet_phi", &jphi);
   inTree->SetBranchAddress ("jet_e", &je);
-  inTree->SetBranchAddress ("photon_pt", &ppt);
-  inTree->SetBranchAddress ("photon_eta", &peta);
-  inTree->SetBranchAddress ("photon_phi", &pphi);
+  //inTree->SetBranchAddress ("photon_pt", &ppt);
+  //inTree->SetBranchAddress ("photon_eta", &peta);
+  //inTree->SetBranchAddress ("photon_phi", &pphi);
   inTree->SetBranchAddress ("evt_weight", &evtWeight);
   inTree->SetBranchAddress ("isMC", &isMC);
   inTree->SetBranchAddress ("isPeriodA", &isPeriodA);
@@ -71,8 +71,8 @@ void JetAnalysisHist () {
   for (long long iJet = 0; iJet < nJets; iJet++) {
     inTree->GetEntry (iJet);
 
-    if (ppt < 60)
-      continue;
+    //if (ppt < 60)
+    //  continue;
 
     jetSpectrum[(short)isPeriodA][(short)isMC][0]->Fill (jpt, jeta, evtWeight); // period A or B, data or MC, weighted
     jetSpectrum[(short)isPeriodA][(short)isMC][1]->Fill (jpt, jeta); // etc.
@@ -105,6 +105,7 @@ void JetAnalysisHist () {
         TGraphAsymmErrors* thisGraph = make_graph (thisHist);
         deltaize (thisGraph, 1+0.005*(iEta-numetabins/2), true);
 
+        thisGraph->GetXaxis ()->SetRangeUser (20, 500);
         thisGraph->GetYaxis ()->SetRangeUser (1e-11, 1e1);
         thisGraph->SetMarkerStyle (iData == 0 ? kFullCircle : kOpenCircle);
         thisGraph->SetMarkerSize (0.5);

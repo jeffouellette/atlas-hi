@@ -61,7 +61,7 @@ void JetAnalysis (const char* directory,
   t->SetGetVertices ();
   t->SetGetHIJets ();
   t->SetGetSimpleJets ();
-  t->SetGetTruthJets ();
+  //t->SetGetTruthJets ();
   t->SetGetPhotons ();
   t->SetGetTruthPhotons ();
   t->SetBranchAddresses ();
@@ -213,21 +213,21 @@ void JetAnalysis (const char* directory,
         continue; // require jet to be in EMCal
       if (DeltaPhi (t->photon_phi->at (lP), jphi) < 7*pi/8)
         continue; // require jet to be opposite to photon
-      if (isMC && 1 <= dataSet && dataSet <= numdpbins) {
-        short tj = -1;
-        float minDeltaR = 1000;
-        for (short iTJ = 0; iTJ < t->truth_jet_n; iTJ++) {
-          const float deltaR = DeltaR (t->truth_jet_eta->at (iTJ), jeta, t->truth_jet_phi->at (iTJ), jphi);
-          if (deltaR < minDeltaR) {
-            tj = iTJ;
-            minDeltaR = deltaR;
-          }
-        }
-        if (minDeltaR > 0.2)
-          continue; // require jets to be truth-matched in MC
-        if (t->truth_jet_pt->at (tj) < dpbins[dataSet-1] || dpbins[dataSet] < t->truth_jet_pt->at (tj))
-          continue; // require matched truth jets to be in the DP slice
-      }
+      //if (isMC && 1 <= dataSet && dataSet <= numdpbins) {
+      //  short tj = -1;
+      //  float minDeltaR = 1000;
+      //  for (short iTJ = 0; iTJ < t->truth_jet_n; iTJ++) {
+      //    const float deltaR = DeltaR (t->truth_jet_eta->at (iTJ), jeta, t->truth_jet_phi->at (iTJ), jphi);
+      //    if (deltaR < minDeltaR) {
+      //      tj = iTJ;
+      //      minDeltaR = deltaR;
+      //    }
+      //  }
+      //  if (minDeltaR > 0.2)
+      //    continue; // require jets to be truth-matched in MC
+      //  if (t->truth_jet_pt->at (tj) < dpbins[dataSet-1] || dpbins[dataSet] < t->truth_jet_pt->at (tj))
+      //    continue; // require matched truth jets to be in the DP slice
+      //}
 
       outTree->Fill ();
     } // end loop over jets

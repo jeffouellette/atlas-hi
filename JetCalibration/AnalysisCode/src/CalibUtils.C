@@ -13,6 +13,7 @@ namespace JetCalibration {
 TFile* xCalibSystematicsFile = NULL;
 TFile* dataOverMCFile = NULL;
 TFile* purityFile = NULL;
+TFile* fcalFile = NULL;
 
 
 /**
@@ -69,7 +70,7 @@ double GetXCalibSystematicError (const double jpt, const double jeta) {
   TFile* file = xCalibSystematicsFile;
 
   if (!file || !file->IsOpen ()) {
-   cout << "Warning: In Utils.C: Cross calibration systematics file not open! Will return 0." << endl;
+   cout << "Warning: In CalibUtils.C: Cross calibration systematics file not open! Will return 0." << endl;
    return 0;
   }
 
@@ -97,7 +98,7 @@ double GetPurity (const double ppt, const double peta) {
   TFile* file = purityFile;
 
   if (!file || !file->IsOpen ()) {
-   cout << "Warning: In Utils.C: Photon purity file not open! Will return 1." << endl;
+   cout << "Warning: In CalibUtils.C: Photon purity file not open! Will return 1." << endl;
    return 1;
   }
 
@@ -134,6 +135,23 @@ double GetNewXCalibSystematicError (const double jeta, const double refpt, const
   TH1D* hist = (TH1D*)file->Get (hname.Data ());
 
   return hist->GetBinContent (hist->FindBin (refpt)) * refpt;
+}
+
+
+/**
+ * Returns the FCal scale factor in MC.
+ * Requires fcalFile to be defined and open, otherwise will return 1 (no scaling).
+ */
+double GetFCalScaleFactor (const double fcalEt) {
+  TFile* file = fcalFile;
+
+  if (!file || !file->IsOpen ()) {
+   cout << "Warning: In CalibUtils.C: FCal scale factor file not open! Will return 1." << endl;
+   return 1;
+  }
+
+  TH1D* fcalhist = (TH1D*)fcalFile->Get ("fCal_Pb_et_scale");
+  return fcalhist->GetBinContent (fcalhist->GetXaxis ()->FindBin (fcalEt));
 }
 
 } // end namespace

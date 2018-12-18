@@ -34,13 +34,11 @@ void EnergyScaleChecksHist () {
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
-  TTree* JetTree = (TTree*)inFile->Get ("jeffsjets");
-  //TTree* PhotonTree = (TTree*)inFile->Get ("jeffsphotons");
-
   float evtWeight;
   float jpt, jeta, jphi, je, jes, pjes, jpts, pjpts;
   float ppt, peta, pphi, pes;
 
+  TTree* JetTree = (TTree*)inFile->Get ("jeffsjets");
   JetTree->SetBranchAddress ("evt_weight", &evtWeight);
   JetTree->SetBranchAddress ("jet_pt", &jpt);
   JetTree->SetBranchAddress ("jet_eta", &jeta);
@@ -50,8 +48,6 @@ void EnergyScaleChecksHist () {
   JetTree->SetBranchAddress ("precalib_jet_energy_scale", &pjes);
   JetTree->SetBranchAddress ("jet_pt_scale", &jpts);
   JetTree->SetBranchAddress ("precalib_jet_pt_scale", &pjpts);
-
-  TFile* outFile = new TFile (Form ("%s/histograms.root", rootPath.Data ()), "recreate");
 
   TH2D* jetEnergyRespDist_phi = new TH2D ("jetEnergyRespDist_phi", "", numphibins, phibins, 200, 0, 2);
   TH3D* jetEnergyRespDist_pt_eta = new TH3D ("jetEnergyRespDist_pt_eta", "", numpbins, pbins, numetabins, etabins, 200, linspace (0, 2, 200));
@@ -68,6 +64,27 @@ void EnergyScaleChecksHist () {
     jetEnergyRespDist_phi->Fill (jphi, jes, evtWeight);
     jetEnergyRespDist_pt_eta->Fill (jpt, jeta, jes, evtWeight);
   }
+
+  TTree* PhotonTree = (TTree*)inFile->Get ("jeffsphotons");
+  PhotonTree->SetBranchAddress ("evt_weight", &evtWeight);
+  PhotonTree->SetBranchAddress ("photon_pt", &ppt);
+  PhotonTree->SetBranchAddress ("photon_eta", &peta);
+  PhotonTree->SetBranchAddress ("photon_phi", &pphi);
+  PhotonTree->SetBranchAddress ("photon_energy_scale", &pes);
+
+  const int numphotonpbins = 48;
+  const double* photonpbins = logspace (20, 500, numphotonpbins);
+  TH3D* photonEnergyRespDist_pt_eta = new TH3D ("photonEnergyRespDist_pt_eta", "", numphotonpbins, photonpbins, 474, linspace (-2.37, 2.37, 474), 200, linspace (0, 2, 200));
+  const int nphotons = PhotonTree->GetEntries ();
+
+  for (int iP = 0; iP < nphotons; iP++) {
+    PhotonTree->GetEntry (iP);
+
+    photonEnergyRespDist_pt_eta->Fill (ppt/pes, peta, pes, evtWeight);
+  }
+
+
+  TFile* outFile = new TFile (Form ("%s/histograms.root", rootPath.Data ()), "recreate");
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,6 +214,98 @@ void EnergyScaleChecksHist () {
   jetEnergyRes_pt_canvas->SaveAs (Form ("%s/jetEnergyRes_pt.pdf", plotPath.Data ()));
 
   jetEnergyRespDist_pt_eta->Write ();
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Plot energy scale & resolution as a function of pT
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  TCanvas* photonEnergyScale_pt_canvas = new TCanvas ("photonEnergyScale_pt_canvas", "", 800, 600);
+  TCanvas* photonEnergyRes_pt_canvas = new TCanvas ("photonEnergyRes_pt_canvas", "", 800, 600);
+  for (short iEta = 0; iEta < 2; iEta++) {
+    TH2D* proj2d = NULL;
+    if (iEta == 0) {
+      const int eta_lo = photonEnergyRespDist_pt_eta->GetYaxis ()->FindBin (-1.37);
+      const int eta_hi = photonEnergyRespDist_pt_eta->GetYaxis ()->FindBin (1.37);
+      proj2d = Project2D ("proj2d", photonEnergyRespDist_pt_eta, "x", "z", eta_lo, eta_hi, false);
+    }
+    else {
+      const int eta_lo = photonEnergyRespDist_pt_eta->GetYaxis ()->FindBin (-1.52);
+      const int eta_hi = photonEnergyRespDist_pt_eta->GetYaxis ()->FindBin (1.52);
+      proj2d = Project2D ("proj2d", photonEnergyRespDist_pt_eta, "x", "z", eta_lo, eta_hi, true);
+    }
+
+    TH1D* photonEnergyScale_pt = new TH1D (Form ("photonEnergyScale_pt_iEta%i", iEta), "", numphotonpbins, photonpbins);
+    TH1D* photonEnergyRes_pt = new TH1D (Form ("photonEnergyRes_pt_iEta%i", iEta), "", numphotonpbins, photonpbins);
+
+    for (short iP = 1; iP <= numphotonpbins; iP++) {
+      TH1D* projy = proj2d->ProjectionY (Form ("photonEnergyScale_iEta%i_iP%i", iEta, iP), iP, iP);
+      projy->Write ();
+
+      TF1* fit = new TF1 ("fit", "gaus(0)", projy->GetMean ()-2*projy->GetStdDev (), projy->GetMean ()+2*projy->GetStdDev ());
+      projy->Fit (fit, "R0Q");
+
+      float m = fit->GetParameter (1);
+      float me = fit->GetParError (1);
+      float s = fit->GetParameter (2);
+      float se = fit->GetParError (2);
+
+      if (projy) { delete projy; projy = NULL; }
+      if (fit) { delete fit; fit = NULL; }
+
+      photonEnergyScale_pt->SetBinContent (iP, m);
+      photonEnergyScale_pt->SetBinError (iP, me);
+
+      photonEnergyRes_pt->SetBinContent (iP, s);
+      photonEnergyRes_pt->SetBinError (iP, se);
+    }
+    if (proj2d) { delete proj2d; proj2d = NULL; }
+
+    photonEnergyScale_pt_canvas->cd ();
+    gPad->SetLogx ();
+
+    TGraphAsymmErrors* photonEnergyScale_pt_graph = make_graph (photonEnergyScale_pt);
+    deltaize (photonEnergyScale_pt_graph, iEta == 0 ? -0.01 : 0.01, false);
+
+    photonEnergyScale_pt_graph->SetLineColor (iEta == 0 ? kBlack : kBlue);
+    photonEnergyScale_pt_graph->SetMarkerColor (iEta == 0 ? kBlack : kBlue);
+    photonEnergyScale_pt_graph->GetXaxis ()->SetTitle ("Photon #it{p}_{T}^{truth} #left[GeV#right]");
+    photonEnergyScale_pt_graph->GetYaxis ()->SetTitle ("#mu = <#it{p}_{T}^{reco} / #it{p}_{T}^{truth}>");
+    photonEnergyScale_pt_graph->GetYaxis ()->SetRangeUser (0.995, 1.013);
+
+    ( (TGraphAsymmErrors*)photonEnergyScale_pt_graph->Clone ())->Draw (iEta==0?"ap":"p");
+
+
+    photonEnergyRes_pt_canvas->cd ();
+    gPad->SetLogx ();
+
+    TGraphAsymmErrors* photonEnergyRes_pt_graph = make_graph (photonEnergyRes_pt);
+    deltaize (photonEnergyScale_pt_graph, iEta == 0 ? -0.01 : 0.01, false);
+
+    photonEnergyRes_pt_graph->SetLineColor (iEta == 0 ? kBlack : kBlue);
+    photonEnergyRes_pt_graph->SetMarkerColor (iEta == 0 ? kBlack : kBlue);
+    photonEnergyRes_pt_graph->GetXaxis ()->SetTitle ("Photon #it{p}_{T}^{truth} #left[GeV#right]");
+    photonEnergyRes_pt_graph->GetYaxis ()->SetTitle ("#sigma#left[#it{p}_{T}^{reco} / #it{p}_{T}^{truth}#right]");
+    ( (TGraphAsymmErrors*)photonEnergyRes_pt_graph->Clone ())->Draw (iEta==0?"ap":"p");
+
+    photonEnergyScale_pt->Write ();
+    photonEnergyRes_pt->Write ();
+
+    if (photonEnergyScale_pt) { delete photonEnergyScale_pt; photonEnergyScale_pt = NULL; }
+    if (photonEnergyRes_pt) { delete photonEnergyRes_pt; photonEnergyRes_pt = NULL; }
+    if (photonEnergyScale_pt_graph) { delete photonEnergyScale_pt_graph; photonEnergyScale_pt_graph = NULL; }
+    if (photonEnergyRes_pt_graph) { delete photonEnergyRes_pt_graph; photonEnergyRes_pt_graph = NULL; }
+  }
+
+  photonEnergyScale_pt_canvas->cd ();
+  myText (0.6, 0.85, kBlack, "0 < #left|#eta^{#gamma}_{det}#right| < 1.37", 0.04);
+  myText (0.6, 0.78, kBlue, "1.52 < #left|#eta^{#gamma}_{det}#right| < 2.37", 0.04);
+
+  photonEnergyRes_pt_canvas->cd ();
+  myText (0.6, 0.85, kBlack, "0 < #left|#eta^{#gamma}_{det}#right| < 1.37", 0.04);
+  myText (0.6, 0.78, kBlue, "1.52 < #left|#eta^{#gamma}_{det}#right| < 2.37", 0.04);
+
+  photonEnergyScale_pt_canvas->SaveAs (Form ("%s/PhotonEnergyScale_pt.pdf", plotPath.Data ()));
+  photonEnergyRes_pt_canvas->SaveAs (Form ("%s/PhotonEnergyRes_pt.pdf", plotPath.Data ()));
 
   outFile->Close ();
 }

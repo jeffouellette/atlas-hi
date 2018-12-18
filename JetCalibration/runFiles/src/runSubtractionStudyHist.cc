@@ -1,14 +1,14 @@
-#include <PhotonJetsHist.h>
+#include <SubtractionStudyHist.h>
 
 using namespace JetCalibration;
 
 /**
- * Runs an instance of the PhotonJetHist analysis plotting routine.
+ * Runs an instance of the SubtractionStudyHist analysis plotting routine.
  * Author: Jeff Ouellette
  * Dated: 8/20/2018
  */
 int main (int argc, char** argv) {
 
-  PhotonJetsHist ();
+  SubtractionStudyHist ();
   return 0;
 }

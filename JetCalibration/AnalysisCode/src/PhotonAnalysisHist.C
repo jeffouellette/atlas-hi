@@ -29,18 +29,18 @@ void PhotonAnalysisHist () {
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
-  TTree* photonTree = (TTree*)inFile->Get ("jeffsphotons");
+  TTree* inTree = (TTree*)inFile->Get ("jeffsphotons");
   float ppt = 0, peta = 0, pphi = 0;
   double evtWeight = 0;
   bool isPeriodA = false, isMC = false;
-  photonTree->SetBranchAddress ("photon_pt", &ppt);
-  photonTree->SetBranchAddress ("photon_eta", &peta);
-  photonTree->SetBranchAddress ("photon_phi", &pphi);
-  photonTree->SetBranchAddress ("evt_weight", &evtWeight);
-  photonTree->SetBranchAddress ("isMC", &isMC);
-  photonTree->SetBranchAddress ("isPeriodA", &isPeriodA);
+  inTree->SetBranchAddress ("photon_pt", &ppt);
+  inTree->SetBranchAddress ("photon_eta", &peta);
+  inTree->SetBranchAddress ("photon_phi", &pphi);
+  inTree->SetBranchAddress ("evt_weight", &evtWeight);
+  inTree->SetBranchAddress ("isMC", &isMC);
+  inTree->SetBranchAddress ("isPeriodA", &isPeriodA);
 
-  const int nPhotons = photonTree->GetEntries ();
+  const int nPhotons = inTree->GetEntries ();
 
   TH2D**** photonSpectrum = Get3DArray <TH2D*> (3, 2, 2); // iPer, iData, iWgt
   TH2D**** photonEtaPhi = Get3DArray <TH2D*> (3, 2, 2); // iPer, iData, iWgt
@@ -65,7 +65,7 @@ void PhotonAnalysisHist () {
 
 
   for (int iPhoton = 0; iPhoton < nPhotons; iPhoton++) {
-    photonTree->GetEntry (iPhoton);
+    inTree->GetEntry (iPhoton);
 
     const short iPer = isPeriodA ? 0 : 1;
     const short iMC = isMC ? 1 : 0;

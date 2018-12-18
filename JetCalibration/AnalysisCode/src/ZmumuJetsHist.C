@@ -256,7 +256,7 @@ void ZmumuJetsHist () {
       }
 
       myMarkerText (0.175, 0.88, dataColor, dataStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.032/uPadY);
-      myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.032/uPadY);
+      myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.032/uPadY);
       myText (0.155, 0.2, kBlack, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
       if (eta_lo != 1 || eta_hi != numetabins)
         if (!(exclusive && iEta == numetabins))
@@ -650,7 +650,7 @@ void ZmumuJetsHist () {
         }
 
         myMarkerText (0.175, 0.88, dataColor, dataStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04);
-        myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.04);
+        myMarkerText (0.175, 0.82, mcColor, mcStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.04);
 
         myText (0.155, 0.72, dataColor, Form ("#mu_{Data} = %s", FormatMeasurement (mean, mean_err, 1)), 0.04/gPad->GetHNDC ());
         myText (0.155, 0.66, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err, 1)), 0.04/gPad->GetHNDC ());

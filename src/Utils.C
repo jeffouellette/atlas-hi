@@ -510,7 +510,7 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
 /**
  * Returns the TProfile of an input histogram along the x axis. Can use either statistical mean or gaussian mean.
  */
-TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit) {
+TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit, const double xlo, const double xhi) {
 
   TH1D* prof = new TH1D (name, "", nbinsx, xbins);
 
@@ -527,8 +527,11 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus(0)", projy->GetXaxis ()->GetBinLowEdge (1), projy->GetXaxis ()->GetBinUpEdge (projy->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", projy->GetMean ()-2.8*projy->GetStdDev (), projy->GetMean ()+2.8*projy->GetStdDev ());
+      TF1* gaus;
+      if (xlo < xhi)
+        gaus = new TF1 ("gaus", "gaus(0)", xlo, xhi);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", projy->GetMean ()-2.8*projy->GetStdDev (), projy->GetMean ()+2.8*projy->GetStdDev ());
       projy->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
@@ -554,7 +557,7 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 /**
  * Returns the TProfile of an input histogram along the y axis. Can use either statistical mean or gaussian mean.
  */
-TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit) {
+TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit, const double ylo, const double yhi) {
 
   TH1D* prof = new TH1D (name, "", nbinsy, ybins);
 
@@ -571,8 +574,11 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus(0)", projx->GetXaxis ()->GetBinLowEdge (1), projx->GetXaxis ()->GetBinUpEdge (projx->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", projx->GetMean ()-2.8*projx->GetStdDev (), projx->GetMean ()+2.8*projx->GetStdDev ());
+      TF1* gaus;
+      if (ylo < yhi)
+        gaus = new TF1 ("gaus", "gaus(0)", ylo, yhi);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", projx->GetMean ()-2.8*projx->GetStdDev (), projx->GetMean ()+2.8*projx->GetStdDev ());
       projx->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
@@ -598,7 +604,7 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 /**
  * Returns a histogram with the TProfile of data over the TProfile of MC along either the x or y axes. Can use either the statistical or gaussian mean.
  */
-TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis) {
+TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis, const double lo, const double hi) {
 
   // figure out which axis to use
   if (axis != "x" && axis != "y" && axis != "X" && axis != "Y") {
@@ -626,8 +632,11 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      TF1* gaus;
+      if (lo < hi)
+        gaus = new TF1 ("gaus", "gaus(0)", lo, hi);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       dataAvg = gaus->GetParameter (1);
       dataErr = gaus->GetParError (1);
@@ -654,8 +663,11 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // Calculate gaussian mean
     if (useFit) {// && numNonzeroBins > 4) {
-      //TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetXaxis ()->GetBinLowEdge (1), proj->GetXaxis ()->GetBinUpEdge (proj->GetNbinsX ()));
-      TF1* gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      TF1* gaus;
+      if (lo < hi)
+        gaus = new TF1 ("gaus", "gaus(0)", lo, hi);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       mcAvg = gaus->GetParameter (1);
       mcErr = gaus->GetParError (1);
@@ -684,5 +696,62 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
   else dataOverMC->GetXaxis ()->SetTitle (data->GetYaxis ()->GetTitle ()); // copy y axis title
   return dataOverMC;
 }
+
+
+/**
+ * Converts a TProfile to a TH1D.
+ */
+TH1D* TProfile2TH1D (const char* name, TProfile* p, const int nx, const double* x) {
+  TH1D* h = new TH1D (name, "", nx, x);
+  h->Sumw2 ();
+
+  for (int ix = 1; ix <= nx; ix++) {
+    h->SetBinContent (ix, p->GetBinContent (ix));
+    h->SetBinError (ix, p->GetBinError (ix));
+  }
+  return h;
+}
+
+
+/**
+ * Reflects the contents of h around the n-th bin in x.
+ */
+void GetReflectionX (TH1D* h, const int n) {
+  if (n < 1 || h->GetNbinsX () < n) {
+    cout << "Invalid choice of n! Exiting gracefully." << endl;
+    return;
+  }
+
+  const int d = std::max (n, h->GetNbinsX () - n);
+  int start = n - d + (h->GetNbinsX () % 2) + 1;
+  int end = n + d;
+  while (start < end) {
+    if (1 <= start && end <= h->GetNbinsX ()) {
+      const double temp = h->GetBinContent (start); 
+      const double temperr = h->GetBinError (start);
+
+      h->SetBinContent (start, h->GetBinContent (end)); 
+      h->SetBinError (start, h->GetBinError (end));
+
+      h->SetBinContent (end, temp);
+      h->SetBinError (end, temperr);
+    }
+    else {
+      if (start < 1) {
+        h->SetBinContent (end, 0);
+        h->SetBinError (end, 0);
+      }
+      if (end > h->GetNbinsX ()) {
+        h->SetBinContent (start, 0);
+        h->SetBinError (start, 0);
+      }
+    }
+    start++; 
+    end--; 
+  } 
+
+  return;
+}
+
 
 } // end namespace

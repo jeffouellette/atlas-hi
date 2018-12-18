@@ -41,7 +41,9 @@ void ZmumuJets (const char* directory,
   const TString identifier = GetIdentifier (dataSet, inFileName, isMC, isSignalOnlySample, isPeriodA);
   cout << "File Identifier: " << identifier << endl;
 
-  /**** Find the relevant TTree for this run ****/
+  //////////////////////////////////////////////////////////////////////////////
+  // Find the relevant TTree for this run
+  //////////////////////////////////////////////////////////////////////////////
   TFile* file = GetFile (directory, dataSet, isMC, inFileName);
   TTree* tree = NULL;
   if (file) tree = (TTree*)file->Get ("tree");
@@ -49,8 +51,10 @@ void ZmumuJets (const char* directory,
     cout << "Error: In ZmumuJets.C: TTree not obtained for given data set. Quitting." << endl;
     return;
   }
-  /**** End find TTree ****/
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Setup local branches for tree 
+  //////////////////////////////////////////////////////////////////////////////
   TreeVariables* t = new TreeVariables (tree, isMC);
   if (crossSection_microbarns != 0)
     t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
@@ -60,6 +64,9 @@ void ZmumuJets (const char* directory,
   t->SetGetMuons ();
   t->SetBranchAddresses ();
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Setup triggers 
+  //////////////////////////////////////////////////////////////////////////////
   if (!isMC) {
    for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
     Trigger* temp = new Trigger (muonTriggerNames[muonTriggerN], muonTriggerMinPtCuts[muonTriggerN], -2.40, 2.40);
@@ -69,8 +76,11 @@ void ZmumuJets (const char* directory,
     tree->SetBranchAddress (muonTriggerNames[muonTriggerN], & (temp->trigBool));
     tree->SetBranchAddress (Form ("%s_prescale", muonTriggerNames[muonTriggerN]), & (temp->trigPrescale));
    }
-  } // end branch triggers
+  }
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Setup output tree
+  //////////////////////////////////////////////////////////////////////////////
   const char* outFileName = Form ("%s/ZmumuJets/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
 
@@ -97,11 +107,10 @@ void ZmumuJets (const char* directory,
 
   xCalibSystematicsFile = new TFile (rootPath + "cc_sys_090816.root", "READ");
 
-  const long long numEntries = tree->GetEntries ();
-
   //////////////////////////////////////////////////////////////////////////////
   // begin loop over events
   //////////////////////////////////////////////////////////////////////////////
+  const long long numEntries = tree->GetEntries ();
   for (long long entry = 0; entry < numEntries; entry++) {
     tree->GetEntry (entry);
 

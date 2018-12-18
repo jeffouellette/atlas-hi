@@ -11,6 +11,7 @@ namespace JetCalibration {
 extern TFile* xCalibSystematicsFile;
 extern TFile* dataOverMCFile;
 extern TFile* purityFile;
+extern TFile* fcalFile;
 
 /**
  * Returns a new TH3D equal to tight - lnt.
@@ -37,6 +38,13 @@ double GetPurity (const double ppt, const double peta);
  * Requires dataOverMCFile to be defined and open, else will return 0.
  */
 double GetNewXCalibSystematicError (const double jeta, const double refpt, const bool periodA);
+
+
+/**
+ * Returns the FCal scale factor in MC.
+ * Requires fcalFile to be defined and open, otherwise will return 1 (no scaling).
+ */
+double GetFCalScaleFactor (const double fcalEt);
 
 } // end namespace
 

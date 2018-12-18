@@ -6,7 +6,7 @@ CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
 analyses = EMTopoComparison ElectronContaminationStudy EnergyScaleChecks FCalDistribution Intercalibration JetAnalysis JetInsituCorrectionCheck MCValidator PhotonAnalysis PhotonJets RtrkComparison ZeeJets ZmumuJets ZMassCalc
 
-hists = $(analyses:%=%Hist) ZJetsHist EnergyScaleChecksNewHist ZGammaJetCrossCheckHist
+hists = $(analyses:%=%Hist) ZJetsHist ZGammaJetCrossCheckHist PhotonRtrkComparisonHist
 
 all : $(analyses:%=lib/lib%.so) $(hists:%=lib/lib%.so) 
 

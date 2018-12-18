@@ -85,19 +85,19 @@ void PhotonAnalysis (const char* directory,
   const char* outFileName = Form ("%s/PhotonAnalysis/dataSet_%s.root", rootPath.Data (), identifier.Data ());
   TFile* outFile = new TFile (outFileName, "RECREATE");
 
-  TTree* outPhotonTree = new TTree ("jeffsphotons", "jeffsphotons");
-  outPhotonTree->SetDirectory (outFile);
+  TTree* outTree = new TTree ("jeffsphotons", "jeffsphotons");
+  outTree->SetDirectory (outFile);
 
   float ppt = 0, peta = 0, pphi = 0; 
   double evtWeight = 0;
   bool _isPeriodA = isPeriodA, _isMC = isMC;
-  outPhotonTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
 
-  outPhotonTree->Branch ("photon_pt", &ppt, "photon_pt/F");
-  outPhotonTree->Branch ("photon_eta", &peta, "photon_eta/F");
-  outPhotonTree->Branch ("photon_phi", &pphi, "photon_phi/F");
-  outPhotonTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
-  outPhotonTree->Branch ("isMC", &_isMC, "isMC/O");
+  outTree->Branch ("photon_pt", &ppt, "photon_pt/F");
+  outTree->Branch ("photon_eta", &peta, "photon_eta/F");
+  outTree->Branch ("photon_phi", &pphi, "photon_phi/F");
+  outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
+  outTree->Branch ("isMC", &_isMC, "isMC/O");
 
   //////////////////////////////////////////////////////////////////////////////
   // begin loop over events
@@ -220,7 +220,7 @@ void PhotonAnalysis (const char* directory,
       if (hasOtherJet)
         continue; // cut on other jets that look back-to-back with gamma
 
-      outPhotonTree->Fill ();
+      outTree->Fill ();
     } // end loop over photons
     
   } // end loop over events
