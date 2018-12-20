@@ -115,18 +115,15 @@ void ZeeJets (const char* directory,
   for (long long entry = 0; entry < numEntries; entry++) {
     tree->GetEntry (entry);
 
-
     /////////////////////////////////////////////////////////////////////////////
     // basic event selection: e.g., require a primary vertex
     /////////////////////////////////////////////////////////////////////////////
     if (t->nvert <= 0 || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
 
-
     /////////////////////////////////////////////////////////////////////////////
     // now reject events with less than 2 electrons
     /////////////////////////////////////////////////////////////////////////////
     if (t->electron_n < 2) continue;
-
 
     /////////////////////////////////////////////////////////////////////////////
     // Z (ee) + jet events
@@ -166,10 +163,22 @@ void ZeeJets (const char* directory,
         // relevant electron kinematic data
         /////////////////////////////////////////////////////////////////////////////
         TLorentzVector electron1, electron2;
-        electron1.SetPtEtaPhiM (t->electron_pt->at (e1), t->electron_eta->at (e1), t->electron_phi->at (e1), electron_mass);
-        electron2.SetPtEtaPhiM (t->electron_pt->at (e2), t->electron_eta->at (e2), t->electron_phi->at (e2), electron_mass);
-        const int le = (t->electron_pt->at (e1) > t->electron_pt->at (e2) ? e1 : e2);
-        const double leading_electron_pt = t->electron_pt->at (le);
+
+        double scaleFactor = 1.;
+        if (!isMC) {
+          if (fabs (t->electron_eta->at (e1) < 0.8)) scaleFactor = 0.9941;
+          else if (fabs (t->electron_eta->at (e1) < 1.475)) scaleFactor = 0.9933;
+        }
+        electron1.SetPtEtaPhiM (scaleFactor * t->electron_pt->at (e1), t->electron_eta->at (e1), t->electron_phi->at (e1), electron_mass);
+
+        scaleFactor = 1.;
+        if (!isMC) {
+          if (fabs (t->electron_eta->at (e2) < 0.8)) scaleFactor = 0.9941;
+          else if (fabs (t->electron_eta->at (e2) < 1.475)) scaleFactor = 0.9933;
+        }
+        electron2.SetPtEtaPhiM (scaleFactor * t->electron_pt->at (e2), t->electron_eta->at (e2), t->electron_phi->at (e2), electron_mass);
+
+        const double leading_electron_pt = std::max (electron1.Pt (), electron2.Pt ());
 
         /////////////////////////////////////////////////////////////////////////////
         // triggering and event weighting
@@ -218,50 +227,50 @@ void ZeeJets (const char* directory,
         /////////////////////////////////////////////////////////////////////////////
         // Jet finding
         /////////////////////////////////////////////////////////////////////////////
-        int lj = -1;
-        for (int j = 0; j < t->jet_n; j++) {
-          if (t->jet_pt->at (j) < jet_pt_cut)
+        int lJ = -1;
+        for (int iJ = 0; iJ < t->jet_n; iJ++) {
+          if (t->jet_pt->at (iJ) < jet_pt_cut)
             continue; // basic jet pT cut
-          if (!InHadCal (t->jet_eta->at (j), 0.4))
+          if (!InHadCal (t->jet_eta->at (iJ), 0.4))
             continue; // require jets inside hadronic calorimeter
-          if (InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+          if (InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at (iJ)))
             continue; // Reject event on additional HEC cuts
-          if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (j), t->electron_phi->at (e1), t->jet_phi->at (j)) < 0.2 ||
-              DeltaR (t->electron_eta->at (e2), t->jet_eta->at (j), t->electron_phi->at (e2), t->jet_phi->at (j)) < 0.2)
+          if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (iJ), t->electron_phi->at (e1), t->jet_phi->at (iJ)) < 0.2 ||
+              DeltaR (t->electron_eta->at (e2), t->jet_eta->at (iJ), t->electron_phi->at (e2), t->jet_phi->at (iJ)) < 0.2)
             continue; // require jets to be isolated from both electrons
-          if (DeltaPhi (t->jet_phi->at (j), zphi) < 3*pi/4)
+          if (DeltaPhi (t->jet_phi->at (iJ), zphi) < 3*pi/4)
             continue; // require jet to be back-to-back with Z in transverse plane
 
           // compare to leading jet
-          else if (lj == -1 || t->jet_pt->at (lj) < t->jet_pt->at (j)) {
-            lj = j;
+          else if (lJ == -1 || t->jet_pt->at (lJ) < t->jet_pt->at (iJ)) {
+            lJ = iJ;
           }
         } // end jet finding loop
-        if (lj == -1) // true iff no candidate jet is found
+        if (lJ == -1) // true iff no candidate jet is found
           continue; // reject on no candidate jet
 
         /////////////////////////////////////////////////////////////////////////////
         // relevant jet kinematic data
         /////////////////////////////////////////////////////////////////////////////
-        jpt = t->jet_pt->at (lj);
-        jeta = t->jet_eta->at (lj);
-        jphi = t->jet_phi->at (lj);
-        je = t->jet_e->at (lj);
+        jpt = t->jet_pt->at (lJ);
+        jeta = t->jet_eta->at (lJ);
+        jphi = t->jet_phi->at (lJ);
+        je = t->jet_e->at (lJ);
 
         /////////////////////////////////////////////////////////////////////////////
         // jet cuts
         /////////////////////////////////////////////////////////////////////////////
         bool hasOtherJet = false;
-        for (int j = 0; j < t->jet_n; j++) {
-         if (j == lj)
+        for (int iJ = 0; iJ < t->jet_n; iJ++) {
+         if (iJ == lJ)
            continue; // don't look at the leading jet, its our candidate :)
-         if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (j), t->electron_phi->at (e1), t->jet_phi->at (j)) < 0.2 ||
-             DeltaR (t->electron_eta->at (e2), t->jet_eta->at (j), t->electron_phi->at (e2), t->jet_phi->at (j)) < 0.2)
+         if (DeltaR (t->electron_eta->at (e1), t->jet_eta->at (iJ), t->electron_phi->at (e1), t->jet_phi->at (iJ)) < 0.2 ||
+             DeltaR (t->electron_eta->at (e2), t->jet_eta->at (iJ), t->electron_phi->at (e2), t->jet_phi->at (iJ)) < 0.2)
            continue; // require jets to be isolated from both electrons
-         if (t->jet_pt->at (j) < 12 || InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+         if (t->jet_pt->at (iJ) < 12 || InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at (iJ)))
            continue; // basic jet pT cut, also reject on the disabled HEC
-         const double s_dphi = DeltaPhi (t->jet_phi->at (j), zphi);
-         if (0.1 < t->jet_pt->at (j) / (zpt * cos (pi - s_dphi))) {
+         const double s_dphi = DeltaPhi (t->jet_phi->at (iJ), zphi);
+         if (0.1 < t->jet_pt->at (iJ) / (zpt * cos (pi - s_dphi))) {
            hasOtherJet = true;
            break;
          }

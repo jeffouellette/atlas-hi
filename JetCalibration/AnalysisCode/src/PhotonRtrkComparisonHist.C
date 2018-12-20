@@ -99,6 +99,11 @@ void PhotonRtrkComparisonHist () {
     const short iPer = isPeriodA ? 0 : 1;
     const short iMC = isMC ? (isSignalOnly ? 2 : 1) : 0;
 
+    if (!isMC) {
+      if (fabs (peta) < 0.8) ppt *= 0.9941;
+      else if (fabs (peta) < 1.475) ppt *= 0.9933;
+    }
+
     const float jtrk = jtrk1000;
 
     const short iPCut = isTightPhoton ? 0 : 1;
@@ -231,6 +236,9 @@ void PhotonRtrkComparisonHist () {
   TH2D *proj2d = NULL, *proj2d_mc = NULL, *proj2d_mc_sig = NULL, *proj2d_lo = NULL, *proj2d_hi = NULL;
   TGraphAsymmErrors *photonRtrkGraph_sys = NULL, *photonRtrkGraph_rat_sys = NULL, *photonRtrkGraph_rat_sys_sig = NULL;
 
+  const double rtrk_los[12] = {0.2, 0.2, 0.1, 0.1, 0.05, 0, 0, 0, 0, 0, 0, 0}; //linspace (0.1, 0.1, numpbins);
+  const double rtrk_his[12] = {1, 1, 0.8, 0.8, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7}; //linspace (1.5, 1.5, numpbins);
+
   for (short iPer = 0; iPer < 3; iPer++) { // loop over period configurations
     const char* period = (iPer == 0 ? "Period A" : (iPer == 1 ? "Period B" : "Period A+B"));
     const char* per = (iPer == 0 ? "pA" : (iPer == 1 ? "pB" : "pAB"));
@@ -247,7 +255,7 @@ void PhotonRtrkComparisonHist () {
 
       proj2d = Project2D ("", photonRtrkHists[iPer][0][1][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d->RebinY (rebinFactor);
-      photonRtrkHist = GetProfileX ("photonRtrk_Hist", proj2d, numpbins, pbins, false);
+      photonRtrkHist = GetProfileX ("photonRtrk_Hist", proj2d, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       photonRtrkHist->SetMarkerStyle (markerStyle);
       photonRtrkHist->SetMarkerColor (dataColor);
@@ -256,11 +264,11 @@ void PhotonRtrkComparisonHist () {
       // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
       proj2d_lo = Project2D ("", photonRtrkHists[iPer][0][0][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_lo->RebinY (rebinFactor);
-      photonRtrkHist_lo = GetProfileX ("photonRtrk_Hist_lo", proj2d_lo, numpbins, pbins, false);
+      photonRtrkHist_lo = GetProfileX ("photonRtrk_Hist_lo", proj2d_lo, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       proj2d_hi = Project2D ("", photonRtrkHists[iPer][0][2][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_hi->RebinY (rebinFactor);
-      photonRtrkHist_hi = GetProfileX ("photonRtrk_Hist_hi", proj2d_hi, numpbins, pbins, false);
+      photonRtrkHist_hi = GetProfileX ("photonRtrk_Hist_hi", proj2d_hi, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       photonRtrkGraph_sys = new TGraphAsymmErrors (photonRtrkHist); // for plotting systematics
       CalcSystematics (photonRtrkGraph_sys, photonRtrkHist, photonRtrkHist_hi, photonRtrkHist_lo);
@@ -272,7 +280,7 @@ void PhotonRtrkComparisonHist () {
 
       proj2d_mc = Project2D ("", photonRtrkHists[iPer][1][1][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_mc->RebinY (rebinFactor);
-      photonRtrkHist_mc = GetProfileX ("photonRtrk_Hist_mc", proj2d_mc, numpbins, pbins, false);
+      photonRtrkHist_mc = GetProfileX ("photonRtrk_Hist_mc", proj2d_mc, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       photonRtrkHist_mc->SetMarkerStyle (markerStyle);
       photonRtrkHist_mc->SetMarkerColor (mcOverlayColor);
@@ -281,18 +289,18 @@ void PhotonRtrkComparisonHist () {
       if (iPer != 1 && !skipSignalMC) {
         proj2d_mc_sig = Project2D ("", photonRtrkHists[iPer][2][1][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
         proj2d_mc_sig->RebinY (rebinFactor);
-        photonRtrkHist_mc_sig = GetProfileX ("photonRtrk_Hist_mc_sig", proj2d_mc_sig, numpbins, pbins, false);
+        photonRtrkHist_mc_sig = GetProfileX ("photonRtrk_Hist_mc_sig", proj2d_mc_sig, numpbins, pbins, true, rtrk_los, rtrk_his);
 
         photonRtrkHist_mc_sig->SetMarkerStyle (markerStyle);
         photonRtrkHist_mc_sig->SetMarkerColor (mcSignalColor);
         photonRtrkHist_mc_sig->SetLineColor (mcSignalColor);
       }
 
-      photonRtrkHist_mc->GetYaxis ()->SetTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}>");
+      photonRtrkHist_mc->GetYaxis ()->SetTitle ("<#Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}>");
       photonRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 2.0);
-      photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-      photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-      photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
       photonRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
       photonRtrkHist_mc->Draw ("e1 x0");
@@ -314,28 +322,28 @@ void PhotonRtrkComparisonHist () {
         if (iPer != 1 && !skipSignalMC)
           countsMCSig = photonRtrkCounts[iPer][2][0][0]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
       }
-      myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04/uPadY);
-      myMarkerText (0.225, 0.81, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
+      myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.032/uPadY);
+      myMarkerText (0.225, 0.81, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.032/uPadY);
       if (iPer != 1 && !skipSignalMC)
-        myMarkerText (0.225, 0.74, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMCSig), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.74, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMCSig), 1.25, 0.032/uPadY);
       if (eta_lo != 1 || eta_hi != numtrketabins) {
         if (exclusive && iEta == numtrketabins) {
           if (fabs (trketabins[eta_lo-1]) == fabs (trketabins[eta_hi]))
-            myText (0.195, 0.58, kBlack, Form ("#left|#eta_{det}^{#gamma}#right| > %g", trketabins[eta_hi]), 0.04/uPadY);
+            myText (0.195, 0.58, kBlack, Form ("#left|#eta_{det}^{#gamma}#right| > %g", trketabins[eta_hi]), 0.032/uPadY);
           else
-            myText (0.195, 0.58, kBlack, Form ("#eta_{det}^{#gamma} < %g #union #eta_{det}^{#gamma} > %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+            myText (0.195, 0.58, kBlack, Form ("#eta_{det}^{#gamma} < %g #union #eta_{det}^{#gamma} > %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
         }
         else
-          myText (0.195, 0.58, kBlack, Form ("%g < #eta_{det}^{#gamma} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+          myText (0.195, 0.58, kBlack, Form ("%g < #eta_{det}^{#gamma} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
       }
-      myText (0.195, 0.66, kBlack, period, 0.04/uPadY);
+      myText (0.195, 0.66, kBlack, period, 0.032/uPadY);
 
       bottomPad->cd ();
       bottomPad->SetLogx ();
 
-      photonRtrkHist_rat = GetDataOverMC (Form ("photonRtrk_DataMCRatio_%s_iEta%i", per, iEta), proj2d, proj2d_mc, numpbins, pbins, false, "x");
-      photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc, numpbins, pbins, false, "x");
-      photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc, numpbins, pbins, false, "x");
+      photonRtrkHist_rat = GetDataOverMC (Form ("photonRtrk_DataMCRatio_%s_iEta%i", per, iEta), proj2d, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+      photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+      photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
 
       photonRtrkGraph_rat_sys = new TGraphAsymmErrors (photonRtrkHist_rat);
       photonRtrkGraph_rat_sys->SetName (Form ("photonRtrk_DataMCRatio_sys_%s_iEta%i", per, iEta));
@@ -351,9 +359,9 @@ void PhotonRtrkComparisonHist () {
       photonRtrkHist_rat->SetMarkerColor (dataColor);
 
       if (iPer != 1 && !skipSignalMC) {
-        photonRtrkHist_rat_sig = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_%s_iEta%i", per, iEta), proj2d, proj2d_mc_sig, numpbins, pbins, false, "x");
-        photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc_sig, numpbins, pbins, false, "x");
-        photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc_sig, numpbins, pbins, false, "x");
+        photonRtrkHist_rat_sig = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_%s_iEta%i", per, iEta), proj2d, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+        photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+        photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
 
         photonRtrkGraph_rat_sys_sig = new TGraphAsymmErrors (photonRtrkHist_rat_sig);
         photonRtrkGraph_rat_sys_sig->SetName (Form ("photonRtrk_DataMCRatio_Signal_sys_%s_iEta%i", per, iEta));
@@ -371,15 +379,15 @@ void PhotonRtrkComparisonHist () {
 
       photonRtrkHist_rat->GetXaxis ()->SetTitle ("#it{p}_{T}^{#gamma} #left[GeV#right]");
       photonRtrkHist_rat->GetYaxis ()->SetTitle ("Data / MC");
-      photonRtrkHist_rat->GetYaxis ()->SetRangeUser (0.94, 1.06);
+      photonRtrkHist_rat->GetYaxis ()->SetRangeUser (0.6, 1.4);
       photonRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-      photonRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-      photonRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      photonRtrkHist_rat->GetXaxis ()->SetTitleSize (0.032/dPadY);
+      photonRtrkHist_rat->GetYaxis ()->SetTitleSize (0.032/dPadY);
       photonRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
       photonRtrkHist_rat->GetYaxis ()->SetTitleOffset (1.5*dPadY);
       photonRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-      photonRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-      photonRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      photonRtrkHist_rat->GetXaxis ()->SetLabelSize (0.032/dPadY);
+      photonRtrkHist_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       photonRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
       photonRtrkHist_rat->Draw ("e1 x0");
@@ -392,7 +400,7 @@ void PhotonRtrkComparisonHist () {
 
       TF1* constFit = new TF1 ("constFit", "[0]", pbins[0], pbins[numpbins]);
       photonRtrkHist_rat->Fit (constFit, "R0QN");
-      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.04/dPadY);
+      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.032/dPadY);
       if (constFit) { delete constFit; constFit = NULL; }
 
       char* plotName;
@@ -444,7 +452,7 @@ void PhotonRtrkComparisonHist () {
 
       proj2d = Project2D ("", photonRtrkHists[iPer][0][1][2], "y", "z", p_lo, p_hi);
       proj2d->RebinY (rebinFactor);
-      photonRtrkHist = GetProfileX ("photonRtrk_Hist", proj2d, numtrketabins, trketabins, false);
+      photonRtrkHist = GetProfileX ("photonRtrk_Hist", proj2d, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
       photonRtrkHist->SetMarkerStyle (markerStyle);
       photonRtrkHist->SetMarkerColor (dataColor);
@@ -453,11 +461,11 @@ void PhotonRtrkComparisonHist () {
       // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
       proj2d_lo = Project2D ("", photonRtrkHists[iPer][0][0][2], "y", "z", p_lo, p_hi);
       proj2d_lo->RebinY (rebinFactor);
-      photonRtrkHist_lo = GetProfileX ("photonRtrk_Hist_lo", proj2d_lo, numtrketabins, pbins, false);
+      photonRtrkHist_lo = GetProfileX ("photonRtrk_Hist_lo", proj2d_lo, numtrketabins, pbins, true, rtrk_los, rtrk_his);
 
       proj2d_hi = Project2D ("", photonRtrkHists[iPer][0][2][2], "y", "z", p_lo, p_hi);
       proj2d_hi->RebinY (rebinFactor);
-      photonRtrkHist_hi = GetProfileX ("photonRtrk_Hist_hi", proj2d_hi, numtrketabins, pbins, false);
+      photonRtrkHist_hi = GetProfileX ("photonRtrk_Hist_hi", proj2d_hi, numtrketabins, pbins, true, rtrk_los, rtrk_his);
 
       photonRtrkGraph_sys = new TGraphAsymmErrors (photonRtrkHist); // for plotting systematics
       CalcSystematics (photonRtrkGraph_sys, photonRtrkHist, photonRtrkHist_hi, photonRtrkHist_lo);
@@ -469,7 +477,7 @@ void PhotonRtrkComparisonHist () {
 
       proj2d_mc = Project2D ("", photonRtrkHists[iPer][1][1][2], "y", "z", p_lo, p_hi);
       proj2d_mc->RebinY (rebinFactor);
-      photonRtrkHist_mc = GetProfileX ("photonRtrk_Hist_mc", proj2d_mc, numtrketabins, trketabins, false);
+      photonRtrkHist_mc = GetProfileX ("photonRtrk_Hist_mc", proj2d_mc, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
       photonRtrkHist_mc->SetMarkerStyle (markerStyle);
       photonRtrkHist_mc->SetMarkerColor (mcOverlayColor);
@@ -478,18 +486,18 @@ void PhotonRtrkComparisonHist () {
       if (iPer != 1 && !skipSignalMC) {
         proj2d_mc_sig = Project2D ("", photonRtrkHists[iPer][2][1][2], "y", "z", p_lo, p_hi);
         proj2d_mc_sig->RebinY (rebinFactor);
-        photonRtrkHist_mc_sig = GetProfileX ("photonRtrk_Hist_mc_sig", proj2d_mc_sig, numtrketabins, trketabins, false);
+        photonRtrkHist_mc_sig = GetProfileX ("photonRtrk_Hist_mc_sig", proj2d_mc_sig, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
         photonRtrkHist_mc_sig->SetMarkerStyle (markerStyle);
         photonRtrkHist_mc_sig->SetMarkerColor (mcSignalColor);
         photonRtrkHist_mc_sig->SetLineColor (mcSignalColor);
       }
 
-      photonRtrkHist_mc->GetYaxis ()->SetTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}>");
+      photonRtrkHist_mc->GetYaxis ()->SetTitle ("<#Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}>");
       photonRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 2.0);
-      photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-      photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-      photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
       photonRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
       photonRtrkHist_mc->Draw ("e1 x0");
@@ -501,20 +509,20 @@ void PhotonRtrkComparisonHist () {
       const int countsData = photonRtrkCounts[iPer][0][0][0]->Integral (p_lo, p_hi, 1, numtrketabins, 1, numphibins);
       const int countsMC = photonRtrkCounts[iPer][1][0][0]->Integral (p_lo, p_hi, 1, numtrketabins, 1, numphibins);
       const int countsMCSig = photonRtrkCounts[iPer][2][0][0]->Integral (p_lo, p_hi, 1, numtrketabins, 1, numphibins);
-      myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04/uPadY);
-      myMarkerText (0.225, 0.81, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.04/uPadY);
+      myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.032/uPadY);
+      myMarkerText (0.225, 0.81, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.032/uPadY);
       if (iPer != 1 && !skipSignalMC)
-        myMarkerText (0.225, 0.74, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMCSig), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.74, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMCSig), 1.25, 0.032/uPadY);
       if (p_lo != 1 || p_hi != numpbins)
-       myText (0.195, 0.58, kBlack, Form ("%g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-      myText (0.195, 0.66, kBlack, period, 0.04/uPadY);
+       myText (0.195, 0.58, kBlack, Form ("%g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
+      myText (0.195, 0.66, kBlack, period, 0.032/uPadY);
 
       bottomPad->cd ();
       bottomPad->SetLogx (false);
 
-      photonRtrkHist_rat = GetDataOverMC (Form ("photonRtrk_DataMCRatio_%s_iP%i", per, iP), proj2d, proj2d_mc, numtrketabins, trketabins, false, "x");
-      photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc, numtrketabins, trketabins, false, "x");
-      photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc, numtrketabins, trketabins, false, "x");
+      photonRtrkHist_rat = GetDataOverMC (Form ("photonRtrk_DataMCRatio_%s_iP%i", per, iP), proj2d, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+      photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+      photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
 
       photonRtrkGraph_rat_sys = new TGraphAsymmErrors (photonRtrkHist_rat);
       photonRtrkGraph_rat_sys->SetName (Form ("photonRtrk_DataMCRatio_sys_%s_iP%i", per, iP));
@@ -530,9 +538,9 @@ void PhotonRtrkComparisonHist () {
       photonRtrkHist_rat->SetMarkerColor (dataColor);
 
       if (iPer != 1 && !skipSignalMC) {
-        photonRtrkHist_rat_sig = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_%s_iP%i", per, iP), proj2d, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
-        photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
-        photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
+        photonRtrkHist_rat_sig = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_%s_iP%i", per, iP), proj2d, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+        photonRtrkHist_rat_lo = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+        photonRtrkHist_rat_hi = GetDataOverMC (Form ("photonRtrk_DataMCRatio_Signal_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
 
         photonRtrkGraph_rat_sys_sig = new TGraphAsymmErrors (photonRtrkHist_rat_sig);
         photonRtrkGraph_rat_sys_sig->SetName (Form ("photonRtrk_DataMCRatio_Signal_sys_%s_iP%i", per, iP));
@@ -550,15 +558,15 @@ void PhotonRtrkComparisonHist () {
 
       photonRtrkHist_rat->GetXaxis ()->SetTitle ("#eta_{det}^{#gamma}");
       photonRtrkHist_rat->GetYaxis ()->SetTitle ("Data / MC");
-      photonRtrkHist_rat->GetYaxis ()->SetRangeUser (0.94, 1.06);
+      photonRtrkHist_rat->GetYaxis ()->SetRangeUser (0.6, 1.4);
       photonRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-      photonRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-      photonRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      photonRtrkHist_rat->GetXaxis ()->SetTitleSize (0.032/dPadY);
+      photonRtrkHist_rat->GetYaxis ()->SetTitleSize (0.032/dPadY);
       photonRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
       photonRtrkHist_rat->GetYaxis ()->SetTitleOffset (1.2*dPadY);
       photonRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-      photonRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-      photonRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      photonRtrkHist_rat->GetXaxis ()->SetLabelSize (0.032/dPadY);
+      photonRtrkHist_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       photonRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
       photonRtrkHist_rat->Draw ("e1 x0");
@@ -571,7 +579,7 @@ void PhotonRtrkComparisonHist () {
 
       TF1* constFit = new TF1 ("constFit", "[0]", etabins[0], etabins[numetabins]);
       photonRtrkHist_rat->Fit (constFit, "R0QN");
-      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.04/dPadY);
+      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.032/dPadY);
       if (constFit) { delete constFit; constFit = NULL; }
 
       char* plotName;
@@ -639,16 +647,16 @@ void PhotonRtrkComparisonHist () {
 
         if (photonRtrkHist_mc->Integral () != 0) photonRtrkHist_mc->Scale (1./photonRtrkHist_mc->Integral ()); 
 
-        photonRtrkHist_mc->GetXaxis ()->SetTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}");
         photonRtrkHist_mc->GetYaxis ()->SetTitle ("Counts / Total");
         photonRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 1.6*std::max (photonRtrkHist->GetMaximum (), photonRtrkHist_mc->GetMaximum ()));
         photonRtrkHist_mc->SetMarkerStyle (markerStyle);
         photonRtrkHist_mc->SetMarkerColor (mcOverlayColor);
         photonRtrkHist_mc->SetLineColor (mcOverlayColor);
 
-        photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-        photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-        photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+        photonRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+        photonRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+        photonRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+        photonRtrkHist_mc->GetXaxis ()->SetTitleOffset (1);
         photonRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.1*uPadY);
 
         float mean, mean_err, mean_mc, mean_mc_err;
@@ -657,12 +665,12 @@ void PhotonRtrkComparisonHist () {
   
         mean = photonRtrkHist->GetMean ();
         float stddev = photonRtrkHist->GetStdDev ();
-        gaus_data = new TF1 ("gaus_data", "gaus (0)", 0.1, 2);
+        gaus_data = new TF1 ("gaus_data", "gaus (0)", rtrk_los[iP], rtrk_his[iP]);
         photonRtrkHist->Fit (gaus_data, "Q0R");
 
         mean = photonRtrkHist_mc->GetMean ();
         stddev = photonRtrkHist_mc->GetStdDev ();
-        gaus_mc = new TF1 ("gaus_mc", "gaus (0)", 0.1, 2);
+        gaus_mc = new TF1 ("gaus_mc", "gaus (0)", rtrk_los[iP], rtrk_his[iP]);
         photonRtrkHist_mc->Fit (gaus_mc, "Q0R");
 
         mean = gaus_data->GetParameter (1);
@@ -688,31 +696,32 @@ void PhotonRtrkComparisonHist () {
         const int countsData = photonRtrkCounts[iPer][0][0][0]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
         const int countsMC = photonRtrkCounts[iPer][1][0][0]->Integral (p_lo, p_hi, eta_lo, eta_hi, 1, numphibins);
 
-        myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04/uPadY);
-        myMarkerText (0.225, 0.80, mcOverlayColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.032/uPadY);
+        myMarkerText (0.225, 0.80, mcOverlayColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.032/uPadY);
 
-        myText (0.65, 0.88, dataColor, Form ("#mu_{data} = %s", FormatMeasurement (mean, mean_err)), 0.04/uPadY);
-        myText (0.65, 0.80, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err)), 0.04/uPadY);
+        myText (0.65, 0.88, dataColor, Form ("#mu_{data} = %s", FormatMeasurement (mean, mean_err)), 0.032/uPadY);
+        myText (0.65, 0.80, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err)), 0.032/uPadY);
 
-        myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-        myText (0.68, 0.25, dataColor, period, 0.04/uPadY);
-        myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-        myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{#gamma} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+        myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
+        myText (0.68, 0.25, dataColor, period, 0.032/uPadY);
+        myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{#gamma} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
+        myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{#gamma} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
 
         bottomPad->cd ();
         bottomPad->SetLogx (false);
         photonRtrkHist->Divide (photonRtrkHist_mc);
 
-        photonRtrkHist->SetYTitle ("Data / MC");
-        photonRtrkHist->SetAxisRange (0.45, 1.65, "Y");
+        photonRtrkHist->GetXaxis ()->SetTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{#gamma}");
+        photonRtrkHist->GetYaxis ()->SetTitle ("Data / MC");
+        photonRtrkHist->GetYaxis ()->SetRangeUser (0.45, 1.65);
         photonRtrkHist->GetYaxis ()->SetNdivisions (605);
-        photonRtrkHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
-        photonRtrkHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
+        photonRtrkHist->GetXaxis ()->SetTitleSize (0.032/dPadY);
+        photonRtrkHist->GetYaxis ()->SetTitleSize (0.032/dPadY);
         photonRtrkHist->GetXaxis ()->SetTitleOffset (1);
         photonRtrkHist->GetYaxis ()->SetTitleOffset (1.1*dPadY);
         photonRtrkHist->GetYaxis ()->CenterTitle (true);
-        photonRtrkHist->GetXaxis ()->SetLabelSize (0.04/dPadY);
-        photonRtrkHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
+        photonRtrkHist->GetXaxis ()->SetLabelSize (0.032/dPadY);
+        photonRtrkHist->GetYaxis ()->SetLabelSize (0.032/dPadY);
         photonRtrkHist->GetXaxis ()->SetTickLength (0.08);
 
         photonRtrkHist->DrawCopy ("e1 x0"); 

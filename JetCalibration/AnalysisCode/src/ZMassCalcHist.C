@@ -34,7 +34,7 @@ void ZMassCalcHist () {
   TH3D*** zMassSpectra = Get2DArray <TH3D*> (2, 2);
   TH3D*** zMassCounts = Get2DArray <TH3D*> (2, 2);
 
-  const int numzmassbins = 50;
+  const int numzmassbins = 100;
   const double* zmassbins = linspace (60, 110, numzmassbins);
 
   for (short iData = 0; iData < 2; iData++) { // iData is 0 for data, 1 for MC
@@ -172,6 +172,7 @@ void ZMassCalcHist () {
         //TH1D* thisHist = zMassSpectra[iSpc][iData]->ProjectionX (Form ("zMassSpectra_%s_%s_iEta%i", spc, data, iEta), eta_lo, eta_hi);
 
         hists[iData] = thisHist;
+        thisHist->Rebin (2);
         thisHist->Scale (1.0, "width");
 
         thisHist->SetLineColor (color);
@@ -203,32 +204,42 @@ void ZMassCalcHist () {
         thisHist->Fit (fit, "R", "L");
         double m = fit->GetParameter (1);
         double s = fit->GetParameter (2);
+        if (fit) { delete fit; fit = NULL; }
 
-        TF1* fit_better = new TF1 (Form ("fit_better_iSpc%i_iData%i", iSpc, iData), "gaus (0)", m-Z_mass_fitNsigma*s, m+Z_mass_fitNsigma*s);
-        thisHist->Fit (fit_better, "R", "L");
-        m = fit_better->GetParameter (1);
-        s = fit_better->GetParameter (2);
+        fit = new TF1 (Form ("fit_iSpc%i_iData%i", iSpc, iData), "gaus (0)", m-Z_mass_fitNsigma*s, m+Z_mass_fitNsigma*s);
+        thisHist->Fit (fit, "R", "L");
+        m = fit->GetParameter (1);
+        s = fit->GetParameter (2);
+
         mean[iData] = m;
-        mean_err[iData] = fit_better->GetParError (1);
+        mean_err[iData] = fit->GetParError (1);
         sigma[iData] = s;
-        sigma_err[iData] = fit_better->GetParError (2);
-        const double scale = 1.0 / thisHist->Integral (thisHist->FindBin (m-Z_mass_fitNsigma*s), thisHist->FindBin (m+Z_mass_fitNsigma*s));
-        thisHist->Scale (scale);
+        sigma_err[iData] = fit->GetParError (2);
 
-        fits[iData] = fit_better;
-        fit_better->SetLineColor (color);
-        fit_better->SetParameter (0, scale*fit_better->GetParameter (0));
+        double scale = thisHist->Integral ();
+        //if (fit && s > 0)
+        //  scale = fit->Integral (m-Z_mass_fitNsigma*s, m+Z_mass_fitNsigma*s);
+        //else
+        //  scale thisHist->Integral (thisHist->FindBin (m-Z_mass_fitNsigma*s), thisHist->FindBin (m+Z_mass_fitNsigma*s));
+        if (scale > 0)
+          thisHist->Scale (1.0 / scale);
 
-        thisHist->GetYaxis ()->SetRangeUser (0, 0.20);
-        thisHist->GetYaxis ()->ChangeLabel (1, -1, -1, -1, -1, -1, " ");
+        fits[iData] = fit;
+        fit->SetLineColor (color);
+        if (scale > 0)
+          fit->SetParameter (0, fit->GetParameter (0) / scale);
       }
 
       for (short iData = 1; iData >= 0; iData--) {
         TH1D* thisHist = hists[iData];
+        thisHist->GetYaxis ()->SetRangeUser (0, 1.4 * std::max (hists[0]->GetMaximum (), hists[1]->GetMaximum ()));
+        thisHist->GetYaxis ()->ChangeLabel (1, -1, -1, -1, -1, -1, " ");
+
         if (iData == 1) thisHist->Draw ("hist");
         else thisHist->Draw ("p same");
         //fits[iData]->plot->Draw ("same");
         fits[iData]->Draw ("same");
+
         if (eta_lo != 1 || eta_hi != numzetabins) {
           if (!exclusive || iEta != numzetabins)
             myText (0.205, 0.15, kBlack, Form ("%g < y_{det}^{Z} < %g", zetabins[eta_lo-1], zetabins[eta_hi]), 0.035/uPadY);
@@ -295,6 +306,9 @@ void ZMassCalcHist () {
         if (iSpc == 0) canvas->SaveAs (Form ("%s/zmumu_mass_comparison.pdf", plotPath.Data ()));
         else if (iSpc == 1) canvas->SaveAs (Form ("%s/zee_mass_comparison.pdf", plotPath.Data ()));
       }
+
+      hists[0]->Write ();
+      hists[1]->Write ();
 
       if (thisHist) { delete thisHist; thisHist = NULL; }
       Delete1DArray (hists, 2);

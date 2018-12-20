@@ -143,11 +143,11 @@ void ZMassCalc (const char* directory,
         continue; // basic electron pT cuts
       if (!InEMCal (t->electron_eta->at (e1)))
         continue; // reject electrons reconstructed outside EMCal
-      if (!t->electron_loose->at (e1))
-        continue; // reject non-loose electrons
-      if (t->electron_d0sig->at (e1) > 5)
+      if (!t->electron_tight->at (e1))
+        continue; // reject non-tight electrons
+      if (fabs (t->electron_d0sig->at (e1)) > 5)
         continue; // d0 (transverse impact parameter) significance cut
-      if (t->electron_delta_z0_sin_theta->at (e1) > 0.5)
+      if (fabs (t->electron_delta_z0_sin_theta->at (e1)) > 0.5)
         continue; // z0 (longitudinal impact parameter) vertex compatibility cut
 
       for (int e2 = 0; e2 < e1; e2++) { // loop over secondary electron
@@ -156,11 +156,11 @@ void ZMassCalc (const char* directory,
           continue; // basic electron pT cut
         if (!InEMCal (t->electron_eta->at (e2)))
           continue; // reject electrons reconstructed outside the EMCal
-        if (!t->electron_loose->at (e2))
-          continue; // reject non-loose electrons
-        if (t->electron_d0sig->at (e2) > 5)
+        if (!t->electron_tight->at (e2))
+          continue; // reject non-tight electrons
+        if (fabs (t->electron_d0sig->at (e2)) > 5)
           continue; // d0 (transverse impact parameter) significance cut
-        if (t->electron_delta_z0_sin_theta->at (e2) > 0.5)
+        if (fabs (t->electron_delta_z0_sin_theta->at (e2)) > 0.5)
           continue; // z0 (longitudinal impact parameter) vertex compatibility cut
 
         // relevant electron kinematic data
@@ -170,6 +170,14 @@ void ZMassCalc (const char* directory,
         l2eta = t->electron_eta->at (e2);
         l1phi = t->electron_phi->at (e1);
         l2phi = t->electron_phi->at (e2);
+
+        if (!isMC) {
+          if (fabs (l1eta) < 0.8) l1pt *= 0.9941;
+          else if (fabs (l1eta) < 1.475) l1eta *= 0.9933;
+          if (fabs (l2eta) < 0.8) l2pt *= 0.9941;
+          else if (fabs (l2eta) < 1.475) l2eta *= 0.9933;
+        }
+
         TLorentzVector electron1, electron2;
         electron1.SetPtEtaPhiM (l1pt, l1eta, l1phi, electron_mass);
         electron2.SetPtEtaPhiM (l2pt, l2eta, l2phi, electron_mass);
@@ -213,7 +221,7 @@ void ZMassCalc (const char* directory,
     // end Z->ee type events
 
     /////////////////////////////////////////////////////////////////////////////
-    // Z(mumu) events
+    // Z (mumu) events
     /////////////////////////////////////////////////////////////////////////////
     for (int m1 = 0; m1 < t->muon_n; m1++) { // loop over primary muon
       // primary muon cuts

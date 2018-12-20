@@ -258,65 +258,67 @@ void ZGammaJetCrossCheckHist () {
         topCanvas->cd ();
         topCanvas->SetLogx ();
 
+        // project down main plot
         proj = Project2D ("", vJetHists[iPer][0][iSpc][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        proj->RebinY (rebinFactor);
-        vJetHist = GetProfileX ("vJetHist", proj, numpbins, pbins, true);
+        proj->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist = GetProfileX ("vJetHist", proj, numpbins, pbins, true, plos, phis);
 
+        // calculate y axis scaling
         double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
         if (10 * middle != floor (10*middle)) middle += 0.05;
+
+        // get main graph
         vJetGraph = make_graph (vJetHist);
         deltaize (vJetGraph, pow (1.05, (iSpc-0.5)), true);
-        vJetGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{ref} #left[GeV#right]");
-        vJetGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-        vJetGraph->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
+        // format main graph
         vJetGraph->SetMarkerStyle (dataStyle);
-        //if (iSpc < 3)
-        //  vJetGraph->SetMarkerSize (0.5);
         vJetGraph->SetMarkerColor (dataColor);
         vJetGraph->SetLineColor (dataColor);
         vJetGraph->SetLineWidth (2);
-        vJetGraph->GetXaxis ()->SetLabelSize (0.04/uPadY);
-        vJetGraph->GetYaxis ()->SetLabelSize (0.04/uPadY);
-        vJetGraph->GetXaxis ()->SetTitleSize (0.04/uPadY);
-        vJetGraph->GetYaxis ()->SetTitleSize (0.04/uPadY);
-        vJetGraph->GetXaxis ()->SetTitleOffset (1.5*uPadY);
-        vJetGraph->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
-        // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
+        // project down low variation
         proj_lo = Project2D ("", vJetHists[iPer][0][iSpc][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        proj_lo->RebinY (rebinFactor);
-        vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpbins, pbins, true);
-
+        proj_lo->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_lo = GetProfileX ("vJetHist_lo", proj_lo, numpbins, pbins, true, plos, phis);
+        // project down high variation
         proj_hi = Project2D ("", vJetHists[iPer][0][iSpc][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        proj_hi->RebinY (rebinFactor);
-        vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpbins, pbins, true);
+        proj_hi->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numpbins, pbins, true, plos, phis);
 
+        // make systematics graph
         vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
         CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
-        if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
-        if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
-
+        // format systematics graph
         vJetGraph_sys->SetFillColor (dataColor);
         vJetGraph_sys->SetFillStyle (3001);
 
+        // project down MC
         proj_mc = Project2D ("", vJetHists[iPer][1][iSpc][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
-        proj_mc->RebinY (rebinFactor);
-        vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, true);
+        proj_mc->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numpbins, pbins, true, plos_mc, phis_mc);
 
+        // make MC graph
         vJetGraph_mc = make_graph (vJetHist_mc);
         deltaize (vJetGraph_mc, pow (1.05, 0.5*iSpc-0.25), true);
+        // format MC graph
         vJetGraph_mc->SetMarkerStyle (mcStyle);
         vJetGraph_mc->SetMarkerColor (dataColor);
         vJetGraph_mc->SetLineColor (dataColor);
         vJetGraph_mc->SetLineWidth (2);
 
-        if (iSpc == 0)
-          ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("ap");
-        else
-          ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("p");
-        ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw ("p");
-        
+        // format first graph plotted
+        vJetGraph_mc->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
+        vJetGraph_mc->GetXaxis ()->SetTitle ("#it{p}_{T}^{ref} #left[GeV#right]");
+        vJetGraph_mc->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
+        vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+        vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+        vJetGraph_mc->GetXaxis ()->SetTitleSize (0.032/uPadY);
+        vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+        vJetGraph_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
+
+        ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw (iSpc == 0 ? "ap" : "p");
         ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
+        ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("p");
 
         int countsData = 0, countsMC = 0;
         if (exclusive && iEta == numetabins) {
@@ -328,28 +330,32 @@ void ZGammaJetCrossCheckHist () {
           countsMC = vJetCounts[iPer][1][iSpc]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
         }
 
-        myMarkerText (0.205, 0.36-0.12*(1-iSpc), dataColor, dataStyle, Form ("%s, 2016 Data (%i events)", species.Data (), countsData), 1.25, 0.04/uPadY);
-        myMarkerText (0.205, 0.30-0.12*(1-iSpc), mcColor, mcStyle, Form ("%s, Pythia8 MC (%i events)", species.Data (), countsMC), 1.25, 0.04/uPadY);
+        myMarkerText (0.205, 0.36-0.12*(1-iSpc), dataColor, dataStyle, Form ("%s, 2016 Data (%i events)", species.Data (), countsData), 1.25, 0.032/uPadY);
+        myMarkerText (0.205, 0.30-0.12*(1-iSpc), mcColor, mcStyle, Form ("%s, Pythia8 MC + Overlay (%i events)", species.Data (), countsMC), 1.25, 0.032/uPadY);
         //if (iSpc == 2)
-        //  myMarkerText (0.205, 0.22, dataColor, mcStyle, Form ("Combined Pythia8 MC (%i events)", countsMC), 1.25, 0.04/uPadY);
+        //  myMarkerText (0.205, 0.22, dataColor, mcStyle, Form ("Combined Pythia8 MC + Overlay (%i events)", countsMC), 1.25, 0.032/uPadY);
 
-        myText (0.66, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+        myText (0.66, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
         if (eta_lo != 1 || eta_hi != numetabins) {
           if (!exclusive || iEta != numetabins)
-            myText (0.66, 0.815, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
+            myText (0.66, 0.815, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.032/uPadY);
           else
-            myText (0.66, 0.815, kBlack, Form ("%g < #left|#eta_{det}^{Jet}#right|", etabins[eta_hi]), 0.04/uPadY);
-          myText (0.66, 0.76, kBlack, period, 0.04/uPadY);
+            myText (0.66, 0.815, kBlack, Form ("%g < #left|#eta_{det}^{Jet}#right|", etabins[eta_hi]), 0.032/uPadY);
+          myText (0.66, 0.76, kBlack, period, 0.032/uPadY);
         }
         else
-          myText (0.66, 0.76, kBlack, period, 0.04/uPadY);
+          myText (0.66, 0.76, kBlack, period, 0.032/uPadY);
 
         bottomCanvas->cd ();
         bottomCanvas->SetLogx ();
 
-        vJetHist_rat = GetDataOverMC (TString ("vJetPtDataMCRatio"), proj, proj_mc, numpbins, pbins, false, "x");
-        vJetHist_rat_lo = GetDataOverMC (TString ("vJetPtDataMCRatio_lo"), proj_lo, proj_mc, numpbins, pbins, false, "x");
-        vJetHist_rat_hi = GetDataOverMC (TString ("vJetPtDataMCRatio_hi"), proj_hi, proj_mc, numpbins, pbins, false, "x");
+        vJetHist_rat = (TH1D*) vJetHist->Clone ("vJetPtDataMCRatio");
+        vJetHist_rat_lo = (TH1D*) vJetHist_lo->Clone ("vJetPtDataMCRatio_lo");
+        vJetHist_rat_hi = (TH1D*) vJetHist_hi->Clone ("vJetPtDataMCRatio_hi");
+
+        vJetHist_rat->Divide (vJetHist_mc);
+        vJetHist_rat_lo->Divide (vJetHist_mc);
+        vJetHist_rat_hi->Divide (vJetHist_mc);
 
         vJetGraph_rat = make_graph (vJetHist_rat);
         vJetGraph_rat_lo = make_graph (vJetHist_rat_lo);
@@ -359,6 +365,8 @@ void ZGammaJetCrossCheckHist () {
         CalcSystematics (vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
         AddWeighted (combinedNum, combinedDen, vJetGraph_rat, vJetGraph_rat_lo, vJetGraph_rat_hi, vJetGraph);
 
+        if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
+        if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
         if (vJetHist_rat_lo) { delete vJetHist_rat_lo; vJetHist_rat_lo = NULL; }
         if (vJetHist_rat_hi) { delete vJetHist_rat_hi; vJetHist_rat_hi = NULL; }
         if (vJetGraph_rat_lo) { delete vJetGraph_rat_lo; vJetGraph_rat_lo = NULL; }
@@ -368,31 +376,28 @@ void ZGammaJetCrossCheckHist () {
         vJetGraph_rat_sys->SetFillStyle (3001);
 
         deltaize (vJetGraph_rat, pow (1.05, iSpc-1), true);
-        vJetGraph_rat->GetXaxis ()->SetTitle ("#it{p}_{T}^{V} #left[GeV#right]");
-        vJetGraph_rat->GetYaxis ()->SetTitle ("<x_{J}^{ref}>_{Data} / <x_{J}^{ref}>_{MC}");
-        vJetGraph_rat->GetYaxis ()->SetRangeUser (0.88, 1.12);
-        //vJetGraph_rat->GetYaxis ()->SetRangeUser (0.75, 1.35);
         vJetGraph_rat->SetMarkerStyle (dataStyle);
         vJetGraph_rat->SetMarkerColor (dataColor);
         vJetGraph_rat->SetLineColor (dataColor);
         vJetGraph_rat->SetLineWidth (2);
-        vJetGraph_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-        vJetGraph_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
-        vJetGraph_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-        vJetGraph_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
-        vJetGraph_rat->GetXaxis ()->SetTitleOffset (1.5*dPadY);
-        vJetGraph_rat->GetYaxis ()->SetTitleOffset (1.5*dPadY);
-        vJetGraph_rat->GetYaxis ()->CenterTitle (true);
 
-        if (iSpc == 0)
-          ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("ap");
-        else
-          ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("p");
-        ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
+        vJetGraph_rat_sys->GetXaxis ()->SetTitle ("#it{p}_{T}^{V} #left[GeV#right]");
+        vJetGraph_rat_sys->GetYaxis ()->SetTitle ("<x_{J}^{ref}>_{Data} / <x_{J}^{ref}>_{MC}");
+        vJetGraph_rat_sys->GetYaxis ()->SetRangeUser (0.88, 1.12);
+        vJetGraph_rat_sys->GetXaxis ()->SetLabelSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->SetLabelSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetXaxis ()->SetTitleSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->SetTitleSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetXaxis ()->SetTitleOffset (1);
+        vJetGraph_rat_sys->GetYaxis ()->SetTitleOffset (1.5*dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->CenterTitle (true);
+
+        ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw (iSpc == 0 ? "a2" : "2");
+        ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("p");
 
         for (TLine* line : glines) line->Draw ();
 
-        myMarkerText (0.205, 0.22+0.06*(1-iSpc), dataColor, kFullCircle, Form ("%s (%i events)", species.Data (), countsData), 1.25, 0.04/uPadY);
+        myMarkerText (0.205, 0.22+0.06*(1-iSpc), dataColor, kFullCircle, Form ("%s (%i events)", species.Data (), countsData), 1.25, 0.032/uPadY);
  
         if (vJetHist_rat) { delete vJetHist_rat; vJetHist_rat = NULL; }
         if (vJetGraph_rat) { delete vJetGraph_rat; vJetGraph_rat = NULL; }
@@ -430,17 +435,17 @@ void ZGammaJetCrossCheckHist () {
       combinedRatio[0]->Draw ("2");
       combinedRatio[1]->Draw ("p");
 
-      myMarkerText (0.205, 0.34, kBlack, kFullCircle, "Combined Z/#gamma + Jet", 1.25, 0.04/uPadY);
-      myText (0.66, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      myMarkerText (0.205, 0.34, kBlack, kFullCircle, "Combined Z/#gamma + Jet", 1.25, 0.032/uPadY);
+      myText (0.66, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
       if (eta_lo != 1 || eta_hi != numetabins) {
         if (!exclusive || iEta != numetabins)
-          myText (0.66, 0.275, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04/uPadY);
+          myText (0.66, 0.275, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.032/uPadY);
         else
-          myText (0.66, 0.275, kBlack, Form ("%g < #left|#eta_{det}^{Jet}#right|", etabins[eta_hi]), 0.04/uPadY);
-        myText (0.66, 0.22, kBlack, period, 0.04/uPadY);
+          myText (0.66, 0.275, kBlack, Form ("%g < #left|#eta_{det}^{Jet}#right|", etabins[eta_hi]), 0.032/uPadY);
+        myText (0.66, 0.22, kBlack, period, 0.032/uPadY);
       }
       else
-        myText (0.66, 0.22, kBlack, period, 0.04/uPadY);
+        myText (0.66, 0.22, kBlack, period, 0.032/uPadY);
 
       TH1D* sysCombinedRatioHist = new TH1D ("sysCombinedRatioHist", "", numpbins, pbins);
       for (int ix = 0; ix < combinedRatio[0]->GetN (); ix++) {
@@ -473,7 +478,7 @@ void ZGammaJetCrossCheckHist () {
       combinedRatio[1]->Fit (vJetRatioFit, "RN0Q");
 
       const float chisq = vJetRatioFit->GetChisquare ();
-      myText (0.175, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.04/dPadY);
+      myText (0.175, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
 
       vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numpbins, pbins);
       (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
@@ -538,79 +543,83 @@ void ZGammaJetCrossCheckHist () {
         topCanvas->SetLogx (false);
 
         proj = Project2D ("", vJetHists[iPer][0][iSpc][1], "y", "z", p_lo, p_hi);
-        proj->RebinY (rebinFactor);
-        vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, false);
+        proj->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist = GetProfileX ("vJetHist", proj, numetabins, etabins, true, etalos, etahis);
 
         double middle = 0.05 * floor (20 * vJetHist->Integral () / vJetHist->GetNbinsX ()); // gets mean along y
         if (10 * middle != floor (10*middle)) middle += 0.05;
 
         vJetGraph = make_graph (vJetHist);
         deltaize (vJetGraph, 0.03*(iSpc-0.5), false);
-        vJetGraph->GetXaxis ()->SetTitle ("Jet #eta");
-        vJetGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
-        vJetGraph->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
+
         vJetGraph->SetMarkerStyle (dataStyle);
         vJetGraph->SetMarkerColor (dataColor);
         vJetGraph->SetLineColor (dataColor);
-        vJetGraph->GetXaxis ()->SetLabelSize (0.04/uPadY);
-        vJetGraph->GetYaxis ()->SetLabelSize (0.04/uPadY);
-        vJetGraph->GetYaxis ()->SetTitleSize (0.04/uPadY);
-        vJetGraph->GetXaxis ()->SetTitleOffset (1.5*uPadY);
-        vJetGraph->GetYaxis ()->SetTitleOffset (1.5*uPadY);
+        vJetGraph->SetLineWidth (2);
 
         // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
         proj_lo = Project2D ("", vJetHists[iPer][0][iSpc][0], "y", "z", p_lo, p_hi);
-        proj_lo->RebinY (rebinFactor);
-        vJetHist_lo = GetProfileX ("vJetHist_lo", proj, numetabins, etabins, false);
+        proj_lo->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_lo = GetProfileX ("vJetHist_lo", proj, numetabins, etabins, true, etalos, etahis);
 
         proj_hi = Project2D ("", vJetHists[iPer][0][iSpc][2], "y", "z", p_lo, p_hi);
-        proj_hi->RebinY (rebinFactor);
-        vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, false);
+        proj_hi->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_hi = GetProfileX ("vJetHist_hi", proj_hi, numetabins, etabins, true, etalos, etahis);
 
         vJetGraph_sys = new TGraphAsymmErrors (vJetHist); // for plotting systematics
         CalcSystematics (vJetGraph_sys, vJetHist, vJetHist_hi, vJetHist_lo);
-        if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
-        if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
+
         vJetGraph_sys->SetFillColor (dataColor);
         vJetGraph_sys->SetFillStyle (3001);
 
         proj_mc = Project2D ("", vJetHists[iPer][1][iSpc][1], "y", "z", p_lo, p_hi);
-        proj_mc->RebinY (rebinFactor);
-        vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, false);
+        proj_mc->RebinY ((iSpc+1)*rebinFactor);
+        vJetHist_mc = GetProfileX ("vJetHist_mc", proj_mc, numetabins, etabins, true, etalos, etahis);
 
         vJetGraph_mc = make_graph (vJetHist_mc);
         deltaize (vJetGraph, 0.03*(0.5*iSpc-0.25), false);
+
         vJetGraph_mc->SetMarkerStyle (mcStyle);
         vJetGraph_mc->SetMarkerColor (mcColor);
         vJetGraph_mc->SetLineColor (mcColor);
         vJetGraph_mc->SetLineWidth (2);
 
-        if (iSpc == 0)
-          ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("ap");
-        else
-          ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("p");
-        ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw ("p");
+        vJetGraph_mc->GetXaxis ()->SetTitle ("Jet #eta");
+        vJetGraph_mc->GetYaxis ()->SetTitle ("<#it{p}_{T}^{J} / #it{p}_{T}^{ref}>");
+        vJetGraph_mc->GetYaxis ()->SetRangeUser (middle - 0.35, middle + 0.35);
+        vJetGraph_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+        vJetGraph_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+        vJetGraph_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+        vJetGraph_mc->GetXaxis ()->SetTitleOffset (1);
+        vJetGraph_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
+
+        ( (TGraphAsymmErrors*)vJetGraph_mc->Clone ())->Draw (iSpc == 0 ? "ap" : "p");
         ( (TGraphAsymmErrors*)vJetGraph_sys->Clone ())->Draw ("2");
+        ( (TGraphAsymmErrors*)vJetGraph->Clone ())->Draw ("p");
 
         int countsData = 0, countsMC = 0;
         countsData = vJetCounts[iPer][0][iSpc]->Integral (p_lo, p_hi, 1, numetabins, 1, numphibins);
         countsMC = vJetCounts[iPer][1][iSpc]->Integral (p_lo, p_hi, 1, numetabins, 1, numphibins);
 
-        myMarkerText (0.205, 0.36-0.12*(1-iSpc), dataColor, dataStyle, Form ("%s, 2016 Data (%i events)", species.Data (), countsData), 1.25, 0.04/uPadY);
-        myMarkerText (0.205, 0.30-0.12*(1-iSpc), mcColor, mcStyle, Form ("%s, Pythia8 MC (%i events)", species.Data (), countsMC), 1.25, 0.04/uPadY);
+        myMarkerText (0.205, 0.36-0.12*(1-iSpc), dataColor, dataStyle, Form ("%s, 2016 Data (%i events)", species.Data (), countsData), 1.25, 0.032/uPadY);
+        myMarkerText (0.205, 0.30-0.12*(1-iSpc), mcColor, mcStyle, Form ("%s, Pythia8 MC + Overlay (%i events)", species.Data (), countsMC), 1.25, 0.032/uPadY);
 
-        myText (0.66, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+        myText (0.66, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
         if (p_lo != 1 || p_hi != numpbins)
-          myText (0.66, 0.815, kBlack, Form ("%g < #it{p}_{T}^{V} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-        myText (0.66, 0.76, kBlack, period, 0.04/uPadY);
+          myText (0.66, 0.815, kBlack, Form ("%g < #it{p}_{T}^{V} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
+        myText (0.66, 0.76, kBlack, period, 0.032/uPadY);
         
 
         bottomCanvas->cd ();
         bottomCanvas->SetLogx (false);
 
-        vJetHist_rat = GetDataOverMC (TString (Form ("vJetPtDataMCRatio_iP%i", iP)), proj, proj_mc, numetabins, etabins, false, "x");
-        vJetHist_rat_lo = GetDataOverMC (TString (Form ("vJetPtDataMCRatio_lo_iP%i", iP)), proj_lo, proj_mc, numetabins, etabins, false, "x");
-        vJetHist_rat_hi = GetDataOverMC (TString (Form ("vJetPtDataMCRatio_hi_iP%i", iP)), proj_hi, proj_mc, numetabins, etabins, false, "x");
+        vJetHist_rat = (TH1D*) vJetHist->Clone ("vJetPtDataMCRatio");
+        vJetHist_rat_lo = (TH1D*) vJetHist_lo->Clone ("vJetPtDataMCRatio_lo");
+        vJetHist_rat_hi = (TH1D*) vJetHist_hi->Clone ("vJetPtDataMCRatio_hi");
+
+        vJetHist_rat->Divide (vJetHist_mc);
+        vJetHist_rat_lo->Divide (vJetHist_mc);
+        vJetHist_rat_hi->Divide (vJetHist_mc);
 
         vJetGraph_rat = make_graph (vJetHist_rat);
         vJetGraph_rat_lo = make_graph (vJetHist_rat_lo);
@@ -620,6 +629,8 @@ void ZGammaJetCrossCheckHist () {
         CalcSystematics (vJetGraph_rat_sys, vJetHist_rat, vJetHist_rat_hi, vJetHist_rat_lo);
         AddWeighted (combinedNum, combinedDen, vJetGraph_rat, vJetGraph_rat_lo, vJetGraph_rat_hi, vJetGraph);
 
+        if (vJetHist_lo) { delete vJetHist_lo; vJetHist_lo = NULL; }
+        if (vJetHist_hi) { delete vJetHist_hi; vJetHist_hi = NULL; }
         if (vJetHist_rat_lo) { delete vJetHist_rat_lo; vJetHist_rat_lo = NULL; }
         if (vJetHist_rat_hi) { delete vJetHist_rat_hi; vJetHist_rat_hi = NULL; }
         if (vJetGraph_rat_lo) { delete vJetGraph_rat_lo; vJetGraph_rat_lo = NULL; }
@@ -629,33 +640,29 @@ void ZGammaJetCrossCheckHist () {
         vJetGraph_rat_sys->SetFillStyle (3001);
 
         deltaize (vJetGraph_rat, 0.02*(iSpc-2), false);
-        vJetGraph_rat->GetXaxis ()->SetTitle ("Jet #eta");
-        vJetGraph_rat->GetYaxis ()->SetTitle ("<x_{J}^{ref}>_{Data} / <x_{J}^{ref}>_{MC}");
-        vJetGraph_rat->GetYaxis ()->SetRangeUser (0.91, 1.09);
-        //vJetGraph_rat->GetYaxis ()->SetRangeUser (0.75, 1.35);
         vJetGraph_rat->SetMarkerStyle (dataStyle);
-        //if (iSpc < 3)
-        //  vJetGraph_rat->SetMarkerSize (0.5);
         vJetGraph_rat->SetMarkerColor (dataColor);
         vJetGraph_rat->SetLineColor (dataColor);
-        vJetGraph_rat->GetYaxis ()->SetNdivisions (405);
-        vJetGraph_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-        vJetGraph_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
-        vJetGraph_rat->GetXaxis ()->SetTitleOffset (1.5);
-        vJetGraph_rat->GetYaxis ()->SetTitleOffset (1.5*dPadY);
-        vJetGraph_rat->GetYaxis ()->CenterTitle (true);
-        vJetGraph_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-        vJetGraph_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+        vJetGraph_rat->SetLineWidth (2);
 
-        if (iSpc == 0)
-          ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("ap");
-        else
-          ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("p");
-        ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw ("2");
+        vJetGraph_rat_sys->GetXaxis ()->SetTitle ("Jet #eta");
+        vJetGraph_rat_sys->GetYaxis ()->SetTitle ("<x_{J}^{ref}>_{Data} / <x_{J}^{ref}>_{MC}");
+        vJetGraph_rat_sys->GetYaxis ()->SetRangeUser (0.91, 1.09);
+        vJetGraph_rat_sys->GetYaxis ()->SetNdivisions (405);
+        vJetGraph_rat_sys->GetXaxis ()->SetTitleSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->SetTitleSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetXaxis ()->SetTitleOffset (1);
+        vJetGraph_rat_sys->GetYaxis ()->SetTitleOffset (1.5*dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->CenterTitle (true);
+        vJetGraph_rat_sys->GetXaxis ()->SetLabelSize (0.032/dPadY);
+        vJetGraph_rat_sys->GetYaxis ()->SetLabelSize (0.032/dPadY);
+
+        ( (TGraphAsymmErrors*)vJetGraph_rat_sys->Clone ())->Draw (iSpc == 0 ? "a2" : "2");
+        ( (TGraphAsymmErrors*)vJetGraph_rat->Clone ())->Draw ("p");
 
         for (TLine* line : glines) line->Draw ();
 
-        myMarkerText (0.205, 0.22+0.06*(1-iSpc), dataColor, kFullCircle, Form ("%s (%i events)", species.Data (), countsData), 1.25, 0.04/uPadY);
+        myMarkerText (0.205, 0.22+0.06*(1-iSpc), dataColor, kFullCircle, Form ("%s (%i events)", species.Data (), countsData), 1.25, 0.032/uPadY);
 
         //if (vJetHist_rat->Integral () != 0. && iSpc == 2) {
         //  // add systematic errors
@@ -674,7 +681,7 @@ void ZGammaJetCrossCheckHist () {
         //  vJetHist_rat->Fit (vJetRatioFit, "RN0Q");
 
         //  const float chisq = vJetRatioFit->GetChisquare ();
-        //  myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.04/dPadY);
+        //  myText (0.155, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
 
         //  vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numetabins, etabins);
         //  (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI);
@@ -727,17 +734,17 @@ void ZGammaJetCrossCheckHist () {
       ( (TGraphAsymmErrors*)(combinedRatio[1])->Clone ())->Draw ("p");
       combinedRatio[1]->Draw ("p");
 
-      myMarkerText (0.205, 0.34, kBlack, kFullCircle, "Combined Z/#gamma + Jet", 1.25, 0.04/uPadY);
-      myText (0.66, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
+      myMarkerText (0.205, 0.34, kBlack, kFullCircle, "Combined Z/#gamma + Jet", 1.25, 0.032/uPadY);
+      myText (0.66, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
       if (p_lo != 1 || p_hi != numpbins) {
         if (!exclusive || iP != numpbins)
-          myText (0.66, 0.275, kBlack, Form ("%g < #it{p}_{T}^{V} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
+          myText (0.66, 0.275, kBlack, Form ("%g < #it{p}_{T}^{V} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
         else
-          myText (0.66, 0.275, kBlack, Form ("%g < #left|#it{p}_{T}^{V}#right|", pbins[p_hi]), 0.04/uPadY);
-        myText (0.66, 0.22, kBlack, period, 0.04/uPadY);
+          myText (0.66, 0.275, kBlack, Form ("%g < #left|#it{p}_{T}^{V}#right|", pbins[p_hi]), 0.032/uPadY);
+        myText (0.66, 0.22, kBlack, period, 0.032/uPadY);
       }
       else
-        myText (0.66, 0.22, kBlack, period, 0.04/uPadY);
+        myText (0.66, 0.22, kBlack, period, 0.032/uPadY);
 
       TH1D* sysCombinedRatioHist = new TH1D ("sysCombinedRatioHist", "", numetabins, etabins);
       for (int ix = 0; ix < combinedRatio[0]->GetN (); ix++) {
@@ -769,7 +776,7 @@ void ZGammaJetCrossCheckHist () {
       sysCombinedRatioHist->Fit (vJetRatioFit, "RN0Q");
 
       const float chisq = vJetRatioFit->GetChisquare ();
-      myText (0.175, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.04/dPadY);
+      myText (0.175, 0.4, kBlack, Form ("#chi^{2} = %g", chisq), 0.032/dPadY);
 
       vJetRatioCI = new TH1D ("vJetPtDataMCRatioCI", "", numetabins, etabins);
       (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (vJetRatioCI, 0.68);
@@ -826,15 +833,14 @@ void ZGammaJetCrossCheckHist () {
         for (short iSpc = 0; iSpc < 2; iSpc++) {
           const Color_t dataColor = (iSpc == 0 ? 9 : (iSpc == 1 ? kMagenta+1 : 8));
           const Color_t mcColor = dataColor;
+
           // get data hist
           proj = Project2D ("", vJetHists[iPer][0][iSpc][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
           vJetHist = proj->ProjectionY ("vJetProjection", p_lo, p_hi);
           // rebin & scale data hist
-          vJetHist->Rebin (rebinFactor);
+          vJetHist->Rebin ((iSpc+1)*rebinFactor);
           if (vJetHist->Integral () != 0) vJetHist->Scale (1./vJetHist->Integral ());
           // format data hist
-          vJetHist->SetXTitle ("#it{x}_{J}^{ref}");
-          vJetHist->SetYTitle ("Counts / Total");
           vJetHist->SetMarkerStyle (dataStyle);
           vJetHist->SetMarkerColor (dataColor);
           vJetHist->SetLineColor (dataColor);
@@ -843,7 +849,7 @@ void ZGammaJetCrossCheckHist () {
           proj_mc = Project2D ("", vJetHists[iPer][1][iSpc][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numetabins);
           vJetHist_mc = proj_mc->ProjectionY ("vJetProjection_mc", p_lo, p_hi);
           // rebin & scale MC hist
-          vJetHist_mc->Rebin (rebinFactor);
+          vJetHist_mc->Rebin ((iSpc+1)*rebinFactor);
           if (vJetHist_mc->Integral () != 0) vJetHist_mc->Scale (1./vJetHist_mc->Integral ()); 
           // format MC hist
           vJetHist_mc->SetMarkerStyle (mcStyle);
@@ -852,71 +858,47 @@ void ZGammaJetCrossCheckHist () {
 
           const float max = std::max (vJetHist->GetMaximum (), vJetHist_mc->GetMaximum ());
 
-          vJetHist->GetYaxis ()->SetRangeUser (0., 1.3*max);
           vJetHist_mc->GetYaxis ()->SetRangeUser (0., 1.3*max);
-          
-          vJetHist->GetXaxis ()->SetLabelSize (0.04);
-          vJetHist->GetYaxis ()->SetLabelSize (0.04);
-          vJetHist->GetXaxis ()->SetTitleSize (0.04);
-          vJetHist->GetYaxis ()->SetTitleSize (0.04);
-          vJetHist->GetYaxis ()->SetTitleOffset (1.1);
+          vJetHist_mc->SetXTitle ("#it{x}_{J}^{ref}");
+          vJetHist_mc->SetYTitle ("Counts / Total");
+          vJetHist_mc->GetXaxis ()->SetLabelSize (0.032);
+          vJetHist_mc->GetYaxis ()->SetLabelSize (0.032);
+          vJetHist_mc->GetXaxis ()->SetTitleSize (0.032);
+          vJetHist_mc->GetYaxis ()->SetTitleSize (0.032);
+          vJetHist_mc->GetYaxis ()->SetTitleOffset (1.1);
 
-          vJetHist_mc->SetMarkerStyle (mcStyle);
-          vJetHist_mc->SetMarkerColor (mcColor);
-          vJetHist_mc->SetLineColor (mcColor);
-
-          if (iSpc == 0)
-            vJetHist_mc->DrawCopy ("e1 x0");
-          else
-            vJetHist_mc->DrawCopy ("same e1 x0");
+          vJetHist_mc->DrawCopy (iSpc == 0 ? "e1 x0" : "same e1 x0");
           vJetHist->DrawCopy ("same e1 x0");
 
           float mean, mean_err, mean_mc, mean_mc_err, stddev;
-          TF1 *fit_data = NULL, *fit_mc = NULL; 
           if (useGaussian) {
-            mean = vJetHist->GetMean ();
-            stddev = vJetHist->GetStdDev ();
-            fit_data = new TF1 ("fit_data", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
-            //fit_data = new TF1 ("fit_data", "[0]*x^([1])*e^(-x/[2])", 0, 2);// mean - 1*stddev, mean + 2*stddev);
-            //fit_data = new TF1 ("fit_data", "[0]/(sqrt(2*pi)*[2])  *e^(-(x-[1])^2/(2*[2]^2))  *(1+erf([3]/sqrt(2)*(x-[1])/[2]))", mean-3*stddev, mean+3*stddev);
-            //fit_data->SetParameter (0, 1);
-            //fit_data->SetParameter (1, mean);
-            //fit_data->SetParameter (2, stddev);
-            //fit_data->SetParameter (3, 0);
+            TF1 *fit_data = NULL, *fit_mc = NULL; 
+
+            //mean = vJetHist->GetMean ();
+            //stddev = vJetHist->GetStdDev ();
+            fit_data = new TF1 ("fit_data", "gaus (0)", plos[iP], phis[iP]);
+            //fit_data = new TF1 ("fit_data", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
             vJetHist->Fit (fit_data, "Q0R");
 
-            mean = vJetHist_mc->GetMean ();
-            stddev = vJetHist_mc->GetStdDev ();
-            fit_mc = new TF1 ("fit_mc", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
-            //fit_mc = new TF1 ("fit_mc", "[0]*x^([1])*e^(-x/[2])", 0, 2);//, mean - 1*stddev, mean + 2*stddev);
-            //fit_mc = new TF1 ("fit_mc", "[0]/(sqrt(2*pi)*[2]) * e^(-(x-[1])^2/(2*[2]^2)) * (1+erf([3]/sqrt(2)*(x-[1])/[2]))", mean-3*stddev, mean+3*stddev);
-            //fit_mc->SetParameter (0, 1);
-            //fit_mc->SetParameter (1, mean);
-            //fit_mc->SetParameter (2, stddev);
-            //fit_mc->SetParameter (3, 0);
+            //mean = vJetHist_mc->GetMean ();
+            //stddev = vJetHist_mc->GetStdDev ();
+            fit_mc = new TF1 ("fit_mc", "gaus (0)", plos_mc[iP], phis_mc[iP]);
+            //fit_mc = new TF1 ("fit_mc", "gaus (0)", mean - 2.8*stddev, mean + 2.8*stddev);
             vJetHist_mc->Fit (fit_mc, "Q0R");
 
             mean = fit_data->GetParameter (1);
             mean_err = fit_data->GetParError (1);
-            //float m = fit_data->GetParameter (1);
-            //float s = fit_data->GetParameter (2);
-            //float a = fit_data->GetParameter (3);
-            //float me = fit_data->GetParError (1);
-            //float se = fit_data->GetParError (2);
-            //float ae = fit_data->GetParError (3);
-            //mean = m + sqrt (2/pi)*s*a / sqrt (1+a*a);
-            //mean_err = sqrt (me*me + (2/pi)*se*se*a*a / (1+a*a) + (2/pi)*s*s*ae*ae / pow (1+a*a, 3));
 
             mean_mc = fit_mc->GetParameter (1);
             mean_mc_err = fit_mc->GetParError (1);
-            //m = fit_mc->GetParameter (1);
-            //s = fit_mc->GetParameter (2);
-            //a = fit_mc->GetParameter (3);
-            //me = fit_mc->GetParError (1);
-            //se = fit_mc->GetParError (2);
-            //ae = fit_mc->GetParError (3);
-            //mean_mc = m + sqrt (2/pi)*s*a / sqrt (1+a*a);
-            //mean_mc_err = sqrt (me*me + (2/pi)*se*se*a*a / (1+a*a) + (2/pi)*s*s*ae*ae / pow (1+a*a, 3));
+
+            fit_data->SetLineColor (dataColor);
+            fit_mc->SetLineColor (mcColor);
+            ( (TF1*)fit_mc->Clone ())->Draw ("same");
+            ( (TF1*)fit_data->Clone ())->Draw ("same");
+
+            if (fit_data) { delete fit_data; fit_data = NULL; }
+            if (fit_mc) { delete fit_mc; fit_mc = NULL; }
           }
           else {
             mean = vJetHist->GetMean ();
@@ -924,14 +906,6 @@ void ZGammaJetCrossCheckHist () {
             mean_mc = vJetHist_mc->GetMean ();
             mean_mc_err = vJetHist_mc->GetMeanError ();
           }
-
-          fit_data->SetLineColor (dataColor);
-          fit_mc->SetLineColor (mcColor);
-          ( (TF1*)fit_mc->Clone ())->Draw ("same");
-          ( (TF1*)fit_data->Clone ())->Draw ("same");
-
-          if (fit_data) delete fit_data;
-          if (fit_mc) delete fit_mc;
 
           int countsData = 0, countsMC = 0;
           if (exclusive && iEta == numetabins) {
@@ -943,11 +917,11 @@ void ZGammaJetCrossCheckHist () {
             countsMC = vJetCounts[iPer][1][iSpc]->Integral (1, numpbins, eta_lo, eta_hi, 1, numphibins);
           }
 
-          myMarkerText (0.175, 0.88-0.12*iSpc, dataColor, dataStyle, Form ("%s + Jets, 2016 Data (%i events)", (iSpc==0?"#gamma":"Z"), countsData), 1.25, 0.04);
-          myMarkerText (0.175, 0.82-0.12*iSpc, mcColor, mcStyle, Form ("%s + Jets, Pythia8 MC (%i events)", (iSpc==0?"#gamma":"Z"), countsMC), 1.25, 0.04);
+          myMarkerText (0.175, 0.88-0.12*iSpc, dataColor, dataStyle, Form ("%s + Jets, 2016 Data (%i events)", (iSpc==0?"#gamma":"Z"), countsData), 1.25, 0.032);
+          myMarkerText (0.175, 0.82-0.12*iSpc, mcColor, mcStyle, Form ("%s + Jets, Pythia8 MC + Overlay (%i events)", (iSpc==0?"#gamma":"Z"), countsMC), 1.25, 0.032);
 
-          myText (0.655, 0.88-0.12*iSpc, dataColor, Form ("#mu_{Data} = %s", FormatMeasurement (mean, mean_err, 1)), 0.04);
-          myText (0.655, 0.82-0.12*iSpc, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err, 1)), 0.04);
+          myText (0.655, 0.88-0.12*iSpc, dataColor, Form ("#mu_{Data} = %s", FormatMeasurement (mean, mean_err, 1)), 0.032);
+          myText (0.655, 0.82-0.12*iSpc, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err, 1)), 0.032);
 
           if (vJetHist) { delete vJetHist; vJetHist = NULL; }
           if (vJetHist_mc) { delete vJetHist_mc; vJetHist_mc = NULL; }
@@ -956,10 +930,10 @@ void ZGammaJetCrossCheckHist () {
           if (proj_mc) { delete proj_mc; proj_mc = NULL; }
         }
 
-        myText (0.155, 0.43, kBlack, Form ("#gamma + Jet, %s", period), 0.04);
-        myText (0.155, 0.37, kBlack, Form ("%g < #it{p}_{T}^{ref} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04);
-        myText (0.155, 0.31, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.04);
-        myText (0.155, 0.25, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        myText (0.155, 0.43, kBlack, Form ("#gamma + Jet, %s", period), 0.032);
+        myText (0.155, 0.37, kBlack, Form ("%g < #it{p}_{T}^{ref} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032);
+        myText (0.155, 0.31, kBlack, Form ("%g < #eta_{det}^{Jet} < %g", etabins[eta_lo-1], etabins[eta_hi]), 0.032);
+        myText (0.155, 0.25, kBlack, "#bf{#it{ATLAS}} Internal", 0.032);
 
         //bottomPad->cd ();
         //bottomPad->SetLogx (false);
@@ -968,13 +942,13 @@ void ZGammaJetCrossCheckHist () {
         //vJetHist->SetYTitle ("Data / MC");
         //vJetHist->SetAxisRange (0.45, 1.65, "Y");
         //vJetHist->GetYaxis ()->SetNdivisions (605);
-        //vJetHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
-        //vJetHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
+        //vJetHist->GetXaxis ()->SetTitleSize (0.032/dPadY);
+        //vJetHist->GetYaxis ()->SetTitleSize (0.032/dPadY);
         //vJetHist->GetXaxis ()->SetTitleOffset (1);
         //vJetHist->GetYaxis ()->SetTitleOffset (1.1*dPadY);
         //vJetHist->GetYaxis ()->CenterTitle (true);
-        //vJetHist->GetXaxis ()->SetLabelSize (0.04/dPadY);
-        //vJetHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
+        //vJetHist->GetXaxis ()->SetLabelSize (0.032/dPadY);
+        //vJetHist->GetYaxis ()->SetLabelSize (0.032/dPadY);
         //vJetHist->GetXaxis ()->SetTickLength (0.08);
 
         //vJetHist->DrawCopy ("e1 x0"); 
@@ -984,10 +958,8 @@ void ZGammaJetCrossCheckHist () {
         rawDistCanvas->SaveAs (Form ("%s/Period%s/%s", plotPath.Data (), iPer == 0 ? "A" : (iPer == 1 ? "B" : "AB"), plotName));
         
       } // end loop over pT bins
-
     } // end loop over eta bins
   } // end loop over beam periods
-
 
   return;
 }

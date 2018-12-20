@@ -5,7 +5,7 @@ version=400
 #./bin/runRtrkComparison data${version} 313067 1.24 false true &
 #./bin/runRtrkComparison data${version} 313100 9.66 false true &
 #./bin/runRtrkComparison data${version} 313107 11.92 false true & 
-./bin/runRtrkComparison data${version} 313136 10.4 false true & 
+#./bin/runRtrkComparison data${version} 313136 10.4 false true & 
 #./bin/runRtrkComparison data${version} 313187 3.67 false true &
 #
 #wait
@@ -42,7 +42,7 @@ version=400
 #./bin/runRtrkComparison data${version} 314105 6.50 false false &
 #./bin/runRtrkComparison data${version} 314112 10.49 false false &
 ./bin/runRtrkComparison data${version} 314157 9.83 false false & 
-#./bin/runRtrkComparison data${version} 314170 4.92 false false & 
+./bin/runRtrkComparison data${version} 314170 4.92 false false & 
 #
 wait
 #

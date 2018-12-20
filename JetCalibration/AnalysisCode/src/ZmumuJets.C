@@ -91,7 +91,7 @@ void ZmumuJets (const char* directory,
   double evtWeight = 0;
   bool _isMC = isMC, _isPeriodA = isPeriodA;
 
-  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/F");
+  outTree->Branch ("evt_weight", &evtWeight, "evt_weight/D");
   outTree->Branch ("isMC", &_isMC, "isMC/O");
   outTree->Branch ("isPeriodA", &_isPeriodA, "isPeriodA/O");
   outTree->Branch ("Z_pt", &zpt, "Z_pt/F");
@@ -119,17 +119,16 @@ void ZmumuJets (const char* directory,
     /////////////////////////////////////////////////////////////////////////////
     if (t->nvert <= 0 || (t->nvert >= 1 && t->vert_type->at (0) != 1)) continue;
 
-
     /////////////////////////////////////////////////////////////////////////////
     // now reject events with less than 2 muons
     /////////////////////////////////////////////////////////////////////////////
     if (t->muon_n < 2) continue;
 
-
     /////////////////////////////////////////////////////////////////////////////
     // Z->mumu + jet type events
     /////////////////////////////////////////////////////////////////////////////
     for (int m1 = 0; m1 < t->muon_n; m1++) { // loop over primary muon
+
       /////////////////////////////////////////////////////////////////////////////
       // primary muon cuts
       /////////////////////////////////////////////////////////////////////////////
@@ -137,7 +136,7 @@ void ZmumuJets (const char* directory,
         continue; // basic muon pT cuts
       if (!t->muon_loose->at (m1))
         continue; // require loose muons
-      if (2.4 < abs (t->muon_eta->at (m1)))
+      if (2.4 < fabs (t->muon_eta->at (m1)))
         continue; // reject muons reconstructed outside muon spectrometer
 
       for (int m2 = 0; m2 < m1; m2++) { // loop over secondary muon
@@ -148,7 +147,7 @@ void ZmumuJets (const char* directory,
           continue; // basic muon pT cuts
         if (!t->muon_loose->at (m2))
           continue; // require loose muons
-        if (2.4 < abs (t->muon_eta->at (m2))) 
+        if (2.4 < fabs (t->muon_eta->at (m2))) 
           continue; // reject muons reconstructed outside muon spectrometer
 
         /////////////////////////////////////////////////////////////////////////////
@@ -157,8 +156,7 @@ void ZmumuJets (const char* directory,
         TLorentzVector muon1, muon2;
         muon1.SetPtEtaPhiM (t->muon_pt->at (m1), t->muon_eta->at (m1), t->muon_phi->at (m1), muon_mass);
         muon2.SetPtEtaPhiM (t->muon_pt->at (m2), t->muon_eta->at (m2), t->muon_phi->at (m2), muon_mass);
-        const int lm = (t->muon_pt->at (m1) > t->muon_pt->at (m2) ? m1 : m2);
-        const double leading_muon_pt = t->muon_pt->at (lm);
+        const double leading_muon_pt = std::max (t->muon_pt->at (m1), t->muon_pt->at (m2));
 
         /////////////////////////////////////////////////////////////////////////////
         // triggering and event weighting
@@ -207,50 +205,50 @@ void ZmumuJets (const char* directory,
         /////////////////////////////////////////////////////////////////////////////
         // jet finding
         /////////////////////////////////////////////////////////////////////////////
-        int lj = -1;
-        for (int j = 0; j < t->jet_n; j++) {
-          if (t->jet_pt->at (j) < jet_pt_cut)
+        int lJ = -1;
+        for (int iJ = 0; iJ < t->jet_n; iJ++) {
+          if (t->jet_pt->at (iJ) < jet_pt_cut)
             continue; // basic jet pT cut
-          if (!InHadCal (t->jet_eta->at (j), 0.4))
+          if (!InHadCal (t->jet_eta->at (iJ), 0.4))
             continue; // require jets inside hadronic calorimeter
-          if (InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+          if (InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at (iJ)))
             continue; // Reject event on additional HEC cuts
-          if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (j), t->muon_phi->at (m1), t->jet_phi->at (j)) < 0.2 ||
-              DeltaR (t->muon_eta->at (m2), t->jet_eta->at (j), t->muon_phi->at (m2), t->jet_phi->at (j)) < 0.2)
+          if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (iJ), t->muon_phi->at (m1), t->jet_phi->at (iJ)) < 0.2 ||
+              DeltaR (t->muon_eta->at (m2), t->jet_eta->at (iJ), t->muon_phi->at (m2), t->jet_phi->at (iJ)) < 0.2)
             continue; // require jets to be isolated from both muons
-          if (DeltaPhi (t->jet_phi->at (j), Z.Phi ()) < 3*pi/4)
+          if (DeltaPhi (t->jet_phi->at (iJ), Z.Phi ()) < 3*pi/4)
             continue; // require jet to be back-to-back with Z in transverse plane
 
           // compare to leading jet
-          else if (lj == -1 || t->jet_pt->at (lj) < t->jet_pt->at (j)) {
-            lj = j;
+          else if (lJ == -1 || t->jet_pt->at (lJ) < t->jet_pt->at (iJ)) {
+            lJ = iJ;
           }
         } // end jet finding loop
-        if (lj == -1) // true iff no candidate jet is found
+        if (lJ == -1) // true iff no candidate jet is found
           continue; // reject on no candidate jet
 
         /////////////////////////////////////////////////////////////////////////////
         // relevant jet kinematic data
         /////////////////////////////////////////////////////////////////////////////
-        jpt = t->jet_pt->at (lj);
-        jeta = t->jet_eta->at (lj);
-        jphi = t->jet_phi->at (lj);
-        je = t->jet_e->at (lj);
+        jpt = t->jet_pt->at (lJ);
+        jeta = t->jet_eta->at (lJ);
+        jphi = t->jet_phi->at (lJ);
+        je = t->jet_e->at (lJ);
 
         /////////////////////////////////////////////////////////////////////////////
         // jet cuts
         /////////////////////////////////////////////////////////////////////////////
         bool hasOtherJet = false;
-        for (int j = 0; j < t->jet_n; j++) {
-          if (j == lj)
+        for (int iJ = 0; iJ < t->jet_n; iJ++) {
+          if (iJ == lJ)
             continue; // don't look at the leading jet, its our candidate :)
-          if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (j), t->muon_phi->at (m1), t->jet_phi->at (j)) < 0.2 ||
-              DeltaR (t->muon_eta->at (m2), t->jet_eta->at (j), t->muon_phi->at (m2), t->jet_phi->at (j)) < 0.2)
+          if (DeltaR (t->muon_eta->at (m1), t->jet_eta->at (iJ), t->muon_phi->at (m1), t->jet_phi->at (iJ)) < 0.2 ||
+              DeltaR (t->muon_eta->at (m2), t->jet_eta->at (iJ), t->muon_phi->at (m2), t->jet_phi->at (iJ)) < 0.2)
             continue; // require jets to be isolated from both muons
-          if (t->jet_pt->at (j) < 12 || InDisabledHEC (t->jet_eta->at (j), t->jet_phi->at (j)))
+          if (t->jet_pt->at (iJ) < 12 || InDisabledHEC (t->jet_eta->at (iJ), t->jet_phi->at (iJ)))
             continue; // basic jet pT cut, also reject on the disabled HEC
-          const double s_dphi = DeltaPhi (t->jet_phi->at (j), Z.Phi ());
-          if (0.1 < t->jet_pt->at (j) / (Z.Pt () * cos (pi - s_dphi))) {
+          const double s_dphi = DeltaPhi (t->jet_phi->at (iJ), Z.Phi ());
+          if (0.1 < t->jet_pt->at (iJ) / (Z.Pt () * cos (pi - s_dphi))) {
             hasOtherJet = true;
             break;
           }
@@ -272,7 +270,6 @@ void ZmumuJets (const char* directory,
       }
     } // end loop over muon pairs
   } // end loop over events
-
 
   // close root files with systematics
   xCalibSystematicsFile->Close ();

@@ -97,7 +97,7 @@ void RtrkComparisonHist () {
     const short iPer = isPeriodA ? 0 : 1;
     const short iMC = isMC ? (isSignalOnly ? 2 : 1) : 0;
 
-    const float jtrk = jtrk1000;
+    const float jtrk = jtrk500;
 
     // for Rtrk with jets
     jetRtrkHists[iPer][iMC][1]->Fill (jpt, jeta, jtrk/jpt, evtWeight*fcalScaleFactor);
@@ -179,6 +179,9 @@ void RtrkComparisonHist () {
   TH2D *proj2d = NULL, *proj2d_mc = NULL, *proj2d_mc_sig = NULL, *proj2d_lo = NULL, *proj2d_hi = NULL;
   TGraphAsymmErrors *jetRtrkGraph_sys = NULL, *jetRtrkGraph_rat_sys = NULL, *jetRtrkGraph_rat_sys_sig = NULL;
 
+  const double* rtrk_los = linspace (0.2, 0.2, std::max (numpbins, numetabins));
+  const double* rtrk_his = linspace (0.9, 0.9, std::max (numpbins, numetabins));
+
   for (short iPer = 0; iPer < 3; iPer++) { // loop over period configurations
     const char* period = (iPer == 0 ? "Period A" : (iPer == 1 ? "Period B" : "Period A+B"));
     const char* per = (iPer == 0 ? "pA" : (iPer == 1 ? "pB" : "pAB"));
@@ -195,7 +198,7 @@ void RtrkComparisonHist () {
 
       proj2d = Project2D ("", jetRtrkHists[iPer][0][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d->RebinY (rebinFactor);
-      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numpbins, pbins, false);
+      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       jetRtrkHist->SetMarkerStyle (markerStyle);
       jetRtrkHist->SetMarkerColor (dataColor);
@@ -204,11 +207,11 @@ void RtrkComparisonHist () {
       // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
       proj2d_lo = Project2D ("", jetRtrkHists[iPer][0][0], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_lo->RebinY (rebinFactor);
-      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numpbins, pbins, false);
+      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       proj2d_hi = Project2D ("", jetRtrkHists[iPer][0][2], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_hi->RebinY (rebinFactor);
-      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numpbins, pbins, false);
+      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
       CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
@@ -220,26 +223,26 @@ void RtrkComparisonHist () {
 
       proj2d_mc = Project2D ("", jetRtrkHists[iPer][1][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
       proj2d_mc->RebinY (rebinFactor);
-      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numpbins, pbins, false);
+      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numpbins, pbins, true, rtrk_los, rtrk_his);
 
       if (iPer != 1 && !skipSignalMC) {
         proj2d_mc_sig = Project2D ("", jetRtrkHists[iPer][2][1], "x", "z", eta_lo, eta_hi, exclusive && iEta == numtrketabins);
         proj2d_mc_sig->RebinY (rebinFactor);
-        jetRtrkHist_mc_sig = GetProfileX ("jetRtrk_Hist_mc_sig", proj2d_mc_sig, numpbins, pbins, false);
+        jetRtrkHist_mc_sig = GetProfileX ("jetRtrk_Hist_mc_sig", proj2d_mc_sig, numpbins, pbins, true, rtrk_los, rtrk_his);
 
         jetRtrkHist_mc_sig->SetMarkerStyle (markerStyle);
         jetRtrkHist_mc_sig->SetMarkerColor (mcSignalColor);
         jetRtrkHist_mc_sig->SetLineColor (mcSignalColor);
       }
 
-      jetRtrkHist_mc->GetYaxis ()->SetTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}>");
+      jetRtrkHist_mc->GetYaxis ()->SetTitle ("<#Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}>");
       jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 2.0);
       jetRtrkHist_mc->SetMarkerStyle (markerStyle);
       jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
       jetRtrkHist_mc->SetLineColor (mcOverlayColor);
-      jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-      jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-      jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
       jetRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
       jetRtrkHist_mc->Draw ("e1 x0");
@@ -261,28 +264,28 @@ void RtrkComparisonHist () {
         nJetMCSig = jetRtrkCounts[iPer][2]->Integral (1, numpbins, eta_lo, eta_hi);
       }
       int ntext = 0;
-      myMarkerText (0.225, 0.88-(ntext++)*0.07, dataColor, markerStyle, Form ("2016 Data (%i events)", nJetData), 1.25, 0.04/uPadY);
-      myMarkerText (0.225, 0.88-(ntext++)*0.07, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", nJetMC), 1.25, 0.04/uPadY);
+      myMarkerText (0.225, 0.88-(ntext++)*0.07, dataColor, markerStyle, Form ("2016 Data (%i events)", nJetData), 1.25, 0.032/uPadY);
+      myMarkerText (0.225, 0.88-(ntext++)*0.07, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", nJetMC), 1.25, 0.032/uPadY);
       if (iPer != 1 && !skipSignalMC)
-        myMarkerText (0.225, 0.88-(ntext++)*0.07, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", nJetMCSig), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.88-(ntext++)*0.07, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", nJetMCSig), 1.25, 0.032/uPadY);
       if (eta_lo != 1 || eta_hi != numtrketabins) {
         if (exclusive && iEta == numtrketabins) {
           if (fabs (trketabins[eta_lo-1]) == fabs (trketabins[eta_hi]))
-            myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("#left|#eta_{det}^{jet}#right| > %g", trketabins[eta_hi]), 0.04/uPadY);
+            myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("#left|#eta_{det}^{jet}#right| > %g", trketabins[eta_hi]), 0.032/uPadY);
           else
-            myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("#eta_{det}^{jet} < %g #union #eta_{det}^{jet} > %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+            myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("#eta_{det}^{jet} < %g #union #eta_{det}^{jet} > %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
         }
         else
-          myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("%g < #eta_{det}^{jet} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.04/uPadY);
+          myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("%g < #eta_{det}^{jet} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
       }
-      myText (0.195, 0.88-(ntext++)*0.07, kBlack, period, 0.04/uPadY);
+      myText (0.195, 0.88-(ntext++)*0.07, kBlack, period, 0.032/uPadY);
 
       bottomPad->cd ();
       bottomPad->SetLogx ();
 
-      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iEta%i", per, iEta), proj2d, proj2d_mc, numpbins, pbins, false, "x");
-      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc, numpbins, pbins, false, "x");
-      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc, numpbins, pbins, false, "x");
+      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iEta%i", per, iEta), proj2d, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
 
       jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
       jetRtrkGraph_rat_sys->SetName (Form ("jetRtrk_DataMCRatio_sys_%s_iEta%i", per, iEta));
@@ -298,9 +301,9 @@ void RtrkComparisonHist () {
       jetRtrkHist_rat->SetMarkerColor (dataColor);
 
       if (iPer != 1 && !skipSignalMC) {
-        jetRtrkHist_rat_sig = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_%s_iEta%i", per, iEta), proj2d, proj2d_mc_sig, numpbins, pbins, false, "x");
-        jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc_sig, numpbins, pbins, false, "x");
-        jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc_sig, numpbins, pbins, false, "x");
+        jetRtrkHist_rat_sig = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_%s_iEta%i", per, iEta), proj2d, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+        jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_lo_%s_iEta%i", per, iEta), proj2d_lo, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
+        jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_hi_%s_iEta%i", per, iEta), proj2d_hi, proj2d_mc_sig, numpbins, pbins, true, "x", rtrk_los, rtrk_his);
 
         jetRtrkGraph_rat_sys_sig = new TGraphAsymmErrors (jetRtrkHist_rat_sig);
         jetRtrkGraph_rat_sys_sig->SetName (Form ("jetRtrk_DataMCRatio_Signal_sys_%s_iEta%i", per, iEta));
@@ -320,13 +323,13 @@ void RtrkComparisonHist () {
       jetRtrkHist_rat->GetYaxis ()->SetTitle ("Data / MC");
       jetRtrkHist_rat->GetYaxis ()->SetRangeUser (0.94, 1.06);
       //jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.032/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.032/dPadY);
       jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
       jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (1.5*dPadY);
       jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.032/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
       jetRtrkHist_rat->Draw ("e1 x0");
@@ -339,7 +342,7 @@ void RtrkComparisonHist () {
 
       TF1* constFit = new TF1 ("constFit", "[0]", pbins[0], pbins[numpbins]);
       jetRtrkHist_rat->Fit (constFit, "R0QN");
-      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.04/dPadY);
+      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.032/dPadY);
       if (constFit) { delete constFit; constFit = NULL; }
 
       char* plotName;
@@ -391,7 +394,7 @@ void RtrkComparisonHist () {
 
       proj2d = Project2D ("", jetRtrkHists[iPer][0][1], "y", "z", p_lo, p_hi);
       proj2d->RebinY (rebinFactor);
-      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numtrketabins, trketabins, false);
+      jetRtrkHist = GetProfileX ("jetRtrk_Hist", proj2d, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
       jetRtrkHist->SetMarkerStyle (markerStyle);
       jetRtrkHist->SetMarkerColor (dataColor);
@@ -400,11 +403,11 @@ void RtrkComparisonHist () {
       // Now calculate systematics by taking the TProfile, then set as the errors to the TGraphAsymmErrors object
       proj2d_lo = Project2D ("", jetRtrkHists[iPer][0][0], "y", "z", p_lo, p_hi);
       proj2d_lo->RebinY (rebinFactor);
-      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numtrketabins, pbins, false);
+      jetRtrkHist_lo = GetProfileX ("jetRtrk_Hist_lo", proj2d_lo, numtrketabins, pbins, true, rtrk_los, rtrk_his);
 
       proj2d_hi = Project2D ("", jetRtrkHists[iPer][0][2], "y", "z", p_lo, p_hi);
       proj2d_hi->RebinY (rebinFactor);
-      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numtrketabins, pbins, false);
+      jetRtrkHist_hi = GetProfileX ("jetRtrk_Hist_hi", proj2d_hi, numtrketabins, pbins, true, rtrk_los, rtrk_his);
 
       jetRtrkGraph_sys = new TGraphAsymmErrors (jetRtrkHist); // for plotting systematics
       CalcSystematics (jetRtrkGraph_sys, jetRtrkHist, jetRtrkHist_hi, jetRtrkHist_lo);
@@ -416,7 +419,7 @@ void RtrkComparisonHist () {
 
       proj2d_mc = Project2D ("", jetRtrkHists[iPer][1][1], "y", "z", p_lo, p_hi);
       proj2d_mc->RebinY (rebinFactor);
-      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numtrketabins, trketabins, false);
+      jetRtrkHist_mc = GetProfileX ("jetRtrk_Hist_mc", proj2d_mc, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
       jetRtrkHist_mc->SetMarkerStyle (markerStyle);
       jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
@@ -424,17 +427,17 @@ void RtrkComparisonHist () {
 
       proj2d_mc_sig = Project2D ("", jetRtrkHists[iPer][2][1], "y", "z", p_lo, p_hi);
       proj2d_mc_sig->RebinY (rebinFactor);
-      jetRtrkHist_mc_sig = GetProfileX ("jetRtrk_Hist_mc_sig", proj2d_mc_sig, numtrketabins, trketabins, false);
+      jetRtrkHist_mc_sig = GetProfileX ("jetRtrk_Hist_mc_sig", proj2d_mc_sig, numtrketabins, trketabins, true, rtrk_los, rtrk_his);
 
       jetRtrkHist_mc_sig->SetMarkerStyle (markerStyle);
       jetRtrkHist_mc_sig->SetMarkerColor (mcSignalColor);
       jetRtrkHist_mc_sig->SetLineColor (mcSignalColor);
 
-      jetRtrkHist_mc->GetYaxis ()->SetTitle ("< #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}>");
+      jetRtrkHist_mc->GetYaxis ()->SetTitle ("<#Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}>");
       jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 2.0);
-      jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-      jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-      jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+      jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+      jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+      jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
       jetRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
       jetRtrkHist_mc->Draw ("e1 x0");
@@ -447,20 +450,20 @@ void RtrkComparisonHist () {
       const int nJetMC = jetRtrkCounts[iPer][1]->Integral (p_lo, p_hi, 1, numtrketabins);
       const int nJetMCSig = jetRtrkCounts[iPer][2]->Integral (p_lo, p_hi, 1, numtrketabins);
       int ntext = 0;
-      myMarkerText (0.225, 0.88-(ntext++)*0.07, dataColor, markerStyle, Form ("2016 Data (%i events)", nJetData), 1.25, 0.04/uPadY);
-      myMarkerText (0.225, 0.88-(ntext++)*0.07, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", nJetMC), 1.25, 0.04/uPadY);
+      myMarkerText (0.225, 0.88-(ntext++)*0.07, dataColor, markerStyle, Form ("2016 Data (%i events)", nJetData), 1.25, 0.032/uPadY);
+      myMarkerText (0.225, 0.88-(ntext++)*0.07, mcOverlayColor, markerStyle, Form ("Pythia8 MC + Overlay (%i events)", nJetMC), 1.25, 0.032/uPadY);
       if (iPer != 1 && !skipSignalMC)
-        myMarkerText (0.225, 0.88-(ntext++)*0.07, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", nJetMCSig), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.88-(ntext++)*0.07, mcSignalColor, markerStyle, Form ("Pythia8 MC (%i events)", nJetMCSig), 1.25, 0.032/uPadY);
       if (p_lo != 1 || p_hi != numpbins)
-        myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-      myText (0.195, 0.88-(ntext++)*0.07, kBlack, period, 0.04/uPadY);
+        myText (0.195, 0.88-(ntext++)*0.07, kBlack, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
+      myText (0.195, 0.88-(ntext++)*0.07, kBlack, period, 0.032/uPadY);
 
       bottomPad->cd ();
       bottomPad->SetLogx (false);
 
-      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iP%i", per, iP), proj2d, proj2d_mc, numtrketabins, trketabins, false, "x");
-      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc, numtrketabins, trketabins, false, "x");
-      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc, numtrketabins, trketabins, false, "x");
+      jetRtrkHist_rat = GetDataOverMC (Form ("jetRtrk_DataMCRatio_%s_iP%i", per, iP), proj2d, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+      jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+      jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
 
       jetRtrkGraph_rat_sys = new TGraphAsymmErrors (jetRtrkHist_rat);
       jetRtrkGraph_rat_sys->SetName (Form ("jetRtrk_DataMCRatio_sys_%s_iP%i", per, iP));
@@ -476,9 +479,9 @@ void RtrkComparisonHist () {
       jetRtrkHist_rat->SetMarkerColor (dataColor);
 
       if (iPer != 1 && !skipSignalMC) {
-        jetRtrkHist_rat_sig = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_%s_iP%i", per, iP), proj2d, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
-        jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
-        jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc_sig, numtrketabins, trketabins, false, "x");
+        jetRtrkHist_rat_sig = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_%s_iP%i", per, iP), proj2d, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+        jetRtrkHist_rat_lo = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_lo_%s_iP%i", per, iP), proj2d_lo, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
+        jetRtrkHist_rat_hi = GetDataOverMC (Form ("jetRtrk_DataMCRatio_Signal_hi_%s_iP%i", per, iP), proj2d_hi, proj2d_mc_sig, numtrketabins, trketabins, true, "x", rtrk_los, rtrk_his);
 
         jetRtrkGraph_rat_sys_sig = new TGraphAsymmErrors (jetRtrkHist_rat_sig);
         jetRtrkGraph_rat_sys_sig->SetName (Form ("jetRtrk_DataMCRatio_Signal_sys_%s_iP%i", per, iP));
@@ -498,13 +501,13 @@ void RtrkComparisonHist () {
       jetRtrkHist_rat->GetYaxis ()->SetTitle ("Data / MC");
       jetRtrkHist_rat->GetYaxis ()->SetRangeUser (0.94, 1.06);
       //jetRtrkHist_rat->GetYaxis ()->SetNdivisions (405);
-      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.04/dPadY);
-      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetTitleSize (0.032/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetTitleSize (0.032/dPadY);
       jetRtrkHist_rat->GetXaxis ()->SetTitleOffset (1);
       jetRtrkHist_rat->GetYaxis ()->SetTitleOffset (1.5*dPadY);
       jetRtrkHist_rat->GetYaxis ()->CenterTitle (true);
-      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.04/dPadY);
-      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.04/dPadY);
+      jetRtrkHist_rat->GetXaxis ()->SetLabelSize (0.032/dPadY);
+      jetRtrkHist_rat->GetYaxis ()->SetLabelSize (0.032/dPadY);
       jetRtrkHist_rat->GetXaxis ()->SetTickLength (0.08);
 
       jetRtrkHist_rat->Draw ("e1 x0");
@@ -517,7 +520,7 @@ void RtrkComparisonHist () {
 
       TF1* constFit = new TF1 ("constFit", "[0]", etabins[0], etabins[numetabins]);
       jetRtrkHist_rat->Fit (constFit, "R0QN");
-      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.04/dPadY);
+      myText (0.195, 0.33, kBlack, Form ("#mu = %.3f #pm %.3f", constFit->GetParameter (0), constFit->GetParError (0)), 0.032/dPadY);
       if (constFit) { delete constFit; constFit = NULL; }
 
       char* plotName;
@@ -585,16 +588,16 @@ void RtrkComparisonHist () {
 
         if (jetRtrkHist_mc->Integral () != 0) jetRtrkHist_mc->Scale (1./jetRtrkHist_mc->Integral ()); 
 
-        jetRtrkHist_mc->GetXaxis ()->SetTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}");
-        jetRtrkHist_mc->GetYaxis ()->SetTitle ("Counts / Total");
-        jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 1.6*std::max (jetRtrkHist->GetMaximum (), jetRtrkHist_mc->GetMaximum ()));
         jetRtrkHist_mc->SetMarkerStyle (markerStyle);
         jetRtrkHist_mc->SetMarkerColor (mcOverlayColor);
         jetRtrkHist_mc->SetLineColor (mcOverlayColor);
 
-        jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.04/uPadY);
-        jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.04/uPadY);
-        jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.04/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetTitle ("Counts / Total");
+        jetRtrkHist_mc->GetYaxis ()->SetRangeUser (0., 1.6*std::max (jetRtrkHist->GetMaximum (), jetRtrkHist_mc->GetMaximum ()));
+        jetRtrkHist_mc->GetXaxis ()->SetLabelSize (0.032/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetLabelSize (0.032/uPadY);
+        jetRtrkHist_mc->GetYaxis ()->SetTitleSize (0.032/uPadY);
+        jetRtrkHist_mc->GetXaxis ()->SetTitleOffset (1.);
         jetRtrkHist_mc->GetYaxis ()->SetTitleOffset (1.5*uPadY);
 
         float mean, mean_err, mean_mc, mean_mc_err;
@@ -603,12 +606,12 @@ void RtrkComparisonHist () {
   
         mean = jetRtrkHist->GetMean ();
         float stddev = jetRtrkHist->GetStdDev ();
-        gaus_data = new TF1 ("gaus_data", "gaus (0)", 0.1, 2);
+        gaus_data = new TF1 ("gaus_data", "gaus (0)", rtrk_los[iP], rtrk_his[iP]);
         jetRtrkHist->Fit (gaus_data, "Q0R");
 
         mean = jetRtrkHist_mc->GetMean ();
         stddev = jetRtrkHist_mc->GetStdDev ();
-        gaus_mc = new TF1 ("gaus_mc", "gaus (0)", 0.1, 2);
+        gaus_mc = new TF1 ("gaus_mc", "gaus (0)", rtrk_los[iP], rtrk_his[iP]);
         jetRtrkHist_mc->Fit (gaus_mc, "Q0R");
 
         mean = gaus_data->GetParameter (1);
@@ -634,31 +637,32 @@ void RtrkComparisonHist () {
         const int countsData = jetRtrkCounts[iPer][0]->Integral (p_lo, p_hi, eta_lo, eta_hi);
         const int countsMC = jetRtrkCounts[iPer][1]->Integral (p_lo, p_hi, eta_lo, eta_hi);
 
-        myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.04/uPadY);
-        myMarkerText (0.225, 0.80, mcOverlayColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.04/uPadY);
+        myMarkerText (0.225, 0.88, dataColor, markerStyle, Form ("2016 Data (%i events)", countsData), 1.25, 0.032/uPadY);
+        myMarkerText (0.225, 0.80, mcOverlayColor, markerStyle, Form ("Pythia8 MC (%i events)", countsMC), 1.25, 0.032/uPadY);
 
-        myText (0.65, 0.88, dataColor, Form ("#mu_{data} = %s", FormatMeasurement (mean, mean_err)), 0.04/uPadY);
-        myText (0.65, 0.80, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err)), 0.04/uPadY);
+        myText (0.65, 0.88, dataColor, Form ("#mu_{data} = %s", FormatMeasurement (mean, mean_err)), 0.032/uPadY);
+        myText (0.65, 0.80, dataColor, Form ("#mu_{MC} = %s", FormatMeasurement (mean_mc, mean_mc_err)), 0.032/uPadY);
 
-        myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.04/uPadY);
-        myText (0.68, 0.25, dataColor, period, 0.04/uPadY);
-        myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.04/uPadY);
-        myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", trketabins[iEta], trketabins[iEta+1]), 0.04/uPadY);
+        myText (0.68, 0.34, dataColor, "#bf{#it{ATLAS}} Internal", 0.032/uPadY);
+        myText (0.68, 0.25, dataColor, period, 0.032/uPadY);
+        myText (0.68, 0.16, dataColor, Form ("%g < #it{p}_{T}^{Jet} < %g", pbins[p_lo-1], pbins[p_hi]), 0.032/uPadY);
+        myText (0.68, 0.08, dataColor, Form ("%g < #eta_{det}^{Jet} < %g", trketabins[eta_lo-1], trketabins[eta_hi]), 0.032/uPadY);
 
         bottomPad->cd ();
         bottomPad->SetLogx (false);
         jetRtrkHist->Divide (jetRtrkHist_mc);
 
-        jetRtrkHist->SetYTitle ("Data / MC");
-        jetRtrkHist->SetAxisRange (0.45, 1.65, "Y");
+        jetRtrkHist->GetXaxis ()->SetTitle ("r_{trk} = #Sigma#it{p}_{T}^{trk} / #it{p}_{T}^{Jet}");
+        jetRtrkHist->GetYaxis ()->SetTitle ("Data / MC");
+        jetRtrkHist->GetYaxis ()->SetRangeUser (0.45, 1.65);
         jetRtrkHist->GetYaxis ()->SetNdivisions (605);
-        jetRtrkHist->GetXaxis ()->SetTitleSize (0.04/dPadY);
-        jetRtrkHist->GetYaxis ()->SetTitleSize (0.04/dPadY);
+        jetRtrkHist->GetXaxis ()->SetTitleSize (0.032/dPadY);
+        jetRtrkHist->GetYaxis ()->SetTitleSize (0.032/dPadY);
         jetRtrkHist->GetXaxis ()->SetTitleOffset (1);
         jetRtrkHist->GetYaxis ()->SetTitleOffset (1.5*dPadY);
         jetRtrkHist->GetYaxis ()->CenterTitle (true);
-        jetRtrkHist->GetXaxis ()->SetLabelSize (0.04/dPadY);
-        jetRtrkHist->GetYaxis ()->SetLabelSize (0.04/dPadY);
+        jetRtrkHist->GetXaxis ()->SetLabelSize (0.032/dPadY);
+        jetRtrkHist->GetYaxis ()->SetLabelSize (0.032/dPadY);
         jetRtrkHist->GetXaxis ()->SetTickLength (0.08);
 
         jetRtrkHist->DrawCopy ("e1 x0"); 

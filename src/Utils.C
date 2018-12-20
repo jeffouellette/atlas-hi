@@ -510,44 +510,43 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
 /**
  * Returns the TProfile of an input histogram along the x axis. Can use either statistical mean or gaussian mean.
  */
-TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit, const double xlo, const double xhi) {
+TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit, const double* xlos, const double* xhis) {
 
   TH1D* prof = new TH1D (name, "", nbinsx, xbins);
 
-  for (int xbin = 1; xbin <= nbinsx; xbin++) {
-    TH1D* projy = hist->ProjectionY ("projy", xbin, xbin);
-    //projy->Rebin (rebinFactor);
+  const bool useCustomBounds = (xlos && xhis);
 
-    //projy->GetXaxis ()->SetLimits (0, 2.0);
+  for (int xbin = 1; xbin <= nbinsx; xbin++) {
+    TH1D* proj = hist->ProjectionY ("proj", xbin, xbin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
+
     double mean, mean_err;
-    //double chi_square = 0;
-    //int numNonzeroBins = 0;
-    //for (int xbinprime = 1; xbinprime <= projy->GetNbinsX (); xbinprime++)
-    //  if (projy->GetBinContent (xbinprime) > 0) numNonzeroBins++;
 
     // Calculate gaussian mean
-    if (useFit) {// && numNonzeroBins > 4) {
+    if (useFit) {
       TF1* gaus;
-      if (xlo < xhi)
-        gaus = new TF1 ("gaus", "gaus(0)", xlo, xhi);
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", xlos[xbin-1], xhis[xbin-1]);
       else
-        gaus = new TF1 ("gaus", "gaus(0)", projy->GetMean ()-2.8*projy->GetStdDev (), projy->GetMean ()+2.8*projy->GetStdDev ());
-      projy->Fit (gaus, "Q0R");
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
-      //chi_square = gaus->GetChisquare () / (projy->GetNbinsX () - 3);
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
-    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
-    if (!useFit) {// || chi_square > 1.0 || numNonzeroBins <= 4) {
-      mean = projy->GetMean ();
-      mean_err = projy->GetMeanError ();
+    // Calculate statistical mean
+    else {
+      mean = proj->GetMean ();
+      mean_err = proj->GetMeanError ();
     }
 
     prof->SetBinContent (xbin, mean);
     prof->SetBinError (xbin, mean_err);
-    if (projy) { delete projy; projy = NULL; }
+    if (proj) { delete proj; proj = NULL; }
   }
 
   return prof;
@@ -557,44 +556,43 @@ TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const doubl
 /**
  * Returns the TProfile of an input histogram along the y axis. Can use either statistical mean or gaussian mean.
  */
-TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit, const double ylo, const double yhi) {
+TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit, const double* ylos, const double* yhis) {
 
   TH1D* prof = new TH1D (name, "", nbinsy, ybins);
 
+  const bool useCustomBounds = (ylos && yhis);
+
   for (int ybin = 1; ybin <= nbinsy; ybin++) {
-    TH1D* projx = hist->ProjectionX ("projx", ybin, ybin);
-    //projx->Rebin (rebinFactor);
-    //projx->GetXaxis ()->SetLimits (0, 2.0);
+    TH1D* proj = hist->ProjectionX ("proj", ybin, ybin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
 
     double mean, mean_err;
-    //double chi_square = 0;
-    //int numNonzeroBins = 0;
-    //for (int ybin = 1; ybin <= projx->GetNbinsX (); ybin++)
-    //  if (projx->GetBinContent (ybin) > 0) numNonzeroBins++;
 
     // Calculate gaussian mean
-    if (useFit) {// && numNonzeroBins > 4) {
+    if (useFit) {
       TF1* gaus;
-      if (ylo < yhi)
-        gaus = new TF1 ("gaus", "gaus(0)", ylo, yhi);
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", ylos[ybin-1], yhis[ybin-1]);
       else
-        gaus = new TF1 ("gaus", "gaus(0)", projx->GetMean ()-2.8*projx->GetStdDev (), projx->GetMean ()+2.8*projx->GetStdDev ());
-      projx->Fit (gaus, "Q0R");
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
       mean = gaus->GetParameter (1);
       mean_err = gaus->GetParError (1);
-      //chi_square = gaus->GetChisquare () / (projx->GetNbinsX () - 3);
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
-    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
-    if (!useFit) {// || chi_square > 1.0 || numNonzeroBins <= 4) {
-      mean = projx->GetMean ();
-      mean_err = projx->GetMeanError ();
+    // Calculate statistical mean
+    else {
+      mean = proj->GetMean ();
+      mean_err = proj->GetMeanError ();
     }
 
     prof->SetBinContent (ybin, mean);
     prof->SetBinError (ybin, mean_err);
-    if (projx) { delete projx; projx = NULL; }
+    if (proj) { delete proj; proj = NULL; }
   }
 
   return prof;
@@ -604,7 +602,7 @@ TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const doubl
 /**
  * Returns a histogram with the TProfile of data over the TProfile of MC along either the x or y axes. Can use either the statistical or gaussian mean.
  */
-TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis, const double lo, const double hi) {
+TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis, const double* los, const double* his) {
 
   // figure out which axis to use
   if (axis != "x" && axis != "y" && axis != "X" && axis != "Y") {
@@ -612,40 +610,39 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
     return NULL;
   }
   const bool useXaxis = (axis == "x" || axis == "X");
+  const bool useCustomBounds = (los && his);
 
   TH1D* dataOverMC = new TH1D (name, "", numbins, bins);
 
   TH1D* proj = NULL;
 
-  double dataAvg, dataErr, mcAvg, mcErr;//, chi_square;
-  //int numNonzeroBins;
+  double dataAvg, dataErr, mcAvg, mcErr;
 
   for (int bin = 1; bin <= numbins; bin++) {
+
     // first calculate the data value (numerator)
     if (useXaxis) proj = data->ProjectionY (name + Form ("data_bin%i", bin), bin, bin);
     else proj = data->ProjectionX (name + Form ("data_bin%i", bin), bin, bin);
-
-    //chi_square = 0;
-    //numNonzeroBins = 0;
-    //for (int binprime = 1; binprime <= proj->GetNbinsX (); binprime++)
-    //  if (proj->GetBinContent (bin) > 0) numNonzeroBins++;
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
 
     // Calculate gaussian mean
-    if (useFit) {// && numNonzeroBins > 4) {
+    if (useFit) {
       TF1* gaus;
-      if (lo < hi)
-        gaus = new TF1 ("gaus", "gaus(0)", lo, hi);
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", los[bin-1], his[bin-1]);
       else
         gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       dataAvg = gaus->GetParameter (1);
       dataErr = gaus->GetParError (1);
-      //chi_square = gaus->GetChisquare () / (proj->GetNbinsX () - 3);
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
-    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
-    if (!useFit) {// || chi_square > 1.0 || numNonzeroBins <= 4) {
+    // Calculate statistical mean
+    if (!useFit) {
       dataAvg = proj->GetMean ();
       dataErr = proj->GetMeanError ();
     }
@@ -654,29 +651,27 @@ TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins
 
     // next calculate the MC value (denominator)
     if (useXaxis) proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
-    else proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
-
-    //chi_square = 0;
-    //numNonzeroBins = 0;
-    //for (int binprime = 1; binprime <= proj->GetNbinsX (); binprime++)
-    //  if (proj->GetBinContent (binprime) != 0) numNonzeroBins++;
+    else proj = mc->ProjectionX (name + Form ("mc_bin%i", bin), bin, bin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
 
     // Calculate gaussian mean
-    if (useFit) {// && numNonzeroBins > 4) {
+    if (useFit) {
       TF1* gaus;
-      if (lo < hi)
-        gaus = new TF1 ("gaus", "gaus(0)", lo, hi);
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", los[bin-1], his[bin-1]);
       else
         gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
       proj->Fit (gaus, "Q0R");
       mcAvg = gaus->GetParameter (1);
       mcErr = gaus->GetParError (1);
-      //chi_square = gaus->GetChisquare () / (proj->GetNbinsX () - 3);
       if (gaus) { delete gaus; gaus = NULL; }
     }
 
-    // If statistics are too poor for gaussian mean or it is not desired, use the statistical mean.
-    if (!useFit) {// || chi_square > 1.0 || numNonzeroBins <= 4) {
+    // Calculate statistical mean
+    else {
       mcAvg = proj->GetMean ();
       mcErr = proj->GetMeanError ();
     }

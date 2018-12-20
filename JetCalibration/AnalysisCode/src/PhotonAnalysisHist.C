@@ -54,7 +54,7 @@ void PhotonAnalysisHist () {
       for (short iWgt = 0; iWgt < 2; iWgt++) {
         const char* wgt = iWgt == 0 ? "weighted" : "unweighted";
 
-        photonSpectrum[iPer][iData][iWgt] = new TH2D (Form ("photonSpectrum_%s_%s_%s", per, data, wgt), "", 50, logspace (20, 500, 50), 240, 0, 2.40);
+        photonSpectrum[iPer][iData][iWgt] = new TH2D (Form ("photonSpectrum_%s_%s_%s", per, data, wgt), "", 25, logspace (20, 500, 25), 240, 0, 2.40);
         photonSpectrum[iPer][iData][iWgt]->Sumw2 ();
 
         photonEtaPhi[iPer][iData][iWgt] = new TH2D (Form ("photonEtaPhi_%s_%s_%s", per, data, wgt), "", 240, -2.4, 2.4, numphibins, phibins);
@@ -69,6 +69,11 @@ void PhotonAnalysisHist () {
 
     const short iPer = isPeriodA ? 0 : 1;
     const short iMC = isMC ? 1 : 0;
+
+    if (!isMC) {
+      if (fabs (peta) < 0.8) ppt *= 0.9941;
+      else if (fabs (peta) < 1.475) ppt *= 0.9933;
+    }
 
     photonSpectrum[iPer][iMC][0]->Fill (ppt, peta, evtWeight); // period A or B, data or MC, weighted
     photonSpectrum[iPer][iMC][1]->Fill (ppt, peta); // etc.

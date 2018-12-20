@@ -36,7 +36,7 @@ const Color_t mcColor = kRed; // plot color for MC overlay
 const Color_t mcOverlayColor = kRed; // plot color for MC overlay
 const Color_t mcSignalColor = kBlue; // plot color for MC signal
 
-const double Z_mass_fitNsigma = 1.5; // Number of sigma around the Z mass to fit invariant mass peak
+const double Z_mass_fitNsigma = 1.2; // Number of sigma around the Z mass to fit invariant mass peak
 
 const bool skipOldInsitu = true; // whether to skip plotting results with old insitu factors (2015)
 const bool skipSignalMC = true; // whether to skip plotting results with signal only photon+jet MC
@@ -68,9 +68,17 @@ const short numdpbins = sizeof (dpbins) / sizeof (dpbins[0]) - 1;
 
 //const double pbins[31] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 90., 100., 110., 120., 130., 140., 150., 165., 180., 200., 225., 250., 275., 300., 350., 420., 500.};
 //const double pbins[16] = {20., 25., 30., 35., 40., 50., 60., 70., 90., 110., 140., 180., 220., 280., 350., 500.};
-const double pbins[9] = {20., 30., 40., 60., 90., 140., 220., 350., 500.};
+//const double pbins[9] = {20., 30., 40., 60., 90., 140., 220., 350., 500.};
+const double pbins[12] = {20., 25., 30., 35., 40., 50., 60., 90., 140., 220., 350., 500.};
 //const double pbins[11] = {20., 30., 40., 50., 60., 70., 90., 140., 220., 350., 500.};
 const short numpbins = sizeof (pbins) / sizeof (pbins[0]) - 1;
+
+//const double plos[12] = {0.85, 0.7, 0.7, 0.7, 0.7, 0.7, 0.75, 0.8, 0.8, 0.75, 0.75, 0.75};
+//const double phis[12] = {1.3, 1.2, 1.25, 1.25, 1.3, 1.25, 1.2, 1.2, 1.2, 1.25, 1.3, 1.25};
+//const double plos_mc[12] = {0.85, 0.7, 0.7, 0.7, 0.6, 0.7, 0.75, 0.8, 0.8, 0.75, 0.75, 0.75};
+//const double phis_mc[12] = {1.3, 1.2, 1.25, 1.25, 1.3, 1.25, 1.2, 1.2, 1.2, 1.25, 1.3, 1.25};
+//const double etalos[7] = {0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8};
+//const double etahis[7] = {1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
 
 //const double pzbins[12] = {20., 30., 40., 50., 60., 75., 90., 110., 140., 180., 220., 300.};
 //const short numpzbins = sizeof (pzbins)/sizeof (pzbins[0]) - 1;
@@ -90,7 +98,7 @@ const double* phibins = linspace (-pi, pi, numphibins);
 //const short numetabins = 98;
 //const double* etabins = linspace (-4.9, 4.9, numetabins);
 
-const double zetabins[5] = {-2.4, -1, 0, 1, 2.4};
+const double zetabins[5] = {-100, -1, 0, 1, 100};
 const short numzetabins = sizeof (zetabins) / sizeof (zetabins[0]) - 1;
 
 const double xcalibEtabins[8] = {0, 0.3, 0.8, 1.2, 2.1, 2.8, 3.6, 4.4};
@@ -103,9 +111,9 @@ const double maxSigma = 0.40;
 const short numSigmaBins = 80;
 
 // bin min and max for combined results
-const int eta_lo_comb = 3;
-const int eta_hi_comb = 4;
-const int p_lo_comb = 4;
+const int eta_lo_comb = 1;//3;
+const int eta_hi_comb = numetabins;//4;
+const int p_lo_comb = 7;
 const int p_hi_comb = numpbins;
 
 
