@@ -5,6 +5,7 @@ lib
 *.pdf
 *.zip
 *.swp
+*.root
 
 # ROOT compilation tags
 *_h.d
