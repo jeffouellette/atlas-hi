@@ -4,22 +4,19 @@ LDFLAGS=`root-config --glibs` -L$(ATLAS_PATH)/lib
 
 CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
-all : GlobalParams Utils Trigger Initialization TreeVariables
+all : GlobalParams Utilities Trigger Initialization
 
 GlobalParams :
-	$(CC) -o $(ATLAS_PATH)/lib/libGlobalParams.so $(ATLAS_PATH)/src/GlobalParams.C
+	$(CC) -o $(ATLAS_PATH)/lib/libGlobalParams.so $(ATLAS_PATH)/src/GlobalParams.cxx
 
-Utils :
-	$(CC) -lGlobalParams -o $(ATLAS_PATH)/lib/libUtils.so $(ATLAS_PATH)/src/Utils.C
+Utilities :
+	$(CC) -lGlobalParams -o $(ATLAS_PATH)/lib/libUtilities.so $(ATLAS_PATH)/src/Utilities.cxx
 
 Trigger :
-	$(CC) -o $(ATLAS_PATH)/lib/libTrigger.so $(ATLAS_PATH)/src/Trigger.C
+	$(CC) -o $(ATLAS_PATH)/lib/libTrigger.so $(ATLAS_PATH)/src/Trigger.cxx
 
 Initialization :
-	$(CC) -lTrigger -lGlobalParams -o $(ATLAS_PATH)/lib/libInitialization.so $(ATLAS_PATH)/src/Initialization.C
-
-TreeVariables :
-	$(CC) -o $(ATLAS_PATH)/lib/libTreeVariables.so $(ATLAS_PATH)/src/TreeVariables.C
+	$(CC) -lTrigger -lGlobalParams -o $(ATLAS_PATH)/lib/libInitialization.so $(ATLAS_PATH)/src/Initialization.cxx
 
 clean :
 	rm -rf lib/*.so*

@@ -1,9 +1,8 @@
-#include "JetTrackEtaPhiHist.h"
 #include "Params.h"
 #include "TemplateFitting.h"
 
 #include <GlobalParams.h>
-#include <Utils.h>
+#include <Utilities.h>
 #include <ArrayTemplates.h>
 
 #include <TLine.h>
@@ -19,8 +18,7 @@ using namespace atlashi;
 using namespace std;
 using namespace TemplateFitting;
 
-
-namespace JetTrackAnalysis {
+using namespace JetTrackAnalysis;
 
 void JetTrackEtaPhiHist () {
 
@@ -33,8 +31,8 @@ void JetTrackEtaPhiHist () {
   TFile* inMCSignalFile = new TFile (Form ("%s/SignalEvents/mc_combined.root", rootPath.Data ()), "read");
   TFile* inMCMixedFile = new TFile (Form ("%s/MixedEvents/mc_combined.root", rootPath.Data ()), "read");
 
-  TH1D***** JetPtDists = Get4DArray <TH1D*> (2, 2, numCentBins, numPtBins);
-  TH2D****** JetTrackDeltaEtaDeltaPhi = Get5DArray <TH2D*> (2, 2, 2, numCentBins, numPtBins); // iData (2), iPer (2), iSignal (2), iCent (numCentBins), iPt (numPtBins)
+  TH1D****** JetPtDists = Get5DArray <TH1D*> (2, 2, numCentBins, numPtBins, numVertZBins+1);
+  TH2D******* Correlations = Get6DArray <TH2D*> (2, 2, 2, numCentBins, numPtBins, numVertZBins+1); // iData (2), iPer (2), iSignal (2), iCent (numCentBins), iPt (numPtBins), iVertZ (numVertZBins+1)
   //TH2D* JetPtSpectrum[numCentBins] = {};
   //TH2D* JetCounts[numCentBins] = {};
   //TH2D* TrackPtSpectrum[numCentBins] = {};
@@ -64,12 +62,16 @@ void JetTrackEtaPhiHist () {
       for (short iPer = 0; iPer < 2; iPer++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           for (short iPt = 0; iPt < numPtBins; iPt++) {
+            for (short iVertZ = 0; iVertZ < numVertZBins; iVertZ++) {
 
-            const char* histName = Form ("JetTrackDeltaEtaDeltaPhi_iCent%i_iPt%i_%s_p%s_%s", iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iSignal == 0 ? "SE":"ME");
-            if (!f->GetListOfKeys ()->Contains (histName))
-              continue;
+              const char* histName = Form ("Correlation_iVertZ%i_iCent%i_iPt%i_%s_p%s_%s", iVertZ, iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iSignal == 0 ? "SE":"ME");
+              if (!f->GetListOfKeys ()->Contains (histName)) {
+                //cout << "Cannot find " << histName << endl;
+                continue;
+              }
 
-            JetTrackDeltaEtaDeltaPhi[iData][iPer][iSignal][iCent][iPt] = (TH2D*)f->Get (histName);
+              Correlations[iData][iPer][iSignal][iCent][iPt][iVertZ] = (TH2D*)f->Get (histName);
+            }
           }
           //JetPtSpectrum[iCent] = (TH2D*)inFile->Get (Form ("JetPtSpectrum_cent%i", iCent));
           //JetPtSpectrum[iCent]->Scale (1. / (float)(centBins[iCent+1]-centBins[iCent]));
@@ -107,8 +109,49 @@ void JetTrackEtaPhiHist () {
     for (short iPer = 0; iPer < 2; iPer++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         for (short iPt = 0; iPt < numPtBins; iPt++) {
+          for (short iVertZ = 0; iVertZ < numVertZBins; iVertZ++) {
+            const char* histName = Form ("JetPtDist_iVertZ%i_iCent%i_iPt%i_%s_p%s", iVertZ, iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B");
+            JetPtDists[iData][iPer][iCent][iPt][iVertZ] = (TH1D*)f->Get (histName);
+          }
+        }
+      }
+    }
+  }
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Add up histograms with vertices between -5 and 5 along z
+  //////////////////////////////////////////////////////////////////////////////
+  for (short iData = 0; iData < 2; iData++) {
+    for (short iSignal = 0; iSignal < 2; iSignal++) { // 0 = signal, 1 = mixed
+      for (short iPer = 0; iPer < 2; iPer++) {
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          for (short iPt = 0; iPt < numPtBins; iPt++) {
+            if (!Correlations[iData][iPer][iSignal][iCent][iPt][0])
+              continue;
+
+            const char* histName = Form ("Correlation_iCent%i_iPt%i_%s_p%s_%s", iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iSignal == 0 ? "SE":"ME");
+            Correlations[iData][iPer][iSignal][iCent][iPt][numVertZBins] = new TH2D (histName, "", 160, -8, 8, numphibins, phibins);
+            for (short iVertZ = 10; iVertZ < 20; iVertZ++) {
+              Correlations[iData][iPer][iSignal][iCent][iPt][numVertZBins]->Add (Correlations[iData][iPer][iSignal][iCent][iPt][iVertZ]);
+            }
+          }
+        }
+      }
+    }
+  }
+  for (short iData = 0; iData < 2; iData++) {
+    for (short iPer = 0; iPer < 2; iPer++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        for (short iPt = 0; iPt < numPtBins; iPt++) {
+          if (!JetPtDists[iData][iPer][iCent][iPt][0])
+            continue;
+
           const char* histName = Form ("JetPtDist_iCent%i_iPt%i_%s_p%s", iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B");
-          JetPtDists[iData][iPer][iCent][iPt] = (TH1D*)f->Get (histName);
+          JetPtDists[iData][iPer][iCent][iPt][numVertZBins] = new TH1D (histName, "", numPtBins, ptBins);
+          for (short iVertZ = 10; iVertZ < 20; iVertZ++) {
+            JetPtDists[iData][iPer][iCent][iPt][numVertZBins]->Add (JetPtDists[iData][iPer][iCent][iPt][iVertZ]);
+          }
         }
       }
     }
@@ -117,17 +160,17 @@ void JetTrackEtaPhiHist () {
 //  for (short iData = 0; iData < 2; iData++) {
 //    for (short iCent = 0; iCent < numCentBins; iCent++) {
 //      for (short iPt = 0; iPt < numPtBins; iPt++) {
-//        JetTrackDeltaEtaDeltaPhi[iData][2][iCent][iPt] = new TH2D (Form ("JetTrackDeltaEtaDeltaPhi_%s_cent%i_pt%i_C", iData == 0 ? "data":"MC", iCent, iPt), "", 80, 0, 8, numphibins, phibins);
-//          JetTrackDeltaEtaDeltaPhi[iData][iSignal][iCent][iPt] = (TH2D*)f->Get (Form ("JetTrackDeltaEtaDeltaPhi_cent%i_pt%i_%s", iCent, iPt, iSignal == 0 ? "SE":"ME"));
+//        Correlations[iData][2][iCent][iPt] = new TH2D (Form ("Correlations_%s_cent%i_pt%i_C", iData == 0 ? "data":"MC", iCent, iPt), "", 80, 0, 8, numphibins, phibins);
+//          Correlations[iData][iSignal][iCent][iPt] = (TH2D*)f->Get (Form ("Correlations_cent%i_pt%i_%s", iCent, iPt, iSignal == 0 ? "SE":"ME"));
 
   const Color_t colors[9] = {kBlack, kRed, kBlue, kMagenta, 8, kCyan+1, kOrange, kViolet, kGray};
 
   //TCanvas* c = new TCanvas ("c", "", 900, 800);
   //gStyle->SetPalette (kRainBow);
   ////gPad->SetLogz();
-  //JetTrackDeltaEtaDeltaPhi[0]->RebinX (2);
-  //JetTrackDeltaEtaDeltaPhi[0]->RebinY (2);
-  //JetTrackDeltaEtaDeltaPhi[0]->Draw ("lego2");
+  //Correlations[0]->RebinX (2);
+  //Correlations[0]->RebinY (2);
+  //Correlations[0]->Draw ("lego2");
   //c->SaveAs (Form ("%s/JetTrackEtaPhiCorr.pdf", plotPath.Data ()));
 
   //TCanvas* DijetDeltaEtaDeltaPhiCanvas = new TCanvas ("DijetDeltaEtaDeltaPhiCanvas", "", 800, 600);
@@ -199,44 +242,50 @@ void JetTrackEtaPhiHist () {
   //DijetAjCanvas->SaveAs (Form ("%s/DijetAjCorr.pdf", plotPath.Data ()));
 
 
-  TCanvas* JetTrackPhiCanvas = new TCanvas ("JetTrackPhiCanvas", "", 1200, 600);
-  TPad* leftPad = new TPad ("leftPad", "", 0, 0, 0.50, 1);
-  TPad* rightPad = new TPad ("rightPad", "", 0.50, 0, 1, 1);
+  TCanvas* JetTrackPhiCanvas = new TCanvas ("JetTrackPhiCanvas", "", 2000, 600);
+  TPad* leftPad = new TPad ("leftPad", "", 0, 0, 0.333, 1);
+  TPad* middlePad = new TPad ("middlePad", "", 0.333, 0, 1-0.333, 1);
+  TPad* rightPad = new TPad ("rightPad", "", 1-0.333, 0, 1, 1);
   leftPad->SetLeftMargin (0.20);
   leftPad->SetRightMargin (0.02);
-  rightPad->SetLeftMargin (0.20);
+  middlePad->SetLeftMargin (0.20);
+  middlePad->SetRightMargin (0.02);
   rightPad->SetRightMargin (0.02);
+  rightPad->SetLeftMargin (0.20);
   JetTrackPhiCanvas->Draw ();
   leftPad->Draw ();
+  middlePad->Draw ();
   rightPad->Draw ();
 
   TFile* outFile = new TFile (Form ("%s/perTriggerYields.root", rootPath.Data ()), "recreate");
-  TH1D****** perTriggerYields = Get5DArray <TH1D*> (2, 2, 2, numCentBins, numPtBins);
+  TH1D****** perTriggerYields = Get5DArray <TH1D*> (2, 2, 3, numCentBins, numPtBins);
 
   for (short iData = 0; iData < 2; iData++) {
     for (short iPer = 0; iPer < 2; iPer++) {
       for (short iPt = 0; iPt < numPtBins; iPt++) {
         bool skip = false;
-        for (short iEta = 0; iEta < 2; iEta++) {
-          const int eta_lo = (iEta == 0 ? 0 : 2);
-          const int eta_hi = (iEta == 0 ? 2 : 6);
+        for (short iEta = 0; iEta < 3; iEta++) {
+          const int eta_lo = (iEta == 0 ? -6 : (iEta == 1 ? -2 : 2));
+          const int eta_hi = (iEta == 0 ? -2 : (iEta == 1 ? 2  : 6));
 
           if (iEta == 0)
             leftPad->cd ();
+          else if (iEta == 1)
+            middlePad->cd ();
           else
             rightPad->cd ();
           gPad->SetLogy (false);
 
           for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-            TH2D* signal2d = JetTrackDeltaEtaDeltaPhi[iData][iPer][0][iCent][iPt];
-            TH2D* mixed2d  = JetTrackDeltaEtaDeltaPhi[iData][iPer][1][iCent][iPt];
+            TH2D* signal2d = Correlations[iData][iPer][0][iCent][iPt][numVertZBins];
+            TH2D* mixed2d  = Correlations[iData][iPer][1][iCent][iPt][numVertZBins];
 
             if (!signal2d || !mixed2d) {
               skip = true;
               break;
             }
 
-            float ntrig = JetPtDists[iData][iPer][iCent][iPt]->Integral ();
+            float ntrig = JetPtDists[iData][iPer][iCent][iPt][numVertZBins]->Integral ();
 
             TH1D* signal = NULL, *mixed = NULL;
 
@@ -268,7 +317,7 @@ void JetTrackEtaPhiHist () {
             signal->Rebin (8);
             mixed ->Rebin (8);
 
-            TH1D* thisHist = (TH1D*)signal->Clone (Form ("perTriggerYield_iCent%i_iPt%i_%s_p%s_%s", iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iEta == 0 ? "src":"lrc"));
+            TH1D* thisHist = (TH1D*)signal->Clone (Form ("perTriggerYield_iCent%i_iPt%i_%s_p%s_%s", iCent, iPt, iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iEta == 0 ? "Pbdir": (iEta == 1 ? "src":"pdir")));
             thisHist->Divide (signal, mixed); // construct C = S/B
 
             // construct Y = 1/2pi integral(B)/Ntrig * C
@@ -306,11 +355,11 @@ void JetTrackEtaPhiHist () {
             TH1D* thisHist = perTriggerYields[iData][iPer][iEta][iCent][iPt];
 
             if (ZYAM) {
-              thisHist->GetYaxis ()->SetRangeUser (0, 1.3* max);
+              thisHist->GetYaxis ()->SetRangeUser (0, 1.6* max);
               thisHist->GetYaxis ()->SetTitle ("dY (#Delta#phi) / d#Delta#phi, ZYAM");
             }
             else {
-              thisHist->GetYaxis ()->SetRangeUser (0.9* min, 1.1* max);
+              thisHist->GetYaxis ()->SetRangeUser (0.9* min, 1.6* max);
               thisHist->GetYaxis ()->SetTitle ("dY (#Delta#phi) / d#Delta#phi");
             }
             thisHist->GetXaxis ()->SetTitle ("#phi_{det}^{Jet} - #phi_{det}^{Trk}");
@@ -324,30 +373,34 @@ void JetTrackEtaPhiHist () {
               thisHist->DrawCopy ("same e1 x0");
 
             if (iEta == 0) {
-              if (iPt == 0) {
-                myMarkerText (0.74, 0.64 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
-              }
-              else {
-                myMarkerText (0.74, 0.64 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
-              }
+              myMarkerText (0.76, 0.70 - iCent*0.05, colors[iCent], kFullCircle, Form ("%g-%g%%", centBins[iCent], centBins[iCent+1]), 1.25, 0.045/gPad->GetHNDC ());
             }
             thisHist->Write ();
           }
 
           if (iEta == 0) {
-            myText (0.65, 0.89, kBlack, Form ("%g < #Delta#eta_{proton} < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-            myText (0.65, 0.81, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
-            myText (0.65, 0.73, kBlack, iData == 0 ? "Data":"MC", 0.045/gPad->GetHNDC ());
+            myText (0.65, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/gPad->GetHNDC ());
+            myText (0.65, 0.82, kBlack, Form ("%g < #Delta#eta_{proton} < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+            myText (0.65, 0.77, kBlack, iData == 0 ? "Data":"MC", 0.045/gPad->GetHNDC ());
+          }
+          else if (iEta == 1) {
+
           }
           else {
-            myText (0.25, 0.89, kBlack, Form ("%g < #Delta#eta_{proton} < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
-            myText (0.25, 0.81, kBlack, "#left|#Delta#eta_{Trk}^{Sublead.}#right| > 2", 0.045/gPad->GetHNDC ());
-            myText (0.25, 0.73, kBlack, Form ("%g GeV < #it{p}_{T}^{lead} < %g GeV", ptBins[iPt], ptBins[iPt+1]), 0.045/gPad->GetHNDC ());
-            myText (0.25, 0.65, kBlack, "10 GeV < #it{p}_{T}^{sublead}", 0.045/gPad->GetHNDC ());
+            myText (0.25, 0.89, kBlack, "#left|#Delta#eta_{Trk}^{Sublead.}#right| > 2", 0.045/gPad->GetHNDC ());
+            myText (0.25, 0.82, kBlack, Form ("%g < #Delta#eta_{proton} < %g", (float)eta_lo, (float)eta_hi), 0.045/gPad->GetHNDC ()); 
+            myText (0.25, 0.76, kBlack, Form ("%g GeV < #it{p}_{T}^{lead} < %g GeV", ptBins[iPt], ptBins[iPt+1]), 0.045/gPad->GetHNDC ());
+            myText (0.25, 0.70, kBlack, "10 GeV < #it{p}_{T}^{sublead}", 0.045/gPad->GetHNDC ());
           }
         } // end loop over eta bins
         if (!skip)
-          JetTrackPhiCanvas->SaveAs (Form ("%s/%s/JetTrackPhiCorr_p%s_iPt%i.pdf", plotPath.Data (), iData == 0 ? "Data":"MC", iPer == 0 ? "A":"B", iPt));
+          JetTrackPhiCanvas->SaveAs (Form ("%s/%s/JetTrackPhiCorr_%s_p%s_iPt%i.pdf", plotPath.Data (), iData == 0 ? "Data":"MC", iData == 0 ? "data":"mc", iPer == 0 ? "A":"B", iPt));
+        JetTrackPhiCanvas->Draw ();
+
+        cout << "Press enter to continue..." << flush;
+        //cin.get ();
+        gPad->WaitPrimitive();
+        cout << endl;
       } // end loop over pT cuts
     } // end loop over periods
   } // end loop over data sets
@@ -362,9 +415,7 @@ void JetTrackEtaPhiHist () {
   if (result) { delete result; result = NULL; }
 
 
-  Delete5DArray (perTriggerYields, 2, 2, 2, numCentBins, numPtBins);
+  Delete5DArray (perTriggerYields, 2, 2, 3, numCentBins, numPtBins);
 
   outFile->Close ();
 }
-
-} // end namespace

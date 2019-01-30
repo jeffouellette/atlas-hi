@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <GlobalParams.h>
-#include <Utils.h>
+#include <Utilities.h>
 #include <TString.h>
 
 using namespace std;
@@ -12,13 +12,14 @@ using namespace atlashi;
 namespace JetTrackAnalysis {
 
 const bool useGaussian = false; // whether to use Gaussian fits when creating custom TProfiles
+const bool ZYAM = false;
 
 const short rebinFactor = 20;
 
 const double etabins[9] = {-4.5, -3.2, -2, -1, 0, 1, 2, 3.2, 4.5}; 
 const short numetabins = sizeof (etabins)/sizeof (etabins[0]) - 1;
 
-const short numphibins = 128;
+const short numphibins = 256;
 const double* phibins = linspace (-TMath::Pi ()/2., 3*TMath::Pi ()/2, numphibins);
 
 const float jet_pt_cut = 20;
@@ -38,6 +39,14 @@ const float trijetMaxPtRatio = 0.4;
 const float centCuts[4] = {1000, 54.2686, 28.6388, 3.04914};
 const float centBins[4] = {0, 15, 40, 90};
 const int numCentBins = sizeof (centCuts) / sizeof (centCuts[0]) - 1;
+
+// leading jet pT selections
+const double ptBins[6] = {20, 30, 40, 60, 80, 100};
+const short numPtBins = sizeof (ptBins) / sizeof (ptBins[0]) - 1;
+
+// z vertex bins
+const short numVertZBins = 30;
+const double* vertZBins = linspace (-15, 15, numVertZBins);
 
 const int nJetTrigIon = 1;
 const TString jetTrigNamesIon[nJetTrigIon] = {

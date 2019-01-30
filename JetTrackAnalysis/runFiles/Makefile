@@ -1,9 +1,9 @@
 CXXFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH)/include -I$(JETTRACKS_PATH)/AnalysisCode/include
 LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(JETTRACKS_PATH)/AnalysisCode/lib -ldl
 
-analyses = runJetTrackEtaPhi
+analyses = runJetTrackEtaPhi runRtrkTreeMaker
 
-all : $(analyses:%=%Hist) $(analyses)
+all : $(analyses)
 
 run%: obj/run%.o
 	$(CXX) $(LDFLAGS) -l$(@:run%=%) obj/$@.o -o bin/$@

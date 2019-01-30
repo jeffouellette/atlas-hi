@@ -1,6 +1,6 @@
 CXX=clang++
 CXXFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(ATLAS_PATH)/include -I$(ROOT_UTIL_PATH) -I$(PYTHIA_PATH)/include
-LDFLAGS=-Wl,-rpath,`root-config --libdir` `root-config --glibs` -L$(ATLAS_PATH)/lib -L$(ROOT_UTIL_PATH) -L$(PYTHIA_PATH)/lib -lGlobalParams -lAtlas -ldl
+LDFLAGS=-Wl,-rpath,`root-config --libdir` `root-config --glibs` -L$(ATLAS_PATH)/lib -L$(ROOT_UTIL_PATH) -L$(PYTHIA_PATH)/lib -lGlobalParams -lUtilities -lAtlas -ldl
 
 all: gammajetgen analyze_gammajet wgen analyze_w gammajetgen_RHIC analyze_gammajet_shift wgen_RHIC analyze_w_shift
 

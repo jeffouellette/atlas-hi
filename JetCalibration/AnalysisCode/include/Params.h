@@ -2,7 +2,7 @@
 #define __Params_h__
 
 #include <GlobalParams.h>
-#include <Utils.h>
+#include <Utilities.h>
 #include <TFile.h>
 
 using namespace atlashi;
@@ -66,11 +66,8 @@ const double dpbins[7] = {17, 35, 50, 70, 140, 280, 500};
 //const double dpbins[2] = {60, 140};
 const short numdpbins = sizeof (dpbins) / sizeof (dpbins[0]) - 1;
 
-//const double pbins[31] = {15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 90., 100., 110., 120., 130., 140., 150., 165., 180., 200., 225., 250., 275., 300., 350., 420., 500.};
-//const double pbins[16] = {20., 25., 30., 35., 40., 50., 60., 70., 90., 110., 140., 180., 220., 280., 350., 500.};
 //const double pbins[9] = {20., 30., 40., 60., 90., 140., 220., 350., 500.};
 const double pbins[12] = {20., 25., 30., 35., 40., 50., 60., 90., 140., 220., 350., 500.};
-//const double pbins[11] = {20., 30., 40., 50., 60., 70., 90., 140., 220., 350., 500.};
 const short numpbins = sizeof (pbins) / sizeof (pbins[0]) - 1;
 
 //const double plos[12] = {0.85, 0.7, 0.7, 0.7, 0.7, 0.7, 0.75, 0.8, 0.8, 0.75, 0.75, 0.75};

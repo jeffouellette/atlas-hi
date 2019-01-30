@@ -239,7 +239,7 @@ void PhotonAnalysisHist () {
         thisGraph->Draw ("p");
     }
     //myText (0.56, 0.88, kBlack, photonTrigNames[iTrig].c_str (), 0.045);
-    myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+    myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.045);
     myText (0.56, 0.82, kBlack, Form ("#sqrt{s_{NN}} = 5.02 TeV, %.2f nb^{-1}", lumi_int*1e-3), 0.045);
     myMarkerText (0.56, 0.76, kBlack, kFullCircle, "0 < #left|#eta#right| < 1.37", 1.25, 0.045);
     myMarkerText (0.56, 0.70, kBlue, kFullCircle, "1.52 < #left|#eta#right| < 2.37", 1.25, 0.045);

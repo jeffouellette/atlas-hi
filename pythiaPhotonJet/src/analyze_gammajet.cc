@@ -20,9 +20,9 @@
 #include <AtlasUtils.h>
 
 #include <GlobalParams.h>
+#include <Utilities.h>
 
 using namespace atlashi;
-
 
 string FormatCounts (int counts) {
   if (counts < 1000) return "";
@@ -258,7 +258,8 @@ int main() {
 
 			    if ( photon_iso[ g ] > 5 ) continue;
 
-       const float factorOfTen = pow (10, eta_bin - 1);
+       //const float factorOfTen = pow (10, eta_bin - 1);
+       const float factorOfTen = 1;
 
        hist_xA_gamma[eta_bin]->Fill (x2pdf);
        hist_pT_gamma[eta_bin]->Fill (photon_pt[g]);
@@ -524,7 +525,8 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    //myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
   canvas_xA_Q_gamma_gluon->SaveAs ("plot/gamma_gluon_xA_Q.pdf");
@@ -590,7 +592,8 @@ int main() {
   myText (0.2, 0.84, kBlack, "#it{E}_{T}^{iso} < 5 GeV", 0.04);
   myText (0.2, 0.78, kBlack, Form("700k events, %s #gamma's", FormatCounts(ngamma).c_str()), 0.04);
   for (int i = 0; i < 3; i++) {
-    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    //myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g (#it{Q} #times %g)", YLOBINS[i], YHIBINS[i], pow(10, i-1)), 1.25, 0.04);
+    myMarkerText (0.22, 0.2+0.06*i, colors[i], kFullCircle, Form("%g < #it{y} < %g", YLOBINS[i], YHIBINS[i]), 1.25, 0.04);
   }
 
   canvas_xA_Q_gamma->SaveAs ("plot/gamma_xA_Q.pdf");
