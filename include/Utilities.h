@@ -106,6 +106,12 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff = -1);
 
 
 /**
+ * Recenters a TGraphAsymmErrors point for a log scale.
+ */
+void RecenterGraph (TGraphAsymmErrors* g);
+
+
+/**
  * Returns the appropriate file in the given directory.
  * For MC, inFileName MUST be specified.
  */

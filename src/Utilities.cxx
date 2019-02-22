@@ -51,7 +51,7 @@ const char* FormatMeasurement (double val, double err, const int n) {
    errStart = errStart - 2; // first 2 characters are necessarly "0."
 
    // round the value and error to the appropriate decimal place
-   const double factorOfTen = pow(10, errStart+n);
+   const double factorOfTen = pow (10, errStart+n);
    val = floor (factorOfTen * val + 0.5) / factorOfTen;
    err = floor (factorOfTen * err + 0.5) / factorOfTen;
 
@@ -504,6 +504,24 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
     }
   }
   return tg;
+}
+
+
+/**
+ * Recenters a TGraphAsymmErrors point for a log scale.
+ */
+void RecenterGraph (TGraphAsymmErrors* g) {
+  double x, y, newx, xlo, xhi, logDelta;
+  for (int n = 0; n < g->GetN (); n++) {
+    g->GetPoint (n, x, y);
+    xlo = x - g->GetErrorXlow (n);
+    xhi = x + g->GetErrorXhigh (n);
+    logDelta = log10 (xhi) - log10 (xlo);
+    newx = pow (10, log10 (xlo) + 0.5*logDelta);
+    g->SetPoint (n, newx, y);
+    g->SetPointEXlow (n, newx-xlo);
+    g->SetPointEXhigh (n, xhi-newx);
+  }
 }
 
 
