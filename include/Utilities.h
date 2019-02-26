@@ -12,6 +12,13 @@
 namespace atlashi {
 
 /**
+ * Safely deletes an object so that its pointer is also deleted.
+ */
+template <typename T> inline void SaferDelete (T* &t) {
+  if (t) { delete t; t = nullptr; }
+}
+
+/**
  * Returns a TString summarizing a measurement.
  * By default, there is only 1 significant digit in the error.
  * E.g., FormatMeasurement (40.58, 1.29) returns "40#pm1".
@@ -24,6 +31,12 @@ const char* FormatMeasurement (double val, double err, const int n=1);
  * Modifies the directory strings to point to the correct locations.
  */
 void SetupDirectories (const TString dataSubDir, const TString thisWorkPath);
+
+
+/**
+ * Clears sub-directory information from the directory strings
+ */
+void ResetDirectories ();
 
 
 /**

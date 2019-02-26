@@ -137,6 +137,23 @@ void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
 
 
 /**
+ * Clears sub-directory information from the directory strings
+ */
+void ResetDirectories () {
+  TString workPath = ""; // Home analysis directory, should be modified in code outside this path structure
+  TString externalWorkPath = ""; // External drive storage directory, should be modified in code below
+  TString rootPath = ""; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
+  TString dataPath = ""; // Where the *.root raw data files (from the CERN grid) are stored.
+  TString plotPath = ""; // Where plots are stored.
+  TString ptPath = ""; // Where the pt analysis module output is stored.
+  TString trigPath = "";  // Where the trigger fire count module output is stored.
+  TString effPath = ""; // Where the trigger efficiency module output is stored.
+  TString xPath = ""; // Where the xa/xp module output is stored.
+  TString RpPbPath = ""; // Where the R_pPb module output is stored.
+}
+
+
+/**
  * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
  */
 double* linspace (double lo, double hi, int num) {
