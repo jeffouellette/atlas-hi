@@ -114,6 +114,7 @@ const char* FormatMeasurement (double val, double err, const int n) {
  * Modifies the directory strings to point to the correct locations.
  */
 void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
+  ResetDirectories ();
 
   if (thisWorkPath[thisWorkPath.Length()-1] != '/') {
     workPath = homePath + thisWorkPath + "/";

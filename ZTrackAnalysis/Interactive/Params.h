@@ -18,7 +18,7 @@ const int nXZTrkBins = 75;
 const double* xZTrkBins = logspace (2e-3, 2e1, nXZTrkBins);
 
 const int nPtTrkBins = 6;
-const double* ptTrkBins = logspace (3, 80, nPtTrkBins);
+const double* ptTrkBins = logspace (1, 80, nPtTrkBins);
 
 double* doubleLogSpace (const double lo, const double hi, const int num) {
   double* arr = Get1DArray <double> (2*num+1);
@@ -34,10 +34,6 @@ double* doubleLogSpace (const double lo, const double hi, const int num) {
 
 const int nFCalBins = 300;
 const double* fcalBins = linspace (0, 6000, nFCalBins);
-const int nPsi2Bins = 30;
-const double* psi2Bins = linspace (0, pi, nPsi2Bins);
-const int nVertZBins = 20;
-const double* vertZBins = linspace (-1.5, 1.5, nVertZBins);
 
 const int numZMissingPtBins = 16;
 const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
@@ -63,8 +59,8 @@ const int centCuts[4] =    {80,     30,     10,      0};
 //const double centThicks[8] = {0.223102, 0.564885, 1.2811,  2.63435, 4.94611, 8.63844, 14.3345, 23.3523};
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 
-const double phiLowBins[4] = {0, pi/2, 7*pi/8};
-const double phiHighBins[4] = {pi/2, 7*pi/8, pi};
+const double phiLowBins[3] = {0, pi/2, 7*pi/8};
+const double phiHighBins[3] = {pi/2, 7*pi/8, pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
 const double zPtBins[3] = {0, 5, 10000};
