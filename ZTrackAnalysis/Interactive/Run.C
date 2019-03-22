@@ -17,23 +17,23 @@ TruthAnalysis* truth = nullptr;
 void Run () {
 
   data = new DataAnalysis ();
-  //data->Execute ();
-  data->LoadHists ();
-
   mc = new MCAnalysis ();
+  bkg = new MinbiasAnalysis ();
+  truth = new TruthAnalysis ();
+
+  //data->Execute ();
   //mc->Execute ();
-  mc->LoadHists ();
-
-  //bkg = new MinbiasAnalysis ();
   //bkg->Execute ();
-  //bkg->LoadHists ();
-
-  //truth = new TruthAnalysis ();
   //truth->Execute ();
-  //truth->LoadHists ();
 
-  //sig = new Signal (data, bkg);
-  //sig->GenerateHistograms ();
+  data->LoadHists ();
+  mc->LoadHists ();
+  bkg->LoadHists ();
+  truth->LoadHists ();
+
+  sig = new Signal (data, bkg);
+
+  SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");
 
 }
 

@@ -15,8 +15,8 @@ class Analysis {
 
   private:
   // TFile with histograms
-  TFile* histFile = nullptr;
-  bool histsLoaded = false;
+  bool iaaCalculated = false;
+  bool icpCalculated = false;
 
   vector<TH1*> drawnHists;
   vector<TGraphAsymmErrors*> drawnGraphs;
@@ -26,9 +26,14 @@ class Analysis {
   const char* directory;
   bool backgroundSubtracted = false;
 
+  TFile* histFile = nullptr;
+  bool histsLoaded = false;
+  bool histsScaled = false;
+
   public:
-  bool plotFill = false; // plot as filled (bar) graph or points w/ errors
-  bool useAltMarker = false; // plot as open markers (instead of closed)
+  bool plotFill = false; // whether to plot as filled (bar) graph or points w/ errors
+  bool plotSignal = true; // whether to plot background subtracted plots
+  bool useAltMarker = false; // whether to plot as open markers (instead of closed)
 
   // Event info distributions (for reweighting)
   TH3D* PbPbEventReweights = nullptr;
@@ -37,26 +42,29 @@ class Analysis {
   // Analysis checks
   TH1D* FCalSpec           = nullptr;
   TH2D* FCalQ2Corr         = nullptr;
-  TH1D** ZPhiYields        = nullptr;
+  TH1D*** ZPhiYields       = nullptr;
   TH1D*** ZPtSpecs         = nullptr;
   TH1D*** ZMYields         = nullptr;
-  TH1D** ElectronSpec      = nullptr;
-  TH1D** MuonSpec          = nullptr;
+  TH1D*** LeptonSpec       = nullptr;
   TH1D*** TrackSpec        = nullptr;
   TH2D*** DRDists          = nullptr;
-  TH2D*** ZTrackPtPhi      = nullptr;
-  TH1D**** ZTrackPhiPtBins = nullptr;
+
+  // Correlations plots
+  TH2D***** ZTrackPtPhi      = nullptr;
+  TH1D****** ZTrackPhiPtBins = nullptr;
   
   // Physics plots
   TH2D***** ZMissingPt     = nullptr;
   TH1D***** ZMissingPtAvgs = nullptr;
   TH1D***** ZMissingPtInts = nullptr;
-  TH1D***** ZTracksPt      = nullptr;
+  TH1D****** ZTracksPt     = nullptr;
+  //TH1D***** ZTracksPt     = nullptr;
   TH1D****  ZCounts        = nullptr;
 
-  TH1D***** ZTracksSubYields = nullptr;
-  TH1D***** ZTracksIAARatios = nullptr;
-  TH1D***** ZTracksICPRatios = nullptr;
+  TH1D****** ZTracksSubYields = nullptr;
+  TH1D****** ZTracksSigToBkg  = nullptr;
+  TH1D****** ZTracksIAARatios = nullptr;
+  TH1D****** ZTracksICPRatios = nullptr;
 
   Analysis () {
     name = "";
@@ -64,6 +72,7 @@ class Analysis {
     backgroundSubtracted = false;
 
     plotFill = false;
+    plotSignal = true;
     useAltMarker = false;
 
     // Reweighting histograms
@@ -73,26 +82,28 @@ class Analysis {
     // Analysis checks
     FCalSpec        = nullptr;
     FCalQ2Corr      = nullptr;
-    ZPhiYields      = Get1DArray <TH1D*> (numCentBins);                // iCent
+    ZPhiYields      = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
     ZPtSpecs        = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
     ZMYields        = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-    ElectronSpec    = Get1DArray <TH1D*> (numCentBins);                // iCent
-    MuonSpec        = Get1DArray <TH1D*> (numCentBins);                // iCent
+    LeptonSpec      = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
     TrackSpec       = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
     DRDists         = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
-    ZTrackPtPhi     = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc (0=ee, 1=mumu, 2=combined)
-    ZTrackPhiPtBins = Get3DArray <TH1D*> (nPtTrkBins, numCentBins, 3); // iPtTrk, iCent, iSpc
+
+    // Correlations plots
+    ZTrackPtPhi     = Get4DArray <TH2D*> (nPtZBins, nXZTrkBins, numCentBins, 3);             // iPtZ, iXZTrk, iCent, iSpc (0=ee, 1=mumu, 2=combined)
+    ZTrackPhiPtBins = Get5DArray <TH1D*> (nPtTrkBins, nPtZBins, nXZTrkBins, numCentBins, 3); // iPtTrk, iPtZ, iXZTrk, iCent, iSpc
     
     // Physics plots
-    ZMissingPt      = Get4DArray <TH2D*> (3, nPtZBins, numPhiTrkBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-    ZMissingPtAvgs  = Get4DArray <TH1D*> (3, nPtZBins, numPhiTrkBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-    ZMissingPtInts  = Get4DArray <TH1D*> (3, nPtZBins, numPhiTrkBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-    ZTracksPt       = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);    // iSpc, iPtZ, iPhi, iCent
-    ZCounts         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);    // iSpc, iPtZ, iCent
+    ZMissingPt      = Get4DArray <TH2D*> (3, nPtZBins, numPhiTrkBins, numCentBins);           // iSpc, iPtZ, iPhi, iCent
+    ZMissingPtAvgs  = Get4DArray <TH1D*> (3, nPtZBins, numPhiTrkBins, numCentBins);           // iSpc, iPtZ, iPhi, iCent
+    ZMissingPtInts  = Get4DArray <TH1D*> (3, nPtZBins, numPhiTrkBins, numCentBins);           // iSpc, iPtZ, iPhi, iCent
+    ZTracksPt       = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins);  // iSpc, iPtZ, iXZTrk, iPhi, iCent
+    ZCounts         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);                          // iSpc, iPtZ, iCent
 
-    ZTracksSubYields = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-    ZTracksIAARatios = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-    ZTracksICPRatios = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
+    ZTracksSubYields = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+    ZTracksSigToBkg  = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+    ZTracksIAARatios = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+    ZTracksICPRatios = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
 
   }
 
@@ -107,8 +118,7 @@ class Analysis {
     ZPhiYields      = a->ZPhiYields;
     ZPtSpecs        = a->ZPtSpecs;
     ZMYields        = a->ZMYields;
-    ElectronSpec    = a->ElectronSpec;
-    MuonSpec        = a->MuonSpec;
+    LeptonSpec      = a->LeptonSpec;
     TrackSpec       = a->TrackSpec;
     DRDists         = a->DRDists;
     ZTrackPtPhi     = a->ZTrackPtPhi;
@@ -123,26 +133,29 @@ class Analysis {
   }
 
   protected:
-  void LabeldPhiPtTrk (const short iCent);
+  void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iXZTrk, const short iCent, const bool diffXZTrk);
   void LabelZMassSpectra (const short iSpc, const short iCent);
   void LabelTrkYield (const short iCent, const short iPhi);
+  void LabelIAARatios (const short iCent, const short iPhi);
+  void LabelICPRatios (const short iCent, const short iPhi);
 
   void GetDrawnObjects ();
   void GetMinAndMax (double &min, double &max, const bool log = false);
   void SetMinAndMax (double min, double max);
 
-  virtual void SubtractBackground ();
-
   public:
   const char* Name () { return name; }
 
-  void CreateHists ();
-  void LoadHists ();
-  void SaveHists ();
+  virtual void CreateHists ();
+  virtual void CombineHists ();
+  virtual void LoadHists ();
+  virtual void SaveHists ();
+  virtual void ScaleHists ();
+  virtual void SubtractBackground ();
 
   void Plot3DDist ();
   void PlotFCalDists ();
-  void PlotdPhiPtTrk (const short pSpc = 2);
+  void PlotCorrelations (const bool diffXZTrk = false, const short pSpc = 2);
   void PlotLeptonPtSpectra ();
   void PlotLeptonTrackPtSpectra ();
   void PlotZPtSpectra ();
@@ -169,6 +182,7 @@ void SafeWrite (TObject* tobj) {
 void Analysis::GetDrawnObjects () {
   TList* primitives = gPad->GetListOfPrimitives ();
   drawnHists.clear ();
+  drawnGraphs.clear ();
   for (int i = 0; i < primitives->GetSize (); i++) {
     TObject *obj = primitives->At (i);
     if (obj->IsA()->InheritsFrom (TH1::Class ())) {
@@ -190,7 +204,7 @@ void Analysis::GetMinAndMax (double &min, double &max, const bool log) {
     if (_min < min) min = _min;
   }
   for (TGraphAsymmErrors* g : drawnGraphs) {
-    double* ys = g->GetY ();
+    const double* ys = g->GetY ();
     for (int n = 0; n < g->GetN (); n++) {
       if (log && ys[n] <= 0)
         continue;
@@ -224,39 +238,43 @@ void Analysis::CreateHists () {
   FCalQ2Corr = new TH2D (Form ("FCalQ2Corr_%s", name), "", 300, 0, 6000, 150, 0, 300);
   FCalQ2Corr->Sumw2 ();
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    ZPhiYields[iCent] = new TH1D (Form ("ZPhiYield_iCent%i_%s", iCent, name), "", 80, 0, pi);
-    ZPhiYields[iCent]->Sumw2 ();
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      ZTrackPtPhi[iCent][iSpc] = new TH2D (Form ("ZTrackPtPhi_%s_iCent%i_%s", spc, iCent, name), "", 80, -pi/2, 3*pi/2, nPtTrkBins, ptTrkBins);
+      ZPhiYields[iCent][iSpc] = new TH1D (Form ("ZPhiYield_%s_iCent%i_%s", spc, iCent, name), "", 80, 0, pi);
       ZPtSpecs[iCent][iSpc] = new TH1D (Form ("ZPtSpec_%s_iCent%i_%s", spc, iCent, name), "", 300, 0, 300);
       ZMYields[iCent][iSpc] = new TH1D (Form ("ZMSpec_%s_iCent%i_%s", spc, iCent, name), "", 40, 76, 106);
+      LeptonSpec[iCent][iSpc] = new TH1D (Form ("LeptonSpec_%s_iCent%i_%s", spc, iCent, name), "", 250, 0, 250);
       TrackSpec[iCent][iSpc] = new TH1D (Form ("TrackSpec_%s_iCent%i_%s", spc, iCent, name), "", 100, 0, 100);
       
-      ZTrackPtPhi[iCent][iSpc]->Sumw2 ();
+      ZPhiYields[iCent][iSpc]->Sumw2 ();
       ZPtSpecs[iCent][iSpc]->Sumw2 ();
       ZMYields[iCent][iSpc]->Sumw2 ();
+      LeptonSpec[iCent][iSpc]->Sumw2 ();
       TrackSpec[iCent][iSpc]->Sumw2 ();
-    }
-    ElectronSpec[iCent] = new TH1D (Form ("ElectronSpec_iCent%i_%s", iCent, name), "", 250, 0, 250);
-    MuonSpec[iCent] = new TH1D (Form ("MuonSpec_iCent%i_%s", iCent, name), "", 250, 0, 250);
 
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
-      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc] = new TH2D (Form ("ZTrackPtPhi_%s_iPtZ%i_iXZTrk%i_iCent%i_%s", spc, iPtZ, iXZTrk, iCent, name), "", 80, -pi/2, 3*pi/2, nPtTrkBins, ptTrkBins);
+          ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Sumw2 ();
+        }
         for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
           ZMissingPt[iSpc][iPtZ][iPhi][iCent] = new TH2D (Form ("ZMissingPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name), "", numZMissingPtBins, zMissingPtBins, nPtTrkBins, ptTrkBins);
           ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
         }
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          ZTracksPt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("ZTracksPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
-          ZTracksPt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent] = new TH1D (Form ("ZTracksPt_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
+            ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]->Sumw2 ();
+          }
         }
         ZCounts[iSpc][iPtZ][iCent] = new TH1D (Form ("ZCounts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name), "", 1, 0, 1);
         ZCounts[iSpc][iPtZ][iCent]->Sumw2 ();
       }
     }
   }
+
+  histsLoaded = true;
+  return;
 }
 
 
@@ -267,29 +285,32 @@ void Analysis::LoadHists () {
   SetupDirectories (directory, "ZTrackAnalysis/");
   if (histsLoaded)
     return;
+
+  TDirectory* _gDirectory = gDirectory;
   histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      ZTrackPtPhi[iCent][iSpc] = (TH2D*)histFile->Get (Form ("ZTrackPtPhi_%s_iCent%i_%s", spc, iCent, name));
+      ZPhiYields[iCent][iSpc] = (TH1D*)histFile->Get (Form ("ZPhiYield_%s_iCent%i_%s", spc, iCent, name));
       ZPtSpecs[iCent][iSpc] = (TH1D*)histFile->Get (Form ("ZPtSpec_%s_iCent%i_%s", spc, iCent, name));
       ZMYields[iCent][iSpc] = (TH1D*)histFile->Get (Form ("ZMSpec_%s_iCent%i_%s", spc, iCent, name));
+      LeptonSpec[iCent][iSpc] = (TH1D*)histFile->Get (Form ("LeptonSpec_%s_iCent%i_%s", spc, iCent, name));
       TrackSpec[iCent][iSpc] = (TH1D*)histFile->Get (Form ("TrackSpec_%s_iCent%i_%s", spc, iCent, name));
       DRDists[iCent][iSpc] = (TH2D*)histFile->Get (Form ("DRDist_%s_iCent%i_%s", spc, iCent, name));
-    }
-    ZPhiYields[iCent] = (TH1D*)histFile->Get (Form ("ZPhiYield_iCent%i_%s", iCent, name));
-    ElectronSpec[iCent] = (TH1D*)histFile->Get (Form ("ElectronSpec_iCent%i_%s", iCent, name));
-    MuonSpec[iCent] = (TH1D*)histFile->Get (Form ("MuonSpec_iCent%i_%s", iCent, name));
-    
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
-      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc] = (TH2D*)histFile->Get (Form ("ZTrackPtPhi_%s_iPtZ%i_iXZTrk%i_iCent%i_%s", spc, iPtZ, iXZTrk, iCent, name));
+          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+            ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc] = (TH1D*)histFile->Get (Form ("ZTrackPhi_iPtTrk%i_iPtZ%i_iXZTrk%i_iCent%i_%s", iPtTrk, iPtZ, iXZTrk, iCent, name));
+          }
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent] = (TH1D*)histFile->Get (Form ("ZTracksPt_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name));
+          }
+        }
         for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
           ZMissingPt[iSpc][iPtZ][iPhi][iCent] = (TH2D*)histFile->Get (Form ("ZMissingPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name));
-        }
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          ZTracksPt[iSpc][iPtZ][iPhi][iCent] = (TH1D*)histFile->Get (Form ("ZTracksPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name));
         }
         ZCounts[iSpc][iPtZ][iCent] = (TH1D*)histFile->Get (Form ("ZCounts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name));
       }
@@ -299,6 +320,10 @@ void Analysis::LoadHists () {
   FCalQ2Corr = (TH2D*)histFile->Get (Form ("FCalQ2Corr_%s", name));
   
   histsLoaded = true;
+  histsScaled = true;
+
+  _gDirectory->cd ();
+  return;
 }
 
 
@@ -307,31 +332,40 @@ void Analysis::LoadHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::SaveHists () {
   SetupDirectories (directory, "ZTrackAnalysis/");
+  if (!histsLoaded)
+    return;
+
+  TDirectory* _gDirectory = gDirectory;
   histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "recreate");
   histFile->cd ();
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
-      SafeWrite (ZTrackPtPhi[iCent][iSpc]);
+      SafeWrite (ZPhiYields[iCent][iSpc]);
       SafeWrite (ZPtSpecs[iCent][iSpc]);
       SafeWrite (ZMYields[iCent][iSpc]);
+      SafeWrite (LeptonSpec[iCent][iSpc]);
       SafeWrite (TrackSpec[iCent][iSpc]);
       SafeWrite (DRDists[iCent][iSpc]);
-    }
-    SafeWrite (ZPhiYields[iCent]);
-    SafeWrite (ElectronSpec[iCent]);
-    SafeWrite (MuonSpec[iCent]);
-    
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
+
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          SafeWrite (ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]);
+          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+            SafeWrite (ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc]);
+          }
+        }
         for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
           SafeWrite (ZMissingPt[iSpc][iPtZ][iPhi][iCent]);
         }
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          SafeWrite (ZTracksPt[iSpc][iPtZ][iPhi][iCent]);
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            SafeWrite (ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+          }
         }
         SafeWrite (ZCounts[iSpc][iPtZ][iCent]);
       }
     }
+    
   }
   SafeWrite (FCalSpec);
   SafeWrite (FCalQ2Corr);
@@ -339,8 +373,106 @@ void Analysis::SaveHists () {
   histFile->Close ();
   histFile = nullptr;
   histsLoaded = false;
+
+  _gDirectory->cd ();
+  return;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Fill combined species histograms
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis::CombineHists () {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iSpc = 0; iSpc < 2; iSpc++) {
+      ZPhiYields[iCent][2]->Add (ZPhiYields[iCent][iSpc]);
+      ZPtSpecs[iCent][2]->Add (ZPtSpecs[iCent][iSpc]);
+      ZMYields[iCent][2]->Add (ZMYields[iCent][iSpc]);
+      TrackSpec[iCent][2]->Add (TrackSpec[iCent][iSpc]);
+      //DRDists[iCent][2]->Add (DRDists[iCent][iSpc]);
+
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          ZTrackPtPhi[iPtZ][iXZTrk][iCent][2]->Add (ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]);
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            ZTracksPt[2][iPtZ][iXZTrk][iPhi][iCent]->Add (ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+          } // end loop over phi
+        }
+        for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
+          ZMissingPt[2][iPtZ][iPhi][iCent]->Add (ZMissingPt[iSpc][iPtZ][iPhi][iCent]);
+        } // end loop over phi
+        ZCounts[2][iPtZ][iCent]->Add (ZCounts[iSpc][iPtZ][iCent]);
+      } // end loop over pT^Z
+    } // end loop over species
+  } // end loop over centralities
+  return;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Scale histograms for plotting, calculating signals, etc.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis::ScaleHists () {
+  if (histsScaled || !histsLoaded)
+    return;
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            TH1D* h = ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent];
+            TH1D* countsHist = ZCounts[iSpc][iPtZ][iCent];
+            const double yieldNormFactor = countsHist->GetBinContent (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
+            //const double yieldNormFactorError = countsHist->GetBinError (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
+
+            //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
+            if (yieldNormFactor > 0)
+              h->Scale (1. / yieldNormFactor);
+          } // end loop over phi
+        } // end loop over xZTrk
+      } // end loop over pT^Z
+
+      double normFactor = 0;
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++)
+        normFactor += ZCounts[iSpc][iPtZ][iCent]->GetBinContent (1);
+
+      for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+          for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+            ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc] = ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->ProjectionX (Form ("ZTrackPhi_iPtTrk%i_iPtZ%i_iXZTrk%i_iCent%i_%s", iPtTrk, iPtZ, iXZTrk, iCent, name), iPtTrk+1, iPtTrk+1);
+            TH1D* h = ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc];
+            h->Rebin (2);
+            if (iPtTrk > 3)
+              h->Rebin (2);
+            if (iCent != 0)
+              h->Rebin (2);
+            if (normFactor > 0)
+              h->Scale (1. / normFactor, "width");
+          }
+        }
+      }
+
+      LeptonSpec[iCent][iSpc]->Rebin (5);
+      if (normFactor > 0)
+        LeptonSpec[iCent][iSpc]->Scale (1. / normFactor, "width");
+
+      TrackSpec[iCent][iSpc]->Rebin (5);
+      if (normFactor > 0)
+        TrackSpec[iCent][iSpc]->Scale (1. / normFactor, "width");
+
+      if (ZMYields[iCent][iSpc]->GetMaximum () > 0)
+        ZMYields[iCent][iSpc]->Scale (1. / (ZMYields[iCent][iSpc]->GetMaximum ()));
+
+      ZPhiYields[iCent][iSpc]->Rebin (8);
+      if (ZPhiYields[iCent][iSpc]->Integral () > 0)
+        ZPhiYields[iCent][iSpc]->Scale (1. / ZPhiYields[iCent][iSpc]->Integral (), "width");
+    } // end loop over centralities
+  } // end loop over species
+
+  histsScaled = true;
+  return;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot dPhi - xZTrk 3d distribution
@@ -351,11 +483,11 @@ void Analysis::Plot3DDist () {
 
   c->SetLogy ();
 
-  ZTrackPtPhi[numCentBins-1][2]->GetXaxis ()->SetTitle ("#phi_{Z} - #phi_{Trk}");
-  ZTrackPtPhi[numCentBins-1][2]->GetYaxis ()->SetTitle ("#it{p}_{T}^{ ch} / #it{p}_{T}^{ Z}");
+  ZTrackPtPhi[0][0][numCentBins-1][2]->GetXaxis ()->SetTitle ("#phi_{Z} - #phi_{Trk}");
+  ZTrackPtPhi[0][0][numCentBins-1][2]->GetYaxis ()->SetTitle ("#it{p}_{T}^{ ch} / #it{p}_{T}^{ Z}");
 
   //ZTrackPtPhi[0][numCentBins-1][2]->RebinY (2);
-  ZTrackPtPhi[numCentBins-1][2]->Draw ("lego2");
+  ZTrackPtPhi[0][0][numCentBins-1][2]->Draw ("lego2");
 
   c->SaveAs (Form ("%s/ZTrackCorr.pdf", plotPath.Data ()));
 }
@@ -391,135 +523,225 @@ void Analysis::PlotFCalDists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot dPhi - pTTrk 2d projections
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotdPhiPtTrk (const short pSpc) {
-  TF1**** Fits = Get3DArray <TF1*> (nPtTrkBins, numCentBins, 3); // iPtTrk, iCent, iSpc
+void Analysis::PlotCorrelations (const bool diffXZTrk, const short pSpc) {
+  //TF1****** Fits = Get5DArray <TF1*> (nPtTrkBins, nPtZBins, nXZTrkBins, numCentBins, 3); // iPtTrk, iCent, iSpc
+  const short pPtZ[3] = {1, 2, 3};
+  const short pXZTrk[4] = {0, 1, 2, 3};
+  const short pPtTrk[4] = {0, 1, 2, 3};
+
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    const char* canvasName = Form ("dPhiPtTrkCanvas_%s", spc);
-    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-    TCanvas* c = nullptr;
-    if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-    else {
-      c = new TCanvas (canvasName, "", 1600, 1200);
-      gDirectory->Add (c);
-      c->cd ();
-      c->Divide (2, 2);
+
+    short nx = nXZTrkBins, ny = nPtTrkBins; // x = binning dimension, y = x-axis dimension
+    short iXZTrk, iPtTrk;
+    if (diffXZTrk) {
+      nx = nPtTrkBins;
+      ny = nXZTrkBins;
     }
-    c->cd ();
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      c->cd (iCent+1);
-      GetDrawnObjects ();
 
-      gPad->SetTopMargin (0.01);
-      gPad->SetBottomMargin (0.12);
-      gPad->SetRightMargin (0.01);
-      gPad->SetLeftMargin (0.12);
+    for (short ix = 0; ix < nx; ix++) {
+      bool skipBin = true;
+      if (diffXZTrk) { // true = binned in XZTrk, overall plot is 1 pTTrk bin
+        iPtTrk = ix;
+        for (short i = 0; i < sizeof (pPtTrk) / sizeof (pPtTrk[0]); i++)
+          skipBin = skipBin && !(iPtTrk == pPtTrk[i]);
+      } else {
+        iXZTrk = ix;
+        for (short i = 0; i < sizeof (pXZTrk) / sizeof (pXZTrk[0]); i++)
+          skipBin = skipBin && !(iXZTrk == pXZTrk[i]);
+      }
+      if (skipBin)
+        continue;
 
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-        ZTrackPhiPtBins[iPtTrk][iCent][iSpc] = ZTrackPtPhi[iCent][iSpc]->ProjectionX (Form ("ZTrackPhi_iPtTrk%i_iCent%i_%s", iPtTrk, iCent, name), iPtTrk+1, iPtTrk+1);
-        TH1D* thisHist = ZTrackPhiPtBins[iPtTrk][iCent][iSpc];
-        thisHist->Rebin (2);
-        if (iPtTrk > 3)
-          thisHist->Rebin (2);
-        if (iCent != 0)
-          thisHist->Rebin (2);
-        if (ZPtSpecs[iCent][iSpc]->Integral () > 0)
-          thisHist->Scale (1./ZPtSpecs[iCent][iSpc]->Integral (), "width");
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        skipBin = true;
+        for (short i = 0; i < sizeof (pPtZ) / sizeof (pPtZ[0]); i++) 
+          skipBin = skipBin && !(iPtZ == pPtZ[i]);
+        if (skipBin)
+          continue;
 
-        TF1* constFit = new TF1 (Form ("fit_iPtTrk%i_iCent%i_%s", iPtTrk, iCent, name), "[0]+[1]*cos(x)+[2]*cos(2*x)+[3]*cos(3*x)+[4]*cos(4*x)", -pi/2, 3*pi/2);
-        thisHist->Fit (constFit, "RN0");
-        //const float min = constFit->GetMinimum (-pi/2, 3*pi/2);
-        const double min = thisHist->Integral (thisHist->GetXaxis ()->FindBin (-pi/3), thisHist->GetXaxis ()->FindBin (pi/3)) / (thisHist->GetXaxis      ()->FindBin (pi/3) - thisHist->GetXaxis ()->FindBin (-pi/3) + 1);
-
-        for (int ix = 1; ix <= thisHist->GetNbinsX (); ix++)
-          thisHist->SetBinContent (ix, thisHist->GetBinContent (ix) - min); 
-
-        constFit->SetParameter (0, constFit->GetParameter (0) - min);
-        Fits[iPtTrk][iCent][iSpc] = constFit;
-      } // end loop over pT^trk bins
-      
-      double min = 1e30, max = 0;
-      GetMinAndMax (min, max);
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins-1; iPtTrk++) {
-        TH1D* thisHist = ZTrackPhiPtBins[iPtTrk][iCent][iSpc];
-        if (thisHist->GetMinimum () < min) min = thisHist->GetMinimum ();
-        if (thisHist->GetMaximum () > max) max = thisHist->GetMaximum ();
-      } // end loop over pT^trk bins
-      SetMinAndMax (min, max);
-
-      if (plotFill) {
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins-1; iPtTrk++) {
-          TH1D* thisHist = (TH1D*)ZTrackPhiPtBins[iPtTrk][iCent][iSpc]->Clone ();
-
-          thisHist->GetYaxis ()->SetRangeUser (1.3*min, 1.3*max);
-
-          thisHist->SetLineColor (kBlack);
-          thisHist->SetLineWidth (0);
-          thisHist->SetFillColorAlpha (fillColors[iPtTrk], fillAlpha);
-          thisHist->SetMarkerSize (0);
-
-          thisHist->GetXaxis ()->SetTitle ("#Delta#phi");
-          thisHist->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
-          thisHist->GetXaxis ()->SetTitleOffset (0.6);
-          thisHist->GetYaxis ()->SetTitleOffset (0.8);
-          thisHist->GetXaxis ()->SetTitleSize (0.08);
-          thisHist->GetYaxis ()->SetTitleSize (0.06);
-          thisHist->GetXaxis ()->SetLabelSize (0.06);
-          thisHist->GetYaxis ()->SetLabelSize (0.06);
-
-          thisHist->DrawCopy (!canvasExists && iPtTrk == 0 ? "b" : "same b");
-          thisHist->SetLineWidth (1);
-          thisHist->Draw ("hist same");
+        const char* canvasName = (diffXZTrk ? Form ("dPhiXZTrkCanvas_iPtZ%i_iPtTrk%i_%s", iPtZ, iPtTrk, spc) : Form ("dPhiPtTrkCanvas_iPtZ%i_iXZTrk%i_%s", iPtZ, iXZTrk, spc));
+        const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+        TCanvas* c = nullptr;
+        if (canvasExists)
+          c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        else {
+          c = new TCanvas (canvasName, "", 1600, 1200);
+          gDirectory->Add (c);
+          c->cd ();
+        //  c->Divide (2, 2);
         }
-        gPad->RedrawAxis ();
-      }
-      else {
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins-1; iPtTrk++) {
-          TGraphAsymmErrors* thisGraph = make_graph (ZTrackPhiPtBins[iPtTrk][iCent][iSpc]);
 
-          const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
-          thisGraph->GetYaxis ()->SetRangeUser (0, 1.3*max);
+        for (short iCent = 0; iCent < 1; iCent++) {
+          c->cd ();
+          gPad->SetLogy ();
+        //for (short iCent = 0; iCent < numCentBins; iCent++) {
+        //  c->cd (iCent+1);
+          GetDrawnObjects ();
+          gPad->SetLogy ();
 
-          thisGraph->SetMarkerStyle (markerStyle);
-          thisGraph->SetLineColor (colors[iPtTrk]);
-          thisGraph->SetMarkerColor (colors[iPtTrk]);
+          gPad->SetTopMargin (0.01);
+          gPad->SetBottomMargin (0.12);
+          gPad->SetRightMargin (0.01);
+          gPad->SetLeftMargin (0.12);
 
-          thisGraph->Draw (!canvasExists && iPtTrk == 0 ? "AP" : "P");
+          double min = 1e30, max = 0;
+          GetMinAndMax (min, max, true);
+          for (short iy = 0; iy < ny; iy++) {
+            skipBin = true;
+            if (diffXZTrk) {
+              iXZTrk = iy;
+              for (short i = 0; i < sizeof (pXZTrk) / sizeof (pXZTrk[0]); i++)
+                skipBin = skipBin && !(iXZTrk == pXZTrk[i]);
+            } else {
+              iPtTrk = iy;
+              for (short i = 0; i < sizeof (pPtTrk) / sizeof (pPtTrk[0]); i++)
+                skipBin = skipBin && !(iPtTrk == pPtTrk[i]);
+            }
+            if (skipBin)
+              continue;
+            TH1D* h = ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc];
+            if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
+            if (h->GetMaximum () > max) max = h->GetMaximum ();
+          } // end loop over pT^trk bins
+          min *= 0.5;
+          max = max <= 0 ? 1 : 14*max;
+          SetMinAndMax (min, max);
 
-          Fits[iPtTrk][iCent][iSpc]->SetLineColor (colors[iPtTrk]);
-          Fits[iPtTrk][iCent][iSpc]->Draw ("same");
-        } // end loop over pT^trk bins
-      }
+          if (plotFill) {
+            for (short iy = 0; iy < ny; iy++) {
+              skipBin = true;
+              if (diffXZTrk) {
+                iXZTrk = iy;
+                for (short i = 0; i < sizeof (pXZTrk) / sizeof (pXZTrk[0]); i++)
+                  skipBin = skipBin && !(iXZTrk == pXZTrk[i]);
+              } else {
+                iPtTrk = iy;
+                for (short i = 0; i < sizeof (pPtTrk) / sizeof (pPtTrk[0]); i++)
+                  skipBin = skipBin && !(iPtTrk == pPtTrk[i]);
+              }
+              if (skipBin)
+                continue;
 
-      LabeldPhiPtTrk (iCent);
+              TH1D* h = (TH1D*)ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc]->Clone ();
 
-    } // end loop over centrality
+              h->GetYaxis ()->SetRangeUser (min, max);
 
-    c->SaveAs (Form ("%s/dPhi_pTtrk_%s.pdf", plotPath.Data (), spc));
+              h->SetLineColor (fillColors[iy]);
+              h->SetLineWidth (4);
+              //h->SetFillColorAlpha (fillColors[iy], fillAlpha);
+              h->SetMarkerSize (0);
 
-  }
-  Delete3DArray (Fits, nPtTrkBins, numCentBins, 3);
+              h->GetXaxis ()->SetTitle ("#Delta#phi");
+              //h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
+              h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi");
+              h->GetXaxis ()->SetTitleOffset (0.6);
+              h->GetYaxis ()->SetTitleOffset (0.8);
+              h->GetXaxis ()->SetTitleSize (0.08);
+              h->GetYaxis ()->SetTitleSize (0.06);
+              h->GetXaxis ()->SetLabelSize (0.06);
+              h->GetYaxis ()->SetLabelSize (0.06);
+
+              h->DrawCopy (!canvasExists && iy == 0 ? "hist" : "same hist");
+              //h->SetLineWidth (1);
+              //h->Draw ("hist same");
+
+              //TLine* line = new TLine (h->GetBinLowEdge (1), 0, h->GetBinLowEdge (h->GetNbinsX ()), 0);
+              //line->Draw ("same");
+
+              LabelCorrelations (iPtZ, iPtTrk, iXZTrk, iCent, diffXZTrk);
+            } // end loop over iy
+            gPad->RedrawAxis ();
+          }
+          else {
+            for (short iy = 0; iy < ny; iy++) {
+              skipBin = true;
+              if (diffXZTrk) {
+                iXZTrk = iy;
+                for (short i = 0; i < sizeof (pXZTrk) / sizeof (pXZTrk[0]); i++)
+                  skipBin = skipBin && !(iXZTrk == pXZTrk[i]);
+              } else {
+                iPtTrk = iy;
+                for (short i = 0; i < sizeof (pPtTrk) / sizeof (pPtTrk[0]); i++)
+                  skipBin = skipBin && !(iPtTrk == pPtTrk[i]);
+              }
+              if (skipBin)
+                continue;
+
+              TGraphAsymmErrors* g = make_graph (ZTrackPhiPtBins[iPtTrk][iPtZ][iXZTrk][iCent][iSpc]);
+              ResetXErrors (g);
+
+              const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
+              g->GetYaxis ()->SetRangeUser (min, max);
+
+              g->SetMarkerStyle (markerStyle);
+              g->SetLineColor (colors[iy]);
+              g->SetMarkerColor (colors[iy]);
+
+              g->Draw (!canvasExists && iy == 0 ? "AP" : "P");
+
+              LabelCorrelations (iPtZ, iPtTrk, iXZTrk, iCent, diffXZTrk);
+            } // end loop over iy
+          }
+        } // end loop over centrality
+
+        c->SaveAs (diffXZTrk ? Form ("%s/dPhi_Distributions/dPhi_xZTrk_iPtZ%i_iPtTrk%i_%s.pdf", plotPath.Data (), iPtZ, iPtTrk, spc) : Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_iXZTrk%i_%s.pdf", plotPath.Data (), iPtZ, iXZTrk, spc));
+      } // end loop over ix
+    } // end loop over pT^Z
+  } // end loop over species
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for track dPhi distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LabeldPhiPtTrk (const short iCent) {
-  for (int iPtTrk = 0; iPtTrk < nPtTrkBins-1; iPtTrk++) {
-    if (iCent == 0) {
-      myText (0.2, 0.9, kBlack, "#it{pp}", 0.06);
+void Analysis::LabelCorrelations (const short iPtZ, const short iPtTrk, const short iXZTrk, const short iCent, const bool diffXZTrk) {
+  if (iCent == 0) {
+    myText (0.8, 0.20, kBlack, "#it{pp}", 0.06);
+    //myText (0.16, 0.93, kBlack, "Truth", 0.05);
+    //myText (0.30, 0.93, kBlack, "Reco.", 0.05);
+    myText (0.16, 0.93, kBlack, "Data", 0.05);
+    myText (0.30, 0.93, kBlack, "Minbias", 0.05);
+    TVirtualPad* cPad = gPad; // store current pad
+    TBox* b = nullptr;
+    if (diffXZTrk) {
+      const float pt_lo = xZTrkBins[iXZTrk];
+      const float pt_hi = xZTrkBins[iXZTrk+1];
+      if (iXZTrk == 0)
+        myText (0.4, 0.93, kBlack, "#it{x}_{Z}^{trk}", 0.05);
+      myText (0.4, 0.87-0.065*iXZTrk, colors[iXZTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.05);
+      myText (0.4, 0.87-0.065*iXZTrk, colors[iXZTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.05);
+
+      b = TBoxNDC (0.33-0.024, 0.87-0.065*iXZTrk-0.016, 0.33+0.024, 0.87-0.065*iXZTrk+0.016);
+      b->SetFillColorAlpha (fillColors[iXZTrk], fillAlpha);
+      myMarkerText (0.23, 0.87-0.065*iXZTrk, colors[iXZTrk], kFullCircle, "", 2, 0.05);
+    } else {
       const float pt_lo = ptTrkBins[iPtTrk];
       const float pt_hi = ptTrkBins[iPtTrk+1];
-      myText (0.2, 0.80-0.075*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T}^{ ch} < %.1f GeV", pt_lo, pt_hi), 0.06);
+      if (iPtTrk == 0)
+        myText (0.4, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.05);
+      myText (0.4, 0.87-0.065*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.05);
+      myText (0.4, 0.87-0.065*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.05);
+
+      b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
+      b->SetFillColorAlpha (fillColors[iPtTrk], fillAlpha);
+      myMarkerText (0.23, 0.87-0.065*iPtTrk, colors[iPtTrk], kFullCircle, "", 2, 0.05);
     }
-    else {
-      myText (0.2, 0.9, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
-    }
+    b->Draw ("l");
+    cPad->cd ();
   }
+  else {
+    myText (0.80, 0.20, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
+  }
+  //if (iCent == 1) {
+    myText (0.65, 0.93, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+    if (!diffXZTrk)
+      myText (0.65, 0.87, kBlack, Form ("%g < #it{p}_{T}^{ ch} / #it{p}_{T}^{Z} < %g", xZTrkBins[iXZTrk], xZTrkBins[iXZTrk+1]), 0.05);
+    else
+      myText (0.65, 0.87, kBlack, Form ("%.1f < #it{p}_{T}^{ ch} < %.1f", ptTrkBins[iPtTrk], ptTrkBins[iPtTrk+1]), 0.05);
+  //}
 }
 
 
@@ -527,60 +749,42 @@ void Analysis::LabeldPhiPtTrk (const short iCent) {
 // Plot lepton Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::PlotLeptonPtSpectra () {
-  const char* canvasName = "LeptonPtCanvas";
-  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  TCanvas* c = nullptr;
-  if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  else {
-    c = new TCanvas (canvasName, "", 1000, 600);
-    gDirectory->Add (c);
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
+    const char* spc = iSpc == 0 ? "e" : "#mu";
+
+    const char* canvasName = Form ("%sPtCanvas", iSpc == 0 ? "Electron" : "Muon");
+    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+    TCanvas* c = nullptr;
+    if (canvasExists)
+      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    else {
+      c = new TCanvas (canvasName, "", 1000, 600);
+      gDirectory->Add (c);
+    }
+    c->cd ();
+    c->SetLogy ();
+
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      TH1D* h = (TH1D*)LeptonSpec[iCent][iSpc]->Clone ();
+      //h->Rebin (5);
+      //h->Scale (1./ZCounts[iCent][iSpc]->Integral (), "width");
+
+      h->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+      h->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
+
+      h->SetLineColor (colors[iCent]);
+      h->SetMarkerColor (colors[iCent]);
+      h->SetMarkerStyle (kFullCircle);
+      h->SetMarkerSize (0.75);
+
+      h->Draw (iCent == 0 ? "e1" : "e1 same");
+    }
+    myText (0.76, 0.88, colors[0], "#it{pp}", 0.04);
+    for (short iCent = 1; iCent < numCentBins; iCent++) {
+      myText (0.76, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+    }
+    c->SaveAs (Form ("%s/%sPtSpectra.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : "Muon"));
   }
-  c->cd ();
-  c->SetLogy ();
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    TH1D* thisHist = (TH1D*)ElectronSpec[iCent]->Clone ();
-    thisHist->Rebin (5);
-    thisHist->Scale (1./ZPtSpecs[iCent][0]->Integral (), "width");
-
-    thisHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ e} [GeV]");
-    thisHist->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowee} dN_{e}/d#it{p}_{T} [GeV^{-1}]");
-
-    thisHist->SetLineColor (colors[iCent]);
-    thisHist->SetMarkerColor (colors[iCent]);
-    thisHist->SetMarkerStyle (kFullCircle);
-    thisHist->SetMarkerSize (0.75);
-
-    thisHist->Draw (iCent == 0 ? "e1" : "e1 same");
-  }
-  myText (0.76, 0.88, colors[0], "#it{pp}", 0.04);
-  for (short iCent = 1; iCent < numCentBins; iCent++) {
-    myText (0.76, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-  }
-  c->SaveAs (Form ("%s/ElectronPtSpectra.pdf", plotPath.Data ()));
-
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    TH1D* thisHist = (TH1D*)MuonSpec[iCent]->Clone ();
-    thisHist->Scale (1./ZPtSpecs[iCent][1]->Integral (), "width");
-    thisHist->Rebin (5);
-
-    thisHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ #mu} [GeV]");
-    thisHist->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#mu#mu} dN_{#mu}/d#it{p}_{T} [GeV^{-1}]");
-
-    thisHist->SetLineColor (colors[iCent]);
-    thisHist->SetMarkerColor (colors[iCent]);
-    thisHist->SetMarkerStyle (kFullCircle);
-    thisHist->SetMarkerSize (0.75);
-
-    thisHist->Draw (iCent == 0 ? "e1" : "e1 same");
-  }
-  gPad->RedrawAxis ();
-
-  myText (0.76, 0.88, colors[0], "#it{pp}", 0.04);
-  for (short iCent = 1; iCent < numCentBins; iCent++) {
-    myText (0.76, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-  }
-  c->SaveAs (Form ("%s/MuonPtSpectra.pdf", plotPath.Data ()));
 }
 
 
@@ -602,30 +806,30 @@ void Analysis::PlotLeptonTrackPtSpectra () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      TH1D* thisHist = (TH1D*)TrackSpec[iCent][iSpc]->Clone (Form ("leptonTrackPt_iSpc%i_iCent%i", iSpc, iCent));
-      thisHist->Rebin (5);
-      thisHist->Scale (1./ZPtSpecs[iCent][iSpc]->Integral (ZPtSpecs[iCent][iSpc]->GetXaxis ()->FindBin (5), ZPtSpecs[iCent][iSpc]->GetNbinsX ()), "width");
-      cout << iSpc << ", " << iCent << ", " << ZPtSpecs[iCent][iSpc]->Integral (ZPtSpecs[iCent][iSpc]->GetXaxis ()->FindBin (5), ZPtSpecs[iCent][iSpc]->GetNbinsX ()) << endl;
+      TH1D* h = (TH1D*)TrackSpec[iCent][iSpc]->Clone (Form ("leptonTrackPt_iSpc%i_iCent%i", iSpc, iCent));
+      //h->Rebin (5);
+      //h->Scale (1./ZPtSpecs[iCent][iSpc]->Integral (ZPtSpecs[iCent][iSpc]->GetXaxis ()->FindBin (5), ZPtSpecs[iCent][iSpc]->GetNbinsX ()), "width");
+      //cout << iSpc << ", " << iCent << ", " << ZPtSpecs[iCent][iSpc]->Integral (ZPtSpecs[iCent][iSpc]->GetXaxis ()->FindBin (5), ZPtSpecs[iCent][iSpc]->GetNbinsX ()) << endl;
 
-      thisHist->GetYaxis ()->SetRangeUser (6e-6, 450);
+      h->GetYaxis ()->SetRangeUser (6e-6, 450);
 
-      thisHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+      h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
       if (iSpc == 0) {
-        thisHist->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowee} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowee} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
       else if (iSpc == 1) {
-        thisHist->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#mu#mu} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#mu#mu} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
       else {
-        thisHist->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowll} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowll} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
 
-      thisHist->SetLineColor (colors[iCent]);
-      thisHist->SetMarkerColor (colors[iCent]);
-      thisHist->SetMarkerStyle (kFullCircle);
-      thisHist->SetMarkerSize (0.75);
+      h->SetLineColor (colors[iCent]);
+      h->SetMarkerColor (colors[iCent]);
+      h->SetMarkerStyle (kFullCircle);
+      h->SetMarkerSize (0.75);
 
-      thisHist->Draw (iCent == 0 ? "e1" : "e1 same");
+      h->Draw (iCent == 0 ? "e1" : "e1 same");
     }
     gPad->RedrawAxis ();
 
@@ -658,11 +862,11 @@ void Analysis::PlotZPtSpectra () {
   c->SetLogy ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    //TH1D* thisHist = (TH1D*)ZPtSpecs[0][iCent][0]->Clone ();
-    TH1D* thisHist = (TH1D*)ZPtSpecs[iCent][1]->Clone ();
-    //thisHist->Add (ZPtSpecs[0][iCent][1]);
-    //thisHist->Rebin (5);
-    thisHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
+    TH1D* h = (TH1D*)ZPtSpecs[iCent][2]->Clone ();
+    //TH1D* h = (TH1D*)ZPtSpecs[iCent][1]->Clone ();
+    //h->Add (ZPtSpecs[0][iCent][1]);
+    //h->Rebin (5);
+    h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
 
     TH1D* integral = new TH1D (Form ("ZPtSpec_integral_iCent%i", iCent), "", 300, 0, 300);
     //integral->Rebin (5);
@@ -674,20 +878,19 @@ void Analysis::PlotZPtSpectra () {
 
     for (int ix = 1; ix <= integral->GetNbinsX (); ix++) {
       double content = 0, varsq = 0;
-      content = thisHist->IntegralAndError (ix, thisHist->GetNbinsX (), varsq);
+      content = h->IntegralAndError (ix, h->GetNbinsX (), varsq);
       integral->SetBinContent (ix, content);
       integral->SetBinError (ix, sqrt (varsq));
     }
 
     cout << "\t#Z's >= 0 GeV: " << integral->GetBinContent (1) << endl;
-    cout << "\t#Z's <  3 GeV: " << integral->GetBinContent (1) - integral->GetBinContent (4) << endl;
     cout << "\t#Z's >= 5 GeV: " << integral->GetBinContent (6) << endl;
-    cout << "\t#Z's >= 10 GeV: " << integral->GetBinContent (11) << endl;
+    cout << "\t#Z's >= 25 GeV: " << integral->GetBinContent (26) << endl;
 
-    thisHist->SetLineColor (colors[iCent]);
-    thisHist->SetMarkerColor (colors[iCent]);
-    thisHist->SetMarkerStyle (kFullCircle);
-    thisHist->SetMarkerSize (0.5);
+    h->SetLineColor (colors[iCent]);
+    h->SetMarkerColor (colors[iCent]);
+    h->SetMarkerStyle (kFullCircle);
+    h->SetMarkerSize (0.5);
 
     integral->SetLineColor (colors[iCent]);
     integral->SetMarkerColor (colors[iCent]);
@@ -700,7 +903,7 @@ void Analysis::PlotZPtSpectra () {
       integral->Draw ("e1");
     else
       integral->Draw ("same e1");
-    thisHist->Draw ("same e1");
+    h->Draw ("same e1");
   }
   gPad->RedrawAxis ();
 
@@ -720,7 +923,7 @@ void Analysis::PlotZPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::PlotZMassSpectra () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : "mumu");
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     const char* canvasName = Form ("ZMassCanvas_%s", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
@@ -734,22 +937,22 @@ void Analysis::PlotZMassSpectra () {
 
     if (plotFill) {
       for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-        TH1D* thisHist = ZMYields[iCent][iSpc];
-        if (thisHist->GetMaximum () > 0)
-          thisHist->Scale (1. / (thisHist->GetMaximum ()));
+        TH1D* h = ZMYields[iCent][iSpc];
+        //if (h->GetMaximum () > 0)
+        //  h->Scale (1. / (h->GetMaximum ()));
 
-        thisHist->SetFillColorAlpha (fillColors[iCent], fillAlpha);
-        thisHist->SetLineColor (kBlack);
-        thisHist->SetMarkerSize (0);
-        thisHist->SetLineWidth (0);
-        thisHist->GetYaxis ()->SetRangeUser (0, 1.3);
+        h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
+        h->SetLineColor (kBlack);
+        h->SetMarkerSize (0);
+        h->SetLineWidth (0);
+        h->GetYaxis ()->SetRangeUser (0, 1.3);
 
-        thisHist->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
-        thisHist->GetYaxis ()->SetTitle ("A.U.");
+        h->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
+        h->GetYaxis ()->SetTitle ("A.U.");
 
-        thisHist->DrawCopy (!canvasExists && iCent == numCentBins-1 ? "bar" : "bar same");
-        thisHist->SetLineWidth (1);
-        thisHist->Draw ("hist same");
+        h->DrawCopy (!canvasExists && iCent == numCentBins-1 ? "bar" : "bar same");
+        h->SetLineWidth (1);
+        h->Draw ("hist same");
 
         LabelZMassSpectra (iSpc, iCent);
       }
@@ -757,37 +960,36 @@ void Analysis::PlotZMassSpectra () {
     }
     else {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        TH1D* thisHist = ZMYields[iCent][iSpc];
-        if (thisHist->GetMaximum () > 0)
-          thisHist->Scale (1. / (thisHist->GetMaximum ()));
+        TH1D* h = ZMYields[iCent][iSpc];
+        //if (h->GetMaximum () > 0)
+        //  h->Scale (1. / (h->GetMaximum ()));
 
-        TGraphAsymmErrors* thisGraph = make_graph (thisHist);
-        ResetXErrors (thisGraph);
-        deltaize (thisGraph, 0.1*(-1.5+iCent));
+        TGraphAsymmErrors* g = make_graph (h);
+        ResetXErrors (g);
+        deltaize (g, 0.1*(-1.5+iCent));
 
         const int markerStyle = kFullCircle;
-        thisGraph->SetMarkerStyle (markerStyle);
-        thisGraph->SetMarkerSize (1);
-        thisGraph->SetLineWidth (1);
-        thisGraph->SetLineColor (colors[iCent]);
-        thisGraph->SetMarkerColor (colors[iCent]);
-        thisGraph->GetYaxis ()->SetRangeUser (0, 1.3);
+        g->SetMarkerStyle (markerStyle);
+        g->SetMarkerSize (1);
+        g->SetLineWidth (1);
+        g->SetLineColor (colors[iCent]);
+        g->SetMarkerColor (colors[iCent]);
+        g->GetYaxis ()->SetRangeUser (0, 1.3);
 
-        thisGraph->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
-        thisGraph->GetYaxis ()->SetTitle ("A.U.");
-        thisGraph->Draw (!canvasExists && iCent == numCentBins-1 ? "AP" : "P");
+        g->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
+        g->GetYaxis ()->SetTitle ("A.U.");
+        g->Draw (!canvasExists && iCent == 0 ? "AP" : "P");
 
         LabelZMassSpectra (iSpc, iCent);
       }
     }
     c->SaveAs (Form ("%s/z%s_mass_spectrum.pdf", plotPath.Data (), spc));
   }
-
 }
 
 
 void Analysis::LabelZMassSpectra (const short iSpc, const short iCent) {
-  const char* spc = iSpc == 0 ? "Z#rightarrowee Events":"Z#rightarrow#mu#mu Events";
+  const char* spc = iSpc == 0 ? "Z#rightarrowee Events" : (iSpc == 1 ? "Z#rightarrow#mu#mu Events" : "Z#rightarrowll Events");
   if (iCent == 0) {
     myText (0.66, 0.88, kBlack, spc, 0.04);
     myMarkerText (0.25, 0.88, colors[0], kFullCircle, Form ("#it{pp}"), 1.25, 0.04);
@@ -813,30 +1015,30 @@ void Analysis::PlotZPhiYield () {
   c->cd ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    TH1D* thisHist = ZPhiYields[iCent];
-    thisHist->Rebin (8);
-    thisHist->Scale (1. / thisHist->Integral (), "width");
+    TH1D* h = ZPhiYields[iCent][2];
+    //h->Rebin (8);
+    //h->Scale (1. / h->Integral (), "width");
 
     TF1* fit = new TF1 ("fit", "[0]+[1]*cos(x)+[2]*cos(2*x)", -pi/2, 3*pi/2);
-    thisHist->Fit (fit, "RN0");
+    h->Fit (fit, "RN0");
     delete fit;
     fit = nullptr;
 
-    TGraphAsymmErrors* thisGraph = make_graph (thisHist);
-    deltaize (thisGraph, (1.5-iCent)*0.02, false);
+    TGraphAsymmErrors* g = make_graph (h);
+    deltaize (g, (1.5-iCent)*0.02, false);
 
-    thisGraph->GetXaxis ()->SetTitle ("2|#phi_{Z} - #Psi_{2}|");
-    thisGraph->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/d#Delta#phi");
+    g->GetXaxis ()->SetTitle ("2|#phi_{Z} - #Psi_{2}|");
+    g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/d#Delta#phi");
 
-    thisGraph->GetYaxis ()->SetRangeUser (0.1, 0.7);
+    g->GetYaxis ()->SetRangeUser (0.1, 0.7);
 
-    thisGraph->SetLineColor (colors[iCent]);
-    thisGraph->SetMarkerColor (colors[iCent]);
-    thisGraph->SetMarkerSize (0.75);
+    g->SetLineColor (colors[iCent]);
+    g->SetMarkerColor (colors[iCent]);
+    g->SetMarkerSize (0.75);
     if (iCent == 0)
-      thisGraph->Draw ("ap");
+      g->Draw ("ap");
     else
-      thisGraph->Draw ("p");
+      g->Draw ("p");
 
   } // end loop over cents
 
@@ -873,16 +1075,16 @@ void Analysis::PlotZMissingPt () {
         c->cd (iPhi+1);
         gPad->SetLogx ();
         for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-          TH1D* thisHist = new TH1D (Form ("ZMissingPtAvg_%s_iPtZ%i_iPhi%i_iCent%i", spc, iPtZ, iPhi, iCent), "", nPtTrkBins, ptTrkBins);
+          TH1D* h = new TH1D (Form ("ZMissingPtAvg_%s_iPtZ%i_iPhi%i_iCent%i", spc, iPtZ, iPhi, iCent), "", nPtTrkBins, ptTrkBins);
           TH1D* integral = new TH1D (Form ("ZMissingPtInt_%s_iPtZ%i_iPhi%i_iCent%i", spc, iPtZ, iPhi, iCent), "", nPtTrkBins, ptTrkBins);
-          thisHist->Sumw2 ();
+          h->Sumw2 ();
           integral->Sumw2 ();
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
             TH1D* px = ZMissingPt[iSpc][iPtZ][iPhi][iCent]->ProjectionX ("_px", iPtTrk+1, iPtTrk+1);
             TF1* fit = new TF1 ("fit", "gaus(0)", zMissingPtBins[0], zMissingPtBins[numZMissingPtBins]);
             px->Fit (fit, "RN0Q");
-            thisHist->SetBinContent (iPtTrk+1, fit->GetParameter (1));
-            thisHist->SetBinError (iPtTrk+1, fit->GetParError (1));
+            h->SetBinContent (iPtTrk+1, fit->GetParameter (1));
+            h->SetBinError (iPtTrk+1, fit->GetParError (1));
             if (px) delete px;
 
             px = ZMissingPt[iSpc][iPtZ][iPhi][iCent]->ProjectionX ("_px", 0, iPtTrk+1);
@@ -893,7 +1095,7 @@ void Analysis::PlotZMissingPt () {
 
             if (fit) delete fit;
           }
-          ZMissingPtAvgs[iSpc][iPtZ][iPhi][iCent] = thisHist;
+          ZMissingPtAvgs[iSpc][iPtZ][iPhi][iCent] = h;
           ZMissingPtInts[iSpc][iPtZ][iPhi][iCent] = integral;
 
           integral->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch}  [GeV]");
@@ -920,18 +1122,18 @@ void Analysis::PlotZMissingPt () {
         l->Draw ("same");
 
         for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-          TGraphAsymmErrors* thisGraph = make_graph (ZMissingPtAvgs[iSpc][iPtZ][iPhi][iCent]);
-          RecenterGraph (thisGraph);
-          ResetXErrors (thisGraph);
-          deltaize (thisGraph, (1.5-iCent)*0.04, false);
+          TGraphAsymmErrors* g = make_graph (ZMissingPtAvgs[iSpc][iPtZ][iPhi][iCent]);
+          RecenterGraph (g);
+          ResetXErrors (g);
+          deltaize (g, (1.5-iCent)*0.04, false);
 
-          thisGraph->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch}  [GeV]");
-          thisGraph->GetYaxis ()->SetTitle ("<#it{p}_{T}^{ ||}>  [GeV]");
+          g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch}  [GeV]");
+          g->GetYaxis ()->SetTitle ("<#it{p}_{T}^{ ||}>  [GeV]");
 
-          thisGraph->SetLineColor (colors[iCent]);
-          thisGraph->SetMarkerColor (colors[iCent]);
-          thisGraph->SetMarkerSize (0.75);
-          thisGraph->Draw ("P");
+          g->SetLineColor (colors[iCent]);
+          g->SetMarkerColor (colors[iCent]);
+          g->SetMarkerSize (0.75);
+          g->Draw ("P");
         } // end loop over cents
         if (iPhi == 0) {
           myText (0.25, 0.88, kBlack, "0 < #Delta#phi < #pi/8 or 7#pi/8 < #Delta#phi < #pi", 0.05);
@@ -963,15 +1165,26 @@ void Analysis::SubtractBackground () {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* subYield = new TH1D (Form ("defaultSubYield_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
-          subYield->Sumw2 ();
+        for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+            TH1D* h = new TH1D (Form ("defaultSubYield_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
+            h->Sumw2 ();
 
-          subYield->Add (ZTracksPt[iSpc][iPtZ][iPhi][iCent]);
-          subYield->Add (ZTracksPt[iSpc][iPtZ][0][iCent], -1);
+            h->Add (ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+            h->Add (ZTracksPt[iSpc][iPtZ][iXZTrk][0][iCent], -1);
 
-          ZTracksSubYields[iSpc][iPtZ][iPhi][iCent] = subYield;
-        } // end loop over phi
+            ZTracksSubYields[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
+
+            h = new TH1D (Form ("defaultSigToBkg_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
+            h->Sumw2 ();
+
+            h->Add (ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+            h->Add (ZTracksPt[iSpc][iPtZ][iXZTrk][0][iCent], -1);
+            h->Divide (ZTracksPt[iSpc][iPtZ][iXZTrk][0][iCent]);
+
+            ZTracksSigToBkg[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
+          } // end loop over phi
+        } // end loop over xZTrk
       } // end loop over pT^Z
     } // end loop over centralities
   } // end loop over species
@@ -985,9 +1198,14 @@ void Analysis::SubtractBackground () {
 // Plot pTtrk binned in dPhi
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
-  const double padRatio = 1.1; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
-  const double dPadY = 1.0 / (padRatio+1.0);
-  const double uPadY = 1.0 - dPadY;
+  if (!backgroundSubtracted)
+    SubtractBackground ();
+
+  const double padRatio = 0.9; // ratio of size of upper pad to middle & lower pads. Used to scale plots and font sizes equally.
+  const double dPadY = padRatio / (2*padRatio+1.0);
+  const double mPadY = padRatio / (2*padRatio+1.0);
+  const double uPadY = 1.0 - mPadY - dPadY;
+  const int axisTextSize = 23;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
@@ -1003,7 +1221,7 @@ void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 860*numCentBins, 1000);
+        c = new TCanvas (canvasName, "", 400*numCentBins, 1000);
         gDirectory->Add (c);
       }
 
@@ -1011,88 +1229,122 @@ void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
         c->cd ();
 
         const char* topPadName = Form ("topPad_%s_iPtZ%i_iCent%i", spc, iPtZ, iCent);
+        const char* middlePadName = Form ("middlePad_%s_iPtZ%i_iCent%i", spc, iPtZ, iCent);
         const char* bottomPadName = Form ("bottomPad_%s_iPtZ%i_iCent%i", spc, iPtZ, iCent);
 
-        TPad* topPad = nullptr, *bottomPad = nullptr;
+        TPad* topPad = nullptr, *middlePad = nullptr, *bottomPad = nullptr;
         if (!canvasExists) {
-          topPad = new TPad (topPadName, "", 0+(1./numCentBins)*iCent, dPadY, (1./numCentBins)+(1./numCentBins)*iCent, 1);
+          topPad = new TPad (topPadName, "", 0+(1./numCentBins)*iCent, dPadY+mPadY, (1./numCentBins)+(1./numCentBins)*iCent, 1);
+          middlePad = new TPad (middlePadName, "", 0+(1./numCentBins)*iCent, dPadY, (1./numCentBins)+(1./numCentBins)*iCent, dPadY+mPadY);
           bottomPad = new TPad (bottomPadName, "", 0+(1./numCentBins)*iCent, 0, (1./numCentBins)+(1./numCentBins)*iCent, dPadY);
 
           gDirectory->Add (topPad);
+          gDirectory->Add (middlePad);
           gDirectory->Add (bottomPad);
 
           topPad->SetTopMargin (0.04);
           topPad->SetBottomMargin (0);
           topPad->SetLeftMargin (0.17);
           topPad->SetRightMargin (0.06);
+          middlePad->SetTopMargin (0);
+          middlePad->SetBottomMargin (0);
+          middlePad->SetLeftMargin (0.17);
+          middlePad->SetRightMargin (0.06);
           bottomPad->SetTopMargin (0);
           bottomPad->SetBottomMargin (0.20);
           bottomPad->SetLeftMargin (0.17);
           bottomPad->SetRightMargin (0.06);
           topPad->Draw ();
+          middlePad->Draw ();
           bottomPad->Draw ();
         }
         else {
           topPad = dynamic_cast<TPad*> (gDirectory->Get (topPadName));
+          middlePad = dynamic_cast<TPad*> (gDirectory->Get (middlePadName));
           bottomPad = dynamic_cast<TPad*> (gDirectory->Get (bottomPadName));
         }
 
         topPad->cd ();
         GetDrawnObjects ();
+        bool plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
         gPad->SetLogx ();
         gPad->SetLogy ();
 
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* thisHist = ZTracksPt[iSpc][iPtZ][iPhi][iCent];
-          if (thisHist->GetMinimum (0) < min) min = thisHist->GetMinimum (0);
-          if (thisHist->GetMaximum () > max)  max = thisHist->GetMaximum ();
+          TH1D* h = ZTracksPt[iSpc][iPtZ][0][iPhi][iCent];
+          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
+          if (h->GetMaximum () > max)  max = h->GetMaximum ();
         } // end loop over phi
-        min = 0.5*min;
-        max = 2*max;
+        min = (min > 0 ? 0.5*min : 0.1);
+        max = (max > 0 ? 2*max : 1);
         SetMinAndMax (min, max);
 
         if (plotFill) {
           for (int iPhi = numPhiBins-1; iPhi >= 0; iPhi--) {
-            TH1D* thisHist = ZTracksPt[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = ZTracksPt[iSpc][iPtZ][0][iPhi][iCent];
 
-            thisHist->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            thisHist->SetMarkerSize (0);
-            thisHist->SetLineColor (kBlack);
-            thisHist->SetLineWidth (0);
-            thisHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            thisHist->GetYaxis ()->SetTitle ("Per-trigger yield Y (#it{p}_{T})");
-            thisHist->GetXaxis ()->SetTitleSize (0.03 / uPadY);
-            thisHist->GetYaxis ()->SetTitleSize (0.03 / uPadY);
-            thisHist->GetXaxis ()->SetLabelSize (0.03 / uPadY);
-            thisHist->GetYaxis ()->SetLabelSize (0.03 / uPadY);
-            thisHist->GetYaxis ()->SetTitleOffset (2.6 * uPadY);
+            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+            h->SetMarkerSize (0);
+            h->SetLineColor (kBlack);
+            h->SetLineWidth (0);
 
-            thisHist->GetYaxis ()->SetRangeUser (min, max);
-            thisHist->DrawCopy (!canvasExists && iPhi == numPhiBins-1 ? "bar" : "bar same");
-            thisHist->SetLineWidth (1);
-            thisHist->Draw ("hist same");
+            h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            h->GetYaxis ()->SetRangeUser (min, max);
+
+            h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            h->GetYaxis ()->SetTitle ("Per-trigger yield Y (#it{p}_{T})");
+
+            h->GetXaxis ()->SetTitleFont (43);
+            h->GetXaxis ()->SetTitleSize (axisTextSize);
+            h->GetXaxis ()->SetLabelFont (43);
+            h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleFont (43);
+            h->GetYaxis ()->SetTitleSize (axisTextSize);
+            h->GetYaxis ()->SetLabelFont (43);
+            h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
+
+            h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
+            h->SetLineWidth (1);
+            h->Draw ("hist same");
           }
           gPad->RedrawAxis ();
-        }
-        else {
+        } else {
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TH1D* thisHist = ZTracksPt[iSpc][iPtZ][iPhi][iCent];
-            
-            TGraphAsymmErrors* thisGraph = make_graph (thisHist);
-            RecenterGraph (thisGraph);
-            ResetXErrors (thisGraph);
+            TGraphAsymmErrors* g = make_graph (ZTracksPt[iSpc][iPtZ][0][iPhi][iCent]);
+            RecenterGraph (g);
+            ResetXErrors (g);
 
-            thisGraph->SetMarkerStyle (markerStyle);
-            thisGraph->SetMarkerColor (colors[iPhi]);
-            thisGraph->SetLineColor (colors[iPhi]);
-            thisGraph->SetMarkerSize (1);
-            thisGraph->SetLineWidth (2);
+            g->SetMarkerStyle (markerStyle);
+            g->SetMarkerColor (colors[iPhi]);
+            g->SetLineColor (colors[iPhi]);
+            g->SetMarkerSize (1);
+            g->SetLineWidth (2);
+
+            g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            g->GetYaxis ()->SetRangeUser (min, max);
+
+            g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            g->GetYaxis ()->SetTitle ("Per-trigger yield Y (#it{p}_{T})");
+
+            g->GetXaxis ()->SetTitleFont (43);
+            g->GetXaxis ()->SetTitleSize (axisTextSize);
+            g->GetXaxis ()->SetLabelFont (43);
+            g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleFont (43);
+            g->GetYaxis ()->SetTitleSize (axisTextSize);
+            g->GetYaxis ()->SetLabelFont (43);
+            g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
   
-            thisGraph->GetYaxis ()->SetRangeUser (min, max);
-            thisGraph->Draw (!canvasExists && iPhi == 0 ? "AP" : "P");
+            g->Draw (plotNewAxes && iPhi == 0 ? "AP" : "P");
           } // end loop over phi
         }
 
@@ -1100,20 +1352,21 @@ void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++)
             LabelTrkYield (iCent, iPhi);
 
-        bottomPad->cd ();
+        if (!plotSignal)
+          continue;
+
+        middlePad->cd ();
         GetDrawnObjects ();
+        plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
         gPad->SetLogx ();
         gPad->SetLogy ();
 
-        if (!backgroundSubtracted)
-          SubtractBackground ();
-        
         min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* thisHist = ZTracksSubYields[iSpc][iPtZ][iPhi][iCent];
-          if (thisHist->GetMinimum (0) < min) min = thisHist->GetMinimum (0);
-          if (thisHist->GetMaximum () > max) max = thisHist->GetMaximum ();
+          TH1D* h = ZTracksSubYields[iSpc][iPtZ][0][iPhi][iCent];
+          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
+          if (h->GetMaximum () > max) max = h->GetMaximum ();
         } // end loop over phi
         float delta = log10 (max) - log10 (min);
         min = pow (10, log10 (min) - 0.1*delta);
@@ -1122,50 +1375,163 @@ void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
 
         if (plotFill) {
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            TH1D* subYield = ZTracksSubYields[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = ZTracksSubYields[iSpc][iPtZ][0][iPhi][iCent];
 
-            subYield->GetYaxis ()->SetRangeUser (min, max);
+            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+            h->SetLineColor (kBlack);
+            h->SetMarkerSize (0);
+            h->SetLineWidth (0);
+            h->SetMarkerStyle (kFullCircle);
 
-            subYield->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            subYield->SetLineColor (kBlack);
-            subYield->SetMarkerSize (0);
-            subYield->SetLineWidth (0);
-            subYield->SetMarkerStyle (kFullCircle);
-            subYield->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            subYield->GetYaxis ()->SetTitle ("Signal Yield");
-            subYield->GetXaxis ()->SetTitleSize (0.03 / uPadY);
-            subYield->GetYaxis ()->SetTitleSize (0.03 / uPadY);
-            subYield->GetXaxis ()->SetLabelSize (0.03 / uPadY);
-            subYield->GetYaxis ()->SetLabelSize (0.03 / uPadY);
-            subYield->GetXaxis ()->SetTitleOffset (1.5);
-            subYield->GetYaxis ()->SetTitleOffset (2.8 * uPadY);
+            h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            h->GetYaxis ()->SetRangeUser (min, max);
 
-            subYield->DrawCopy (!canvasExists && iPhi == numPhiBins-1 ? "bar" : "bar same");
-            subYield->SetLineWidth (1);
-            subYield->Draw ("hist same");
+            h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            h->GetYaxis ()->SetTitle ("Signal Yield");
+
+            h->GetXaxis ()->SetTitleFont (43);
+            h->GetXaxis ()->SetTitleSize (axisTextSize);
+            h->GetXaxis ()->SetLabelFont (43);
+            h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleFont (43);
+            h->GetYaxis ()->SetTitleSize (axisTextSize);
+            h->GetYaxis ()->SetLabelFont (43);
+            h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetXaxis ()->SetTitleOffset (1.5 * h->GetXaxis ()->GetTitleOffset ());
+            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
+
+            h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
+            h->SetLineWidth (1);
+            h->Draw ("hist same");
           } // end loop over phi
           gPad->RedrawAxis ();
-        }
-        else {
+        } else {
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TGraphAsymmErrors* subYield = make_graph (ZTracksSubYields[iSpc][iPtZ][iPhi][iCent]);
-            RecenterGraph (subYield);
-            ResetXErrors (subYield);
 
-            float delta = log10 (max) - log10 (min);
-            subYield->GetYaxis ()->SetRangeUser (pow (10, log10 (min) - 0.1*delta), pow (10, log10 (max) + 0.1*delta));
-            subYield->SetMarkerStyle (markerStyle);
-            subYield->SetLineColor (colors[iPhi]);
-            subYield->SetMarkerColor (colors[iPhi]);
-            subYield->SetMarkerSize (1);
-            subYield->SetLineWidth (2);
-            subYield->SetMarkerStyle (kFullCircle);
+            TGraphAsymmErrors* g = make_graph (ZTracksSubYields[iSpc][iPtZ][0][iPhi][iCent]);
+            RecenterGraph (g);
+            ResetXErrors (g);
 
-            if (!canvasExists && iPhi == numPhiBins-1)
-              subYield->Draw ("AP");
-            else
-              subYield->Draw ("P");
+            g->SetMarkerStyle (markerStyle);
+            g->SetLineColor (colors[iPhi]);
+            g->SetMarkerColor (colors[iPhi]);
+            g->SetMarkerSize (1);
+            g->SetLineWidth (2);
+
+            g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            g->GetYaxis ()->SetRangeUser (min, max);
+
+            g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            g->GetYaxis ()->SetTitle ("Signal Yield");
+
+            g->GetXaxis ()->SetTitleFont (43);
+            g->GetXaxis ()->SetTitleSize (axisTextSize);
+            g->GetXaxis ()->SetLabelFont (43);
+            g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleFont (43);
+            g->GetYaxis ()->SetTitleSize (axisTextSize);
+            g->GetYaxis ()->SetLabelFont (43);
+            g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetXaxis ()->SetTitleOffset (1.5 * g->GetXaxis ()->GetTitleOffset ());
+            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
+
+            g->Draw (plotNewAxes && iPhi == numPhiBins-1 ? "AP" : "P");
+          } // end loop over phi
+        }
+
+        bottomPad->cd ();
+        GetDrawnObjects ();
+        plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
+        gPad->SetLogx ();
+        gPad->SetLogy ();
+
+        min = 1e30, max = 0;
+        GetMinAndMax (min, max, true);
+        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+          TH1D* h = ZTracksSigToBkg[iSpc][iPtZ][0][iPhi][iCent];
+          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
+          if (h->GetMaximum () > max) max = h->GetMaximum ();
+        } // end loop over phi
+        //delta = max - min;
+        //min = min - 0.3*delta;
+        //max = max + 0.3*delta;
+        delta = log10 (max) - log10 (min);
+        min = pow (10, log10 (min) - 0.1*delta);
+        max = pow (10, log10 (max) + 0.1*delta);
+        SetMinAndMax (min, max);
+
+        if (plotFill) {
+          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
+            TH1D* h = ZTracksSigToBkg[iSpc][iPtZ][0][iPhi][iCent];
+
+            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+            h->SetLineColor (kBlack);
+            h->SetMarkerSize (0);
+            h->SetLineWidth (0);
+            h->SetMarkerStyle (kFullCircle);
+
+            h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            h->GetYaxis ()->SetRangeUser (min, max);
+
+            h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            h->GetYaxis ()->SetTitle ("Signal / Bkg.");
+
+            h->GetXaxis ()->SetTitleFont (43);
+            h->GetXaxis ()->SetTitleSize (axisTextSize);
+            h->GetXaxis ()->SetLabelFont (43);
+            h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleFont (43);
+            h->GetYaxis ()->SetTitleSize (axisTextSize);
+            h->GetYaxis ()->SetLabelFont (43);
+            h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetXaxis ()->SetTitleOffset (1.5 * h->GetXaxis ()->GetTitleOffset ());
+            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
+
+            h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
+            h->SetLineWidth (1);
+            h->Draw ("hist same");
+          } // end loop over phi
+          gPad->RedrawAxis ();
+        } else {
+          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
+            const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
+            TGraphAsymmErrors* g = make_graph (ZTracksSigToBkg[iSpc][iPtZ][0][iPhi][iCent]);
+            RecenterGraph (g);
+            ResetXErrors (g);
+
+            g->SetMarkerStyle (markerStyle);
+            g->SetLineColor (colors[iPhi]);
+            g->SetMarkerColor (colors[iPhi]);
+            g->SetMarkerSize (1);
+            g->SetLineWidth (2);
+
+            g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            g->GetYaxis ()->SetRangeUser (min, max);
+
+            g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            g->GetYaxis ()->SetTitle ("Signal / Bkg.");
+
+            g->GetXaxis ()->SetTitleFont (43);
+            g->GetXaxis ()->SetTitleSize (axisTextSize);
+            g->GetXaxis ()->SetLabelFont (43);
+            g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleFont (43);
+            g->GetYaxis ()->SetTitleSize (axisTextSize);
+            g->GetYaxis ()->SetLabelFont (43);
+            g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetXaxis ()->SetTitleOffset (1.5 * g->GetXaxis ()->GetTitleOffset ());
+            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
+
+            g->Draw (plotNewAxes && iPhi == numPhiBins-1 ? "AP" : "P");
           } // end loop over phi
         }
       } // end loop over cents
@@ -1192,13 +1558,14 @@ void Analysis::LabelTrkYield (const short iCent, const short iPhi) {
   else if (iCent == numCentBins-1) {
     if (iPhi == 0) {
       myText (0.43, 0.91, kBlack, "Data", 0.06);
-      myText (0.574, 0.91, kBlack, "MC", 0.06);
+      //myText (0.43, 0.91, kBlack, "Truth", 0.06);
+      myText (0.574, 0.91, kBlack, "Minbias", 0.06);
       myText (0.683, 0.91, kBlack, "#Delta#phi", 0.06);
     }
 
     TVirtualPad* cPad = gPad; // store current pad
-    const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiLowBins[iPhi]*8/pi)) : "0";
-    const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiHighBins[iPhi]*8/pi)) : "#pi";
+    const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiLowBins[iPhi]*16/pi)) : "0";
+    const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiHighBins[iPhi]*16/pi)) : "#pi";
     TBox* b = TBoxNDC (0.61-0.024, 0.85-0.06*iPhi-0.016, 0.61+0.024, 0.85-0.06*iPhi+0.016);
     b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     b->Draw ("l");
@@ -1213,22 +1580,27 @@ void Analysis::LabelTrkYield (const short iCent, const short iPhi) {
 // Calculates subtracted yield ratios between Pb+Pb and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::CalculateIAA () {
+  if (!backgroundSubtracted)
+    SubtractBackground ();
+  if (iaaCalculated)
+    return;
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-        TH1D* ppHist = ZTracksSubYields[iSpc][iPtZ][iPhi][0];
+      for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        TH1D* ppHist = ZTracksSubYields[iSpc][iPtZ][0][iPhi][0];
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
-          if (!ZTracksIAARatios[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* PbPbHist = (TH1D*)(ZTracksSubYields[iSpc][iPtZ][iPhi][iCent]->Clone ());
+          if (!ZTracksIAARatios[iSpc][iPtZ][0][iPhi][iCent]) {
+            TH1D* PbPbHist = (TH1D*)(ZTracksSubYields[iSpc][iPtZ][0][iPhi][iCent]->Clone ());
             PbPbHist->Divide (ppHist);
-            ZTracksIAARatios[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
+            ZTracksIAARatios[iSpc][iPtZ][0][iPhi][iCent] = PbPbHist;
           } 
         } // end loop over cents
       } // end loop over phi
     } // end loop over pT^Z bins
   } // end loop over species
+  iaaCalculated = true;
 }
 
 
@@ -1238,6 +1610,10 @@ void Analysis::CalculateIAA () {
 void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
+  if (!iaaCalculated)
+    CalculateIAA ();
+
+  const int axisTextSize = 28;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
@@ -1253,7 +1629,7 @@ void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 860*numCentBins, 1000);
+        c = new TCanvas (canvasName, "", 500*(numCentBins-1), 500);
         c->Divide (numCentBins-1, 1);
         gDirectory->Add (c);
       }
@@ -1263,63 +1639,77 @@ void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
         gPad->SetLogx ();
 
         if (plotFill) {
-          for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-            TH1D* ratioHist = ZTracksIAARatios[iSpc][iPtZ][iPhi][iCent];
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+            TH1D* h = ZTracksIAARatios[iSpc][iPtZ][0][iPhi][iCent];
 
-            ratioHist->GetYaxis ()->SetRangeUser (0, 3);
-            ratioHist->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            ratioHist->SetMarkerSize (0);
-            ratioHist->SetLineColor (kBlack);
-            ratioHist->SetLineWidth (0);
-            ratioHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            ratioHist->GetYaxis ()->SetTitle ("I_{AA}");
-            ratioHist->GetXaxis ()->SetTitleSize (0.06);
-            ratioHist->GetYaxis ()->SetTitleSize (0.06);
-            ratioHist->GetXaxis ()->SetLabelSize (0.06);
-            ratioHist->GetYaxis ()->SetLabelSize (0.06);
-            ratioHist->GetXaxis ()->SetTitleOffset (1.2);
-            ratioHist->GetYaxis ()->SetTitleOffset (1.2);
+            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+            h->SetMarkerSize (0);
+            h->SetLineColor (kBlack);
+            h->SetLineWidth (0);
 
-            ratioHist->DrawCopy (!canvasExists && iPhi == 1 ? "bar" : "bar same");
-            ratioHist->SetLineWidth (1);
-            ratioHist->Draw ("hist same");
+            h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            h->GetYaxis ()->SetRangeUser (0, 1.6);
+
+            h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            h->GetYaxis ()->SetTitle ("I_{AA}");
+
+            h->GetXaxis ()->SetTitleFont (43);
+            h->GetXaxis ()->SetTitleSize (axisTextSize);
+            h->GetXaxis ()->SetLabelFont (43);
+            h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleFont (43);
+            h->GetYaxis ()->SetTitleSize (axisTextSize);
+            h->GetYaxis ()->SetLabelFont (43);
+            h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetXaxis ()->SetTitleOffset (0.8 * h->GetXaxis ()->GetTitleOffset ());
+            h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
+
+            h->DrawCopy (!canvasExists && iPhi == 1 ? "bar" : "bar same");
+            h->SetLineWidth (1);
+            h->Draw ("hist same");
+
+            LabelIAARatios (iCent, iPhi);
           } // end loop over phi
           gPad->RedrawAxis ();
-        }
-        else {
-          for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-            TGraphAsymmErrors* ratioGraph = make_graph (ZTracksIAARatios[iSpc][iPtZ][iPhi][iCent]);
-            RecenterGraph (ratioGraph);
-            ResetXErrors (ratioGraph);
-            deltaize (ratioGraph, 1+(0.5*(numPhiBins-1)-iPhi)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+        } else {
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+            const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
-            ratioGraph->GetYaxis ()->SetRangeUser (0, 3);
-            ratioGraph->SetLineColor (colors[iPhi]);
-            ratioGraph->SetMarkerColor (colors[iPhi]);
-            ratioGraph->SetMarkerSize (1.2);
-            ratioGraph->SetLineWidth (2);
-            ratioGraph->SetMarkerStyle (kFullCircle);
+            TGraphAsymmErrors* g = make_graph (ZTracksIAARatios[iSpc][iPtZ][0][iPhi][iCent]);
+            RecenterGraph (g);
+            ResetXErrors (g);
+            deltaize (g, 1+((numPhiBins-1)*((int)useAltMarker)-iPhi)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
 
-            ratioGraph->Draw (!canvasExists && iPhi == 1 ? "AP" : "P");
+            g->SetLineColor (colors[iPhi]);
+            g->SetMarkerColor (colors[iPhi]);
+            g->SetMarkerStyle (markerStyle);
+            g->SetMarkerSize (1.2);
+            g->SetLineWidth (2);
 
-            if (iCent == 1)
-              myText (0.49, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
-            else if (iCent == numCentBins-1) {
-              if (iPhi == 1) {
-                myText (0.44, 0.91, kBlack, "Data", 0.05);
-                myText (0.577, 0.91, kBlack, "MC", 0.05);
-                myText (0.685, 0.91, kBlack, "#Delta#phi", 0.05);
-              }
-              TVirtualPad* cPad = gPad; // store current pad
-              const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiLowBins[iPhi]*8/pi)) : "0";
-              const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiHighBins[iPhi]*8/pi)) : "#pi";
-              TBox* b = TBoxNDC (0.61-0.024, 0.91-0.06*iPhi-0.016, 0.61+0.024, 0.91-0.06*iPhi+0.016);
-              b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-              b->Draw ("l");
-              myMarkerText (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
-              myText (0.68, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
-              cPad->cd ();
-            }
+            g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            g->GetYaxis ()->SetRangeUser (0, 1.6);
+
+            g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            g->GetYaxis ()->SetTitle ("I_{AA}");
+
+            g->GetXaxis ()->SetTitleFont (43);
+            g->GetXaxis ()->SetTitleSize (axisTextSize);
+            g->GetXaxis ()->SetLabelFont (43);
+            g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleFont (43);
+            g->GetYaxis ()->SetTitleSize (axisTextSize);
+            g->GetYaxis ()->SetLabelFont (43);
+            g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetXaxis ()->SetTitleOffset (0.8 * g->GetXaxis ()->GetTitleOffset ());
+            g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
+
+            g->Draw (!canvasExists && iPhi == 1 ? "AP" : "P");
+
+            LabelIAARatios (iCent, iPhi);
           } // end loop over phi
         }
       } // end loop over cents
@@ -1337,28 +1727,60 @@ void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary (non-virtual) plot labelling for I_AA measurements
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis::LabelIAARatios (const short iCent, const short iPhi) {
+
+  if (iCent == 1)
+    myText (0.24, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+  else if (iCent == numCentBins-1) {
+    if (iPhi == 1) {
+      myText (0.44, 0.91, kBlack, "MBM", 0.05);
+      myText (0.577, 0.91, kBlack, "HM", 0.05);
+      //myText (0.44, 0.91, kBlack, "Data", 0.05);
+      //myText (0.577, 0.91, kBlack, "MC", 0.05);
+      myText (0.685, 0.91, kBlack, "#Delta#phi", 0.05);
+    }
+    const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiLowBins[iPhi]*16/pi)) : "0";
+    const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiHighBins[iPhi]*16/pi)) : "#pi";
+    //TVirtualPad* cPad = gPad; // store current pad
+    //TBox* b = TBoxNDC (0.61-0.024, 0.91-0.06*iPhi-0.016, 0.61+0.024, 0.91-0.06*iPhi+0.016);
+    //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+    //b->Draw ("l");
+    //cPad->cd ();
+    myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    myMarkerText (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    myText (0.68, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::CalculateICP () {
   if (!backgroundSubtracted)
     SubtractBackground ();
+  if (icpCalculated)
+    return;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-        TH1D* periphHist = ZTracksSubYields[iSpc][iPtZ][iPhi][1];
+      for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        TH1D* periphHist = ZTracksSubYields[iSpc][iPtZ][0][iPhi][1];
 
         for (short iCent = 2; iCent < numCentBins; iCent++) {
-          if (!ZTracksICPRatios[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* centHist = (TH1D*)(ZTracksSubYields[iSpc][iPtZ][iPhi][iCent]->Clone ());
+          if (!ZTracksICPRatios[iSpc][iPtZ][0][iPhi][iCent]) {
+            TH1D* centHist = (TH1D*)(ZTracksSubYields[iSpc][iPtZ][0][iPhi][iCent]->Clone ());
             centHist->Divide (periphHist);
-            ZTracksICPRatios[iSpc][iPtZ][iPhi][iCent] = centHist;
+            ZTracksICPRatios[iSpc][iPtZ][0][iPhi][iCent] = centHist;
           }
         } // end loop over cents
       } // end loop over phi
     } // end loop over pT^Z bins
   } // end loop over species
+  icpCalculated = true;
   return;
 }
 
@@ -1368,6 +1790,13 @@ void Analysis::CalculateICP () {
 // Plots subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
+  if (!backgroundSubtracted)
+    SubtractBackground ();
+  if (!icpCalculated)
+    CalculateICP ();
+
+  const int axisTextSize = 28;
+
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
@@ -1382,7 +1811,7 @@ void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 600*(numCentBins-1), 500);
+        c = new TCanvas (canvasName, "", 500*(numCentBins-2), 500);
         c->Divide (numCentBins-2, 1);
         gDirectory->Add (c);
       }
@@ -1392,67 +1821,77 @@ void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
         gPad->SetLogx ();
 
         if (plotFill) {
-          for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-            TH1D* ratioHist = ZTracksICPRatios[iSpc][iPtZ][iPhi][iCent];
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+            TH1D* h = ZTracksICPRatios[iSpc][iPtZ][0][iPhi][iCent];
 
-            ratioHist->GetYaxis ()->SetRangeUser (0, 3);
-            ratioHist->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            ratioHist->SetMarkerSize (0);
-            ratioHist->SetLineColor (kBlack);
-            ratioHist->SetLineWidth (0);
-            ratioHist->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            ratioHist->GetYaxis ()->SetTitle ("I_{CP}");
-            ratioHist->GetXaxis ()->SetTitleSize (0.06);
-            ratioHist->GetYaxis ()->SetTitleSize (0.06);
-            ratioHist->GetXaxis ()->SetLabelSize (0.06);
-            ratioHist->GetYaxis ()->SetLabelSize (0.06);
-            ratioHist->GetXaxis ()->SetTitleOffset (1.2);
-            ratioHist->GetYaxis ()->SetTitleOffset (1.2);
+            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+            h->SetMarkerSize (0);
+            h->SetLineColor (kBlack);
+            h->SetLineWidth (0);
 
-            ratioHist->DrawCopy (!canvasExists && iPhi == 1 ? "bar" : "bar same");
-            ratioHist->SetLineWidth (1);
-            ratioHist->Draw ("hist same");
+            h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            h->GetYaxis ()->SetRangeUser (0, 1.6);
+
+            h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            h->GetYaxis ()->SetTitle ("I_{CP}");
+
+            h->GetXaxis ()->SetTitleFont (43);
+            h->GetXaxis ()->SetTitleSize (axisTextSize);
+            h->GetXaxis ()->SetLabelFont (43);
+            h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetYaxis ()->SetTitleFont (43);
+            h->GetYaxis ()->SetTitleSize (axisTextSize);
+            h->GetYaxis ()->SetLabelFont (43);
+            h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            h->GetXaxis ()->SetTitleOffset (0.8 * h->GetXaxis ()->GetTitleOffset ());
+            h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
+
+            h->DrawCopy (!canvasExists && iPhi == 1 ? "bar" : "bar same");
+            h->SetLineWidth (1);
+            h->Draw ("hist same");
+
+            LabelICPRatios (iCent, iPhi);
           } // end loop over phi
           gPad->RedrawAxis ();
-        }
-        else {
-          for (int iPhi = 1; iPhi < numPhiBins-1; iPhi++) {
-            c->cd (iCent-1);
+        } else {
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+            const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
             
-            TGraphAsymmErrors* ratioGraph = make_graph (ZTracksICPRatios[iSpc][iPtZ][iPhi][iCent]);
-            RecenterGraph (ratioGraph);
-            ResetXErrors (ratioGraph);
-            deltaize (ratioGraph, 1+(0.5*(numPhiBins-1)-iPhi)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+            TGraphAsymmErrors* g = make_graph (ZTracksICPRatios[iSpc][iPtZ][0][iPhi][iCent]);
+            RecenterGraph (g);
+            ResetXErrors (g);
+            deltaize (g, 1+((numPhiBins-1)*((int)useAltMarker)-iPhi)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
 
-            //ratioGraph->GetYaxis ()->SetRangeUser (min - 0.2*(max-min), max + 0.2*(max-min));
-            ratioGraph->GetYaxis ()->SetRangeUser (0, 3);
-            ratioGraph->SetLineColor (colors[iPhi]);
-            ratioGraph->SetMarkerColor (colors[iPhi]);
-            ratioGraph->SetMarkerSize (1.2);
-            ratioGraph->SetLineWidth (2);
-            ratioGraph->SetMarkerStyle (kFullCircle);
+            g->SetLineColor (colors[iPhi]);
+            g->SetMarkerColor (colors[iPhi]);
+            g->SetMarkerStyle (markerStyle);
+            g->SetMarkerSize (1.2);
+            g->SetLineWidth (2);
 
-            ratioGraph->Draw (!canvasExists && iPhi == 1 ? "AP" : "P");
+            g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            g->GetYaxis ()->SetRangeUser (0, 1.6);
 
-            if (iCent == 2)
-              myText (0.59, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
-            else if (iCent == numCentBins-1) {
-              if (iPhi == 1) {
-                myText (0.555, 0.91, kBlack, "Data", 0.05);
-                myText (0.682, 0.91, kBlack, "MC", 0.05);
-                myText (0.785, 0.91, kBlack, "#Delta#phi", 0.05);
-              }
-              TVirtualPad* cPad = gPad; // store current pad
-              const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiLowBins[iPhi]*8/pi)) : "0";
-              const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/8", phiHighBins[iPhi]*8/pi)) : "#pi";
-              TBox* b = TBoxNDC (0.71-0.024, 0.91-0.06*iPhi-0.016, 0.71+0.024, 0.91-0.06*iPhi+0.016);
-              b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-              b->Draw ("l");
-              myMarkerText (0.612, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
-              myText (0.78, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
-              //myText (0.56, 0.90-0.07*(iPhi-1), colors[iPhi], Form ("(%s, %s)", lo, hi), 0.06);
-              cPad->cd ();
-            }
+            g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+            g->GetYaxis ()->SetTitle ("I_{CP}");
+
+            g->GetXaxis ()->SetTitleFont (43);
+            g->GetXaxis ()->SetTitleSize (axisTextSize);
+            g->GetXaxis ()->SetLabelFont (43);
+            g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetYaxis ()->SetTitleFont (43);
+            g->GetYaxis ()->SetTitleSize (axisTextSize);
+            g->GetYaxis ()->SetLabelFont (43);
+            g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+            g->GetXaxis ()->SetTitleOffset (0.8 * g->GetXaxis ()->GetTitleOffset ());
+            g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
+
+            g->Draw (!canvasExists && iPhi == 1 ? "AP" : "P");
+
+            LabelICPRatios (iCent, iPhi);
           } // end loop over phi
         }
       } // end loop over cents
@@ -1466,6 +1905,34 @@ void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
       c->SaveAs (Form ("%s/icp_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary (non-virtual) plot labelling for I_AA measurements
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis::LabelICPRatios (const short iCent, const short iPhi) {
+  if (iCent == 2)
+    myText (0.24, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+  else if (iCent == numCentBins-1) {
+    if (iPhi == 1) {
+      //myText (0.55, 0.91, kBlack, "Data", 0.05);
+      //myText (0.577, 0.91, kBlack, "MC", 0.05);
+      myText (0.44, 0.91, kBlack, "MBM", 0.05);
+      myText (0.577, 0.91, kBlack, "HM", 0.05);
+      myText (0.685, 0.91, kBlack, "#Delta#phi", 0.05);
+    }
+    const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiLowBins[iPhi]*16/pi)) : "0";
+    const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiHighBins[iPhi]*16/pi)) : "#pi";
+    //TVirtualPad* cPad = gPad; // store current pad
+    //TBox* b = TBoxNDC (0.71-0.024, 0.91-0.06*iPhi-0.016, 0.71+0.024, 0.91-0.06*iPhi+0.016);
+    //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
+    //b->Draw ("l");
+    //cPad->cd ();
+    myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    myMarkerText (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    myText (0.68, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
+  }
 }
 
 #endif

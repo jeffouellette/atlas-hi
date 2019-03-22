@@ -1,10 +1,36 @@
 #ifndef __ZTrackUtilities_h__
 #define __ZTrackUtilities_h__
 
+#include <Params.h>
+
 #include <TBox.h>
 #include <TPad.h>
 #include <TGraphAsymmErrors.h>
 #include <TH1.h>
+
+short GetidPhi (const float dphi) {
+  short idPhi = 0;
+  while (idPhi < numPhiBins) {
+    if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
+      break;
+    else
+      idPhi++;
+  }
+  return idPhi;
+}
+
+
+short GetiXZTrk (const float xZTrk) {
+  short iXZTrk = 0;
+  while (iXZTrk < nXZTrkBins) {
+    if (xZTrkBins[iXZTrk+1] < xZTrk)
+      iXZTrk++;
+    else
+      break;
+  }
+  return iXZTrk;
+}
+
 
 TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2) {
   TPad* p;

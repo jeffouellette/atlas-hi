@@ -512,6 +512,9 @@ void deltaize (TGraphAsymmErrors* tg, const double delta, const bool logx) {
 TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
   TGraphAsymmErrors* tg = new TGraphAsymmErrors ();
 
+  const float xlo = h->GetBinLowEdge (1);
+  const float xhi = h->GetBinLowEdge (h->GetNbinsX ()) + h->GetBinWidth (h->GetNbinsX ());
+
   for (int n = 0; n < h->GetNbinsX (); n++) {
     if (cutoff >= 0 && h->GetBinContent (n+1) <= cutoff) {
       continue;
@@ -521,6 +524,8 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
       tg->SetPointError (tg->GetN ()-1, h->GetBinWidth (n+1) / 2, h->GetBinWidth (n+1) / 2, h->GetBinError (n+1), h->GetBinError (n+1));
     }
   }
+
+  tg->GetXaxis ()->SetRangeUser (xlo, xhi);
   return tg;
 }
 

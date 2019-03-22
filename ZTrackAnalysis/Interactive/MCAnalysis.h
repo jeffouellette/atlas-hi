@@ -23,8 +23,8 @@ class MCAnalysis : public Analysis {
     useAltMarker = false;
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
-  void Execute ();
 
+  void Execute ();
 };
 
 
@@ -32,6 +32,8 @@ class MCAnalysis : public Analysis {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis::Execute () {
+  SetupDirectories (directory, "ZTrackAnalysis/");
+
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
@@ -45,8 +47,8 @@ void MCAnalysis::Execute () {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 0, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
-  int l1_charge = 0, l2_charge = 0;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  int l1_charge = 0, l2_charge = 0, ntrk = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;//, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
   double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
 
@@ -55,27 +57,27 @@ void MCAnalysis::Execute () {
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",         &isEE);
-    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
-    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",           &q2);
-    PbPbTree->SetBranchAddress ("psi2",         &psi2);
-    PbPbTree->SetBranchAddress ("vz",           &vz);
-    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
-    PbPbTree->SetBranchAddress ("z_eta",        &z_eta);
-    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",          &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",        &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",       &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",       &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge",    &l1_charge);
-    PbPbTree->SetBranchAddress ("l2_pt",        &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",       &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",       &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge",    &l2_charge);
-    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",      &isEE);
+    PbPbTree->SetBranchAddress ("fcal_et",   &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",        &q2);
+    PbPbTree->SetBranchAddress ("psi2",      &psi2);
+    PbPbTree->SetBranchAddress ("vz",        &vz);
+    PbPbTree->SetBranchAddress ("z_pt",      &z_pt);
+    PbPbTree->SetBranchAddress ("z_eta",     &z_eta);
+    PbPbTree->SetBranchAddress ("z_phi",     &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",       &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",     &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",    &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",    &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge", &l1_charge);
+    PbPbTree->SetBranchAddress ("l2_pt",     &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",    &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",    &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge", &l2_charge);
+    PbPbTree->SetBranchAddress ("ntrk",      &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",    &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",   &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",   &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -106,26 +108,22 @@ void MCAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight *= PbPbEventReweights->GetBinContent (PbPbEventReweights->FindBin (fcal_et, psi2, vz));
+      event_weight = PbPbEventReweights->GetBinContent (PbPbEventReweights->FindBin (fcal_et, q2, vz));
 
       FCalSpec->Fill (fcal_et, event_weight);
       FCalQ2Corr->Fill (fcal_et, q2, event_weight);
 
       ZPtSpecs[iCent][iSpc]->Fill (z_pt, event_weight);
-      ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
-      if (isEE) {
-        ElectronSpec[iCent]->Fill (l1_pt, event_weight);
-        ElectronSpec[iCent]->Fill (l2_pt, event_weight);
-      }
-      else {
-        MuonSpec[iCent]->Fill (l1_pt, event_weight);
-        MuonSpec[iCent]->Fill (l2_pt, event_weight);
-      }
+      if (z_pt > zPtBins[1]) {
+        ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
+        LeptonSpec[iCent][iSpc]->Fill (l1_pt, event_weight);
+        LeptonSpec[iCent][iSpc]->Fill (l2_pt, event_weight);
 
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      ZPhiYields[iCent]->Fill (2*dphi, event_weight);
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        ZPhiYields[iCent][iSpc]->Fill (2*dphi, event_weight);
+      }
 
       for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -134,16 +132,21 @@ void MCAnalysis::Execute () {
       }
 
       ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      for (int iTrk = 0; iTrk < trk_pt->size (); iTrk++) {
+      for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < 1)
+        if (trkpt < trk_min_pt)
+          continue;
+
+        const float xZTrk = trkpt / z_pt;
+        const short iXZTrk = GetiXZTrk (xZTrk);
+        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
         TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         bool awaySide = false;
         if (dphi > pi/2) {
           dphi = pi-dphi;
@@ -166,25 +169,16 @@ void MCAnalysis::Execute () {
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        short idPhi = 0;
-        while (idPhi < numPhiBins-1) {
-          if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
-            break;
-          else
-            idPhi++;
-        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
 
-        if (idPhi >= 0 && idPhi < numPhiBins)
-          ZTracksPt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
+        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        //if (dphi < -pi/2)
+        //  dphi = dphi + 2*pi;
 
-        if (z_pt > 5) {
-          // Study correlations (requires dphi in -pi/2 to 3pi/2)
-          dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-          if (dphi < -pi/2)
-            dphi = dphi + 2*pi;
-
-          ZTrackPtPhi[iCent][iSpc]->Fill (dphi, trkpt, event_weight);
-        }
+        ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -202,25 +196,24 @@ void MCAnalysis::Execute () {
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",         &isEE);
-    ppTree->SetBranchAddress ("event_weight", &event_weight);
-    ppTree->SetBranchAddress ("psi2",         &psi2);
-    ppTree->SetBranchAddress ("vz",           &vz);
-    ppTree->SetBranchAddress ("z_pt",         &z_pt);
-    ppTree->SetBranchAddress ("z_eta",        &z_eta);
-    ppTree->SetBranchAddress ("z_phi",        &z_phi);
-    ppTree->SetBranchAddress ("z_m",          &z_m);
-    ppTree->SetBranchAddress ("l1_pt",        &l1_pt);
-    ppTree->SetBranchAddress ("l1_eta",       &l1_eta);
-    ppTree->SetBranchAddress ("l1_phi",       &l1_phi);
-    ppTree->SetBranchAddress ("l1_charge",    &l1_charge);
-    ppTree->SetBranchAddress ("l2_pt",        &l2_pt);
-    ppTree->SetBranchAddress ("l2_eta",       &l2_eta);
-    ppTree->SetBranchAddress ("l2_phi",       &l2_phi);
-    ppTree->SetBranchAddress ("l2_charge",    &l2_charge);
-    ppTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    ppTree->SetBranchAddress ("isEE",      &isEE);
+    ppTree->SetBranchAddress ("vz",        &vz);
+    ppTree->SetBranchAddress ("z_pt",      &z_pt);
+    ppTree->SetBranchAddress ("z_eta",     &z_eta);
+    ppTree->SetBranchAddress ("z_phi",     &z_phi);
+    ppTree->SetBranchAddress ("z_m",       &z_m);
+    ppTree->SetBranchAddress ("l1_pt",     &l1_pt);
+    ppTree->SetBranchAddress ("l1_eta",    &l1_eta);
+    ppTree->SetBranchAddress ("l1_phi",    &l1_phi);
+    ppTree->SetBranchAddress ("l1_charge", &l1_charge);
+    ppTree->SetBranchAddress ("l2_pt",     &l2_pt);
+    ppTree->SetBranchAddress ("l2_eta",    &l2_eta);
+    ppTree->SetBranchAddress ("l2_phi",    &l2_phi);
+    ppTree->SetBranchAddress ("l2_charge", &l2_charge);
+    ppTree->SetBranchAddress ("ntrk",      &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",    &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",   &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",   &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -228,8 +221,8 @@ void MCAnalysis::Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 1.5)
-        continue; // vertex cut
+      //if (fabs (vz) > 1.5)
+      //  continue; // vertex cut
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
@@ -242,35 +235,31 @@ void MCAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight *= ppEventReweights->GetBinContent (ppEventReweights->FindBin (vz));
+      event_weight = ppEventReweights->GetBinContent (ppEventReweights->FindBin (vz));
 
       ZPtSpecs[iCent][iSpc]->Fill (z_pt, event_weight);
-      ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
-      if (isEE) {
-        ElectronSpec[iCent]->Fill (l1_pt, event_weight);
-        ElectronSpec[iCent]->Fill (l2_pt, event_weight);
+      if (z_pt > zPtBins[1]) {
+        ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
+        LeptonSpec[iCent][iSpc]->Fill (l1_pt, event_weight);
+        LeptonSpec[iCent][iSpc]->Fill (l2_pt, event_weight);
       }
-      else {
-        MuonSpec[iCent]->Fill (l1_pt, event_weight);
-        MuonSpec[iCent]->Fill (l2_pt, event_weight);
-      }
-
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      ZPhiYields[iCent]->Fill (2*dphi, event_weight);
 
       ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      for (int iTrk = 0; iTrk < trk_pt->size (); iTrk++) {
+      for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < 1)
+        if (trkpt < trk_min_pt)
+          continue;
+
+        const float xZTrk = trkpt / z_pt;
+        const short iXZTrk = GetiXZTrk (xZTrk);
+        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
         TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in -pi/2 to pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         bool awaySide = false;
         if (dphi > pi/2) {
           dphi = pi-dphi;
@@ -293,26 +282,17 @@ void MCAnalysis::Execute () {
         
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        short idPhi = 0;
-        while (idPhi < numPhiBins-1) {
-          if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
-            break;
-          else
-            idPhi++;
-        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+
+        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
+        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        //if (dphi < -pi/2)
+        //  dphi = dphi + 2*pi;
+
+        ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
         
-
-        if (idPhi >= 0 && idPhi < numPhiBins)
-          ZTracksPt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
-
-        if (z_pt > 5) {
-          // Study correlations (requires dphi in -pi/2 to 3pi/2)
-          dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-          if (dphi < -pi/2)
-            dphi = dphi + 2*pi;
-
-          ZTrackPtPhi[iCent][iSpc]->Fill (dphi, trkpt, event_weight);
-        }
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -325,50 +305,9 @@ void MCAnalysis::Execute () {
     cout << endl;
   }
 
+  CombineHists ();
+  ScaleHists ();
 
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    ZTrackPtPhi[iCent][2]->Add (ZTrackPtPhi[iCent][0]);
-    ZTrackPtPhi[iCent][2]->Add (ZTrackPtPhi[iCent][1]);
-    ZPtSpecs[iCent][2]->Add (ZPtSpecs[iCent][0]);
-    ZPtSpecs[iCent][2]->Add (ZPtSpecs[iCent][1]);
-    ZMYields[iCent][2]->Add (ZMYields[iCent][0]);
-    ZMYields[iCent][2]->Add (ZMYields[iCent][1]);
-    TrackSpec[iCent][2]->Add (TrackSpec[iCent][0]);
-    TrackSpec[iCent][2]->Add (TrackSpec[iCent][1]);
-    //DRDists[iCent][2]->Add (DRDists[iCent][0]);
-    //DRDists[iCent][2]->Add (DRDists[iCent][1]);
-
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        ZMissingPt[2][iPtZ][iPhi][iCent]->Add (ZMissingPt[0][iPtZ][iPhi][iCent]);
-        ZMissingPt[2][iPtZ][iPhi][iCent]->Add (ZMissingPt[1][iPtZ][iPhi][iCent]);
-      } // end loop over phi
-      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-        ZTracksPt[2][iPtZ][iPhi][iCent]->Add (ZTracksPt[0][iPtZ][iPhi][iCent]);
-        ZTracksPt[2][iPtZ][iPhi][iCent]->Add (ZTracksPt[1][iPtZ][iPhi][iCent]);
-      } // end loop over phi
-      ZCounts[2][iPtZ][iCent]->Add (ZCounts[0][iPtZ][iCent]);
-      ZCounts[2][iPtZ][iCent]->Add (ZCounts[1][iPtZ][iCent]);
-    } // end loop over pT^Z
-  } // end loop over centralities
-
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* thisHist = ZTracksPt[iSpc][iPtZ][iPhi][iCent];
-          TH1D* countsHist = ZCounts[iSpc][iPtZ][iCent];
-          const double yieldNormFactor = countsHist->GetBinContent (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
-          //const double yieldNormFactorError = countsHist->GetBinError (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
-
-          //RescaleWithError (thisHist, yieldNormFactor, yieldNormFactorError);
-          if (yieldNormFactor > 0)
-            thisHist->Scale (1. / yieldNormFactor);
-        } // end loop over phi
-      } // end loop over pT^Z
-    } // end loop over centralities
-  } // end loop over species
-    
   SaveHists ();
   //LoadHists ();
 

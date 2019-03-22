@@ -79,11 +79,13 @@ ZTracksAnalysis/Plots
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib
-pythiaPhotonJet/output/*.root
 pythiaPhotonJet/output/*.log
-pythiaPhotonJet/*.pdf
 pythiaPhotonJet/plot/*
-pythiaPhotonjet/*.root
+
+# Pythia Z boson generation analysis
+pythiaZJet/lib
+pythiaZJet/output/*.log
+pythiaZJet/plot/*
 
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
