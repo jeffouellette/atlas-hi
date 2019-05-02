@@ -54,7 +54,7 @@ const double phiLowBins[4] = {0,      15*pi/16,   7*pi/8,     5*pi/8};
 const double phiHighBins[4] = {pi/2,  pi,         pi,         pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
-const double trk_min_pt = 3;
+const double trk_min_pt = 2;
 const int nPtTrkBins = 6;
 const double* ptTrkBins = logspace (trk_min_pt, 80, nPtTrkBins);
 //const double ptTrkBins[7] = {3, 5.2, 9.0, 15.6, 27.0, 46.7, 120};

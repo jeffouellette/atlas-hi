@@ -21,9 +21,9 @@ class Signal : public Analysis {
   Analysis* bkg;
 
   public:
-  //TH1D***** ZTracksSubYields = nullptr;
-  //TH1D***** ZTracksIAARatios = nullptr;
-  //TH1D***** ZTracksICPRatios = nullptr;
+  //TH1D***** h_z_trk_pt_sub = nullptr;
+  //TH1D***** h_z_trk_pt_iaa = nullptr;
+  //TH1D***** h_z_trk_pt_icp = nullptr;
 
   Signal (Analysis* _obs, Analysis* _bkg);
 
@@ -43,6 +43,10 @@ class Signal : public Analysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 Signal::Signal (Analysis* _obs, Analysis* _bkg) : Analysis (_obs) {
 
+  name = "signal";
+  directory = "Signal/";
+  plotFill = false;
+
   SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");
   assert (!_obs);
   assert (!_bkg);
@@ -50,10 +54,10 @@ Signal::Signal (Analysis* _obs, Analysis* _bkg) : Analysis (_obs) {
   obs = _obs;
   bkg = _bkg;
 
-  ZTracksSubYields = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
-  ZTracksSigToBkg  = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
-  ZTracksIAARatios = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
-  ZTracksICPRatios = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+  h_z_trk_pt_sub = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+  h_z_trk_pt_sig_to_bkg  = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+  h_z_trk_pt_iaa = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
+  h_z_trk_pt_icp = Get5DArray <TH1D*> (3, nPtZBins, nXZTrkBins, numPhiBins, numCentBins); // iSpc, iPtZ, iXZTrk, iPhi, iCent
 
   backgroundSubtracted = false;
   SubtractBackground ();
@@ -72,22 +76,22 @@ void Signal::SubtractBackground () {
       for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-            TH1D* h = new TH1D (Form ("subYieldPt_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_signal_%s_%s", spc, iPtZ, iXZTrk, iPhi, iCent, obs->Name (), bkg->Name ()), "", nPtTrkBins, ptTrkBins);
+            TH1D* h = new TH1D (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_signal_%s_%s", spc, iPtZ, iXZTrk, iPhi, iCent, obs->Name (), bkg->Name ()), "", nPtTrkBins, ptTrkBins);
             h->Sumw2 ();
 
-            h->Add (obs->ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
-            h->Add (bkg->ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent], -1);
+            h->Add (obs->h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+            h->Add (bkg->h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent], -1);
 
-            ZTracksSubYields[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
+            h_z_trk_pt_sub[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
 
-            h = new TH1D (Form ("sigToBkg_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
+            h = new TH1D (Form ("h_z_trk_pt_sigToBkg_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name), "", nPtTrkBins, ptTrkBins);
             h->Sumw2 ();
 
-            h->Add (obs->ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
-            h->Add (bkg->ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent], -1);
-            h->Divide (bkg->ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+            h->Add (obs->h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
+            h->Add (bkg->h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent], -1);
+            h->Divide (bkg->h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent]);
 
-            ZTracksSigToBkg[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
+            h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iXZTrk][iPhi][iCent] = h;
           } // end loop over phi
         } // end loop over centralities
       } // end loop over xZ^Trk

@@ -85,24 +85,24 @@ TGraphAsymmErrors* Divide (const TGraphAsymmErrors* num, const TGraphAsymmErrors
 
   double nx, ny, dx, dy, ne, de, rx, ry, re;
   for (int ix = 0; ix < num->GetN (); ix++) {
-   num->GetPoint (ix, nx, ny);
-   den->GetPoint (ix, dx, dy);
-   ne = num->GetErrorY (ix);
-   de = den->GetErrorY (ix);
+    num->GetPoint (ix, nx, ny);
+    den->GetPoint (ix, dx, dy);
+    ne = num->GetErrorY (ix);
+    de = den->GetErrorY (ix);
 
-   rx = nx;
-   if (dy > 0) {
-    ry = ny / dy;
-    re = sqrt (pow (ne / dy, 2) + pow (ry * de / dy, 2));
-   }
-   else {
-    continue;
-    //ry = 0;
-    //re = 0;
-   }
+    rx = nx;
+    if (dy > 0) {
+      ry = ny / dy;
+      re = sqrt (pow (ne / dy, 2) + pow (ry * de / dy, 2));
+    }
+    else {
+      continue;
+      //ry = 0;
+      //re = 0;
+    }
 
-   rat->SetPoint (ix, rx, ry);
-   rat->SetPointError (ix, num->GetErrorXlow (ix), num->GetErrorXhigh (ix), re, re);
+    rat->SetPoint (ix, rx, ry);
+    rat->SetPointError (ix, num->GetErrorXlow (ix), num->GetErrorXhigh (ix), re, re);
   }
   return rat;
 }

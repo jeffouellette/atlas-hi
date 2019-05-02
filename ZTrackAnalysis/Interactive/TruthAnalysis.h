@@ -172,8 +172,8 @@ void TruthAnalysis::Execute () {
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
 
-  PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("PbPbEventReweights_truth");
-  ppEventReweights = (TH1D*)eventWeightsFile->Get ("ppEventReweights_truth");
+  h_PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
+  h_ppEventReweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
 
   CreateHists ();
 
@@ -239,21 +239,21 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = PbPbEventReweights->GetBinContent (PbPbEventReweights->FindBin (fcal_et, psi2, vz));
+      event_weight = h_PbPbEventReweights->GetBinContent (h_PbPbEventReweights->FindBin (fcal_et, psi2, vz));
 
-      FCalSpec->Fill (fcal_et, event_weight);
-      FCalQ2Corr->Fill (fcal_et, q2, event_weight);
+      h_fcal_et->Fill (fcal_et, event_weight);
+      h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
 
-      ZPtSpecs[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
-        LeptonSpec[iCent][iSpc]->Fill (l1_pt, event_weight);
-        LeptonSpec[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
           dphi = pi - dphi;
-        ZPhiYields[iCent][iSpc]->Fill (2*dphi, event_weight);
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
       for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
@@ -262,7 +262,7 @@ void TruthAnalysis::Execute () {
         }
       }
 
-      ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
@@ -274,7 +274,7 @@ void TruthAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -302,20 +302,20 @@ void TruthAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
         
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
           trkPtProj[iPhi][iPtTrk] = 0;
         }
       }
@@ -372,13 +372,13 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = ppEventReweights->GetBinContent (ppEventReweights->FindBin (vz));
+      event_weight = h_ppEventReweights->GetBinContent (h_ppEventReweights->FindBin (vz));
 
-      ZPtSpecs[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        ZMYields[iCent][iSpc]->Fill (z_m, event_weight);
-        LeptonSpec[iCent][iSpc]->Fill (l1_pt, event_weight);
-        LeptonSpec[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
       }
 
       ZJetCounts[iPtZ]->Fill (0.5, event_weight);
@@ -400,7 +400,7 @@ void TruthAnalysis::Execute () {
         ZJetdEtadPhi[iPtZ]->Fill (z_eta - jet_eta->at (iJet), dphi, event_weight);
       } // end loop over jets
 
-      ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
@@ -426,7 +426,7 @@ void TruthAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in -pi/2 to pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -454,19 +454,19 @@ void TruthAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
           trkPtProj[iPhi][iPtTrk] = 0;
         }
       }

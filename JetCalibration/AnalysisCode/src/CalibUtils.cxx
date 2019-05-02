@@ -24,39 +24,39 @@ void SubtractLooseNonTight (TH3D* signal, const TH3D* tight, const TH3D* lnt, co
   const int ny = tight->GetNbinsY ();
   const int nz = tight->GetNbinsZ ();
   for (int ix = 1; ix <= nx; ix++) {
-   for (int iy = 1; iy <= ny; iy++) {
-    double ntight, ntighterr, nlnt, nlnterr;
-    ntight = tightCounts->IntegralAndError (ix, ix, iy, iy, 1, tightCounts->GetNbinsZ (), ntighterr);
-    nlnt = lntCounts->IntegralAndError (ix, ix, iy, iy, 1, lntCounts->GetNbinsZ (), nlnterr);
+    for (int iy = 1; iy <= ny; iy++) {
+      double ntight, ntighterr, nlnt, nlnterr;
+      ntight = tightCounts->IntegralAndError (ix, ix, iy, iy, 1, tightCounts->GetNbinsZ (), ntighterr);
+      nlnt = lntCounts->IntegralAndError (ix, ix, iy, iy, 1, lntCounts->GetNbinsZ (), nlnterr);
 
-    //const double ntight = tightCounts->GetBinContent (ix, iy);
-    //const double ntighterr = tightCounts->GetBinError (ix, iy);
-    //const double nlnt = lntCounts->GetBinContent (ix, iy); 
-    //const double nlnterr = lntCounts->GetBinError (ix, iy);
+      //const double ntight = tightCounts->GetBinContent (ix, iy);
+      //const double ntighterr = tightCounts->GetBinError (ix, iy);
+      //const double nlnt = lntCounts->GetBinContent (ix, iy); 
+      //const double nlnterr = lntCounts->GetBinError (ix, iy);
 
-    double w = 0, werr = 0;
-    if (nlnt != 0) {
-     w = ntight / nlnt;
-     werr += pow (w * nlnterr / nlnt, 2);
-    } 
-    else
-     w = 0;
+      double w = 0, werr = 0;
+      if (nlnt != 0) {
+        w = ntight / nlnt;
+        werr += pow (w * nlnterr / nlnt, 2);
+      } 
+      else
+        w = 0;
 
-    if (ntight != 0)
-     werr += pow (w * ntighterr / ntight, 2);
+      if (ntight != 0)
+        werr += pow (w * ntighterr / ntight, 2);
 
-    werr = sqrt (werr);
+      werr = sqrt (werr);
 
-    for (int iz = 1; iz <= nz; iz++) {
-     const double t = tight->GetBinContent (ix, iy, iz);
-     const double terr = tight->GetBinError (ix, iy, iz);
-     const double l = lnt->GetBinContent (ix, iy, iz);
-     const double lerr = lnt->GetBinError (ix, iy, iz);
+      for (int iz = 1; iz <= nz; iz++) {
+        const double t = tight->GetBinContent (ix, iy, iz);
+        const double terr = tight->GetBinError (ix, iy, iz);
+        const double l = lnt->GetBinContent (ix, iy, iz);
+        const double lerr = lnt->GetBinError (ix, iy, iz);
 
-     signal->SetBinContent (ix, iy, iz, t - w * l);
-     signal->SetBinError (ix, iy, iz, sqrt (pow (terr, 2) + pow (werr * l, 2) + pow (w * lerr, 2)));
+        signal->SetBinContent (ix, iy, iz, t - w * l);
+        signal->SetBinError (ix, iy, iz, sqrt (pow (terr, 2) + pow (werr * l, 2) + pow (w * lerr, 2)));
+      }
     }
-   }
   }
   return;
 }
@@ -70,13 +70,13 @@ double GetXCalibSystematicError (const double jpt, const double jeta) {
   TFile* file = xCalibSystematicsFile;
 
   if (!file || !file->IsOpen ()) {
-   cout << "Warning: In CalibUtils.C: Cross calibration systematics file not open! Will return 0." << endl;
-   return 0;
+    cout << "Warning: In CalibUtils.C: Cross calibration systematics file not open! Will return 0." << endl;
+    return 0;
   }
 
   if (TMath::Abs (jeta) < xcalibEtabins[0] ||
       xcalibEtabins[sizeof (xcalibEtabins)/sizeof (xcalibEtabins[0]) -1] < TMath::Abs (jeta)) {
-   return 0;
+    return 0;
   }
 
   short iEta = 0;
@@ -98,12 +98,12 @@ double GetPurity (const double ppt, const double peta) {
   TFile* file = purityFile;
 
   if (!file || !file->IsOpen ()) {
-   cout << "Warning: In CalibUtils.C: Photon purity file not open! Will return 1." << endl;
-   return 1;
+    cout << "Warning: In CalibUtils.C: Photon purity file not open! Will return 1." << endl;
+    return 1;
   }
 
   if ((1.37 < TMath::Abs (peta) && TMath::Abs (peta) < 1.52) || 2.37 < TMath::Abs (peta)) {
-   return 1;
+    return 1;
   }
 
   TH2D* purities = (TH2D*)purityFile->Get ("purities");
@@ -119,11 +119,11 @@ double GetNewXCalibSystematicError (const double jeta, const double refpt, const
   return 0;
   TFile* file = dataOverMCFile;
   if (!file || !file->IsOpen ())
-   return 0;
+    return 0;
 
   if (jeta < etabins[0] ||
       etabins[numetabins] < jeta) {
-   return 0;
+    return 0;
   }
 
   short bin = 0;
@@ -146,8 +146,8 @@ double GetFCalScaleFactor (const double fcalEt) {
   TFile* file = fcalFile;
 
   if (!file || !file->IsOpen ()) {
-   cout << "Warning: In CalibUtils.C: FCal scale factor file not open! Will return 1." << endl;
-   return 1;
+    cout << "Warning: In CalibUtils.C: FCal scale factor file not open! Will return 1." << endl;
+    return 1;
   }
 
   TH1D* fcalhist = (TH1D*)fcalFile->Get ("fCal_Pb_et_scale");

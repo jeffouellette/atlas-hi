@@ -88,27 +88,27 @@ void FCalDistributionHist () {
 
   Style_t markers[2] = {kFullCircle, kOpenCircle};
   for (int iData = 0; iData < 2; iData++) {
-   fCal_p_et[iData]->SetLineColor (kBlue);
-   fCal_p_et[iData]->SetMarkerColor (kBlue);
-   fCal_Pb_et[iData]->SetLineColor (kBlack);
-   fCal_Pb_et[iData]->SetMarkerColor (kBlack);
+    fCal_p_et[iData]->SetLineColor (kBlue);
+    fCal_p_et[iData]->SetMarkerColor (kBlue);
+    fCal_Pb_et[iData]->SetLineColor (kBlack);
+    fCal_Pb_et[iData]->SetMarkerColor (kBlack);
 
-   fCal_p_et[iData]->SetMarkerStyle (markers[iData]);
-   fCal_Pb_et[iData]->SetMarkerStyle (markers[iData]);
+    fCal_p_et[iData]->SetMarkerStyle (markers[iData]);
+    fCal_Pb_et[iData]->SetMarkerStyle (markers[iData]);
 
-   fCal_p_et[iData]->GetXaxis ()->SetTitle ("Forward #SigmaE_{T} #left[GeV#right]");
-   fCal_Pb_et[iData]->GetXaxis ()->SetTitle ("Forward #SigmaE_{T} #left[GeV#right]");
-   fCal_p_et[iData]->GetYaxis ()->SetTitle ("Counts / Total");
-   fCal_Pb_et[iData]->GetYaxis ()->SetTitle ("Counts / Total");
+    fCal_p_et[iData]->GetXaxis ()->SetTitle ("Forward #SigmaE_{T} #left[GeV#right]");
+    fCal_Pb_et[iData]->GetXaxis ()->SetTitle ("Forward #SigmaE_{T} #left[GeV#right]");
+    fCal_p_et[iData]->GetYaxis ()->SetTitle ("Counts / Total");
+    fCal_Pb_et[iData]->GetYaxis ()->SetTitle ("Counts / Total");
 
-   fCal_p_et[iData]->Scale (1./fCal_p_et[iData]->Integral ());
-   fCal_Pb_et[iData]->Scale (1./fCal_Pb_et[iData]->Integral ());
+    fCal_p_et[iData]->Scale (1./fCal_p_et[iData]->Integral ());
+    fCal_Pb_et[iData]->Scale (1./fCal_Pb_et[iData]->Integral ());
 
-   if (iData == 0)
-    fCal_p_et[iData]->Draw ("e1");
-   else
-    fCal_p_et[iData]->Draw ("same e1");
-   fCal_Pb_et[iData]->Draw ("same e1");
+    if (iData == 0)
+      fCal_p_et[iData]->Draw ("e1");
+    else
+      fCal_p_et[iData]->Draw ("same e1");
+    fCal_Pb_et[iData]->Draw ("same e1");
   }
 
   myMarkerText (0.55, 0.85, kBlack, kFullCircle, "Pb-going direction", 1.25, 0.05);

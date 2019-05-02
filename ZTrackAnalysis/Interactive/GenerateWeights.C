@@ -13,27 +13,27 @@ void SafeWrite (TObject* tobj) {
     tobj->Write ();
 }
 
-const int gw_nFCalBins = 100;
-const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
-const int gw_nQ2Bins = 25;
-const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
-const int gw_nVertZBins = 50;
-const double* gw_vertZBins = linspace (-200, 200, gw_nVertZBins);
-
-//const double gw_fcalBins[11]   = {0, 63.719, 144.14, 289.595, 525.092, 875.41, 1368.75, 2046.51, 2989.31, 3618.44, 5200};
-//const int gw_nFCalBins = sizeof (gw_fcalBins) / sizeof (gw_fcalBins[0]) - 1;
-//const int gw_nQ2Bins = 10;
+//const int gw_nFCalBins = 100;
+//const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
+//const int gw_nQ2Bins = 25;
 //const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
-//const int gw_nVertZBins = 18;
-//const double gw_vertZBins[19] = {-200, -175, -150, -125, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 125, 150, 175, 200};
+//const int gw_nVertZBins = 50;
+//const double* gw_vertZBins = linspace (-200, 200, gw_nVertZBins);
 
-TH1D* PbPbFCalDist = nullptr;
-TH1D* PbPbVZDist = nullptr;
-TH1D* PbPbQ2Dist = nullptr;
-TH3D* PbPbEventReweights = nullptr;
+const double gw_fcalBins[11]   = {0, 63.719, 144.14, 289.595, 525.092, 875.41, 1368.75, 2046.51, 2989.31, 3618.44, 5200};
+const int gw_nFCalBins = sizeof (gw_fcalBins) / sizeof (gw_fcalBins[0]) - 1;
+const int gw_nQ2Bins = 10;
+const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
+const int gw_nVertZBins = 18;
+const double gw_vertZBins[19] = {-200, -175, -150, -125, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 125, 150, 175, 200};
 
-TH1D* ppVZDist = nullptr;
-TH1D* ppEventReweights = nullptr;
+TH1D* h_PbPbFCalDist = nullptr;
+TH1D* h_PbPbVZDist = nullptr;
+TH1D* h_PbPbQ2Dist = nullptr;
+TH3D* h_PbPbEventReweights = nullptr;
+
+TH1D* h_ppVZDist = nullptr;
+TH1D* h_ppEventReweights = nullptr;
 
 
 void GenerateWeights (const TString name) {
@@ -56,19 +56,19 @@ void GenerateWeights (const TString name) {
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
-  PbPbFCalDist = new TH1D (Form ("PbPbFCalDist_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins);
-  PbPbQ2Dist = new TH1D (Form ("PbPbQ2Dist_%s", name.Data ()), "", gw_nQ2Bins, gw_q2Bins);
-  PbPbVZDist = new TH1D (Form ("PbPbVZDist_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
-  PbPbFCalDist->Sumw2 ();
-  PbPbQ2Dist->Sumw2 ();
-  PbPbVZDist->Sumw2 ();
-  PbPbEventReweights = new TH3D (Form ("PbPbEventReweights_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins, gw_nQ2Bins, gw_q2Bins, gw_nVertZBins, gw_vertZBins);
-  PbPbEventReweights->Sumw2 ();
+  h_PbPbFCalDist = new TH1D (Form ("h_PbPbFCalDist_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins);
+  h_PbPbQ2Dist = new TH1D (Form ("h_PbPbQ2Dist_%s", name.Data ()), "", gw_nQ2Bins, gw_q2Bins);
+  h_PbPbVZDist = new TH1D (Form ("h_PbPbVZDist_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
+  h_PbPbFCalDist->Sumw2 ();
+  h_PbPbQ2Dist->Sumw2 ();
+  h_PbPbVZDist->Sumw2 ();
+  h_PbPbEventReweights = new TH3D (Form ("h_PbPbEventReweights_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins, gw_nQ2Bins, gw_q2Bins, gw_nVertZBins, gw_vertZBins);
+  h_PbPbEventReweights->Sumw2 ();
 
-  ppVZDist = new TH1D (Form ("ppVZDist_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
-  ppVZDist->Sumw2 ();
-  ppEventReweights = new TH1D (Form ("ppEventReweights_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
-  ppEventReweights->Sumw2 ();
+  h_ppVZDist = new TH1D (Form ("h_ppVZDist_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
+  h_ppVZDist->Sumw2 ();
+  h_ppEventReweights = new TH1D (Form ("h_ppEventReweights_%s", name.Data ()), "", gw_nVertZBins, gw_vertZBins);
+  h_ppEventReweights->Sumw2 ();
 
 
   float event_weight = 0, fcal_et = 0, q2 = 0, vz = 0;
@@ -88,37 +88,37 @@ void GenerateWeights (const TString name) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      PbPbFCalDist->Fill (fcal_et, event_weight);
-      PbPbQ2Dist->Fill (q2, event_weight);
-      PbPbVZDist->Fill (vz, event_weight);
+      h_PbPbFCalDist->Fill (fcal_et, event_weight);
+      h_PbPbQ2Dist->Fill (q2, event_weight);
+      h_PbPbVZDist->Fill (vz, event_weight);
     }
     cout << endl;
-    if (PbPbFCalDist->Integral () > 0)
-      PbPbFCalDist->Scale (1./PbPbFCalDist->Integral (), "width");
-    if (PbPbQ2Dist->Integral () > 0)
-      PbPbQ2Dist->Scale (1./PbPbQ2Dist->Integral (), "width");
-    if (PbPbVZDist->Integral () > 0)
-      PbPbVZDist->Scale (1./PbPbVZDist->Integral (), "width");
+    if (h_PbPbFCalDist->Integral () > 0)
+      h_PbPbFCalDist->Scale (1./h_PbPbFCalDist->Integral (), "width");
+    if (h_PbPbQ2Dist->Integral () > 0)
+      h_PbPbQ2Dist->Scale (1./h_PbPbQ2Dist->Integral (), "width");
+    if (h_PbPbVZDist->Integral () > 0)
+      h_PbPbVZDist->Scale (1./h_PbPbVZDist->Integral (), "width");
 
     if (name == "data") {
-      for (int ix = 1; ix <= PbPbEventReweights->GetNbinsX (); ix++)
-        for (int iy = 1; iy <= PbPbEventReweights->GetNbinsY (); iy++)
-          for (int iz = 1; iz <= PbPbEventReweights->GetNbinsZ (); iz++)
-            PbPbEventReweights->SetBinContent (ix, iy, iz, 1); // should be 1 in the reference
+      for (int ix = 1; ix <= h_PbPbEventReweights->GetNbinsX (); ix++)
+        for (int iy = 1; iy <= h_PbPbEventReweights->GetNbinsY (); iy++)
+          for (int iz = 1; iz <= h_PbPbEventReweights->GetNbinsZ (); iz++)
+            h_PbPbEventReweights->SetBinContent (ix, iy, iz, 1); // should be 1 in the reference
     }
     else {
       SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
       TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-      TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get ("PbPbFCalDist_data");
-      TH1D* referenceVZDist = (TH1D*)ztrackFile->Get ("PbPbVZDist_data");
-      TH1D* referenceQ2Dist = (TH1D*)ztrackFile->Get ("PbPbQ2Dist_data");
-      for (int ix = 1; ix <= PbPbEventReweights->GetNbinsX (); ix++) {
-        const double fcalReweight = (PbPbFCalDist->GetBinContent (ix) != 0 ? referenceFCalDist->GetBinContent (ix) / PbPbFCalDist->GetBinContent (ix) : 0);
-        for (int iy = 1; iy <= PbPbEventReweights->GetNbinsY (); iy++) {
-          const double q2Reweight = (PbPbQ2Dist->GetBinContent (iy) != 0 ? referenceQ2Dist->GetBinContent (iy) / PbPbQ2Dist->GetBinContent (iy) : 0);
-          for (int iz = 1; iz <= PbPbEventReweights->GetNbinsZ (); iz++) {
-            const double vzReweight = (PbPbVZDist->GetBinContent (iz) != 0 ? referenceVZDist->GetBinContent (iz) / PbPbVZDist->GetBinContent (iz) : 0);
-            PbPbEventReweights->SetBinContent (ix, iy, iz, fcalReweight * vzReweight * q2Reweight);
+      TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get ("h_PbPbFCalDist_data");
+      TH1D* referenceVZDist = (TH1D*)ztrackFile->Get ("h_PbPbVZDist_data");
+      TH1D* referenceQ2Dist = (TH1D*)ztrackFile->Get ("h_PbPbQ2Dist_data");
+      for (int ix = 1; ix <= h_PbPbEventReweights->GetNbinsX (); ix++) {
+        const double fcalReweight = (h_PbPbFCalDist->GetBinContent (ix) != 0 ? referenceFCalDist->GetBinContent (ix) / h_PbPbFCalDist->GetBinContent (ix) : 0);
+        for (int iy = 1; iy <= h_PbPbEventReweights->GetNbinsY (); iy++) {
+          const double q2Reweight = (h_PbPbQ2Dist->GetBinContent (iy) != 0 ? referenceQ2Dist->GetBinContent (iy) / h_PbPbQ2Dist->GetBinContent (iy) : 0);
+          for (int iz = 1; iz <= h_PbPbEventReweights->GetNbinsZ (); iz++) {
+            const double vzReweight = (h_PbPbVZDist->GetBinContent (iz) != 0 ? referenceVZDist->GetBinContent (iz) / h_PbPbVZDist->GetBinContent (iz) : 0);
+            h_PbPbEventReweights->SetBinContent (ix, iy, iz, fcalReweight * vzReweight * q2Reweight);
           }
         }
       }
@@ -149,22 +149,22 @@ void GenerateWeights (const TString name) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      ppVZDist->Fill (vz, event_weight);
+      h_ppVZDist->Fill (vz, event_weight);
     }
     cout << endl;
-    if (ppVZDist->Integral () > 0)
-      ppVZDist->Scale (1./ppVZDist->Integral ());
+    if (h_ppVZDist->Integral () > 0)
+      h_ppVZDist->Scale (1./h_ppVZDist->Integral ());
 
     if (name == "data") {
-      for (int ix = 1; ix <= ppEventReweights->GetNbinsX (); ix++)
-        ppEventReweights->SetBinContent (ix, 1);
+      for (int ix = 1; ix <= h_ppEventReweights->GetNbinsX (); ix++)
+        h_ppEventReweights->SetBinContent (ix, 1);
     }
     else {
       SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
       TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-      TH1D* referenceVZDist = (TH1D*)ztrackFile->Get ("ppVZDist_data");
-      for (int ix = 1; ix <= ppEventReweights->GetNbinsX (); ix++)
-        ppEventReweights->SetBinContent (ix, ppVZDist->GetBinContent (ix) != 0. ? referenceVZDist->GetBinContent (ix) / ppVZDist->GetBinContent (ix) : 0);
+      TH1D* referenceVZDist = (TH1D*)ztrackFile->Get ("h_ppVZDist_data");
+      for (int ix = 1; ix <= h_ppEventReweights->GetNbinsX (); ix++)
+        h_ppEventReweights->SetBinContent (ix, h_ppVZDist->GetBinContent (ix) != 0. ? referenceVZDist->GetBinContent (ix) / h_ppVZDist->GetBinContent (ix) : 0);
       ztrackFile->Close ();
     }
 
@@ -180,12 +180,12 @@ void GenerateWeights (const TString name) {
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
 
-  SafeWrite (PbPbFCalDist);
-  SafeWrite (PbPbVZDist);
-  SafeWrite (PbPbQ2Dist);
-  SafeWrite (PbPbEventReweights);
-  SafeWrite (ppVZDist);
-  SafeWrite (ppEventReweights);
+  SafeWrite (h_PbPbFCalDist);
+  SafeWrite (h_PbPbVZDist);
+  SafeWrite (h_PbPbQ2Dist);
+  SafeWrite (h_PbPbEventReweights);
+  SafeWrite (h_ppVZDist);
+  SafeWrite (h_ppEventReweights);
 
   eventWeightsFile->Close ();
 }

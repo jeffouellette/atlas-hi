@@ -37,27 +37,27 @@ class MinbiasAnalysis : public Analysis {
 void MinbiasAnalysis::CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
-      ZPhiYields[iCent][iSpc]->Add (ZPhiYields[iCent][0]);
-      ZPtSpecs[iCent][iSpc]->Add (ZPtSpecs[iCent][0]);
-      ZMYields[iCent][iSpc]->Add (ZMYields[iCent][0]);
-      TrackSpec[iCent][iSpc]->Add (TrackSpec[iCent][0]);
-      //DRDists[iCent][iSpc]->Add (DRDists[iCent][0]);
+      h_z_phi[iCent][iSpc]->Add (h_z_phi[iCent][0]);
+      h_z_pt[iCent][iSpc]->Add (h_z_pt[iCent][0]);
+      h_z_m[iCent][iSpc]->Add (h_z_m[iCent][0]);
+      h_trk_pt[iCent][iSpc]->Add (h_trk_pt[iCent][0]);
+      //h_lepton_dr[iCent][iSpc]->Add (h_lepton_dr[iCent][0]);
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
           if (iSpc == 0 && iPtZ == 0 && iXZTrk == 0)
             continue;
-          ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Add (ZTrackPtPhi[0][0][iCent][0]);
+          h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Add (h_z_trk_pt_phi[0][0][iCent][0]);
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-            ZTracksPt[iSpc][iPtZ][iXZTrk][iPhi][iCent]->Add (ZTracksPt[0][0][0][iPhi][iCent]);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent]->Add (h_z_trk_pt[0][0][0][iPhi][iCent]);
           } // end loop over phi
         }
         for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-          ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Add (ZMissingPt[0][0][iPhi][iCent]);
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_missing_pt[0][0][iPhi][iCent]);
         } // end loop over phi
         if (iSpc == 0 && iPtZ == 0)
           continue;
-        ZCounts[iSpc][iPtZ][iCent]->Add (ZCounts[0][0][iCent]);
+        h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][0][iCent]);
       } // end loop over pT^Z
     } // end loop over species
   } // end loop over centralities
@@ -78,8 +78,8 @@ void MinbiasAnalysis::Execute () {
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("PbPbEventReweights_minbias");
-  ppEventReweights = (TH1D*)eventWeightsFile->Get ("ppEventReweights_minbias");
+  h_PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_minbias");
+  h_ppEventReweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_minbias");
 
   CreateHists ();
 
@@ -121,16 +121,16 @@ void MinbiasAnalysis::Execute () {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      event_weight = PbPbEventReweights->GetBinContent (PbPbEventReweights->FindBin (fcal_et, q2, vz));
+      event_weight = h_PbPbEventReweights->GetBinContent (h_PbPbEventReweights->FindBin (fcal_et, q2, vz));
 
-      FCalSpec->Fill (fcal_et, event_weight);
-      FCalQ2Corr->Fill (fcal_et, q2, event_weight);
+      h_fcal_et->Fill (fcal_et, event_weight);
+      h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
 
       float dphi = DeltaPhi (z_phi, psi2, false);
       if (dphi > pi/2)
         dphi = pi - dphi;
 
-      ZPhiYields[iCent][iSpc]->Fill (2*dphi, event_weight);
+      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
       for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -138,7 +138,7 @@ void MinbiasAnalysis::Execute () {
         }
       }
 
-      ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
@@ -148,7 +148,7 @@ void MinbiasAnalysis::Execute () {
 
         const short iXZTrk = 0;
 
-        TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -176,7 +176,7 @@ void MinbiasAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
@@ -184,12 +184,12 @@ void MinbiasAnalysis::Execute () {
         //  dphi = dphi + 2*pi;
 
         for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++)
-          ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+          h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
           trkPtProj[iPhi][iPtTrk] = 0;
         }
       }
@@ -223,9 +223,9 @@ void MinbiasAnalysis::Execute () {
       const short iPtZ = 0;
       const short iCent = 0; // iCent = 0 for pp
 
-      event_weight = ppEventReweights->GetBinContent (ppEventReweights->FindBin (vz));
+      event_weight = h_ppEventReweights->GetBinContent (h_ppEventReweights->FindBin (vz));
 
-      ZCounts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
@@ -235,7 +235,7 @@ void MinbiasAnalysis::Execute () {
 
         const short iXZTrk = 0;
 
-        TrackSpec[iCent][iSpc]->Fill (trkpt, event_weight);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
         // Add to missing pT (requires dphi in -pi/2 to pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -263,19 +263,19 @@ void MinbiasAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            ZTracksPt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        ZTrackPtPhi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          ZMissingPt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
           trkPtProj[iPhi][iPtTrk] = 0;
         }
       }

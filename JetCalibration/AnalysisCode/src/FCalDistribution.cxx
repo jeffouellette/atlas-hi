@@ -43,8 +43,8 @@ void FCalDistribution (const char* directory,
   TTree* tree = NULL;
   if (file) tree = (TTree*)file->Get ("tree");
   if (tree == NULL || file == NULL) {
-   cout << "Error: In FCalDistributions.C: TTree not obtained for given data set. Quitting." << endl;
-   return;
+    cout << "Error: In FCalDistributions.C: TTree not obtained for given data set. Quitting." << endl;
+    return;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ void FCalDistribution (const char* directory,
   //////////////////////////////////////////////////////////////////////////////
   TreeVariables* t = new TreeVariables (tree, isMC);
   if (crossSection_microbarns != 0)
-   t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
+    t->SetGetMCInfo (false, crossSection_microbarns, filterEfficiency, numberEvents);
   t->SetGetVertices ();
   t->SetGetFCals ();
   t->SetBranchAddresses ();
@@ -61,32 +61,32 @@ void FCalDistribution (const char* directory,
   // Setup triggers 
   //////////////////////////////////////////////////////////////////////////////
   if (!isMC) {
-   //for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
-   // Trigger* trig = new Trigger (electronTriggerNames[electronTriggerN], electronTriggerMinPtCuts[electronTriggerN], -2.47, 2.47);
-   // trig->minPt = electronTriggerMinPtCuts[electronTriggerN];
-   // trig->maxPt = electronTriggerMaxPtCuts[electronTriggerN];
-   // triggers.push_back (trig);
-   // tree->SetBranchAddress (electronTriggerNames[electronTriggerN], & (trig->trigBool));
-   // tree->SetBranchAddress (Form ("%s_prescale", electronTriggerNames[electronTriggerN]), & (trig->trigPrescale));
-   //}
+    //for (int electronTriggerN = 0; electronTriggerN < electronTrigLength; electronTriggerN++) {
+    //  Trigger* trig = new Trigger (electronTriggerNames[electronTriggerN], electronTriggerMinPtCuts[electronTriggerN], -2.47, 2.47);
+    //  trig->minPt = electronTriggerMinPtCuts[electronTriggerN];
+    //  trig->maxPt = electronTriggerMaxPtCuts[electronTriggerN];
+    //  triggers.push_back (trig);
+    //  tree->SetBranchAddress (electronTriggerNames[electronTriggerN], & (trig->trigBool));
+    //  tree->SetBranchAddress (Form ("%s_prescale", electronTriggerNames[electronTriggerN]), & (trig->trigPrescale));
+    //}
 
-   //for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
-   // Trigger* trig = new Trigger (muonTriggerNames[muonTriggerN], muonTriggerMinPtCuts[muonTriggerN], -2.40, 2.40);
-   // trig->minPt = muonTriggerMinPtCuts[muonTriggerN];
-   // trig->maxPt = muonTriggerMaxPtCuts[muonTriggerN];
-   // triggers.push_back (trig);
-   // tree->SetBranchAddress (muonTriggerNames[muonTriggerN], & (trig->trigBool));
-   // tree->SetBranchAddress (Form ("%s_prescale", muonTriggerNames[muonTriggerN]), & (trig->trigPrescale));
-   //}
+    //for (int muonTriggerN = 0; muonTriggerN < muonTrigLength; muonTriggerN++) {
+    //  Trigger* trig = new Trigger (muonTriggerNames[muonTriggerN], muonTriggerMinPtCuts[muonTriggerN], -2.40, 2.40);
+    //  trig->minPt = muonTriggerMinPtCuts[muonTriggerN];
+    //  trig->maxPt = muonTriggerMaxPtCuts[muonTriggerN];
+    //  triggers.push_back (trig);
+    //  tree->SetBranchAddress (muonTriggerNames[muonTriggerN], & (trig->trigBool));
+    //  tree->SetBranchAddress (Form ("%s_prescale", muonTriggerNames[muonTriggerN]), & (trig->trigPrescale));
+    //}
 
-   for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
-    Trigger* trig = new Trigger (photonTriggerNames[photonTriggerN], photonTriggerMinPtCuts[photonTriggerN], -2.47, 2.47);
-    trig->minPt = photonTriggerMinPtCuts[photonTriggerN];
-    trig->maxPt = photonTriggerMaxPtCuts[photonTriggerN];
-    triggers.push_back (trig);
-    tree->SetBranchAddress (photonTriggerNames[photonTriggerN], & (trig->trigBool));
-    tree->SetBranchAddress (Form ("%s_prescale", photonTriggerNames[photonTriggerN]), & (trig->trigPrescale));
-   }
+    for (int photonTriggerN = 0; photonTriggerN < photonTrigLength; photonTriggerN++) {
+      Trigger* trig = new Trigger (photonTriggerNames[photonTriggerN], photonTriggerMinPtCuts[photonTriggerN], -2.47, 2.47);
+      trig->minPt = photonTriggerMinPtCuts[photonTriggerN];
+      trig->maxPt = photonTriggerMaxPtCuts[photonTriggerN];
+      triggers.push_back (trig);
+      tree->SetBranchAddress (photonTriggerNames[photonTriggerN], & (trig->trigBool));
+      tree->SetBranchAddress (Form ("%s_prescale", photonTriggerNames[photonTriggerN]), & (trig->trigPrescale));
+    }
   }
 
   //TH1D* fCal_p_et = new TH1D ("fCal_p_et", "", 125, -50, 200);

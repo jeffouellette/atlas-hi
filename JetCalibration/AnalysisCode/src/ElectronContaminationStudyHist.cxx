@@ -48,44 +48,44 @@ void ElectronContaminationStudyHist () {
   
 
   {
-   TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
-   TList* sysfiles = dir.GetListOfFiles ();
-   if (!sysfiles) {
-    cout << "Cannot get list of files! Exiting." << endl;
-    return;
-   }
-   TSystemFile *sysfile;
-   TString fname;
-   TString histName;
-   TIter next (sysfiles);
-   int numFiles = 0;
-   while ( (sysfile= (TSystemFile*)next ())) {
-    fname = sysfile->GetName ();
-    if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
-
-     // do this if Z->ee MC sample
-     for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
-      if (fname.Contains (zeeJetSampleId)) { // if Z->ee MC do this
-       numFiles++;
-       cout << "Reading in " << rootPath+fname << endl;
-       TFile* thisFile = new TFile (rootPath + fname, "READ");
-
-       fakePhotonSpectrum->Add ( (TH2D*)thisFile->Get (Form ("fakePhotonSpectrum_dataSet%s", zeeJetSampleId.Data ())));
-       fakePhotonCounts->Add ( (TH2D*)thisFile->Get (Form ("fakePhotonCounts_dataSet%s", zeeJetSampleId.Data ())));
-       allElectronCounts->Add ( (TH2D*)thisFile->Get (Form ("allElectronCounts_dataSet%s", zeeJetSampleId.Data ())));
-       allGammaCounts->Add ( (TH2D*)thisFile->Get (Form ("allGammaCounts_dataSet%s", zeeJetSampleId.Data ())));
-       electronSpectrum->Add ( (TH2D*)thisFile->Get (Form ("electronSpectrum_dataSet%s", zeeJetSampleId.Data ())));
-       truthElectronRecoPhotonCounts->Add ( (TH2D*)thisFile->Get (Form ("truthElectronRecoPhotonCounts_dataSet%s", zeeJetSampleId.Data ())));
-       truthElectronRecoElectronCounts->Add ( (TH2D*)thisFile->Get (Form ("truthElectronRecoElectronCounts_dataSet%s", zeeJetSampleId.Data ())));
-
-       thisFile->Close ();
-       delete thisFile;
-       break;
-      }
-     }
+    TSystemDirectory dir (rootPath.Data (), rootPath.Data ());
+    TList* sysfiles = dir.GetListOfFiles ();
+    if (!sysfiles) {
+      cout << "Cannot get list of files! Exiting." << endl;
+      return;
     }
-   }
-   cout << numFiles << " files read in." << endl;
+    TSystemFile *sysfile;
+    TString fname;
+    TString histName;
+    TIter next (sysfiles);
+    int numFiles = 0;
+    while ( (sysfile= (TSystemFile*)next ())) {
+      fname = sysfile->GetName ();
+      if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
+
+        // do this if Z->ee MC sample
+        for (TString zeeJetSampleId : zeeJetSampleIds) { // check for Z->ee MC
+          if (fname.Contains (zeeJetSampleId)) { // if Z->ee MC do this
+            numFiles++;
+            cout << "Reading in " << rootPath+fname << endl;
+            TFile* thisFile = new TFile (rootPath + fname, "READ");
+
+            fakePhotonSpectrum->Add ( (TH2D*)thisFile->Get (Form ("fakePhotonSpectrum_dataSet%s", zeeJetSampleId.Data ())));
+            fakePhotonCounts->Add ( (TH2D*)thisFile->Get (Form ("fakePhotonCounts_dataSet%s", zeeJetSampleId.Data ())));
+            allElectronCounts->Add ( (TH2D*)thisFile->Get (Form ("allElectronCounts_dataSet%s", zeeJetSampleId.Data ())));
+            allGammaCounts->Add ( (TH2D*)thisFile->Get (Form ("allGammaCounts_dataSet%s", zeeJetSampleId.Data ())));
+            electronSpectrum->Add ( (TH2D*)thisFile->Get (Form ("electronSpectrum_dataSet%s", zeeJetSampleId.Data ())));
+            truthElectronRecoPhotonCounts->Add ( (TH2D*)thisFile->Get (Form ("truthElectronRecoPhotonCounts_dataSet%s", zeeJetSampleId.Data ())));
+            truthElectronRecoElectronCounts->Add ( (TH2D*)thisFile->Get (Form ("truthElectronRecoElectronCounts_dataSet%s", zeeJetSampleId.Data ())));
+
+            thisFile->Close ();
+            delete thisFile;
+            break;
+          }
+        }
+      }
+    }
+    cout << numFiles << " files read in." << endl;
   }
   /**** End loop over input files ****/
 
@@ -125,11 +125,11 @@ void ElectronContaminationStudyHist () {
   gPad->SetLogz (false);
   TH2D* fakePhotonRate = new TH2D ("fakePhotonRate", ";#it{p}_{T}^{#gamma} #left[GeV#right];#eta^{#gamma};# fake photons / # truth electron", numpebins, pebins, numeetabins, eetabins);
   for (short iP = 1; iP <= numpebins; iP++) {
-   for (short iEta = 1; iEta <= numeetabins; iEta++) {
-    if (allElectronCounts->GetBinContent (iP, iEta) != 0) {
-     fakePhotonRate->SetBinContent (iP, iEta, fakePhotonCounts->GetBinContent (iP, iEta) / allElectronCounts->GetBinContent (iP, iEta));
+    for (short iEta = 1; iEta <= numeetabins; iEta++) {
+      if (allElectronCounts->GetBinContent (iP, iEta) != 0) {
+        fakePhotonRate->SetBinContent (iP, iEta, fakePhotonCounts->GetBinContent (iP, iEta) / allElectronCounts->GetBinContent (iP, iEta));
+      }
     }
-   }
   }
   fakePhotonRate->GetYaxis ()->SetTitleOffset (1.1);
   fakePhotonRate->GetZaxis ()->SetTitleOffset (1.3);
@@ -156,54 +156,54 @@ void ElectronContaminationStudyHist () {
 
   int padnum = 1;
   for (int iEta = 0; iEta < numeetabins; iEta++) {
-   if (iEta == 1 || iEta == 3) continue;
+    if (iEta == 1 || iEta == 3) continue;
 
-   truthElectronCanvas->cd (padnum);
-   gPad->SetLogy (true);
-   gPad->SetLogx (true);
+    truthElectronCanvas->cd (padnum);
+    gPad->SetLogy (true);
+    gPad->SetLogx (true);
 
-   TH1D* recoElectronSlice = truthElectronRecoElectronCounts->ProjectionX (Form ("electron_%i",iEta), iEta, iEta+1);
-   TH1D* recoPhotonSlice = truthElectronRecoPhotonCounts->ProjectionX (Form ("photon_%i",iEta), iEta, iEta+1);
+    TH1D* recoElectronSlice = truthElectronRecoElectronCounts->ProjectionX (Form ("electron_%i",iEta), iEta, iEta+1);
+    TH1D* recoPhotonSlice = truthElectronRecoPhotonCounts->ProjectionX (Form ("photon_%i",iEta), iEta, iEta+1);
 
-   recoElectronSlice->GetYaxis ()->SetTitle ("Counts / Event / GeV");
-   recoElectronSlice->GetYaxis ()->SetTitleOffset (1.1);
-   recoPhotonSlice->GetYaxis ()->SetTitle ("Counts / Event / GeV");
-   recoPhotonSlice->GetYaxis ()->SetTitleOffset (1.1);
+    recoElectronSlice->GetYaxis ()->SetTitle ("Counts / Event / GeV");
+    recoElectronSlice->GetYaxis ()->SetTitleOffset (1.1);
+    recoPhotonSlice->GetYaxis ()->SetTitle ("Counts / Event / GeV");
+    recoPhotonSlice->GetYaxis ()->SetTitleOffset (1.1);
 
-   recoElectronSlice->Scale (1, "width");
-   recoPhotonSlice->Scale (1, "width");
+    recoElectronSlice->Scale (1, "width");
+    recoPhotonSlice->Scale (1, "width");
 
-   recoElectronSlice->SetAxisRange (1e-7, 1, "Y");
-   recoPhotonSlice->SetAxisRange (1e-7, 1, "Y");
+    recoElectronSlice->SetAxisRange (1e-7, 1, "Y");
+    recoPhotonSlice->SetAxisRange (1e-7, 1, "Y");
 
-   recoElectronSlice->SetLineColor (kBlack);
-   recoElectronSlice->SetMarkerColor (kBlack);
+    recoElectronSlice->SetLineColor (kBlack);
+    recoElectronSlice->SetMarkerColor (kBlack);
 
-   recoPhotonSlice->SetLineColor (kRed);
-   recoPhotonSlice->SetMarkerColor (kRed);
+    recoPhotonSlice->SetLineColor (kRed);
+    recoPhotonSlice->SetMarkerColor (kRed);
 
-   recoElectronSlice->Draw ("e1");
-   recoPhotonSlice->Draw ("e1 same");
+    recoElectronSlice->Draw ("e1");
+    recoPhotonSlice->Draw ("e1 same");
 
-   myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[iEta], eetabins[iEta+1]));
-   //canvas->SaveAs (Form ("%s/truthElectronRecoCounts_etabin%i.pdf", plotPath.Data (), iEta));
+    myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[iEta], eetabins[iEta+1]));
+    //canvas->SaveAs (Form ("%s/truthElectronRecoCounts_etabin%i.pdf", plotPath.Data (), iEta));
 
-   truthElectronCanvas->cd (padnum+3);
-   gPad->SetLogy (false);
-   gPad->SetLogx (true);
+    truthElectronCanvas->cd (padnum+3);
+    gPad->SetLogy (false);
+    gPad->SetLogx (true);
 
-   TH1D* ratio = truthElectronRecoPhotonCounts->ProjectionX (Form ("ratio_%i", iEta), iEta, iEta+1);
-   ratio->Scale (1, "width"); // necessary since denominator has width divided
-   ratio->Divide (recoElectronSlice);
-   ratio->GetYaxis ()->SetTitle ("N^{e#rightarrow#gamma} / N^{e#rightarrowe}");
-   ratio->GetYaxis ()->SetTitleOffset (1.1);
-   ratio->SetAxisRange (0, 0.12, "Y");
+    TH1D* ratio = truthElectronRecoPhotonCounts->ProjectionX (Form ("ratio_%i", iEta), iEta, iEta+1);
+    ratio->Scale (1, "width"); // necessary since denominator has width divided
+    ratio->Divide (recoElectronSlice);
+    ratio->GetYaxis ()->SetTitle ("N^{e#rightarrow#gamma} / N^{e#rightarrowe}");
+    ratio->GetYaxis ()->SetTitleOffset (1.1);
+    ratio->SetAxisRange (0, 0.12, "Y");
 
-   ratio->Draw ("e1");
-   myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[iEta], eetabins[iEta+1]));
-   //canvas->SaveAs (Form ("%s/electronMisIdRate_etabin%i.pdf", plotPath.Data (), iEta));
+    ratio->Draw ("e1");
+    myText (0.55, 0.82, kBlack, Form ("%g < #eta < %g", eetabins[iEta], eetabins[iEta+1]));
+    //canvas->SaveAs (Form ("%s/electronMisIdRate_etabin%i.pdf", plotPath.Data (), iEta));
 
-   padnum++;
+    padnum++;
 
   }
   truthElectronCanvas->SaveAs (Form ("%s/truthElectronReco.pdf", plotPath.Data ()));

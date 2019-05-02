@@ -1,7 +1,7 @@
 CXXFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(HOME)/RootUtils -I$(ATLAS_PATH)/include -I$(CALIB_PATH)/AnalysisCode/include
 LDFLAGS=`root-config --glibs` -L$(HOME)/RootUtils -L$(ATLAS_PATH)/lib -L$(CALIB_PATH)/AnalysisCode/lib -lAtlas -lGlobalParams -lInitialization -lTrigger -ldl
 
-analyses = runEMTopoComparison runElectronContaminationStudy runEnergyScaleChecks runFCalDistribution runJetAnalysis runJetInsituCorrectionCheck runMCValidator runPhotonAnalysis runPhotonJets runRtrkComparison runSubtractionStudy runZeeJets runZmumuJets runZMassCalc
+analyses = runEMTopoComparison runElectronContaminationStudy runEnergyScaleChecks runFCalDistribution runJetAnalysis runJetInsituCorrectionCheck runMCValidator runPhotonAnalysis runPhotonJets runRtrkComparison runZeeJets runZmumuJets runZMassCalc
 
 hists = $(analyses:%=%Hist) runZGammaJetCrossCheckHist runZJetsHist runPhotonRtrkComparisonHist
 
