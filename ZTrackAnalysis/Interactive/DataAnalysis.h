@@ -20,6 +20,7 @@ class DataAnalysis : public Analysis {
     name = "data";
     directory = "DataAnalysis/";
     plotFill = false;
+    LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -135,7 +136,11 @@ void DataAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        if (trkEff == 0)
+          continue;
+
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
         // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -153,9 +158,9 @@ void DataAnalysis::Execute () {
         short iPhi = 0;
         while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
           if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
           else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
           iPhi++;
         }
 
@@ -163,14 +168,14 @@ void DataAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -246,7 +251,11 @@ void DataAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        if (trkEff == 0)
+          continue;
+
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
         // Add to missing pT (requires dphi in -pi/2 to pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -264,9 +273,9 @@ void DataAnalysis::Execute () {
         short iPhi = 0;
         while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
           if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
           else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
           iPhi++;
         }
         
@@ -274,14 +283,14 @@ void DataAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {

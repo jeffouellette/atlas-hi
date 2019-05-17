@@ -6,6 +6,8 @@
 
 #include <ArrayTemplates.h>
 
+#include <TEfficiency.h>
+
 #include <iostream>
 
 void SafeWrite (TObject* tobj) {

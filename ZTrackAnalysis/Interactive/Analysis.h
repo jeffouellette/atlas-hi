@@ -6,6 +6,8 @@
 
 #include <ArrayTemplates.h>
 
+#include <TEfficiency.h>
+
 #include <iostream>
 
 using namespace atlashi;
@@ -26,6 +28,7 @@ class Analysis {
   const char* directory;
   bool backgroundSubtracted = false;
 
+  TFile* trkEffFile = nullptr;
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
@@ -36,30 +39,33 @@ class Analysis {
   bool useAltMarker = false; // whether to plot as open markers (instead of closed)
 
   // Event info distributions (for reweighting)
-  TH3D* h_PbPbEventReweights = nullptr;
-  TH1D* h_ppEventReweights   = nullptr;
+  TH3D* h_PbPb_event_reweights  = nullptr;
+  TH1D* h_pp_event_reweights    = nullptr;
+
+  // Efficiencies
+  TEfficiency***  h_trk_effs  = nullptr;
 
   // Analysis checks
-  TH1D* h_fcal_et     = nullptr;
-  TH2D* h_fcal_et_q2  = nullptr;
-  TH1D*** h_z_phi     = nullptr;
-  TH1D*** h_z_pt      = nullptr;
-  TH1D*** h_z_m       = nullptr;
-  TH1D*** h_lepton_pt = nullptr;
-  TH1D*** h_trk_pt    = nullptr;
-  TH2D*** h_lepton_dr = nullptr;
+  TH1D*   h_fcal_et     = nullptr;
+  TH2D*   h_fcal_et_q2  = nullptr;
+  TH1D*** h_z_phi       = nullptr;
+  TH1D*** h_z_pt        = nullptr;
+  TH1D*** h_z_m         = nullptr;
+  TH1D*** h_lepton_pt   = nullptr;
+  TH1D*** h_trk_pt      = nullptr;
+  TH2D*** h_lepton_dr   = nullptr;
 
   // Correlations plots
-  TH2D***** h_z_trk_pt_phi  = nullptr;
-  TH1D****** h_z_trk_phi    = nullptr;
+  TH2D*****   h_z_trk_pt_phi  = nullptr;
+  TH1D******  h_z_trk_phi     = nullptr;
   
   // Physics plots
-  TH2D***** h_z_missing_pt      = nullptr;
-  TH1D***** h_z_missing_pt_avg  = nullptr;
-  TH1D***** h_z_missing_pt_int  = nullptr;
-  TH1D****** h_z_trk_pt         = nullptr;
-  //TH1D***** h_z_trk_pt        = nullptr;
-  TH1D****  h_z_counts          = nullptr;
+  TH2D*****   h_z_missing_pt      = nullptr;
+  TH1D*****   h_z_missing_pt_avg  = nullptr;
+  TH1D*****   h_z_missing_pt_int  = nullptr;
+  TH1D******  h_z_trk_pt          = nullptr;
+  //TH1D*****   h_z_trk_pt          = nullptr;
+  TH1D****    h_z_counts          = nullptr;
 
   TH1D****** h_z_trk_pt_sub         = nullptr;
   TH1D****** h_z_trk_pt_sig_to_bkg  = nullptr;
@@ -76,8 +82,11 @@ class Analysis {
     useAltMarker = false;
 
     // Reweighting histograms
-    h_PbPbEventReweights = nullptr;
-    h_ppEventReweights   = nullptr;
+    h_PbPb_event_reweights = nullptr;
+    h_pp_event_reweights   = nullptr;
+
+    // Efficiencies
+    h_trk_effs = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
 
     // Analysis checks
     h_fcal_et     = nullptr;
@@ -109,8 +118,11 @@ class Analysis {
 
   Analysis (Analysis* a) {
     // Reweighting histograms
-    h_PbPbEventReweights = a->h_PbPbEventReweights;
-    h_ppEventReweights   = a->h_ppEventReweights;
+    h_PbPb_event_reweights = a->h_PbPb_event_reweights;
+    h_pp_event_reweights   = a->h_pp_event_reweights;
+
+    // Efficiencies
+    h_trk_effs = a->h_trk_effs;
 
     // Analysis checks
     h_fcal_et       = a->h_fcal_et;
@@ -133,6 +145,7 @@ class Analysis {
   }
 
   protected:
+  void LabelTrackingEfficiencies (const short iCent, const short iEta);
   void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iXZTrk, const short iCent, const bool diffXZTrk);
   void LabelZMassSpectra (const short iSpc, const short iCent);
   void LabelTrkYield (const short iCent, const short iPhi);
@@ -153,6 +166,9 @@ class Analysis {
   virtual void ScaleHists ();
   virtual void SubtractBackground ();
 
+  virtual void LoadTrackingEfficiencies ();
+  virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
+
   void Plot3DDist ();
   void PlotFCalDists ();
   void PlotCorrelations (const bool diffXZTrk = false, const short pSpc = 2);
@@ -162,6 +178,7 @@ class Analysis {
   void PlotZMassSpectra ();
   void PlotZPhiYield ();
   void PlotZMissingPt ();
+  void PlotTrackingEfficiencies ();
 
   void CalculateIAA ();
   void CalculateICP ();
@@ -179,7 +196,7 @@ void SafeWrite (TObject* tobj) {
 }
 
 
-void Analysis::GetDrawnObjects () {
+void Analysis :: GetDrawnObjects () {
   TList* primitives = gPad->GetListOfPrimitives ();
   drawnHists.clear ();
   drawnGraphs.clear ();
@@ -195,7 +212,7 @@ void Analysis::GetDrawnObjects () {
 }
 
 
-void Analysis::GetMinAndMax (double &min, double &max, const bool log) {
+void Analysis :: GetMinAndMax (double &min, double &max, const bool log) {
   for (TH1* h : drawnHists) {
     const double _max = log ? h->GetMaximum (0) : h->GetMaximum ();
     const double _min = log ? h->GetMinimum (0) : h->GetMinimum ();
@@ -216,7 +233,7 @@ void Analysis::GetMinAndMax (double &min, double &max, const bool log) {
 }
 
 
-void Analysis::SetMinAndMax (double min, double max) {
+void Analysis :: SetMinAndMax (double min, double max) {
   for (TH1* h : drawnHists) {
     h->GetYaxis ()->SetRangeUser (min, max);
   }
@@ -232,7 +249,7 @@ void Analysis::SetMinAndMax (double min, double max) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Create new histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::CreateHists () {
+void Analysis :: CreateHists () {
   h_fcal_et = new TH1D (Form ("h_fcal_et_%s", name), "", 300, 0, 6000); 
   h_fcal_et->Sumw2 ();
   h_fcal_et_q2 = new TH2D (Form ("h_fcal_et_q2_%s", name), "", 300, 0, 6000, 150, 0, 300);
@@ -281,7 +298,7 @@ void Analysis::CreateHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LoadHists () {
+void Analysis :: LoadHists () {
   SetupDirectories (directory, "ZTrackAnalysis/");
   if (histsLoaded)
     return;
@@ -292,32 +309,32 @@ void Analysis::LoadHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      h_z_phi[iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_z_phi_%s_iCent%i_%s", spc, iCent, name));
-      h_z_pt[iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_z_pt_%s_iCent%i_%s", spc, iCent, name));
-      h_z_m[iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_z_m_%s_iCent%i_%s", spc, iCent, name));
-      h_lepton_pt[iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name));
-      h_trk_pt[iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name));
-      h_lepton_dr[iCent][iSpc] = (TH2D*)histFile->Get (Form ("h_lepton_dr_%s_iCent%i_%s", spc, iCent, name));
+      h_z_phi[iCent][iSpc]      = (TH1D*) histFile->Get (Form ("h_z_phi_%s_iCent%i_%s", spc, iCent, name));
+      h_z_pt[iCent][iSpc]       = (TH1D*) histFile->Get (Form ("h_z_pt_%s_iCent%i_%s", spc, iCent, name));
+      h_z_m[iCent][iSpc]        = (TH1D*) histFile->Get (Form ("h_z_m_%s_iCent%i_%s", spc, iCent, name));
+      h_lepton_pt[iCent][iSpc]  = (TH1D*) histFile->Get (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name));
+      h_trk_pt[iCent][iSpc]     = (TH1D*) histFile->Get (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name));
+      h_lepton_dr[iCent][iSpc]  = (TH2D*) histFile->Get (Form ("h_lepton_dr_%s_iCent%i_%s", spc, iCent, name));
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc] = (TH2D*)histFile->Get (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iXZTrk%i_iCent%i_%s", spc, iPtZ, iXZTrk, iCent, name));
+          h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc] = (TH2D*) histFile->Get (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iXZTrk%i_iCent%i_%s", spc, iPtZ, iXZTrk, iCent, name));
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            h_z_trk_phi[iPtTrk][iPtZ][iXZTrk][iCent][iSpc] = (TH1D*)histFile->Get (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iXZTrk%i_iCent%i_%s", iPtTrk, iPtZ, iXZTrk, iCent, name));
+            h_z_trk_phi[iPtTrk][iPtZ][iXZTrk][iCent][iSpc] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iXZTrk%i_iCent%i_%s", iPtTrk, iPtZ, iXZTrk, iCent, name));
           }
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent] = (TH1D*)histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name));
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iXZTrk%i_iPhi%i_iCent%i_%s", spc, iPtZ, iXZTrk, iPhi, iCent, name));
           }
         }
         for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = (TH2D*)histFile->Get (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name));
+          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = (TH2D*) histFile->Get (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name));
         }
-        h_z_counts[iSpc][iPtZ][iCent] = (TH1D*)histFile->Get (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name));
+        h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name));
       }
     }
   }
-  h_fcal_et = (TH1D*)histFile->Get (Form ("h_fcal_et_%s", name));
-  h_fcal_et_q2 = (TH2D*)histFile->Get (Form ("h_fcal_et_q2_%s", name));
+  h_fcal_et     = (TH1D*) histFile->Get (Form ("h_fcal_et_%s", name));
+  h_fcal_et_q2  = (TH2D*) histFile->Get (Form ("h_fcal_et_q2_%s", name));
   
   histsLoaded = true;
   histsScaled = true;
@@ -330,7 +347,7 @@ void Analysis::LoadHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::SaveHists () {
+void Analysis :: SaveHists () {
   SetupDirectories (directory, "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
@@ -382,7 +399,7 @@ void Analysis::SaveHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::CombineHists () {
+void Analysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       h_z_phi[iCent][2]->Add (h_z_phi[iCent][iSpc]);
@@ -412,7 +429,7 @@ void Analysis::CombineHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Scale histograms for plotting, calculating signals, etc.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::ScaleHists () {
+void Analysis :: ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
 
@@ -474,10 +491,65 @@ void Analysis::ScaleHists () {
   return;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load the tracking efficiencies into memory
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis :: LoadTrackingEfficiencies () {
+  SetupDirectories ("TrackingEfficiencies/", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+
+  trkEffFile = new TFile (Form ("%s/trackingEfficiencies.root", rootPath.Data ()), "read");
+
+  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      h_trk_effs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
+    }
+  }
+
+  _gDirectory->cd ();
+  return;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the appropriate tracking efficiency for this track and centrality.
+////////////////////////////////////////////////////////////////////////////////////////////////
+double Analysis :: GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+  short iCent = 0;
+  if (isPbPb) {
+    while (iCent < numFinerCentBins) {
+      if (fcal_et < finerCentBins[iCent])
+        break;
+      else
+        iCent++;
+    }
+    if (iCent < 1 || iCent > numFinerCentBins-1)
+      return 0;
+  }
+
+  short iEta = 0;
+  while (iEta < numEtaTrkBins) {
+    if (fabs (trk_eta) < etaTrkBins[iEta+1])
+      break;
+    else
+      iEta++;
+  }
+  if (iEta < 0 || iEta >= numEtaTrkBins)
+    return 0;
+
+  if (iCent != 0)
+    return 1; // no efficiencies for PbPb yet...
+
+  return h_trk_effs[iCent][iEta]->GetEfficiency (h_trk_effs[iCent][iEta]->FindFixBin (trk_pt));
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot dPhi - xZTrk 3d distribution
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::Plot3DDist () {
+void Analysis :: Plot3DDist () {
   TCanvas* c = new TCanvas ("c_z_trk_pt_phi", "", 800, 600);
   c->cd ();
 
@@ -496,7 +568,7 @@ void Analysis::Plot3DDist () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot FCal distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotFCalDists () {
+void Analysis :: PlotFCalDists () {
   TCanvas* c = new TCanvas ("c_fcal_et", "", 800, 600);
   c->cd ();
 
@@ -523,7 +595,7 @@ void Analysis::PlotFCalDists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot dPhi - pTTrk 2d projections
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotCorrelations (const bool diffXZTrk, const short pSpc) {
+void Analysis :: PlotCorrelations (const bool diffXZTrk, const short pSpc) {
   //TF1****** Fits = Get5DArray <TF1*> (nPtTrkBins, nPtZBins, nXZTrkBins, numCentBins, 3); // iPtTrk, iCent, iSpc
   const short pPtZ[3] = {1, 2, 3};
   const short pXZTrk[4] = {0, 1, 2, 3};
@@ -697,7 +769,7 @@ void Analysis::PlotCorrelations (const bool diffXZTrk, const short pSpc) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for track dPhi distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LabelCorrelations (const short iPtZ, const short iPtTrk, const short iXZTrk, const short iCent, const bool diffXZTrk) {
+void Analysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iXZTrk, const short iCent, const bool diffXZTrk) {
   if (iCent == 0) {
     myText (0.8, 0.20, kBlack, "#it{pp}", 0.06);
     //myText (0.16, 0.93, kBlack, "Truth", 0.05);
@@ -748,7 +820,7 @@ void Analysis::LabelCorrelations (const short iPtZ, const short iPtTrk, const sh
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot lepton Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotLeptonPtSpectra () {
+void Analysis :: PlotLeptonPtSpectra () {
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = iSpc == 0 ? "e" : "#mu";
 
@@ -791,7 +863,7 @@ void Analysis::PlotLeptonPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot track Pt spectra for each lepton species
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotLeptonTrackPtSpectra () {
+void Analysis :: PlotLeptonTrackPtSpectra () {
   const char* canvasName = "c_lepton_trk_pt";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -848,7 +920,7 @@ void Analysis::PlotLeptonTrackPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotZPtSpectra () {
+void Analysis :: PlotZPtSpectra () {
   const char* canvasName = "c_z_pt";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -921,7 +993,7 @@ void Analysis::PlotZPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z mass spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotZMassSpectra () {
+void Analysis :: PlotZMassSpectra () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     const char* canvasName = Form ("c_z_m_%s", spc);
@@ -988,7 +1060,7 @@ void Analysis::PlotZMassSpectra () {
 }
 
 
-void Analysis::LabelZMassSpectra (const short iSpc, const short iCent) {
+void Analysis :: LabelZMassSpectra (const short iSpc, const short iCent) {
   const char* spc = iSpc == 0 ? "Z#rightarrowee Events" : (iSpc == 1 ? "Z#rightarrow#mu#mu Events" : "Z#rightarrowll Events");
   if (iCent == 0) {
     myText (0.66, 0.88, kBlack, spc, 0.04);
@@ -1002,7 +1074,7 @@ void Analysis::LabelZMassSpectra (const short iSpc, const short iCent) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z yield with respect to the event plane angle
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotZPhiYield () {
+void Analysis :: PlotZPhiYield () {
   const char* canvasName = "c_z_phi";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1054,7 +1126,7 @@ void Analysis::PlotZPhiYield () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z yield with respect to the event plane angle
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotZMissingPt () {
+void Analysis :: PlotZMissingPt () {
   const char* canvasName = "c_z_missing_pt";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1155,9 +1227,69 @@ void Analysis::PlotZMissingPt () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots tracking efficiencies
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis :: PlotTrackingEfficiencies () {
+  const char* canvasName = "c_trk_effs";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1000, 812);
+    gDirectory->Add (c);
+    c->cd ();
+    //c->Divide (4, 3);
+  }
+  c->cd ();
+
+  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+    //c->cd (iCent+1);
+    if (iCent > 0) continue;
+
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      TEfficiency* eff = h_trk_effs[iCent][iEta];
+
+      eff->SetLineColor (colors[iEta]);
+      eff->SetMarkerColor (colors[iEta]);
+
+      eff->SetTitle (";#it{p}_{T} [GeV];Reco. Eff.");
+
+      eff->Draw (iEta == 0 ? "AP" : "P same");
+
+      gPad->Update ();
+
+      eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 80);
+      eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.5, 1.08);
+
+      LabelTrackingEfficiencies (iCent, iEta);
+    }
+  }
+
+  c->SaveAs (Form ("%s/TrackingEfficiencies.pdf", plotPath.Data ()));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary (non-virtual) plot labelling for track efficiency plots
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Analysis :: LabelTrackingEfficiencies (const short iCent, const short iEta) {
+  if (iCent == 0)
+    myText (0.22, 0.88, kBlack, "#it{pp}", 0.1);
+  else
+    myText (0.22, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.1);
+
+  if (iCent == 0) {
+  //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+    myMarkerText (0.5, 0.54-0.08*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 3, 0.08);
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Subtracts default (HM) background from track yields
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::SubtractBackground () {
+void Analysis :: SubtractBackground () {
   if (backgroundSubtracted)
     return;
 
@@ -1197,7 +1329,7 @@ void Analysis::SubtractBackground () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot pTtrk binned in dPhi
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
+void Analysis :: PlotTrkYield (const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
 
@@ -1545,7 +1677,7 @@ void Analysis::PlotTrkYield (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for track pT distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LabelTrkYield (const short iCent, const short iPhi) {
+void Analysis :: LabelTrkYield (const short iCent, const short iPhi) {
   const Style_t markerStyle = (iPhi == 0 ? kFullSquare : kFullCircle);
 
   if (iCent == 0)
@@ -1579,7 +1711,7 @@ void Analysis::LabelTrkYield (const short iCent, const short iPhi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates subtracted yield ratios between Pb+Pb and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::CalculateIAA () {
+void Analysis :: CalculateIAA () {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (iaaCalculated)
@@ -1607,7 +1739,7 @@ void Analysis::CalculateIAA () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between Pb+Pb and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
+void Analysis :: PlotIAARatios (const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -1729,7 +1861,7 @@ void Analysis::PlotIAARatios (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LabelIAARatios (const short iCent, const short iPhi) {
+void Analysis :: LabelIAARatios (const short iCent, const short iPhi) {
 
   if (iCent == 1)
     myText (0.24, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
@@ -1758,7 +1890,7 @@ void Analysis::LabelIAARatios (const short iCent, const short iPhi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::CalculateICP () {
+void Analysis :: CalculateICP () {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (icpCalculated)
@@ -1789,7 +1921,7 @@ void Analysis::CalculateICP () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
+void Analysis :: PlotICPRatios (const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!icpCalculated)
@@ -1911,7 +2043,7 @@ void Analysis::PlotICPRatios (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Analysis::LabelICPRatios (const short iCent, const short iPhi) {
+void Analysis :: LabelICPRatios (const short iCent, const short iPhi) {
   if (iCent == 2)
     myText (0.24, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
   else if (iCent == numCentBins-1) {

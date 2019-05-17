@@ -21,6 +21,7 @@ class MCAnalysis : public Analysis {
     directory = "MCAnalysis/";
     plotFill = true;
     useAltMarker = false;
+    LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -34,6 +35,12 @@ class MCAnalysis : public Analysis {
 void MCAnalysis::Execute () {
   SetupDirectories (directory, "ZTrackAnalysis/");
 
+  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+    for (short iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      h_trk_effs[iCent][iEta] = new TEfficiency (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta), "", 80, trk_min_pt, 80);
+    }
+  }
+
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
@@ -41,8 +48,8 @@ void MCAnalysis::Execute () {
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
 
-  h_PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_mc");
-  h_ppEventReweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_mc");
+  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_mc");
+  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_mc");
 
   CreateHists ();
 
@@ -108,7 +115,7 @@ void MCAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_PbPbEventReweights->GetBinContent (h_PbPbEventReweights->FindBin (fcal_et, q2, vz));
+      event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
 
       h_fcal_et->Fill (fcal_et, event_weight);
       h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
@@ -143,7 +150,11 @@ void MCAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        if (trkEff == 0)
+          continue;
+
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
         // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -161,9 +172,9 @@ void MCAnalysis::Execute () {
         short iPhi = 0;
         while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
           if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
           else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
           iPhi++;
         }
 
@@ -171,14 +182,14 @@ void MCAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -235,7 +246,7 @@ void MCAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_ppEventReweights->GetBinContent (h_ppEventReweights->FindBin (vz));
+      event_weight = h_pp_event_reweights->GetBinContent (h_pp_event_reweights->FindBin (vz));
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
@@ -256,7 +267,11 @@ void MCAnalysis::Execute () {
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        if (trkEff == 0)
+          continue;
+
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
         // Add to missing pT (requires dphi in -pi/2 to pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -274,9 +289,9 @@ void MCAnalysis::Execute () {
         short iPhi = 0;
         while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
           if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
           else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
           iPhi++;
         }
         
@@ -284,14 +299,14 @@ void MCAnalysis::Execute () {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         //if (dphi < -pi/2)
         //  dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
         
       } // end loop over tracks
 

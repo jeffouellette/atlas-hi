@@ -34,6 +34,8 @@ const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
 //const double* zMissingPtBins = linspace (-150, 150, numZMissingPtBins);
 const double phiTrkBins[3] = {0, pi/8, pi/2};
 const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
+const double etaTrkBins[6] = {0, 0.5, 1.0, 1.5, 2.0, 2.5};
+const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
 
 // Centrality cuts in GeV:  80%  -  40%  -  15%  -   0%
 //const double centBins[4] = {63.719, 875.41, 2476.58, 5000};
@@ -48,7 +50,11 @@ const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
 const double centBins[4] = {63.719, 1368.75, 2989.31, 5000};
 const int centCuts[4] =    {80,     30,     10,      0};
 
+const double finerCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
+const int finerCentCuts[10] = {80, 70, 60, 50, 40, 30, 20, 10, 5, 0};
+
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
+const int numFinerCentBins = sizeof (finerCentBins) / sizeof (finerCentBins[0]);
 
 const double phiLowBins[4] = {0,      15*pi/16,   7*pi/8,     5*pi/8};
 const double phiHighBins[4] = {pi/2,  pi,         pi,         pi};

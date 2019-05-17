@@ -172,8 +172,8 @@ void TruthAnalysis::Execute () {
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
 
-  h_PbPbEventReweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
-  h_ppEventReweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
+  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
+  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
 
   CreateHists ();
 
@@ -239,7 +239,7 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_PbPbEventReweights->GetBinContent (h_PbPbEventReweights->FindBin (fcal_et, psi2, vz));
+      event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, psi2, vz));
 
       h_fcal_et->Fill (fcal_et, event_weight);
       h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
@@ -372,7 +372,7 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_ppEventReweights->GetBinContent (h_ppEventReweights->FindBin (vz));
+      event_weight = h_pp_event_reweights->GetBinContent (h_pp_event_reweights->FindBin (vz));
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {

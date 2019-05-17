@@ -21,10 +21,10 @@ void Run () {
   bkg = new MinbiasAnalysis ();
   truth = new TruthAnalysis ();
 
-  data->Execute ();
-  mc->Execute ();
-  bkg->Execute ();
-  truth->Execute ();
+  //data->Execute ();
+  //mc->Execute ();
+  //bkg->Execute ();
+  //truth->Execute ();
 
   data->LoadHists ();
   mc->LoadHists ();
