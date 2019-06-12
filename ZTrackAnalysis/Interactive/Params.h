@@ -36,6 +36,8 @@ const double phiTrkBins[3] = {0, pi/8, pi/2};
 const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
 const double etaTrkBins[6] = {0, 0.5, 1.0, 1.5, 2.0, 2.5};
 const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
+const int numFinerEtaTrkBins = 40;
+const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 
 // Centrality cuts in GeV:  80%  -  40%  -  15%  -   0%
 //const double centBins[4] = {63.719, 875.41, 2476.58, 5000};
@@ -56,15 +58,21 @@ const int finerCentCuts[10] = {80, 70, 60, 50, 40, 30, 20, 10, 5, 0};
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 const int numFinerCentBins = sizeof (finerCentBins) / sizeof (finerCentBins[0]);
 
-const double phiLowBins[4] = {0,      15*pi/16,   7*pi/8,     5*pi/8};
-const double phiHighBins[4] = {pi/2,  pi,         pi,         pi};
+const double phiLowBins[3] = {0,      pi/2,     7*pi/8};
+const double phiHighBins[3] = {pi/2,  7*pi/8,   pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
 const double trk_min_pt = 2;
-const int nPtTrkBins = 6;
-const double* ptTrkBins = logspace (trk_min_pt, 80, nPtTrkBins);
+const int nPtTrkBins = 7;
+const double* ptTrkBins = logspace (trk_min_pt, 65, nPtTrkBins);
 //const double ptTrkBins[7] = {3, 5.2, 9.0, 15.6, 27.0, 46.7, 120};
 //const int nPtTrkBins = sizeof (ptTrkBins) / sizeof (ptTrkBins[0]) - 1;
+
+void PrintPtBins () {
+  for (int i = 0; i <= nPtTrkBins; i++) {
+    cout << ptTrkBins[i] << endl;
+  }
+}
 
 //const double zPtBins[7] = {0, 5, 10, 20, 40, 80, 10000};
 const double zPtBins[4] = {0, 5, 25, 10000};

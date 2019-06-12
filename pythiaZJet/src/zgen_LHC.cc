@@ -45,7 +45,8 @@ int main (int argc, char *argv[]) {
 
   pythia.init ();
 
-  SlowJet *antikT4 = new SlowJet (-1, 1.0, 1, 5, 2, 1);
+  SlowJet *antikT04 = new SlowJet (-1, 0.4, 1, 5, 2, 1);
+  SlowJet *antikT10 = new SlowJet (-1, 1.0, 1, 5, 2, 1);
 
   int NEVT = atoi (argv[2]);
 
@@ -60,9 +61,11 @@ int main (int argc, char *argv[]) {
   bool b_isValence1;
   bool b_isValence2;
 
-  int b_z_n, b_jet_n, b_l_n;
+  int b_z_n, b_part_n, b_jet_r04_n, b_jet_r10_n, b_l_n;
   vector<float> b_z_pt, b_z_eta, b_z_phi, b_z_m;
-  vector<float> b_jet_pt, b_jet_eta, b_jet_phi, b_jet_e;
+  vector<float> b_part_pt, b_part_eta, b_part_phi;
+  vector<float> b_jet_r04_pt, b_jet_r04_eta, b_jet_r04_phi, b_jet_r04_e;
+  vector<float> b_jet_r10_pt, b_jet_r10_eta, b_jet_r10_phi, b_jet_r10_e;
   vector<float> b_l_pt, b_l_eta, b_l_phi, b_l_m;
 
   TTree *t = new TTree("tree","a shambling vine tree");
@@ -80,17 +83,28 @@ int main (int argc, char *argv[]) {
   t->Branch ("z_phi", &b_z_phi);
   t->Branch ("z_m",   &b_z_m);
 
+  t->Branch ("part_n", &b_part_n);
+  t->Branch ("part_pt", &b_part_pt);
+  t->Branch ("part_eta", &b_part_eta);
+  t->Branch ("part_phi", &b_part_phi);
+
   t->Branch ("l_n",   &b_l_n);
   t->Branch ("l_pt",  &b_l_pt);
   t->Branch ("l_eta", &b_l_eta);
   t->Branch ("l_phi", &b_l_phi);
   t->Branch ("l_m",   &b_l_m);
 
-  t->Branch ("jet_n",   &b_jet_n);
-  t->Branch ("jet_pt",  &b_jet_pt);
-  t->Branch ("jet_eta", &b_jet_eta);
-  t->Branch ("jet_phi", &b_jet_phi);
-  t->Branch ("jet_e",   &b_jet_e);
+  t->Branch ("jet_r04_n",   &b_jet_r04_n);
+  t->Branch ("jet_r04_pt",  &b_jet_r04_pt);
+  t->Branch ("jet_r04_eta", &b_jet_r04_eta);
+  t->Branch ("jet_r04_phi", &b_jet_r04_phi);
+  t->Branch ("jet_r04_e",   &b_jet_r04_e);
+
+  t->Branch ("jet_r10_n",   &b_jet_r10_n);
+  t->Branch ("jet_r10_pt",  &b_jet_r10_pt);
+  t->Branch ("jet_r10_eta", &b_jet_r10_eta);
+  t->Branch ("jet_r10_phi", &b_jet_r10_phi);
+  t->Branch ("jet_r10_e",   &b_jet_r10_e);
 
   TLorentzVector l1, l2;
   
@@ -103,6 +117,11 @@ int main (int argc, char *argv[]) {
     b_z_eta.clear ();
     b_z_phi.clear ();
     b_z_m.clear ();
+
+    b_part_n = 0;
+    b_part_pt.clear ();
+    b_part_eta.clear ();
+    b_part_phi.clear ();
 
     for (int i = 0; i < pythia.event.size (); i++) {
 
@@ -130,13 +149,20 @@ int main (int argc, char *argv[]) {
       //  b_z_n++;
       //}
 
-      if (abs (pythia.event[i].id ()) != 23) continue; // check if Z
+      if (pythia.event[i].isHadron () && pythia.event[i].pT () >= 2 && pythia.event[i].isCharged ()) {
+        b_part_pt.push_back (pythia.event[i].pT ());
+        b_part_eta.push_back (pythia.event[i].eta ());
+        b_part_phi.push_back (pythia.event[i].phi ());
+        b_part_n++;
+      }
 
-      b_z_pt.push_back (pythia.event[i].pT ());
-      b_z_eta.push_back (pythia.event[i].eta ());
-      b_z_phi.push_back (pythia.event[i].phi ());
-      b_z_m.push_back (pythia.event[i].m ());
-      b_z_n++;
+      if (abs (pythia.event[i].id ()) == 23) { // check if Z
+        b_z_pt.push_back (pythia.event[i].pT ());
+        b_z_eta.push_back (pythia.event[i].eta ());
+        b_z_phi.push_back (pythia.event[i].phi ());
+        b_z_m.push_back (pythia.event[i].m ());
+        b_z_n++;
+      }
     }
 
     if (b_z_n == 0) {
@@ -144,7 +170,8 @@ int main (int argc, char *argv[]) {
       continue;
     }
 
-    antikT4->analyze (pythia.event);
+    antikT04->analyze (pythia.event);
+    antikT10->analyze (pythia.event);
 
     b_code = pythia.info.code ();
     b_id1 = pythia.info.id1pdf ();
@@ -175,25 +202,46 @@ int main (int argc, char *argv[]) {
       b_l_n++;
     }
 
-    b_jet_n = 0;
-    b_jet_pt.clear ();
-    b_jet_eta.clear ();
-    b_jet_phi.clear ();
-    b_jet_e.clear ();
+    b_jet_r04_n = 0;
+    b_jet_r04_pt.clear ();
+    b_jet_r04_eta.clear ();
+    b_jet_r04_phi.clear ();
+    b_jet_r04_e.clear ();
 
-    for (int i = 0; i < antikT4->sizeJet (); i++) {
+    for (int i = 0; i < antikT04->sizeJet (); i++) {
 
       bool matchesLepton = false;
       for (int j = 0; !matchesLepton && j < b_l_n; j++) {
-        matchesLepton = DeltaR (antikT4->p (i).eta (), b_l_eta.at (j), antikT4->phi (i), b_l_phi.at (j)) < 0.2;
+        matchesLepton = DeltaR (antikT04->p (i).eta (), b_l_eta.at (j), antikT04->phi (i), b_l_phi.at (j)) < 0.2;
       }
       if (matchesLepton) continue;
 
-      b_jet_pt.push_back (antikT4->pT (i));
-      b_jet_eta.push_back (antikT4->p (i).eta ());
-      b_jet_phi.push_back (antikT4->phi (i));
-      b_jet_e.push_back (antikT4->p (i).e ());
-      b_jet_n++;
+      b_jet_r04_pt.push_back (antikT04->pT (i));
+      b_jet_r04_eta.push_back (antikT04->p (i).eta ());
+      b_jet_r04_phi.push_back (antikT04->phi (i));
+      b_jet_r04_e.push_back (antikT04->p (i).e ());
+      b_jet_r04_n++;
+    }
+
+    b_jet_r10_n = 0;
+    b_jet_r10_pt.clear ();
+    b_jet_r10_eta.clear ();
+    b_jet_r10_phi.clear ();
+    b_jet_r10_e.clear ();
+
+    for (int i = 0; i < antikT10->sizeJet (); i++) {
+
+      bool matchesLepton = false;
+      for (int j = 0; !matchesLepton && j < b_l_n; j++) {
+        matchesLepton = DeltaR (antikT10->p (i).eta (), b_l_eta.at (j), antikT10->phi (i), b_l_phi.at (j)) < 0.2;
+      }
+      if (matchesLepton) continue;
+
+      b_jet_r10_pt.push_back (antikT10->pT (i));
+      b_jet_r10_eta.push_back (antikT10->p (i).eta ());
+      b_jet_r10_phi.push_back (antikT10->phi (i));
+      b_jet_r10_e.push_back (antikT10->p (i).e ());
+      b_jet_r10_n++;
     }
     
     t->Fill();

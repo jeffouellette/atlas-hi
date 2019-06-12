@@ -16,9 +16,9 @@ using namespace atlashi;
 class MinbiasAnalysis : public Analysis {
 
   public:
-  MinbiasAnalysis () : Analysis () {
-    name = "minbias";
-    directory = "MinbiasAnalysis/";
+  MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal") : Analysis () {
+    name = _name;
+    directory = Form ("MinbiasAnalysis/%s/", subDir);
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
@@ -26,7 +26,7 @@ class MinbiasAnalysis : public Analysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute ();
+  void Execute () override;
 
   void CombineHists () override;
 };
@@ -71,16 +71,18 @@ void MinbiasAnalysis::CombineHists () {
 // Main macro. Loops over minbias trees and fills histograms appropriately.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis::Execute () {
+  SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+
+  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_minbias");
+  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_minbias");
+
   SetupDirectories (directory, "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_minbias");
-  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_minbias");
 
   CreateHists ();
 
@@ -124,8 +126,10 @@ void MinbiasAnalysis::Execute () {
 
       event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
 
-      h_fcal_et->Fill (fcal_et, event_weight);
-      h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_q2->Fill (fcal_et, q2);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+      h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
 
       float dphi = DeltaPhi (z_phi, psi2, false);
       if (dphi > pi/2)

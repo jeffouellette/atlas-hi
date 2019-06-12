@@ -15,19 +15,19 @@ void SafeWrite (TObject* tobj) {
     tobj->Write ();
 }
 
-//const int gw_nFCalBins = 100;
-//const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
-//const int gw_nQ2Bins = 25;
-//const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
-//const int gw_nVertZBins = 50;
-//const double* gw_vertZBins = linspace (-200, 200, gw_nVertZBins);
-
-const double gw_fcalBins[11]   = {0, 63.719, 144.14, 289.595, 525.092, 875.41, 1368.75, 2046.51, 2989.31, 3618.44, 5200};
-const int gw_nFCalBins = sizeof (gw_fcalBins) / sizeof (gw_fcalBins[0]) - 1;
-const int gw_nQ2Bins = 10;
+const int gw_nFCalBins = 100;
+const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
+const int gw_nQ2Bins = 25;
 const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
-const int gw_nVertZBins = 18;
-const double gw_vertZBins[19] = {-200, -175, -150, -125, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 125, 150, 175, 200};
+const int gw_nVertZBins = 50;
+const double* gw_vertZBins = linspace (-200, 200, gw_nVertZBins);
+
+//const double gw_fcalBins[11]   = {0, 63.719, 144.14, 289.595, 525.092, 875.41, 1368.75, 2046.51, 2989.31, 3618.44, 5200};
+//const int gw_nFCalBins = sizeof (gw_fcalBins) / sizeof (gw_fcalBins[0]) - 1;
+//const int gw_nQ2Bins = 10;
+//const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
+//const int gw_nVertZBins = 18;
+//const double gw_vertZBins[19] = {-200, -175, -150, -125, -100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100, 125, 150, 175, 200};
 
 TH1D* h_PbPbFCalDist = nullptr;
 TH1D* h_PbPbVZDist = nullptr;

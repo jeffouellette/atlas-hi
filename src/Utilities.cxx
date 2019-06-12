@@ -254,6 +254,39 @@ bool InHadCal (const float eta, const float R) {
 }
 
 
+/**
+ * Sets all the errors in this histogram to 0.
+ */
+void ResetHistErrors (TH1D* h) {
+  for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+    h->SetBinError (ix, 0);
+  }
+}
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddSystematics (TH1D* master, TH1D* sys) {
+  for (int ix = 1; ix <= master->GetNbinsX (); ix++) {
+    const float newErr = sqrt (pow (master->GetBinError (ix), 2) + pow (sys->GetBinError (ix), 2));
+    master->SetBinError (ix, newErr);
+  }
+}
+
+
+/**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ */
+void CalcSystematics (TH1D* sys, TH1D* var) {
+  for (int ix = 1; ix <= sys->GetNbinsX (); ix++) {
+    const float newErr = fabs (var->GetBinContent (ix) - sys->GetBinContent (ix));
+    if (sys->GetBinError (ix) < newErr)
+      sys->SetBinError (ix, newErr);
+  }
+}
+
+
 void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
   for (int ix = 1; ix <= optimal->GetNbinsX(); ix++) {
     const double content = optimal->GetBinContent (ix);

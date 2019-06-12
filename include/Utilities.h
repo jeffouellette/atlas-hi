@@ -89,6 +89,25 @@ bool InHadCal (const float eta, const float R = 0.4);
 
 
 /**
+ * Sets all the errors in this histogram to 0.
+ */
+void ResetHistErrors (TH1D* h);
+
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddSystematics (TH1D* master, TH1D* sys);
+
+
+/**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ */
+void CalcSystematics (TH1D* sys, TH1D* var);
+
+
+/**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
 void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);

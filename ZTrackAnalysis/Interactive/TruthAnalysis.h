@@ -26,15 +26,15 @@ class TruthAnalysis : public Analysis {
   TH1D**  JetTrkdPhi      = Get1DArray <TH1D*> (nPtZBins); // iPtZ
   
 
-  TruthAnalysis () : Analysis () {
-    name = "truth";
-    directory = "TruthAnalysis/";
+  TruthAnalysis (const char* _name = "truth", const char* subDir = "Nominal") : Analysis () {
+    name = _name;
+    directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
     useAltMarker = false;
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute ();
+  void Execute () override;
 
   void CreateHists () override;
   void ScaleHists () override;
@@ -163,17 +163,18 @@ void TruthAnalysis::SaveHists () {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::Execute () {
+  SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+
+  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
+  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
+
   SetupDirectories (directory, "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-
-  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
-  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
 
   CreateHists ();
 
@@ -241,8 +242,10 @@ void TruthAnalysis::Execute () {
 
       event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, psi2, vz));
 
-      h_fcal_et->Fill (fcal_et, event_weight);
-      h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_q2->Fill (fcal_et, q2);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+      h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {

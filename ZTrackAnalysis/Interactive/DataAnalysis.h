@@ -16,22 +16,21 @@ using namespace atlashi;
 class DataAnalysis : public Analysis {
 
   public:
-  DataAnalysis () : Analysis () {
-    name = "data";
-    directory = "DataAnalysis/";
+  DataAnalysis (const char* _name = "data", const char* subDir = "Nominal") : Analysis () {
+    name = _name;
+    directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;
     LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute ();
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void DataAnalysis::Execute () {
+/*void DataAnalysis::Execute () {
   SetupDirectories (directory, "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
@@ -44,7 +43,7 @@ void DataAnalysis::Execute () {
   bool isEE = false;
   float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;//, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
+  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
   double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
 
 
@@ -69,6 +68,9 @@ void DataAnalysis::Execute () {
     PbPbTree->SetBranchAddress ("l2_eta",    &l2_eta);
     PbPbTree->SetBranchAddress ("l2_phi",    &l2_phi);
     PbPbTree->SetBranchAddress ("l2_charge", &l2_charge);
+    PbPbTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
+    PbPbTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
+    PbPbTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
     PbPbTree->SetBranchAddress ("ntrk",      &ntrk);
     PbPbTree->SetBranchAddress ("trk_pt",    &trk_pt);
     PbPbTree->SetBranchAddress ("trk_eta",   &trk_eta);
@@ -103,14 +105,18 @@ void DataAnalysis::Execute () {
           iPtZ++;
       }
 
-      h_fcal_et->Fill (fcal_et, event_weight);
-      h_fcal_et_q2->Fill (fcal_et, q2, event_weight);
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_q2->Fill (fcal_et, q2);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+      h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
         h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
@@ -130,6 +136,22 @@ void DataAnalysis::Execute () {
 
         if (trkpt < trk_min_pt)
           continue;
+
+        {
+          float mindr = pi;
+          //float phidiff = 0;
+          float ptdiff = 0;
+          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+            const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
+            if (dr < mindr) {
+              mindr = dr;
+              ptdiff = 2. * fabs (trkpt - l_trk_pt->at (iLTrk)) / (trkpt + l_trk_pt->at (iLTrk));
+              //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
+            }
+          }
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
+          //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
+        }
 
         const float xZTrk = trkpt / z_pt;
         const short iXZTrk = GetiXZTrk (xZTrk);
@@ -207,6 +229,9 @@ void DataAnalysis::Execute () {
     ppTree->SetBranchAddress ("l2_eta",    &l2_eta);
     ppTree->SetBranchAddress ("l2_phi",    &l2_phi);
     ppTree->SetBranchAddress ("l2_charge", &l2_charge);
+    ppTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
+    ppTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
+    ppTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
     ppTree->SetBranchAddress ("ntrk",      &ntrk);
     ppTree->SetBranchAddress ("trk_pt",    &trk_pt);
     ppTree->SetBranchAddress ("trk_eta",   &trk_eta);
@@ -237,6 +262,8 @@ void DataAnalysis::Execute () {
         h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
       }
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
@@ -246,12 +273,28 @@ void DataAnalysis::Execute () {
         if (trkpt < trk_min_pt)
           continue;
 
+        {
+          float mindr = pi;
+          //float phidiff = 0;
+          float ptdiff = 0;
+          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+            const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
+            if (dr < mindr) {
+              mindr = dr;
+              ptdiff = 2. * fabs (trkpt - l_trk_pt->at (iLTrk)) / (trkpt + l_trk_pt->at (iLTrk));
+              //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
+            }
+          }
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
+          //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
+        }
+
         const float xZTrk = trkpt / z_pt;
         const short iXZTrk = GetiXZTrk (xZTrk);
         if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0)
           continue;
 
@@ -313,6 +356,6 @@ void DataAnalysis::Execute () {
   if (inFile) { delete inFile; inFile = nullptr; }
 
   Delete1DArray (trkPtProj, numPhiBins);
-}
+}*/
 
 #endif
