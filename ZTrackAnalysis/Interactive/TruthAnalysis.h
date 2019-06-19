@@ -166,8 +166,12 @@ void TruthAnalysis::Execute () {
   SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
-  h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
+  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_truth");
+  h_PbPbQ2_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbQ2_weights_truth");
+  h_PbPbVZ_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbVZ_weights_truth");
+  h_ppVZ_weights = (TH1D*) eventWeightsFile->Get ("h_ppVZ_weights_truth");
+  //h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
+  //h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -179,7 +183,7 @@ void TruthAnalysis::Execute () {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, fcal_weight = 1, q2_weight = 1, vz_weight = 1;
   int l1_charge = 0, l2_charge = 0, ntrk = 0, njet = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *jet_pt = nullptr, *jet_eta = nullptr, *jet_phi = nullptr, *jet_e = nullptr;
   double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
@@ -195,7 +199,7 @@ void TruthAnalysis::Execute () {
     PbPbTree->SetBranchAddress ("psi2",      &psi2);
     PbPbTree->SetBranchAddress ("vz",        &vz);
     PbPbTree->SetBranchAddress ("z_pt",      &z_pt);
-    PbPbTree->SetBranchAddress ("z_eta",     &z_eta);
+    PbPbTree->SetBranchAddress ("z_y",       &z_y);
     PbPbTree->SetBranchAddress ("z_phi",     &z_phi);
     PbPbTree->SetBranchAddress ("z_m",       &z_m);
     PbPbTree->SetBranchAddress ("l1_pt",     &l1_pt);
@@ -240,18 +244,29 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, psi2, vz));
+      fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
+      q2_weight = h_PbPbQ2_weights->GetBinContent (h_PbPbQ2_weights->FindBin (q2));
+      vz_weight = h_PbPbVZ_weights->GetBinContent (h_PbPbVZ_weights->FindBin (vz));
+
+      event_weight = fcal_weight * q2_weight * vz_weight;
+      //event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
 
       h_fcal_et->Fill (fcal_et);
-      h_fcal_et_q2->Fill (fcal_et, q2);
-      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
-      h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
+      //h_fcal_et_q2->Fill (fcal_et, q2);
+      h_fcal_et_reweighted->Fill (fcal_et, fcal_weight);
+      //h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
+
+      h_q2->Fill (q2);
+      h_q2_reweighted->Fill (q2, q2_weight);
+      h_PbPb_vz->Fill (vz);
+      h_PbPb_vz_reweighted->Fill (vz, vz_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
         h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
@@ -334,7 +349,7 @@ void TruthAnalysis::Execute () {
     ppTree->SetBranchAddress ("isEE",          &isEE);
     ppTree->SetBranchAddress ("vz",            &vz);
     ppTree->SetBranchAddress ("z_pt",          &z_pt);
-    ppTree->SetBranchAddress ("z_eta",         &z_eta);
+    ppTree->SetBranchAddress ("z_y",           &z_y);
     ppTree->SetBranchAddress ("z_phi",         &z_phi);
     ppTree->SetBranchAddress ("z_m",           &z_m);
     ppTree->SetBranchAddress ("l1_pt",         &l1_pt);
@@ -375,13 +390,20 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = h_pp_event_reweights->GetBinContent (h_pp_event_reweights->FindBin (vz));
+      vz_weight = h_ppVZ_weights->GetBinContent (h_ppVZ_weights->FindBin (vz));
+
+      event_weight = vz_weight;
+      //event_weight = h_pp_event_reweights->GetBinContent (h_pp_event_reweights->FindBin (vz));
+
+      h_pp_vz->Fill (vz);
+      h_pp_vz_reweighted->Fill (vz, vz_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
         h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
       }
 
       ZJetCounts[iPtZ]->Fill (0.5, event_weight);
@@ -400,7 +422,7 @@ void TruthAnalysis::Execute () {
         if (dphi > 7*pi/8 && dphi < 9*pi/8)
           xZJetDists[iPtZ]->Fill (jet_pt->at (iJet) / z_pt, event_weight);
 
-        ZJetdEtadPhi[iPtZ]->Fill (z_eta - jet_eta->at (iJet), dphi, event_weight);
+        ZJetdEtadPhi[iPtZ]->Fill (z_y - jet_eta->at (iJet), dphi, event_weight);
       } // end loop over jets
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
@@ -485,7 +507,7 @@ void TruthAnalysis::Execute () {
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
 
-  Delete1DArray (trkPtProj, numPhiBins);
+  Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins);
 }
 
 

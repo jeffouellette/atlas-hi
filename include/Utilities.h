@@ -120,6 +120,12 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal
 
 
 /**
+ * Sets the bin contents in target as the error / central values in source
+ */
+void SaveRelativeErrors (TH1D* target, TH1D* source);
+
+
+/**
  * Creates a projection of a TH3 with the specified axes by integrating between min and max on the 3rd axis of the TH3.
  */
 TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxis, const int min, const int max, const bool exclusive = false);

@@ -354,6 +354,16 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal
 }
 
 
+/**
+ * Sets the bin contents in target as the error / central values in source
+ */
+void SaveRelativeErrors (TH1D* target, TH1D* source) {
+  for (int ix = 1; ix <= target->GetNbinsX (); ix++) {
+    target->SetBinContent (ix, source->GetBinError (ix) / source->GetBinContent (ix));
+  }
+}
+
+
 TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxis, const int min, const int max, const bool exclusive) {
   int nx, ny, nz;
   double* xbins = NULL;
