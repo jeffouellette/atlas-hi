@@ -2,7 +2,7 @@
 #define __TruthAnalysis_h__
 
 #include "Params.h"
-#include "Analysis.h"
+#include "FullAnalysis.h"
 
 #include <GlobalParams.h>
 #include <Utilities.h>
@@ -13,7 +13,7 @@
 using namespace std;
 using namespace atlashi;
 
-class TruthAnalysis : public Analysis {
+class TruthAnalysis : public FullAnalysis {
 
   public:
   TH1D**  ZJetCounts      = Get1DArray <TH1D*> (nPtZBins); // iPtZ 
@@ -26,7 +26,7 @@ class TruthAnalysis : public Analysis {
   TH1D**  JetTrkdPhi      = Get1DArray <TH1D*> (nPtZBins); // iPtZ
   
 
-  TruthAnalysis (const char* _name = "truth", const char* subDir = "Nominal") : Analysis () {
+  TruthAnalysis (const char* _name = "truth", const char* subDir = "Nominal") : FullAnalysis () {
     name = _name;
     directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
@@ -52,7 +52,7 @@ class TruthAnalysis : public Analysis {
 // Create new histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::CreateHists () {
-  Analysis::CreateHists ();
+  FullAnalysis::CreateHists ();
 
   ZJetPt = new TH2D ("ZJetPt", "", 75, 0, 300, 75, 1, 300);
   ZJetPt->Sumw2 ();
@@ -79,7 +79,7 @@ void TruthAnalysis::ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
 
-  Analysis::ScaleHists ();
+  FullAnalysis::ScaleHists ();
 
   for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     ZJetdPhi[iPtZ] = ZJetdEtadPhi[iPtZ]->ProjectionY (Form ("ZJetdPhi_iPtZ%i", iPtZ));
@@ -101,7 +101,7 @@ void TruthAnalysis::LoadHists () {
   if (histsLoaded)
     return;
 
-  Analysis::LoadHists ();
+  FullAnalysis::LoadHists ();
   if (!histFile) {
     SetupDirectories (directory, "ZTrackAnalysis/");
     histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
@@ -130,7 +130,7 @@ void TruthAnalysis::LoadHists () {
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::SaveHists () {
-  Analysis::SaveHists ();
+  FullAnalysis::SaveHists ();
 
   if (!histFile) {
     SetupDirectories (directory, "ZTrackAnalysis/");
@@ -167,11 +167,9 @@ void TruthAnalysis::Execute () {
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
   h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_truth");
-  h_PbPbQ2_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbQ2_weights_truth");
-  h_PbPbVZ_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbVZ_weights_truth");
-  h_ppVZ_weights = (TH1D*) eventWeightsFile->Get ("h_ppVZ_weights_truth");
-  //h_PbPb_event_reweights = (TH3D*)eventWeightsFile->Get ("h_PbPbEventReweights_truth");
-  //h_pp_event_reweights = (TH1D*)eventWeightsFile->Get ("h_ppEventReweights_truth");
+  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+    h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_truth", iCent));
+  }
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -186,7 +184,7 @@ void TruthAnalysis::Execute () {
   float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, fcal_weight = 1, q2_weight = 1, vz_weight = 1;
   int l1_charge = 0, l2_charge = 0, ntrk = 0, njet = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *jet_pt = nullptr, *jet_eta = nullptr, *jet_phi = nullptr, *jet_e = nullptr;
-  double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
+  //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,9 +219,6 @@ void TruthAnalysis::Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 1.5)
-      //  continue; // vertex cut
-
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       short iCent = 0;
@@ -236,6 +231,16 @@ void TruthAnalysis::Execute () {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
+      short iFinerCent = 0;
+      while (iFinerCent < numFinerCentBins) {
+        if (fcal_et < finerCentBins[iFinerCent])
+          break;
+        else
+          iFinerCent++;
+      }
+      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+        continue;
+
       short iPtZ = 0; // find z-pt bin
       while (iPtZ < nPtZBins) {
         if (z_pt < zPtBins[iPtZ+1])
@@ -245,21 +250,19 @@ void TruthAnalysis::Execute () {
       }
 
       fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
-      q2_weight = h_PbPbQ2_weights->GetBinContent (h_PbPbQ2_weights->FindBin (q2));
-      vz_weight = h_PbPbVZ_weights->GetBinContent (h_PbPbVZ_weights->FindBin (vz));
+      q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
 
       event_weight = fcal_weight * q2_weight * vz_weight;
-      //event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
 
       h_fcal_et->Fill (fcal_et);
       //h_fcal_et_q2->Fill (fcal_et, q2);
-      h_fcal_et_reweighted->Fill (fcal_et, fcal_weight);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
       //h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
 
-      h_q2->Fill (q2);
-      h_q2_reweighted->Fill (q2, q2_weight);
+      h_q2[iFinerCent]->Fill (q2);
+      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
       h_PbPb_vz->Fill (vz);
-      h_PbPb_vz_reweighted->Fill (vz, vz_weight);
+      h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
@@ -274,13 +277,14 @@ void TruthAnalysis::Execute () {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-        for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          trkPtProj[iPhi][iPtTrk] = 0;
-        }
-      }
+      //for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+      //  for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
+      //    trkPtProj[iPhi][iPtTrk] = 0;
+      //  }
+      //}
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
@@ -294,33 +298,36 @@ void TruthAnalysis::Execute () {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
-        // Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        bool awaySide = false;
-        if (dphi > pi/2) {
-          dphi = pi-dphi;
-          awaySide = true;
-        }
+        //// Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
+        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        //bool awaySide = false;
+        //if (dphi > pi/2) {
+        //  dphi = pi-dphi;
+        //  awaySide = true;
+        //}
 
-        short iPtTrk = 0;
-        while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-          iPtTrk++;
-        // start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        // e.g. so 7pi/8->pi is a subset of pi/2->pi
-        short iPhi = 0;
-        while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-          if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
-          else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
-          iPhi++;
-        }
+        //short iPtTrk = 0;
+        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
+        //  iPtTrk++;
+        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
+        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
+        //short iPhi = 0;
+        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
+        //  if (awaySide)
+        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+        //  else
+        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+        //  iPhi++;
+        //}
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight);
+          }
+        }
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
@@ -331,14 +338,14 @@ void TruthAnalysis::Execute () {
         
       } // end loop over tracks
 
-      for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-          trkPtProj[iPhi][iPtTrk] = 0;
-        }
-      }
+      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
+      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+      //    trkPtProj[iPhi][iPtTrk] = 0;
+      //  }
+      //}
     } // end loop over Pb+Pb tree
-    cout << endl;
+    cout << "Done truth-level Pb+Pb loop." << endl;
   }
 
 
@@ -376,9 +383,6 @@ void TruthAnalysis::Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 1.5)
-      //  continue; // vertex cut
-
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
@@ -390,13 +394,10 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      vz_weight = h_ppVZ_weights->GetBinContent (h_ppVZ_weights->FindBin (vz));
-
       event_weight = vz_weight;
-      //event_weight = h_pp_event_reweights->GetBinContent (h_pp_event_reweights->FindBin (vz));
 
       h_pp_vz->Fill (vz);
-      h_pp_vz_reweighted->Fill (vz, vz_weight);
+      h_pp_vz_reweighted->Fill (vz, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
@@ -426,6 +427,7 @@ void TruthAnalysis::Execute () {
       } // end loop over jets
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
@@ -453,33 +455,36 @@ void TruthAnalysis::Execute () {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
-        // Add to missing pT (requires dphi in -pi/2 to pi/2)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        bool awaySide = false;
-        if (dphi > pi/2) {
-          dphi = pi-dphi;
-          awaySide = true;
-        }
+        //// Add to missing pT (requires dphi in -pi/2 to pi/2)
+        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        //bool awaySide = false;
+        //if (dphi > pi/2) {
+        //  dphi = pi-dphi;
+        //  awaySide = true;
+        //}
 
-        short iPtTrk = 0;
-        while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-          iPtTrk++;
-        // start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        // e.g. so 7pi/8->pi is a subset of pi/2->pi
-        short iPhi = 0;
-        while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-          if (awaySide)
-            trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
-          else
-            trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
-          iPhi++;
-        }
+        //short iPtTrk = 0;
+        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
+        //  iPtTrk++;
+        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
+        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
+        //short iPhi = 0;
+        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
+        //  if (awaySide)
+        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
+        //  else
+        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
+        //  iPhi++;
+        //}
         
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++)
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_pt[iSpc][iPtZ][iXZTrk][idPhi][iCent]->Fill (trkpt, event_weight);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight);
+          }
+        }
 
         //// Study correlations (requires dphi in -pi/2 to 3pi/2)
         //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
@@ -489,14 +494,14 @@ void TruthAnalysis::Execute () {
         h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
-      for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-          trkPtProj[iPhi][iPtTrk] = 0;
-        }
-      }
+      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
+      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
+      //    trkPtProj[iPhi][iPtTrk] = 0;
+      //  }
+      //}
     } // end loop over pp tree
-    cout << endl;
+    cout << "Done truth-level pp loop." << endl;
   }
 
   CombineHists ();
@@ -507,7 +512,7 @@ void TruthAnalysis::Execute () {
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
 
-  Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins);
+  //Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins);
 }
 
 

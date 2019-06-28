@@ -2,7 +2,7 @@
 #define __DataAnalysis_h__
 
 #include "Params.h"
-#include "Analysis.h"
+#include "FullAnalysis.h"
 
 #include <GlobalParams.h>
 #include <Utilities.h>
@@ -13,10 +13,10 @@
 using namespace std;
 using namespace atlashi;
 
-class DataAnalysis : public Analysis {
+class DataAnalysis : public FullAnalysis {
 
   public:
-  DataAnalysis (const char* _name = "data", const char* subDir = "Nominal") : Analysis () {
+  DataAnalysis (const char* _name = "data", const char* subDir = "Nominal") : FullAnalysis () {
     name = _name;
     directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;

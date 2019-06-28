@@ -1,5 +1,7 @@
 # General
 cernvm3-micro-2.8-6.iso
+GoodRunLists
+vp1
 *.key
 lib
 *.pdf
@@ -69,13 +71,8 @@ OfflineAnalysis/runFiles/bin
 OfflineAnalysis/runFiles/obj
 
 # 2018 5.02 TeV Pb+Pb Z-tracks analysis
-ZTracksAnalysis/AnalysisCode/lib
-ZTracksAnalysis/AnalysisCode/obj
-ZTracksAnalysis/AnalysisCode/bin
-ZTracksAnalysis/rootFiles
-ZTracksAnalysis/Plots
-
-
+ZTrackAnalysis/rootFiles
+ZTrackAnalysis/Plots
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib

@@ -266,7 +266,7 @@ void ResetHistErrors (TH1D* h) {
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
-void AddSystematics (TH1D* master, TH1D* sys) {
+void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
   for (int ix = 1; ix <= master->GetNbinsX (); ix++) {
     const float newErr = sqrt (pow (master->GetBinError (ix), 2) + pow (sys->GetBinError (ix), 2));
     master->SetBinError (ix, newErr);
@@ -355,11 +355,12 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal
 
 
 /**
- * Sets the bin contents in target as the error / central values in source
+ * Sets the bin contents in target as the error / central values in centralValues
  */
-void SaveRelativeErrors (TH1D* target, TH1D* source) {
-  for (int ix = 1; ix <= target->GetNbinsX (); ix++) {
-    target->SetBinContent (ix, source->GetBinError (ix) / source->GetBinContent (ix));
+void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
+  for (int ix = 1; ix <= errors->GetNbinsX (); ix++) {
+    errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
+    errors->SetBinError (ix, 0);
   }
 }
 
