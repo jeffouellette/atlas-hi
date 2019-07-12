@@ -95,6 +95,12 @@ void ResetHistErrors (TH1D* h);
 
 
 /**
+ * Adds nSigma statistical error variations to this histogram
+ */
+void AddStatVar (TH1D* h, const bool upvar = true, const float nSigma = 1);
+
+
+/**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
 void AddErrorsInQuadrature (TH1D* master, TH1D* sys);

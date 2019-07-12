@@ -16,13 +16,14 @@ using namespace atlashi;
 class MinbiasAnalysis : public FullAnalysis {
 
   public:
-  MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal") : FullAnalysis () {
+  MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
     name = _name;
     directory = Form ("MinbiasAnalysis/%s/", subDir);
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
     backgroundSubtracted = true;
+    useHITight = _useHITight;
     LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
@@ -49,6 +50,7 @@ void MinbiasAnalysis :: Execute () {
   for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
     h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_minbias", iCent));
   }
+  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -59,8 +61,9 @@ void MinbiasAnalysis :: Execute () {
 
   CreateHists ();
 
-  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1;
-  vector<float>* trk_yield = nullptr;
+  int ntrk = 0;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  vector<float>* trk_yield = nullptr, *trk_var = nullptr;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +74,7 @@ void MinbiasAnalysis :: Execute () {
     PbPbTree->SetBranchAddress ("q2",         &q2);
     PbPbTree->SetBranchAddress ("vz",         &vz);
     PbPbTree->SetBranchAddress ("trk_yield",  &trk_yield);
+    PbPbTree->SetBranchAddress ("trk_var",    &trk_var);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -80,7 +84,6 @@ void MinbiasAnalysis :: Execute () {
 
       const short iSpc = 0;
       const short iPtZ = nPtZBins-1;
-      const short iXZTrk = 0;
       short iCent = 0;
       while (iCent < numCentBins) {
         if (fcal_et < centBins[iCent])
@@ -124,15 +127,12 @@ void MinbiasAnalysis :: Execute () {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
       for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        TH1D* h = h_z_trk_pt[iSpc][iPtZ][idPhi][iCent];
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent];
         //for (int iPhiTrk = 0; iPhiTrk < 3; iPhiTrk++) {
           for (int iPtTrk = 0; iPtTrk < 7; iPtTrk++) {
-            const float trkEff = 1;
-            //const float trkEff = GetTrackingEfficiency (fcal_et, h->GetBinCenter (iPtTrk), 0, true); // TODO temporary -- will need to update grid code when tracking efficiencies are available!
-            //if (trkEff == 0)
-            //  continue;
-            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*idPhi) * event_weight / trkEff);
-            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + pow (sqrt (trk_yield->at (iPtTrk+7*idPhi)) * event_weight / trkEff, 2))); 
+            const int iPhi = 0;
+            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*iPhi) * event_weight);
+            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk+7*iPhi) * pow (event_weight, 2)));
           } // end loop over PtTrk bins
         //} // end loop over dPhiTrk (from grid)
       } // end loop over dPhi bins
@@ -144,7 +144,9 @@ void MinbiasAnalysis :: Execute () {
 
   if (ppTree) {
     ppTree->SetBranchAddress ("vz",         &vz);
+    ppTree->SetBranchAddress ("ntrk",       &ntrk);
     ppTree->SetBranchAddress ("trk_yield",  &trk_yield);
+    ppTree->SetBranchAddress ("trk_var",    &trk_var);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -156,22 +158,26 @@ void MinbiasAnalysis :: Execute () {
       const short iPtZ = nPtZBins-1;
       const short iCent = 0; // iCent = 0 for pp
 
+      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+
+      event_weight = nch_weight;
+
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
+
+      h_pp_nch->Fill (ntrk);
+      h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
       for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        TH1D* h = h_z_trk_pt[iSpc][iPtZ][idPhi][iCent];
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent];
         //for (int iPhiTrk = 0; iPhiTrk < 3; iPhiTrk++) {
           for (int iPtTrk = 0; iPtTrk < 7; iPtTrk++) {
-            const float trkEff = 1;
-            //const float trkEff = GetTrackingEfficiency (fcal_et, h->GetBinCenter (iPtTrk), 0, false); // TODO temporary -- will need to update grid code when tracking efficiencies are available!
-            //if (trkEff == 0)
-            //  continue;
-            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*idPhi) * event_weight / trkEff);
-            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + pow (sqrt (trk_yield->at (iPtTrk+7*idPhi)) * event_weight / trkEff, 2))); 
+            const int iPhi = 0;
+            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*iPhi) * event_weight);
+            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk+7*iPhi) * pow (event_weight, 2)));
           } // end loop over PtTrk bins
         //} // end loop over dPhiTrk (from grid)
       } // end loop over dPhi bins
@@ -202,8 +208,7 @@ void MinbiasAnalysis :: CombineHists () {
           continue;
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][nPtZBins-1][iPhi][iCent]);
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][nPtZBins-1][iPhi][iCent]);
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][iPhi][iCent]);
         } // end loop over phi
         
         h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][nPtZBins-1][iCent]);
@@ -228,16 +233,34 @@ void MinbiasAnalysis :: ScaleHists () {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-          const double yieldNormFactor = countsHist->GetBinContent (1) * (pi/3.);
+          const double yieldNormFactor = countsHist->GetBinContent (1) * (pi);
           //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
-            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor);
-            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor);
+            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
           }
         } // end loop over phi
       } // end loop over pT^Z
     } // end loop over centralities
   } // end loop over species
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          TH1D* h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+          for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+            h->SetBinContent (ix, 1);
+            h->SetBinError (ix, 0);
+          }
+
+          double sf = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Integral ("width");
+          h->Scale (sf / 0.99);
+        }
+      }
+    }
+  }
 
   histsScaled = true;
   return;
@@ -254,17 +277,24 @@ void MinbiasAnalysis :: GenerateWeights () {
   const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
   const int gw_nQ2Bins = 50;
   const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
+
+  const int gw_nNchBins = 160;
+  const double* gw_nchBins = linspace (-0.5, 160.5, gw_nNchBins);
   
   TH1D* _h_PbPbFCalDist = nullptr;
   TH1D* _h_PbPbFCal_weights = nullptr;
   TH1D* _h_PbPbQ2Dist[numFinerCentBins];
   TH1D* _h_PbPbQ2_weights[numFinerCentBins];
+
+  TH1D* _h_ppNchDist = nullptr;
+  TH1D* _h_ppNch_weights = nullptr;
   
 
   SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
   TFile* inFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
+  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
 
@@ -278,6 +308,10 @@ void MinbiasAnalysis :: GenerateWeights () {
     _h_PbPbQ2Dist[iCent]->Sumw2 ();
     _h_PbPbQ2_weights[iCent]->Sumw2 ();
   }
+  _h_ppNchDist = new TH1D (Form ("h_ppNchDist_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
+  _h_ppNchDist->Sumw2 ();
+  _h_ppNch_weights = new TH1D (Form ("h_ppNch_weights_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
+  _h_ppNch_weights->Sumw2 ();
 
   bool passes_toroid = true;
   float fcal_et = 0, q2 = 0, event_weight = 1;
@@ -356,6 +390,49 @@ void MinbiasAnalysis :: GenerateWeights () {
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
   }
 
+  if (ppTree) {
+    float event_weight = 0;
+    int ntrk = 0;
+    //ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("ntrk", &ntrk);
+
+    const int nEvts = ppTree->GetEntries ();
+    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+      ppTree->GetEntry (iEvt);
+
+      _h_ppNchDist->Fill (ntrk);//, event_weight);
+    }
+    cout << "Done pp loop." << endl;
+
+    if (name == "data") {
+      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
+        _h_ppNch_weights->SetBinContent (ix, 1);
+      }
+    } else {
+      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+      TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_ppNchDist_data");
+
+      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
+        const double nch_weight = (_h_ppNchDist->GetBinContent (ix) != 0 ? referenceNchDist->GetBinContent (ix) / _h_ppNchDist->GetBinContent (ix) : 0);
+        _h_ppNch_weights->SetBinContent (ix, nch_weight);
+      }
+
+      ztrackFile->Close ();
+
+      if (name == "data")
+        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      else if (name == "mc")
+        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+      else if (name == "minbias")
+        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+      else if (name == "truth")
+        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+    }
+  }
+
 
   inFile->Close ();
   SaferDelete (inFile);
@@ -368,6 +445,8 @@ void MinbiasAnalysis :: GenerateWeights () {
     SafeWrite (_h_PbPbQ2Dist[iCent]);
     SafeWrite (_h_PbPbQ2_weights[iCent]);
   }
+  SafeWrite (_h_ppNchDist);
+  SafeWrite (_h_ppNch_weights);
 
   eventWeightsFile->Close ();
 }

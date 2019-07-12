@@ -16,16 +16,20 @@ using namespace atlashi;
 
 class Systematic : public PhysicsAnalysis {
 
-  private:
+  protected:
   vector<PhysicsAnalysis*> variations;
   vector<Systematic*> systematics;
 
   void NullifyErrors ();
 
   public:
-  Systematic (PhysicsAnalysis* nom, const char* _name = "systematics") : PhysicsAnalysis (){
+
+  string description;
+
+  Systematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : PhysicsAnalysis (){
     name = _name;
     directory = "Systematics/";
+    description = _desc;
     SetupDirectories (directory, "ZTrackAnalysis/");
 
     CopyAnalysis (nom, true);
@@ -35,6 +39,8 @@ class Systematic : public PhysicsAnalysis {
   vector<PhysicsAnalysis*>& GetVariations ()  { return variations;  }
   vector<Systematic*>&      GetSystematics () { return systematics; }
 
+  virtual TGAE* GetTGAE (TH1* h) override;
+
   void AddVariation (PhysicsAnalysis* a);
   void AddSystematic (Systematic* a);
 
@@ -42,8 +48,22 @@ class Systematic : public PhysicsAnalysis {
   void AddSystematics (); // systematics add in quadrature
 
   void PlotTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotSignalTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotIAASystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
 
 };
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns a TGraphAsymmErrors corresponding to this systematic
+////////////////////////////////////////////////////////////////////////////////////////////////
+TGAE* Systematic :: GetTGAE (TH1* h) {
+  TGAE* g = make_graph (h);
+
+  return g;
+}
 
 
 
@@ -292,32 +312,70 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
 
           centralVals = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
 
-          for (short iSys = 0; iSys < systematics.size (); iSys++) {
-            TH1D* h =  systematics[iSys]->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
+          bool drawn = false;
+          short iSys = 0;
+          for (Systematic* sys : systematics) {
+
+            if (sys->Name () == string ("bkgSys"))
+              continue;
+
+            TH1D* h = sys->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
             errs = (TH1D*) h->Clone ( (string (h->GetName ()) + "_relSys").c_str ());
             SaveRelativeErrors (errs, centralVals);
+
+            errs->GetXaxis ()->SetMoreLogLabels ();
+            errs->GetYaxis ()->SetRangeUser (-0.5, 0.5);
 
             errs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
             errs->GetYaxis ()->SetTitle ("Relative error");
 
-            errs->SetLineColor (colors[iSys]);
+            errs->SetLineColor (colors[iSys+1]);
             errs->SetLineStyle (2);
             errs->SetLineWidth (5);
 
-            errs->DrawCopy (iSys == 0 ? "hist" : "same hist");
+            if (!drawn)
+              errs->DrawCopy ("][ hist");
+            else
+              errs->DrawCopy ("][ hist same");
+            drawn = true;
+
+            errs->Scale (-1);
+
+            errs->DrawCopy ("][ same hist");
+
+            myText (0.65, 0.86-0.04*iSys, colors[iSys+1], sys->description.c_str (), 0.04);
 
             delete errs;
+            iSys++;
           }
 
           errs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSys").c_str ());
           SaveRelativeErrors (errs, centralVals);
 
+          errs->GetXaxis ()->SetMoreLogLabels ();
+          errs->GetYaxis ()->SetRangeUser (-0.5, 0.5);
+
           errs->SetLineColor (kBlack);
           errs->SetLineStyle (1);
           errs->SetLineWidth (3);
+
+          myText (0.65, 0.91, kBlack, "Total", 0.04);
           
-          errs->DrawCopy (systematics.size () == 0 ? "hist" : "same hist");
+          errs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
+
+          errs->Scale (-1);
+
+          errs->DrawCopy ("][ same hist");
+
           delete errs;
+
+          myText (0.72, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          if (iCent == 0)
+            myText (0.72, 0.28, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+          else {
+            myText (0.72, 0.28, kBlack, Form ("Pb+Pb %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+            myText (0.72, 0.22, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+          }
 
           c->SaveAs (Form ("%s/TrkYieldSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -330,5 +388,244 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
   
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot this set of systematics on the signal track yield
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short pPtZ) {
+  const char* canvasName = Form ("c_SignalTrkYieldSys");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    gDirectory->Add (c);
+    gPad->SetLogx ();
+  }
+  c->cd ();
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      if (pPtZ != -1 && iPtZ != pPtZ)
+        continue; // allows user to define which plots should be made
+      for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+
+          gPad->Clear ();
+
+          TH1D* centralVals = nullptr, *errs = nullptr;
+
+          centralVals = h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent];
+
+          bool drawn = false;
+          short iSys = 0;
+          for (Systematic* sys : systematics) {
+
+            TH1D* h = sys->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent];
+            errs = (TH1D*) h->Clone ( (string (h->GetName ()) + "_relSys").c_str ());
+            SaveRelativeErrors (errs, centralVals);
+
+            //if (iPhi == 1 && iCent == 3) {
+            //  cout << sys->description << endl;
+            //  for (int ix = 1; ix <= errs->GetNbinsX (); ix++) {
+            //    cout << errs->GetBinContent (ix) << endl;
+            //  }
+            //}
+
+            errs->GetXaxis ()->SetMoreLogLabels ();
+            errs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+            errs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+            errs->GetYaxis ()->SetTitle ("Relative error");
+
+            errs->SetLineColor (colors[iSys+1]);
+            errs->SetLineStyle (2);
+            errs->SetLineWidth (5);
+
+            if (!drawn)
+              errs->DrawCopy ("][ hist");
+            else
+              errs->DrawCopy ("][ hist same");
+            drawn = true;
+
+            errs->Scale (-1);
+
+            errs->DrawCopy ("][ same hist");
+
+            myText (0.65, 0.86-0.04*iSys, colors[iSys+1], sys->description.c_str (), 0.04);
+
+            delete errs;
+            iSys++;
+          }
+
+          errs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSys").c_str ());
+
+            //if (iPhi == 1 && iCent == 3) {
+            //  cout << "Total" << endl;
+            //  for (int ix = 1; ix <= errs->GetNbinsX (); ix++) {
+            //    cout << errs->GetBinError (ix) << endl;
+            //  }
+            //}
+
+          SaveRelativeErrors (errs, errs);
+
+          //if (iPhi == 1 && iCent == 3) {
+          //  cout << "Total" << endl;
+          //  for (int ix = 1; ix <= errs->GetNbinsX (); ix++) {
+          //    cout << errs->GetBinContent (ix) << endl;
+          //  }
+          //}
+
+          errs->GetXaxis ()->SetMoreLogLabels ();
+          errs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          errs->SetLineColor (kBlack);
+          errs->SetLineStyle (1);
+          errs->SetLineWidth (3);
+
+          myText (0.65, 0.91, kBlack, "Total", 0.04);
+          
+          errs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
+
+          errs->Scale (-1);
+
+          errs->DrawCopy ("][ same hist");
+
+          delete errs;
+
+          myText (0.72, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          if (iCent == 0)
+            myText (0.72, 0.28, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+          else {
+            myText (0.72, 0.28, kBlack, Form ("Pb+Pb %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+            myText (0.72, 0.22, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+          }
+
+          c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
+
+        } // end loop over centralities
+
+      } // end loop over Phi bins
+
+    } // end loop over PtZ
+  } // end loop over species
+  
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot this set of systematics on the signal track yield
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
+  const char* canvasName = Form ("c_iaasys");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    gDirectory->Add (c);
+    gPad->SetLogx ();
+  }
+  c->cd ();
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      if (pPtZ != -1 && iPtZ != pPtZ)
+        continue; // allows user to define which plots should be made
+      for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+
+          TH1D* centralVals = nullptr, *errs = nullptr;
+
+          centralVals = h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent];
+          if (!centralVals) continue;
+
+          bool drawn = false;
+          short iSys = 0;
+          for (Systematic* sys : systematics) {
+
+            TH1D* h = sys->h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent];
+
+            if (!h) continue;
+
+            errs = (TH1D*) h->Clone ( (string (h->GetName ()) + "_relSys").c_str ());
+            SaveRelativeErrors (errs, centralVals);
+
+            errs->GetXaxis ()->SetMoreLogLabels ();
+            errs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+            errs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+            errs->GetYaxis ()->SetTitle ("Relative error");
+
+            errs->SetLineColor (colors[iSys+1]);
+            errs->SetLineStyle (2);
+            errs->SetLineWidth (5);
+
+            if (!drawn)
+              errs->DrawCopy ("][ hist");
+            else
+              errs->DrawCopy ("][ hist same");
+            drawn = true;
+
+            errs->Scale (-1);
+
+            errs->DrawCopy ("][ same hist");
+
+            myText (0.65, 0.86-0.04*iSys, colors[iSys+1], sys->description.c_str (), 0.04);
+
+            delete errs;
+            iSys++;
+          }
+
+          errs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSys").c_str ());
+          SaveRelativeErrors (errs, centralVals);
+
+          errs->GetXaxis ()->SetMoreLogLabels ();
+          errs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          errs->SetLineColor (kBlack);
+          errs->SetLineStyle (1);
+          errs->SetLineWidth (3);
+
+          myText (0.65, 0.91, kBlack, "Total", 0.04);
+          
+          errs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
+
+          errs->Scale (-1);
+
+          errs->DrawCopy ("][ same hist");
+
+          delete errs;
+
+          myText (0.72, 0.34, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          if (iCent == 0)
+            myText (0.72, 0.28, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+          else {
+            myText (0.72, 0.28, kBlack, Form ("Pb+Pb %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+            myText (0.72, 0.22, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+          }
+
+          c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
+
+        } // end loop over centralities
+
+      } // end loop over Phi bins
+
+    } // end loop over PtZ
+  } // end loop over species
+  
+}
 
 #endif

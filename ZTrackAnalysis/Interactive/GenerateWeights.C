@@ -20,6 +20,9 @@ const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
 const int gw_nQ2Bins = 50;
 const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
 
+const int gw_nNchBins = 160;
+const double* gw_nchBins = linspace (-0.5, 160.5, gw_nNchBins);
+
 //const double gw_fcalBins[11]   = {0, 63.719, 144.14, 289.595, 525.092, 875.41, 1368.75, 2046.51, 2989.31, 3618.44, 5200};
 //const int gw_nFCalBins = sizeof (gw_fcalBins) / sizeof (gw_fcalBins[0]) - 1;
 //const int gw_nQ2Bins = 10;
@@ -32,6 +35,9 @@ TH1D* h_PbPbFCalDist = nullptr;
 TH1D* h_PbPbFCal_weights = nullptr;
 TH1D* h_PbPbQ2Dist[numFinerCentBins];
 TH1D* h_PbPbQ2_weights[numFinerCentBins];
+
+TH1D* h_ppNchDist = nullptr;
+TH1D* h_ppNch_weights = nullptr;
 
 
 void GenerateWeights (const TString name) {
@@ -52,6 +58,7 @@ void GenerateWeights (const TString name) {
   TFile* inFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
+  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
   h_PbPbFCalDist = new TH1D (Form ("h_PbPbFCalDist_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins);
   h_PbPbFCal_weights = new TH1D (Form ("h_PbPbFCal_weights_%s", name.Data ()), "", gw_nFCalBins, gw_fcalBins);
@@ -63,14 +70,18 @@ void GenerateWeights (const TString name) {
     h_PbPbQ2Dist[iCent]->Sumw2 ();
     h_PbPbQ2_weights[iCent]->Sumw2 ();
   }
+  h_ppNchDist = new TH1D (Form ("h_ppNchDist_%s", name.Data ()), "", gw_nNchBins, gw_nchBins);
+  h_ppNchDist->Sumw2 ();
+  h_ppNch_weights = new TH1D (Form ("h_ppNch_weights_%s", name.Data ()), "", gw_nNchBins, gw_nchBins);
+  h_ppNch_weights->Sumw2 ();
 
-
-  float event_weight = 0, fcal_et = 0, q2 = 0;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
+    float event_weight = 0, fcal_et = 0, q2 = 0;
+
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
@@ -179,6 +190,49 @@ void GenerateWeights (const TString name) {
     }
   }
 
+  if (ppTree) {
+    float event_weight = 0;
+    int ntrk = 0;
+    ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("ntrk", &ntrk);
+
+    const int nEvts = ppTree->GetEntries ();
+    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+      ppTree->GetEntry (iEvt);
+
+      h_ppNchDist->Fill (ntrk, event_weight);
+    }
+    cout << "Done pp loop." << endl;
+
+    if (name == "data") {
+      for (int ix = 1; ix <= h_ppNch_weights->GetNbinsX (); ix++) {
+        h_ppNch_weights->SetBinContent (ix, 1);
+      }
+    } else {
+      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+      TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_ppNchDist_data");
+
+      for (int ix = 1; ix <= h_ppNch_weights->GetNbinsX (); ix++) {
+        const double nch_weight = (h_ppNchDist->GetBinContent (ix) != 0 ? referenceNchDist->GetBinContent (ix) / h_ppNchDist->GetBinContent (ix) : 0);
+        h_ppNch_weights->SetBinContent (ix, nch_weight);
+      }
+
+      ztrackFile->Close ();
+
+      if (name == "data")
+        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      else if (name == "mc")
+        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+      else if (name == "minbias")
+        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+      else if (name == "truth")
+        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+    }
+  }
+
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
 
@@ -188,6 +242,8 @@ void GenerateWeights (const TString name) {
     SafeWrite (h_PbPbQ2Dist[iCent]);
     SafeWrite (h_PbPbQ2_weights[iCent]);
   }
+  SafeWrite (h_ppNchDist);
+  SafeWrite (h_ppNch_weights);
 
   eventWeightsFile->Close ();
 }

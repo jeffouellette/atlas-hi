@@ -16,10 +16,11 @@ using namespace atlashi;
 class DataAnalysis : public FullAnalysis {
 
   public:
-  DataAnalysis (const char* _name = "data", const char* subDir = "Nominal") : FullAnalysis () {
+  DataAnalysis (const char* _name = "data", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
     name = _name;
     directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;
+    useHITight = _useHITight;
     LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }

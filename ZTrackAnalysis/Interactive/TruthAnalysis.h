@@ -102,9 +102,14 @@ void TruthAnalysis::LoadHists () {
     return;
 
   FullAnalysis::LoadHists ();
-  if (!histFile) {
-    SetupDirectories (directory, "ZTrackAnalysis/");
-    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
+  //if (!histFile) {
+  //  SetupDirectories (directory, "ZTrackAnalysis/");
+  //  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
+  //}
+  TDirectory* _gDirectory = gDirectory;
+  if (!histFile->IsOpen ()) {
+    cout << "Error in TruthAnalysis :: LoadHists: histFile not open after calling parent function, exiting." << endl;
+    return;
   }
 
   ZJetPt = (TH2D*)histFile->Get ("ZJetPt");
@@ -121,6 +126,8 @@ void TruthAnalysis::LoadHists () {
     JetTrkdPhi[iPtZ] = (TH1D*)histFile->Get (Form ("JetTrkdPhi_iPtZ%i", iPtZ));
   }
 
+  _gDirectory->cd ();
+
   histsLoaded = true;
   return;
 }
@@ -134,7 +141,7 @@ void TruthAnalysis::SaveHists () {
 
   if (!histFile) {
     SetupDirectories (directory, "ZTrackAnalysis/");
-    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "recreate");
+    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "update");
     histFile->cd ();
   }
 
@@ -163,13 +170,14 @@ void TruthAnalysis::SaveHists () {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::Execute () {
-  SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+  SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
   h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_truth");
   for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
     h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_truth", iCent));
   }
+  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_truth");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -181,7 +189,7 @@ void TruthAnalysis::Execute () {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, fcal_weight = 1, q2_weight = 1, vz_weight = 1;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
   int l1_charge = 0, l2_charge = 0, ntrk = 0, njet = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *jet_pt = nullptr, *jet_eta = nullptr, *jet_phi = nullptr, *jet_e = nullptr;
   //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
@@ -266,7 +274,8 @@ void TruthAnalysis::Execute () {
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
@@ -324,17 +333,17 @@ void TruthAnalysis::Execute () {
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight);
           }
         }
 
-        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
-        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-        //if (dphi < -pi/2)
-        //  dphi = dphi + 2*pi;
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
         
       } // end loop over tracks
 
@@ -394,14 +403,20 @@ void TruthAnalysis::Execute () {
           iPtZ++;
       }
 
-      event_weight = vz_weight;
+      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+
+      event_weight = vz_weight * nch_weight;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
 
+      h_pp_nch->Fill (ntrk);
+      h_pp_nch_reweighted->Fill (ntrk, event_weight);
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
@@ -481,17 +496,17 @@ void TruthAnalysis::Execute () {
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight);
           }
         }
 
-        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
-        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-        //if (dphi < -pi/2)
-        //  dphi = dphi + 2*pi;
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
+        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {

@@ -16,11 +16,12 @@ using namespace atlashi;
 class MCAnalysis : public FullAnalysis {
 
   public:
-  MCAnalysis (const char* _name = "mc", const char* subDir = "Nominal") : FullAnalysis () {
+  MCAnalysis (const char* _name = "mc", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
     name = _name;
     directory = Form ("MCAnalysis/%s/", subDir);
     plotFill = true;
     useAltMarker = false;
+    useHITight = _useHITight;
     LoadTrackingEfficiencies ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
@@ -40,6 +41,7 @@ void MCAnalysis :: Execute () {
   for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
     h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_mc", iCent));
   }
+  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_mc");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -51,7 +53,7 @@ void MCAnalysis :: Execute () {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, vz_weight = 1, q2_weight = 1, fcal_weight = 1;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, vz_weight = 1, q2_weight = 1, fcal_weight = 1, nch_weight = 1;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
   //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
@@ -140,7 +142,8 @@ void MCAnalysis :: Execute () {
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
@@ -183,7 +186,7 @@ void MCAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
@@ -224,17 +227,17 @@ void MCAnalysis :: Execute () {
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
           }
         }
 
-        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
-        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-        //if (dphi < -pi/2)
-        //  dphi = dphi + 2*pi;
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -294,14 +297,20 @@ void MCAnalysis :: Execute () {
           iPtZ++;
       }
 
-      event_weight = vz_weight;
+      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+
+      event_weight = vz_weight * nch_weight;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
 
+      h_pp_nch->Fill (ntrk);
+      h_pp_nch_reweighted->Fill (ntrk, event_weight);
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
       if (z_pt > zPtBins[1]) {
-        h_z_m[iCent][iSpc]->Fill (z_m, event_weight);
+        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
@@ -338,7 +347,7 @@ void MCAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
@@ -379,17 +388,17 @@ void MCAnalysis :: Execute () {
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
           }
         }
 
-        //// Study correlations (requires dphi in -pi/2 to 3pi/2)
-        //dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
-        //if (dphi < -pi/2)
-        //  dphi = dphi + 2*pi;
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iXZTrk][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
         
       } // end loop over tracks
 

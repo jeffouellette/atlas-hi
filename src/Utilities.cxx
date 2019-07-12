@@ -263,11 +263,29 @@ void ResetHistErrors (TH1D* h) {
   }
 }
 
+
+/**
+ * Adds nSigma statistical error variations to this histogram
+ */
+void AddStatVar (TH1D* h, const bool upvar, const float nSigma) {
+  if (!h)
+    return;
+  for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+    h->SetBinContent (ix, h->GetBinContent (ix) + (upvar ? 1.:-1.) * nSigma * h->GetBinError (ix));
+  }
+  return;
+}
+
+
+
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
 void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
   for (int ix = 1; ix <= master->GetNbinsX (); ix++) {
+    if (master->GetBinContent (ix) != sys->GetBinContent (ix))
+      cout << "Warning: In Utilities.cxx::AddErrorsInQuadrature: unequal nominal bin contents between systematics! Results will be skewed." << endl;
+
     const float newErr = sqrt (pow (master->GetBinError (ix), 2) + pow (sys->GetBinError (ix), 2));
     master->SetBinError (ix, newErr);
   }
@@ -281,8 +299,7 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
 void CalcSystematics (TH1D* sys, TH1D* var) {
   for (int ix = 1; ix <= sys->GetNbinsX (); ix++) {
     const float newErr = fabs (var->GetBinContent (ix) - sys->GetBinContent (ix));
-    if (sys->GetBinError (ix) < newErr)
-      sys->SetBinError (ix, newErr);
+    sys->SetBinError (ix, fmax (newErr, sys->GetBinError (ix)));
   }
 }
 
@@ -355,11 +372,12 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal
 
 
 /**
- * Sets the bin contents in target as the error / central values in centralValues
+ * Sets the bin contents in target as the error in errors / central values in centralValues
  */
 void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
   for (int ix = 1; ix <= errors->GetNbinsX (); ix++) {
-    errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
+    if (centralValues->GetBinContent (ix) != 0)
+      errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
     errors->SetBinError (ix, 0);
   }
 }

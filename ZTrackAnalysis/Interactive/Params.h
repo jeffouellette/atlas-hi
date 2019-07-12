@@ -10,6 +10,8 @@
 using namespace std;
 using namespace atlashi;
 
+typedef TGraphAsymmErrors TGAE;
+
 const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
 const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
