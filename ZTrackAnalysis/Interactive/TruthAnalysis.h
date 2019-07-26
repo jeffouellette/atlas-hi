@@ -95,8 +95,6 @@ void TruthAnalysis::ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
 
-  FullAnalysis::ScaleHists ();
-
   for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     h_z_jet_dphi[iPtZ][0] = h_z_jet_deta_dphi[iPtZ][0]->ProjectionY (Form ("h_z_jet_dphi_iPtZ%i_inclusive", iPtZ));
     h_z_jet_dphi[iPtZ][1] = h_z_jet_deta_dphi[iPtZ][1]->ProjectionY (Form ("h_z_jet_dphi_iPtZ%i_hasHighPtTrk", iPtZ));
@@ -159,6 +157,10 @@ void TruthAnalysis::LoadHists (const char* histFileName) {
   _gDirectory->cd ();
 
   histsLoaded = true;
+
+  FullAnalysis :: CombineHists ();
+  TruthAnalysis :: ScaleHists ();
+
   return;
 }
 

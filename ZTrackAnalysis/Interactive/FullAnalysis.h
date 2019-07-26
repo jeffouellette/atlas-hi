@@ -327,6 +327,9 @@ void FullAnalysis :: LoadHists (const char* histFileName) {
   histsLoaded = true;
   histsScaled = true;
 
+  FullAnalysis :: CombineHists ();
+  FullAnalysis :: ScaleHists ();
+
   _gDirectory->cd ();
   return;
 }
@@ -345,8 +348,10 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
   PhysicsAnalysis :: SaveHists (histFileName);
 
   TDirectory* _gDirectory = gDirectory;
-  histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
-  histFile->cd ();
+  if (!histFile) {
+    histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
+    histFile->cd ();
+  }
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       SafeWrite (h_z_phi[iCent][iSpc]);
@@ -399,7 +404,6 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: CombineHists () {
-  PhysicsAnalysis :: CombineHists ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
@@ -432,8 +436,6 @@ void FullAnalysis :: CombineHists () {
 void FullAnalysis :: ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
-
-  PhysicsAnalysis :: ScaleHists ();
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {

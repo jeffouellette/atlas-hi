@@ -434,6 +434,9 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName) {
       }
     }
   }
+
+  PhysicsAnalysis :: CombineHists ();
+  PhysicsAnalysis :: ScaleHists ();
   
   histsLoaded = true;
   histsScaled = true;
@@ -454,8 +457,11 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
     return;
 
   TDirectory* _gDirectory = gDirectory;
-  histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "recreate");
-  histFile->cd ();
+  if (!histFile) {
+    histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "recreate");
+    histFile->cd ();
+  }
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
 
