@@ -2,7 +2,6 @@
 #define __PhysicsAnalysis_h__
 
 #include "Params.h"
-#include "ZTrackUtilities.h"
 
 #include <ArrayTemplates.h>
 
@@ -16,12 +15,15 @@
 #include <TLine.h>
 #include <TF1.h>
 #include <TLorentzVector.h>
+#include <TBox.h>
 
 #include <iostream>
 #include <string>
 
 using namespace atlashi;
 using namespace std;
+
+typedef TGraphAsymmErrors TGAE;
 
 class PhysicsAnalysis {
 
@@ -95,6 +97,31 @@ class PhysicsAnalysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
+  virtual ~PhysicsAnalysis () {
+    Delete1DArray (h_PbPbQ2_weights,  numFinerCentBins);
+
+    Delete2DArray (h_trk_effs,      numFinerCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_effs,     numFinerCentBins);
+    Delete1DArray (h2_num_trk_effs, numFinerCentBins);
+    Delete1DArray (h2_den_trk_effs, numFinerCentBins);
+
+    Delete4DArray (h_z_trk_raw_pt,  3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_pt,      3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_xzh,     3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_phi,     3, nPtZBins, nPtTrkBins, numCentBins);
+    Delete3DArray (h_z_counts,      3, nPtZBins, numCentBins);
+
+    Delete4DArray (h_z_trk_pt_sub,          3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_pt_sig_to_bkg,   3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_pt_iaa,          3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_pt_icp,          3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_xzh_sub,         3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_xzh_sig_to_bkg,  3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_xzh_iaa,         3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_xzh_icp,         3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_z_trk_phi_sub,         3, nPtZBins, nPtTrkBins, numCentBins);
+  }
+
   protected:
   void LabelTrackingEfficiencies (const short iCent, const short iEta);
   void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent);
@@ -117,10 +144,10 @@ class PhysicsAnalysis {
   virtual void CreateHists ();
   virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
   virtual void CombineHists ();
-  virtual void LoadHists ();
-  virtual void SaveHists ();
+  virtual void LoadHists (const char* histFileName = "savedHists.root");
+  virtual void SaveHists (const char* histFileName = "savedHists.root");
   virtual void ScaleHists ();
-  virtual void Execute ();
+  virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root");
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
@@ -376,13 +403,13 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadHists () {
+void PhysicsAnalysis :: LoadHists (const char* histFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (histsLoaded)
     return;
 
   TDirectory* _gDirectory = gDirectory;
-  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
+  histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "read");
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -421,13 +448,13 @@ void PhysicsAnalysis :: LoadHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: SaveHists () {
+void PhysicsAnalysis :: SaveHists (const char* histFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
 
   TDirectory* _gDirectory = gDirectory;
-  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "recreate");
+  histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "recreate");
   histFile->cd ();
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -552,10 +579,11 @@ void PhysicsAnalysis :: ScaleHists () {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 // Designed to be overloaded. The default here is for analyzing data.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: Execute () {
+void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -563,7 +591,7 @@ void PhysicsAnalysis :: Execute () {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
   //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
@@ -830,10 +858,10 @@ void PhysicsAnalysis :: Execute () {
     cout << "Done primary pp loop." << endl;
   }
 
-  CombineHists ();
-  ScaleHists ();
+  //CombineHists ();
+  //ScaleHists ();
   
-  SaveHists ();
+  SaveHists (outFileName);
   //LoadHists ();
 
   inFile->Close ();
@@ -882,7 +910,8 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
       h_trk_effs[iCent][iEta] =  new TEfficiency (*num, *den);
 
-      delete num, den;
+      delete num;
+      delete den;
       h_trk_effs[iCent][iEta]->SetName ("h_trk_eff_iCent%i_iEta%i");
       
       //h_trk_effs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
@@ -1474,7 +1503,7 @@ void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
     return;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -1752,7 +1781,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
   const double padRatio = 0.9; // ratio of size of upper pad to middle & lower pads. Used to scale plots and font sizes equally.
   const double dPadY = padRatio / (2*padRatio+1.0);
   const double mPadY = padRatio / (2*padRatio+1.0);
-  const double uPadY = 1.0 - mPadY - dPadY;
+  //const double uPadY = 1.0 - mPadY - dPadY;
   const int axisTextSize = 23;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -2173,7 +2202,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 // Auxiliary (non-virtual) plot labelling for track pT distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
-  const Style_t markerStyle = (iPhi == 0 ? kFullSquare : kFullCircle);
+  //const Style_t markerStyle = (iPhi == 0 ? kFullSquare : kFullCircle);
 
   if (iCent == 0)
     myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.06);
@@ -2231,7 +2260,7 @@ void PhysicsAnalysis :: CalculateIAA () {
   if (iaaCalculated)
     return;
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
         TH1D* ppHist = h_z_trk_pt_sub[iSpc][iPtZ][iPhi][0];
@@ -2624,7 +2653,7 @@ void PhysicsAnalysis :: CalculateICP () {
     return;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
         TH1D* periphHist = h_z_trk_pt_sub[iSpc][iPtZ][iPhi][1];

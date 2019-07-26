@@ -2,7 +2,6 @@
 #define __FullAnalysis_h__
 
 #include "Params.h"
-#include "ZTrackUtilities.h"
 #include "PhysicsAnalysis.h"
 
 #include <ArrayTemplates.h>
@@ -72,6 +71,28 @@ class FullAnalysis : public PhysicsAnalysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
+  virtual ~FullAnalysis () {
+
+    Delete1DArray (h_q2,            numFinerCentBins);
+    Delete1DArray (h_q2_reweighted, numFinerCentBins);
+
+    Delete2DArray (h_z_phi,         numCentBins, 3);
+    Delete2DArray (h_z_pt,          numCentBins, 3);
+    Delete2DArray (h_z_pt_ratio,    numCentBins, 3);
+    Delete2DArray (h_z_y_phi,       numCentBins, 3);
+    Delete2DArray (h_z_eta,         numCentBins, 3);
+    Delete2DArray (h_z_eta_ratio,   numCentBins, 3);
+    Delete2DArray (h_z_y,           numCentBins, 3);
+    Delete2DArray (h_z_y_ratio,     numCentBins, 3);
+    Delete3DArray (h_z_m,           numCentBins, 3, 3);
+    Delete3DArray (h_z_m_ratio,     numCentBins, 3, 3);
+    Delete2DArray (h_z_lepton_dphi, numCentBins, 3);
+    Delete2DArray (h_lepton_pt,     numCentBins, 3);
+    Delete2DArray (h_lepton_trk_pt, numCentBins, 3);
+    Delete2DArray (h_trk_pt,        numCentBins, 3);
+    Delete2DArray (h_lepton_trk_dr, numCentBins, 3);
+  }
+
 
   protected:
   void LabelZMassSpectra (const short iSpc, const short iCent, const short iReg);
@@ -81,10 +102,10 @@ class FullAnalysis : public PhysicsAnalysis {
   virtual void CreateHists () override;
   virtual void CopyAnalysis (FullAnalysis* a, const bool copyBkgs = false);
   virtual void CombineHists () override;
-  virtual void LoadHists () override;
-  virtual void SaveHists () override;
+  virtual void LoadHists (const char* histFileName = "savedHists.root") override;
+  virtual void SaveHists (const char* histFileName = "savedHists.root") override;
   virtual void ScaleHists () override;
-  virtual void Execute () override;
+  virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 
   //void PrintZYields ();
 
@@ -250,12 +271,12 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: LoadHists () {
+void FullAnalysis :: LoadHists (const char* histFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (histsLoaded)
     return;
 
-  PhysicsAnalysis :: LoadHists ();
+  PhysicsAnalysis :: LoadHists (histFileName);
 
   TDirectory* _gDirectory = gDirectory;
   if (!histFile->IsOpen ()) {
@@ -316,15 +337,15 @@ void FullAnalysis :: LoadHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: SaveHists () {
+void FullAnalysis :: SaveHists (const char* histFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
 
-  PhysicsAnalysis :: SaveHists ();
+  PhysicsAnalysis :: SaveHists (histFileName);
 
   TDirectory* _gDirectory = gDirectory;
-  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "update");
+  histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
   histFile->cd ();
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -468,10 +489,11 @@ void FullAnalysis :: ScaleHists () {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 // Designed to be overloaded. The default here is for analyzing data.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: Execute () {
+void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -583,7 +605,7 @@ void FullAnalysis :: Execute () {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
           h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
         }
       }
@@ -606,7 +628,7 @@ void FullAnalysis :: Execute () {
           float mindr = pi;
           //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
             const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             if (dr < mindr) {
               mindr = dr;
@@ -758,7 +780,7 @@ void FullAnalysis :: Execute () {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
           h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
         }
       }
@@ -775,7 +797,7 @@ void FullAnalysis :: Execute () {
           float mindr = pi;
           //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
             const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             if (dr < mindr) {
               mindr = dr;
@@ -853,11 +875,10 @@ void FullAnalysis :: Execute () {
     cout << "Done primary pp loop." << endl;
   }
 
-  CombineHists ();
-  ScaleHists ();
+  //CombineHists ();
+  //ScaleHists ();
   
-  SaveHists ();
-  //LoadHists ();
+  SaveHists (outFileName);
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
@@ -2130,7 +2151,7 @@ void FullAnalysis :: PlotZLeptonDPhi () {
     c->cd ();
 
     for (short iSpc = 0; iSpc < 3; iSpc++) {
-      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+      //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       TH1D* h = h_z_lepton_dphi[iCent][iSpc];
 

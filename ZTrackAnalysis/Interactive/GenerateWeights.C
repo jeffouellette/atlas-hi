@@ -40,7 +40,7 @@ TH1D* h_ppNchDist = nullptr;
 TH1D* h_ppNch_weights = nullptr;
 
 
-void GenerateWeights (const TString name) {
+void GenerateWeights (const TString name, const TString inFileName = "outFile.root") {
 
   if (name == "data")
     SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
@@ -55,7 +55,7 @@ void GenerateWeights (const TString name) {
     return;
   }
 
-  TFile* inFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/Nominal/%s", rootPath.Data (), inFileName.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -80,17 +80,21 @@ void GenerateWeights (const TString name) {
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    float event_weight = 0, fcal_et = 0, q2 = 0;
+    float event_weight = 0, fcal_et = 0, q2 = 0, zpt = 0;
 
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
+    PbPbTree->SetBranchAddress ("z_pt",         &zpt);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
       if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
+
+      if (zpt < 25)
+        continue; // candidate events
 
       short iCent = 0;
       while (iCent < numFinerCentBins) {
@@ -149,6 +153,9 @@ void GenerateWeights (const TString name) {
         if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
           cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
         PbPbTree->GetEntry (iEvt);
+
+        if (zpt < 25)
+          continue; // candidate events
 
         short iCent = 0;
         while (iCent < numFinerCentBins) {

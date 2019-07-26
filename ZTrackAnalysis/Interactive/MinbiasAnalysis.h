@@ -37,7 +37,7 @@ class MinbiasAnalysis : public FullAnalysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute () override;
+  void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 
   void CombineHists () override;
   void ScaleHists () override;
@@ -51,11 +51,12 @@ class MinbiasAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over minbias trees and fills histograms appropriately. (NEW VERSION)
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void MinbiasAnalysis :: Execute () {
+void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*) inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*) inFile->Get ("ppZTrackTree");
@@ -63,7 +64,7 @@ void MinbiasAnalysis :: Execute () {
   CreateHists ();
 
   int ntrk = 0;
-  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float fcal_et = 0, q2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
   vector<float>* trk_yield = nullptr, *trk_var = nullptr;
   vector<float>* trk_zh_yield = nullptr, *trk_zh_var = nullptr;
 
@@ -190,6 +191,11 @@ void MinbiasAnalysis :: Execute () {
           h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk) * event_weight);
           h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
         } // end loop over PtTrk bins
+        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+        for (int iZH = 0; iZH < nZHBins; iZH++) {
+          h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
+          h->SetBinError (iZH+1, sqrt (pow (h->GetBinError (iZH+1), 2) + trk_zh_var->at (iZH) * pow (event_weight, 2)));
+        } // end loop over ZH bins
       } // end loop over dPhi bins
 
       for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
@@ -203,10 +209,10 @@ void MinbiasAnalysis :: Execute () {
     cout << "Done minbias pp loop." << endl;
   }
 
-  CombineHists ();
-  ScaleHists ();
+  //CombineHists ();
+  //ScaleHists ();
 
-  SaveHists ();
+  SaveHists (outFileName);
 
   inFile->Close ();
   SaferDelete (inFile);
@@ -343,7 +349,7 @@ void MinbiasAnalysis :: GenerateWeights () {
   _h_ppNch_weights = new TH1D (Form ("h_ppNch_weights_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
   _h_ppNch_weights->Sumw2 ();
 
-  bool passes_toroid = true;
+  //bool passes_toroid = true;
   float fcal_et = 0, q2 = 0, event_weight = 1;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,7 +432,7 @@ void MinbiasAnalysis :: GenerateWeights () {
   }
 
   if (ppTree) {
-    float event_weight = 0;
+    //float event_weight = 0;
     int ntrk = 0;
     //ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("ntrk", &ntrk);

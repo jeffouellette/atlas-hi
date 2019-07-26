@@ -47,7 +47,7 @@ class Systematic : public PhysicsAnalysis {
 
   virtual TGAE* GetTGAE (TH1D* h) override;
 
-  virtual void LoadHists () override;
+  virtual void LoadHists (const char* histFileName = "savedHists.root") override;
 
   void AddVariation (PhysicsAnalysis* a, const short dir = 0);
   void AddSystematic (Systematic* a);
@@ -113,8 +113,8 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 }
 
 
-void Systematic :: LoadHists () {
-  PhysicsAnalysis :: LoadHists ();
+void Systematic :: LoadHists (const char* histFileName) {
+  PhysicsAnalysis :: LoadHists (histFileName);
   CreateSysGraphs ();
 }
 

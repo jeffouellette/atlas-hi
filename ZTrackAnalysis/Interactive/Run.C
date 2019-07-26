@@ -7,11 +7,10 @@
 #include "MCAnalysis.h"
 #include "MinbiasAnalysis.h"
 #include "TruthAnalysis.h"
-#include "MixedAnalysis.h"
 
 #include "Systematic.h"
 
-const bool doSys = true;
+const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data = nullptr;
@@ -19,7 +18,6 @@ MCAnalysis* mc = nullptr;
 MinbiasAnalysis* bkg = nullptr;
 TruthAnalysis* truth = nullptr;
 
-//MixedAnalysis* data_mixed = nullptr;
 //PhysicsAnalysis* data_samesign = nullptr;
 //FullAnalysis* data_dr10 = nullptr, *data_dr20 = nullptr, *data_dr02 = nullptr;
 //MCAnalysis* mc_dr10 = nullptr, *mc_dr20 = nullptr;
@@ -57,7 +55,6 @@ void Run () {
 
   //bkg_nch = new MinbiasAnalysis ("bkg_nch", "Nominal/NchWeighted");
 
-  //data_mixed = new MixedAnalysis ("data_mixed", "Nominal/mixed");
   //data_samesign         = new PhysicsAnalysis ("data_samesign", "Variations/SameSignLeptons");
 
   //data_dr10 = new DataAnalysis ("data_dr10", "Variations/TracksDR10");
@@ -87,12 +84,11 @@ void Run () {
 
 
 
-  //data->Execute ();
+  data->Execute ();
   //mc->Execute ();
   //bkg->Execute ();
   //truth->Execute ();
 
-  //data_mixed->Execute ();
   //data_samesign->Execute ();
 
   //data_dr10->Execute ();
@@ -117,12 +113,11 @@ void Run () {
 
 
 
-  data->LoadHists ();
-  mc->LoadHists ();
-  bkg->LoadHists ();
-  truth->LoadHists ();
+  //data->LoadHists ();
+  //mc->LoadHists ();
+  //bkg->LoadHists ();
+  //truth->LoadHists ();
 
-  //data_mixed->LoadHists ();
   //data_samesign->LoadHists ();
 
   //data_dr10->LoadHists ();
@@ -148,15 +143,15 @@ void Run () {
     data_bkgStatDownVar->CalculateICP ();
   }
 
-  //data->SubtractSameSigns (data_samesign);
-  data->SubtractBackground (bkg);
-  data->CalculateIAA ();
-  data->CalculateICP ();
+  ////data->SubtractSameSigns (data_samesign);
+  //data->SubtractBackground (bkg);
+  //data->CalculateIAA ();
+  //data->CalculateICP ();
 
-  data->CalculateZPtDistRatio (mc);
-  data->CalculateZEtaDistRatio ();
-  data->CalculateZYDistRatio ();
-  data->CalculateZMassSpectraRatio (mc);
+  //data->CalculateZPtDistRatio (mc);
+  //data->CalculateZEtaDistRatio ();
+  //data->CalculateZYDistRatio ();
+  //data->CalculateZMassSpectraRatio (mc);
 
   if (doSys) {
     data_trackHItight->LoadHists ();

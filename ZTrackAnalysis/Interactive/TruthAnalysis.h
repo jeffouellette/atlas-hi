@@ -44,12 +44,12 @@ class TruthAnalysis : public FullAnalysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute () override;
+  void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 
   void CreateHists () override;
   void ScaleHists () override;
-  void LoadHists () override;
-  void SaveHists () override;  
+  void LoadHists (const char* histFileName) override;
+  void SaveHists (const char* histFileName) override;  
 
   void PlotZJetPt ();
   void PlotxZJet ();
@@ -120,11 +120,11 @@ void TruthAnalysis::ScaleHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::LoadHists () {
+void TruthAnalysis::LoadHists (const char* histFileName) {
   if (histsLoaded)
     return;
 
-  FullAnalysis::LoadHists ();
+  FullAnalysis::LoadHists (histFileName);
   //if (!histFile) {
   //  SetupDirectories (directory, "ZTrackAnalysis/");
   //  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
@@ -166,12 +166,12 @@ void TruthAnalysis::LoadHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::SaveHists () {
-  FullAnalysis::SaveHists ();
+void TruthAnalysis::SaveHists (const char* histFileName) {
+  FullAnalysis::SaveHists (histFileName);
 
   if (!histFile) {
     SetupDirectories (directory, "ZTrackAnalysis/");
-    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "update");
+    histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
     histFile->cd ();
   }
 
@@ -204,7 +204,7 @@ void TruthAnalysis::SaveHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::Execute () {
+void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
   SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
 
   TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
@@ -216,7 +216,8 @@ void TruthAnalysis::Execute () {
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -601,10 +602,10 @@ void TruthAnalysis::Execute () {
     cout << "Done truth-level pp loop." << endl;
   }
 
-  CombineHists ();
-  ScaleHists ();
+  //CombineHists ();
+  //ScaleHists ();
   
-  SaveHists ();
+  SaveHists (outFileName);
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }

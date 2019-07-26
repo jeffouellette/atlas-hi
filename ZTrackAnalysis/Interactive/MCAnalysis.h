@@ -35,18 +35,19 @@ class MCAnalysis : public FullAnalysis {
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
-  void Execute () override;
+  void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void MCAnalysis :: Execute () {
+void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
-  TFile* inFile = new TFile (Form ("%s/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -157,7 +158,7 @@ void MCAnalysis :: Execute () {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
           h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
         }
       }
@@ -180,7 +181,7 @@ void MCAnalysis :: Execute () {
           float mindr = pi;
           //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
             const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             if (dr < mindr) {
               mindr = dr;
@@ -188,7 +189,7 @@ void MCAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
@@ -329,7 +330,7 @@ void MCAnalysis :: Execute () {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
           h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
         }
       }
@@ -346,7 +347,7 @@ void MCAnalysis :: Execute () {
           float mindr = pi;
           //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < l_trk_pt->size (); iLTrk++) {
+          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
             const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             if (dr < mindr) {
               mindr = dr;
@@ -354,7 +355,7 @@ void MCAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
@@ -423,11 +424,10 @@ void MCAnalysis :: Execute () {
     cout << "Done MC pp loop." << endl;
   }
 
-  CombineHists ();
-  ScaleHists ();
+  //CombineHists ();
+  //ScaleHists ();
 
-  SaveHists ();
-  //LoadHists ();
+  SaveHists (outFileName);
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
