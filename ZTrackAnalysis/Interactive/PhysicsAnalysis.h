@@ -1,5 +1,7 @@
 #ifndef __PhysicsAnalysis_h__
 #define __PhysicsAnalysis_h__
+
+#include "Params.h"
 #include "ZTrackUtilities.h"
 
 #include <ArrayTemplates.h>
