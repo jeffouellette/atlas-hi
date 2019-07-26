@@ -136,4 +136,28 @@ const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 const int nZHBins = 6;
 const double* zHBins = logspace (0.01, 1, nZHBins);
 
+
+short GetidPhi (const float dphi) {
+  short idPhi = 0;
+  while (idPhi < numPhiBins) {
+    if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
+      break;
+    else
+      idPhi++;
+  }
+  return idPhi;
+}
+
+
+short GetiZH (const float zH) {
+  short iZH = 0;
+  while (iZH < nZHBins) {
+    if (zHBins[iZH+1] < zH)
+      iZH++;
+    else
+      break;
+  }
+  return iZH;
+}
+
 #endif

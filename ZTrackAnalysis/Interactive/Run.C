@@ -10,7 +10,6 @@
 #include "MixedAnalysis.h"
 
 #include "Systematic.h"
-//#include "WPVariation.h"
 
 const bool doSys = true;
 
