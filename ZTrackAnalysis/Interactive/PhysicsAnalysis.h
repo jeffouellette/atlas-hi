@@ -27,6 +27,7 @@ class PhysicsAnalysis {
   string name = "";
   string directory = "";
   bool backgroundSubtracted = false;
+  bool sameSignsSubtracted = false;
 
   vector<TH1*> drawnHists;
   vector<TGAE*> drawnGraphs;
@@ -40,10 +41,11 @@ class PhysicsAnalysis {
   bool histsScaled  = false;
 
   public:
-  bool plotFill     = false; // whether to plot as filled (bar) graph or points w/ errors
-  bool plotSignal   = true; // whether to plot background subtracted plots
-  bool useAltMarker = false; // whether to plot as open markers (instead of closed)
-  bool useHITight   = false; // whether to use HITight tracking efficiencies
+  bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
+  bool plotSignal     = true; // whether to plot background subtracted plots
+  bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
+  bool useHITight     = false; // whether to use HITight tracking efficiencies
+  float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
 
   // Event info distributions (for reweighting)
   TH1D* h_PbPbFCal_weights  = nullptr;
@@ -56,9 +58,9 @@ class PhysicsAnalysis {
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins);
 
-  // Correlations plots
-  TH2D****   h_z_trk_pt_phi  = Get3DArray <TH2D*> (nPtZBins, numCentBins, 3);             // iPtZ, iCent, iSpc (0=ee, 1=mumu, 2=combined)
-  TH1D*****  h_z_trk_phi     = Get4DArray <TH1D*> (nPtTrkBins, nPtZBins, numCentBins, 3); // iPtTrk, iPtZ, iCent, iSpc
+  //// Correlations plots
+  //TH2D****   h_z_trk_pt_phi  = Get3DArray <TH2D*> (nPtZBins, numCentBins, 3);             // iPtZ, iCent, iSpc (0=ee, 1=mumu, 2=combined)
+  //TH1D*****  h_z_trk_phi     = Get4DArray <TH1D*> (nPtTrkBins, nPtZBins, numCentBins, 3); // iPtTrk, iPtZ, iCent, iSpc
   
   // Physics plots
   //TH2D*****   h_z_missing_pt      = nullptr;
@@ -67,9 +69,9 @@ class PhysicsAnalysis {
   TH1D*****   h_z_trk_raw_pt      = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
   TH1D*****   h_z_trk_pt          = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
   TH1D*****   h_z_trk_xzh         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
+  TH1D*****   h_z_trk_phi         = Get4DArray <TH1D*> (3, nPtZBins, nPtTrkBins, numCentBins);   // iSpc, iPtZ, iPtTrk, iCent
   TH1D****    h_z_counts          = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
 
-  TH1D*****  h_z_trk_raw_pt_sub     = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D*****  h_z_trk_pt_sub         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D*****  h_z_trk_pt_sig_to_bkg  = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D*****  h_z_trk_pt_iaa         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
@@ -78,6 +80,7 @@ class PhysicsAnalysis {
   TH1D***** h_z_trk_xzh_sig_to_bkg  = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D***** h_z_trk_xzh_iaa         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D***** h_z_trk_xzh_icp         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
+  TH1D***** h_z_trk_phi_sub         = Get4DArray <TH1D*> (3, nPtZBins, nPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
 
   PhysicsAnalysis () { }
 
@@ -107,7 +110,7 @@ class PhysicsAnalysis {
   string Name () { return name; }
   void SetName (string _name) { name = _name; }
 
-  virtual TGAE* GetTGAE (TH1* h);
+  virtual TGAE* GetTGAE (TH1D* h);
 
   virtual void CreateHists ();
   virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
@@ -117,15 +120,16 @@ class PhysicsAnalysis {
   virtual void ScaleHists ();
   virtual void Execute ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
+  virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1.); // adds or subtracts nSigma of statistical errors to analysis
 
   virtual void LoadTrackingEfficiencies (); // defaults to HILoose
   virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
 
-  void PrintZYields ();
+  void PrintZYields (const int iPtZ = 2);
 
-  void Plot3DDist ();
+  //void Plot3DDist ();
   void PlotCorrelations (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //void PlotZMissingPt ();
   void PlotTrackingEfficiencies ();
@@ -204,7 +208,7 @@ void PhysicsAnalysis :: SetMinAndMax (double min, double max) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Create TGraphAsymmErrors from a histogram
 ////////////////////////////////////////////////////////////////////////////////////////////////
-TGAE* PhysicsAnalysis :: GetTGAE (TH1* h) {
+TGAE* PhysicsAnalysis :: GetTGAE (TH1D* h) {
   return make_graph (h);
 }
 
@@ -220,9 +224,9 @@ void PhysicsAnalysis :: CreateHists () {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          h_z_trk_pt_phi[iPtZ][iCent][iSpc] = new TH2D (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2, nPtTrkBins, ptTrkBins);
-          h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Sumw2 ();
+        //for (short iZH = 0; iZH < nZHBins; iZH++) {
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = new TH2D (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2, nPtTrkBins, ptTrkBins);
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Sumw2 ();
         //}
         //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = new TH2D (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", numZMissingPtBins, zMissingPtBins, nPtTrkBins, ptTrkBins);
@@ -233,8 +237,12 @@ void PhysicsAnalysis :: CreateHists () {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXZTrkBins, xZTrkBins);
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nZHBins, zHBins);
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+        }
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = new TH1D (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Sumw2 ();
         }
         h_z_counts[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 2, 0, 2);
         h_z_counts[iSpc][iPtZ][iCent]->Sumw2 ();
@@ -274,8 +282,8 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        //for (short iZH = 0; iZH < nZHBins; iZH++) {
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
         //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = (TH2D*) a->h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
@@ -285,6 +293,9 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
         } // end loop over iPhi
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+        }
         h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_counts[iSpc][iPtZ][iCent]->Clone (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       } // end loop over iPtZ
     } // end loop over iSpc
@@ -297,8 +308,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
             for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-              if (a->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]) {
-                h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_raw_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+              if (a->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]) {
                 h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
                 h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
               }
@@ -307,6 +317,11 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
                 h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
               }
             } // end loop over phi
+            for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+              if (a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) {
+                h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+              }
+            } // end loop over pT^trk
           } // end loop over pT^Z bins
         } // end loop over cents
       } // end loop over species
@@ -371,11 +386,11 @@ void PhysicsAnalysis :: LoadHists () {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) histFile->Get (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()));
-          }
+        //for (short iZH = 0; iZH < nZHBins; iZH++) {
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) histFile->Get (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+        }
         //}
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
@@ -416,11 +431,11 @@ void PhysicsAnalysis :: SaveHists () {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          SafeWrite (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
-          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            SafeWrite (h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc]);
-          }
+        //for (short iZH = 0; iZH < nZHBins; iZH++) {
+        //SafeWrite (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+        }
         //}
         //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
         //  SafeWrite (h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]);
@@ -453,12 +468,15 @@ void PhysicsAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
-          h_z_trk_pt_phi[iPtZ][iCent][2]->Add (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
+        //for (short iZH = 0; iZH < nZHBins; iZH++) {
+        //h_z_trk_pt_phi[iPtZ][iCent][2]->Add (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
         //}
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+        }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          //h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
           h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
         //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -487,9 +505,7 @@ void PhysicsAnalysis :: ScaleHists () {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
           const double yieldNormFactor = countsHist->GetBinContent (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
-          //const double yieldNormFactorError = countsHist->GetBinError (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
 
-          //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
@@ -505,11 +521,11 @@ void PhysicsAnalysis :: ScaleHists () {
 
       for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-          //for (short iXZTrk = 0; iXZTrk < nXZTrkBins; iXZTrk++) {
+          //for (short iZH = 0; iZH < nZHBins; iZH++) {
             const double normFactor = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
-            h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = h_z_trk_pt_phi[iPtZ][iCent][iSpc]->ProjectionX (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()), iPtTrk+1, iPtTrk+1);
+            //h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = h_z_trk_pt_phi[iPtZ][iCent][iSpc]->ProjectionX (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()), iPtTrk+1, iPtTrk+1);
 
-            TH1D* h = h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc];
+            TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
             h->Rebin (2);
             if (iPtTrk > 3)
               h->Rebin (2);
@@ -586,6 +602,9 @@ void PhysicsAnalysis :: Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
+      //if (z_m < 86 || z_m > 96)
+      //  continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       short iCent = 0;
@@ -630,9 +649,9 @@ void PhysicsAnalysis :: Execute () {
         if (trkpt < trk_min_pt)
           continue;
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
@@ -666,7 +685,7 @@ void PhysicsAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -675,7 +694,11 @@ void PhysicsAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);dd
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -721,6 +744,9 @@ void PhysicsAnalysis :: Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
+      //if (z_m < 86 || z_m > 96)
+      //  continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
@@ -740,9 +766,9 @@ void PhysicsAnalysis :: Execute () {
         if (trkpt < trk_min_pt)
           continue;
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
@@ -776,7 +802,7 @@ void PhysicsAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -785,7 +811,11 @@ void PhysicsAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -832,9 +862,9 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
     if (iCent > 0) {
       h2_num_trk_effs[iCent]->RebinX (2);
-      h2_num_trk_effs[iCent]->RebinY (4);
+      h2_num_trk_effs[iCent]->RebinY (2);
       h2_den_trk_effs[iCent]->RebinX (2);
-      h2_den_trk_effs[iCent]->RebinY (4);
+      h2_den_trk_effs[iCent]->RebinY (2);
     }
 
     h2_trk_effs[iCent] = new TEfficiency (*(h2_num_trk_effs[iCent]), *(h2_den_trk_effs[iCent]));
@@ -844,8 +874,8 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
       TH1* den = ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
 
       if (iCent > 0) {
-        num->Rebin (4);
-        den->Rebin (4);
+        num->Rebin (2);
+        den->Rebin (2);
       }
 
       h_trk_effs[iCent][iEta] =  new TEfficiency (*num, *den);
@@ -895,10 +925,16 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
 
   //const double eff = h_trk_effs[iCent][iEta]->GetEfficiency (h_trk_effs[iCent][iEta]->FindFixBin (trk_pt));
 
+  TEfficiency* t = h2_trk_effs[iCent];
 
-  const double eff = h2_trk_effs[iCent]->GetEfficiency (h2_trk_effs[iCent]->FindFixBin (trk_eta, trk_pt));
-  if (eff == 0)
-    return 1;
+  double eff = t->GetEfficiency (t->FindFixBin (trk_eta, trk_pt));
+  if (trkEffNSigma > 0)
+    eff += trkEffNSigma * t->GetEfficiencyErrorUp (t->FindFixBin (trk_eta, trk_pt));
+  else if (trkEffNSigma < 0)
+    eff += trkEffNSigma * t->GetEfficiencyErrorLow (t->FindFixBin (trk_eta, trk_pt));
+
+  //if (eff == 0)
+  //  return 1;
 
   return eff;
 }
@@ -907,22 +943,41 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Plot dPhi - xZTrk 3d distribution
+// Prints yield of Z's that meet the event selection criteria in each centrality
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: Plot3DDist () {
-  TCanvas* c = new TCanvas ("c_z_trk_pt_phi", "", 800, 600);
-  c->cd ();
-
-  c->SetLogy ();
-
-  h_z_trk_pt_phi[0][numCentBins-1][2]->GetXaxis ()->SetTitle ("#phi_{Z} - #phi_{Trk}");
-  h_z_trk_pt_phi[0][numCentBins-1][2]->GetYaxis ()->SetTitle ("#it{p}_{T}^{ ch} / #it{p}_{T}^{ Z}");
-
-  //h_z_trk_pt_phi[0][numCentBins-1][2]->RebinY (2);
-  h_z_trk_pt_phi[0][numCentBins-1][2]->Draw ("lego2");
-
-  c->SaveAs (Form ("%s/ZTrackCorr.pdf", plotPath.Data ()));
+void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    const char* spc = (iSpc == 0 ? "Z->ee" : (iSpc == 1 ? "Z->mumu" : "Z->ll"));
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      float yield = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
+      if (iCent == 0) 
+        cout << "pp " << spc << " # Z's > " << zPtBins[iPtZ] << " GeV  =  " << yield << endl;
+      else
+        cout << Form ("Pb+Pb %i-%i%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]) << spc << " # Z's > " << zPtBins[iPtZ] << " GeV  =  " << yield << endl;
+    }
+  }
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Plot dPhi - zH 3d distribution
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: Plot3DDist () {
+//  TCanvas* c = new TCanvas ("c_z_trk_pt_phi", "", 800, 600);
+//  c->cd ();
+//
+//  c->SetLogy ();
+//
+//  h_z_trk_pt_phi[0][numCentBins-1][2]->GetXaxis ()->SetTitle ("#phi_{Z} - #phi_{Trk}");
+//  h_z_trk_pt_phi[0][numCentBins-1][2]->GetYaxis ()->SetTitle ("#it{p}_{T}^{ ch} / #it{p}_{T}^{ Z}");
+//
+//  //h_z_trk_pt_phi[0][numCentBins-1][2]->RebinY (2);
+//  h_z_trk_pt_phi[0][numCentBins-1][2]->Draw ("lego2");
+//
+//  c->SaveAs (Form ("%s/ZTrackCorr.pdf", plotPath.Data ()));
+//}
 
 
 
@@ -969,7 +1024,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          TH1D* h = h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc];
+          TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
           if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
           if (h->GetMaximum () > max) max = h->GetMaximum ();
         } // end loop over iPtTrk
@@ -979,7 +1034,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
 
         if (plotFill) {
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TH1D* h = (TH1D*)h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc]->Clone ();
+            TH1D* h = (TH1D*)h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone ();
 
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1010,7 +1065,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
           gPad->RedrawAxis ();
         } else {
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TGAE* g = GetTGAE (h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc]);
+            TGAE* g = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
             ResetXErrors (g);
 
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
@@ -1051,8 +1106,8 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent) {
   if (iCent == 0) {
-    myText (0.72, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-    myText (0.72, 0.20, kBlack, "#it{pp}, 5.02 TeV", 0.04);
+    myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Simulation", 0.05);
+    myText (0.67, 0.20, kBlack, "#it{pp}, 5.02 TeV", 0.05);
     //myText (0.16, 0.93, kBlack, "Data", 0.04);
     //myText (0.30, 0.93, kBlack, "Minbias", 0.05);
     //TVirtualPad* cPad = gPad; // store current pad
@@ -1072,7 +1127,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     //b->Draw ("l");
     //cPad->cd ();
   } else {
-    myText (0.72, 0.20, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
+    myText (0.67, 0.20, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
   }
 }
 
@@ -1283,7 +1338,7 @@ void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const shor
 
   if (iCent == 0) {
   //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerText (0.5, 0.54-0.08*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+    myMarkerText (0.5, 0.5-0.08*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
   }
 }
 
@@ -1301,47 +1356,43 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           //******** Do subtraction of pT ********//
-          TH1D* h = new TH1D (Form ("h_z_trk_raw_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
+          TH1D* h = new TH1D (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
           h->Sumw2 ();
 
-          h->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
           TH1D* sub = nullptr;
-          float deltaPhi_SF = phiHighBins[iPhi]-phiLowBins[iPhi];
           if (a == nullptr) {
-            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
-            sub = h_z_trk_raw_pt[iSpc][iPtZ][0][iCent];
-            deltaPhi_SF *= 1./ (phiHighBins[0]-phiLowBins[0]);
+            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
+            sub = h_z_trk_pt[iSpc][iPtZ][0][iCent];
           }
           else {
-            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
-            sub = a->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-            deltaPhi_SF *= 1./ pi;
+            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
+            sub = a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
           }
           if (sub != nullptr)
-            h->Add (sub, -deltaPhi_SF);
+            h->Add (sub, -1);
           else
             cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
 
-          h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent] = h;
-          h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*)h->Clone (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
           h = new TH1D (Form ("h_z_trk_pt_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
           h->Sumw2 ();
 
           if (sub != nullptr) {
-            h->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-            h->Add (sub, -deltaPhi_SF);
+            h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            h->Add (sub, -1);
             h->Divide (sub);
-            h->Scale (1./ deltaPhi_SF);
           }
 
           h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
 
 
           //******** Do subtraction of z_h ********//
-          h = new TH1D (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXZTrkBins, xZTrkBins);
+          h = new TH1D (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nZHBins, zHBins);
           h->Sumw2 ();
 
           h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
@@ -1361,17 +1412,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
           h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
-          //if (iSpc == 2 && iPtZ == nPtZBins-1 && iPhi == 2 && iCent == 3) {
-          //  for (int ix=1; ix <= h->GetNbinsX (); ix++) {
-          //    double diff = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->GetBinContent (ix) - sub->GetBinContent (ix);
-          //    if (diff == h->GetBinContent (ix)) 
-          //      cout << "at " << h->GetBinCenter (ix) << " value is " << h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->GetBinContent (ix) << " - " << sub->GetBinContent (ix) << " = " << h->GetBinContent (ix) << endl;
-          //    else
-          //      cout << "wat in tarnation? at " << h->GetBinCenter (ix) << " value is " << h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->GetBinContent (ix) << " - " << sub->GetBinContent (ix) << " = " << diff << " != " << h->GetBinContent (ix) << endl;
-          //  }
-          //}
-
-          h = new TH1D (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXZTrkBins, xZTrkBins);
+          h = new TH1D (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nZHBins, zHBins);
           h->Sumw2 ();
 
           if (sub != nullptr) {
@@ -1382,6 +1423,36 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
           h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
         } // end loop over phi
+
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          //******** Do background subtraction of phi distributions ********//
+
+          TH1D* h = (TH1D*) h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+          TH1D* sub = nullptr;
+          if (a == nullptr) {
+            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
+            sub = h_z_trk_phi[iSpc][iPtZ][0][iCent];
+          }
+          else {
+            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
+            sub = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+            for (int ix = 1; ix <= sub->GetNbinsX (); ix++) {
+              sub->SetBinContent (ix, sub->GetBinContent (ix) * sub->GetBinWidth (ix));
+              sub->SetBinError (ix, sub->GetBinError (ix) * sub->GetBinWidth (ix));
+            }
+          }
+          if (sub != nullptr) {
+            while (sub->GetNbinsX () > h->GetNbinsX ())
+              sub->Rebin (2);
+            h->Add (sub, -1);
+          }
+          else
+            cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
+
+          h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = h;
+
+        } // end loop over pT^trk
       } // end loop over pT^Z
     } // end loop over centralities
   } // end loop over species
@@ -1391,6 +1462,45 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 }
 
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Statistically subtracts same sign pairs
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
+  if (sameSignsSubtracted)
+    return;
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+
+          TH1D* h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
+          const float bkgCountsOverObsCounts = (a->h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1)) / (h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1));
+          if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
+            cout << bkgCountsOverObsCounts << endl;
+            cout << "2nd to last bin before: " << h->GetBinContent (6) << endl;
+          }
+
+          h->Add (a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
+          h->Scale (1./ (1-bkgCountsOverObsCounts));
+          //if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
+          //  cout << "2nd to last bin after:  " << h->GetBinContent (6) << endl;
+          //}
+
+          h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+          h->Add (a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
+          h->Scale (1./ (1-bkgCountsOverObsCounts));
+        } // end loop over phi
+      } // end loop over pT^Z
+    } // end loop over centralities
+  } // end loop over species
+
+  sameSignsSubtracted = true;
+  return;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1439,10 +1549,6 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
   if (!backgroundSubtracted)
     SubtractBackground ();
 
-  const double padRatio = 0.9; // ratio of size of upper pad to middle & lower pads. Used to scale plots and font sizes equally.
-  const double dPadY = padRatio / (2*padRatio+1.0);
-  const double mPadY = padRatio / (2*padRatio+1.0);
-  const double uPadY = 1.0 - mPadY - dPadY;
   const int axisTextSize = 23;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -1453,56 +1559,38 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_TrkYield_%s_%s_iPtZ%i", useTrkPt ? "pt" : "zh", spc, iPtZ);
+      const char* canvasName = Form ("c_RawTrkYield_%s_%s_iPtZ%i", useTrkPt ? "pt" : "zh", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 395*numCentBins, 985);
+        c = new TCanvas (canvasName, "", 400*numCentBins, 400);
         gDirectory->Add (c);
       }
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         c->cd ();
 
-        const char* topPadName = Form ("p_TrkYield_%s_top_%s_iPtZ%i_iCent%i", useTrkPt ? "pt" : "zh", spc, iPtZ, iCent);
-        const char* middlePadName = Form ("p_TrkYield_%s_middle_%s_iPtZ%i_iCent%i", useTrkPt ? "pt" : "zh", spc, iPtZ, iCent);
-        const char* bottomPadName = Form ("p_TrkYield_%s_bottom_%s_iPtZ%i_iCent%i", useTrkPt ? "pt" : "zh", spc, iPtZ, iCent);
+        const char* padName = Form ("p_RawTrkYield_%s_pad_%s_iPtZ%i_iCent%i", useTrkPt ? "pt" : "zh", spc, iPtZ, iCent);
 
-        TPad* topPad = nullptr, *middlePad = nullptr, *bottomPad = nullptr;
+        TPad* pad = nullptr;
         if (!canvasExists) {
-          topPad = new TPad (topPadName, "", 0+(1./numCentBins)*iCent, dPadY+mPadY, (1./numCentBins)+(1./numCentBins)*iCent, 1);
-          middlePad = new TPad (middlePadName, "", 0+(1./numCentBins)*iCent, dPadY, (1./numCentBins)+(1./numCentBins)*iCent, dPadY+mPadY);
-          bottomPad = new TPad (bottomPadName, "", 0+(1./numCentBins)*iCent, 0, (1./numCentBins)+(1./numCentBins)*iCent, dPadY);
+          pad = new TPad (padName, "", 0+(1./numCentBins)*iCent, 0, (1./numCentBins)+(1./numCentBins)*iCent, 1);
 
-          gDirectory->Add (topPad);
-          gDirectory->Add (middlePad);
-          gDirectory->Add (bottomPad);
+          gDirectory->Add (pad);
 
-          topPad->SetTopMargin (0.04);
-          topPad->SetBottomMargin (0);
-          topPad->SetLeftMargin (0.17);
-          topPad->SetRightMargin (0.06);
-          middlePad->SetTopMargin (0);
-          middlePad->SetBottomMargin (0);
-          middlePad->SetLeftMargin (0.17);
-          middlePad->SetRightMargin (0.06);
-          bottomPad->SetTopMargin (0);
-          bottomPad->SetBottomMargin (0.20);
-          bottomPad->SetLeftMargin (0.17);
-          bottomPad->SetRightMargin (0.06);
-          topPad->Draw ();
-          middlePad->Draw ();
-          bottomPad->Draw ();
+          pad->SetTopMargin (0.04);
+          pad->SetBottomMargin (0.20);
+          pad->SetLeftMargin (0.17);
+          pad->SetRightMargin (0.06);
+          pad->Draw ();
         }
         else {
-          topPad = dynamic_cast<TPad*> (gDirectory->Get (topPadName));
-          middlePad = dynamic_cast<TPad*> (gDirectory->Get (middlePadName));
-          bottomPad = dynamic_cast<TPad*> (gDirectory->Get (bottomPadName));
+          pad = dynamic_cast<TPad*> (gDirectory->Get (padName));
         }
 
-        topPad->cd ();
+        pad->cd ();
         GetDrawnObjects ();
         bool plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
         gPad->SetLogx ();
@@ -1512,11 +1600,11 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
         GetMinAndMax (min, max, true);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           TH1D* h = useTrkPt ? h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max)  max = h->GetMaximum ();
+          min = fmin (min, h->GetMinimum (0));
+          max = fmax (max, h->GetMaximum ());
         } // end loop over phi
-        min = (min > 0 ? 0.5*min : 0.1);
-        max = (max > 0 ? 2*max : 1);
+        min = (min > 0 ? (canvasExists ? 0.5 : 1)*min : 0.1);
+        max = (max > 0 ? (canvasExists ? 2 : 1)*max : 1);
         SetMinAndMax (min, max);
 
         if (plotFill) {
@@ -1530,7 +1618,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
@@ -1550,7 +1638,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             h->GetYaxis ()->SetLabelFont (43);
             h->GetYaxis ()->SetLabelSize (axisTextSize);
 
-            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
+            h->GetYaxis ()->SetTitleOffset (1.1);
 
             h->DrawCopy (plotNewAxes && iPhi == 0 ? "bar" : "bar same");
             //h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
@@ -1560,6 +1648,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
           gPad->RedrawAxis ();
         } else {
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
             TGAE* g = GetTGAE (useTrkPt ? h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
@@ -1579,7 +1668,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
@@ -1599,7 +1688,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             g->GetYaxis ()->SetLabelFont (43);
             g->GetYaxis ()->SetLabelSize (axisTextSize);
 
-            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
+            g->GetYaxis ()->SetTitleOffset (1.1);
 
             if (!plotAsSystematic) {
               string drawString = string (!canvasExists && iPhi == 0 ? "AP" : "P");
@@ -1612,241 +1701,34 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
           } // end loop over phi
         }
 
-        if (!canvasExists)
-          for (int iPhi = 0; iPhi < numPhiBins; iPhi++)
-            LabelTrkYield (iCent, iPhi);
+        if (!canvasExists) {
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+            if (iCent == 0)
+              myText (0.22, 0.26, kBlack, "#it{pp}, 5.02 TeV", 0.06);
+            else
+              myText (0.22, 0.26, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
-        if (!plotSignal)
-          continue;
+            if (iCent == 0)
+              myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+            else if (iCent == numCentBins-1) {
+              if (iPhi == 1) {
+                TVirtualPad* cPad = gPad; // store current pad
+                myText (0.653, 0.91, kBlack, "#Delta#phi", 0.054);
+                TBox* b = TBoxNDC (0.598-0.018, 0.91-0.06*numPhiBins-0.016, 0.598+0.018, 0.91-0.06*numPhiBins+0.016);
+                b->SetFillColorAlpha (fillColors[0], fillAlpha);
+                b->Draw ("l");
+                cPad->cd ();
 
-        middlePad->cd ();
-        GetDrawnObjects ();
-        plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
-        gPad->SetLogx ();
-        gPad->SetLogy ();
+                myText (0.65, 0.91-0.06*numPhiBins, kBlack, "MinBias", 0.054);
+              }
 
-        min = 1e30, max = 0;
-        GetMinAndMax (min, max, true);
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max) max = h->GetMaximum ();
-        } // end loop over phi
-        float delta = log10 (max) - log10 (min);
-        min = pow (10, log10 (min) - 0.1*delta);
-        max = pow (10, log10 (max) + 0.1*delta);
-        SetMinAndMax (min, max);
+              const char* lo = GetPiString (phiLowBins[iPhi]);
+              const char* hi = GetPiString (phiHighBins[iPhi]);
 
-        if (plotFill) {
-          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            TH1D* h = useTrkPt ? h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
-
-            if (!h) continue;
-
-            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            h->SetLineColor (kBlack);
-            h->SetMarkerSize (0);
-            h->SetLineWidth (0);
-            h->SetMarkerStyle (kFullCircle);
-
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            h->GetYaxis ()->SetRangeUser (min, max);
-
-            h->GetXaxis ()->SetMoreLogLabels ();
-
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            if (useTrkPt) h->GetYaxis ()->SetTitle ("Y_{jet} (#it{p}_{T}, #Delta#phi)");
-            else h->GetYaxis ()->SetTitle ("Y_{jet} (#it{z}_{h}, #Delta#phi)");
-
-            h->GetXaxis ()->SetTitleFont (43);
-            h->GetXaxis ()->SetTitleSize (axisTextSize);
-            h->GetXaxis ()->SetLabelFont (43);
-            h->GetXaxis ()->SetLabelSize (axisTextSize);
-
-            h->GetYaxis ()->SetTitleFont (43);
-            h->GetYaxis ()->SetTitleSize (axisTextSize);
-            h->GetYaxis ()->SetLabelFont (43);
-            h->GetYaxis ()->SetLabelSize (axisTextSize);
-
-            h->GetXaxis ()->SetTitleOffset (2.5 * h->GetXaxis ()->GetTitleOffset ());
-            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
-
-            h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
-            h->SetLineWidth (1);
-            h->Draw ("hist same");
-          } // end loop over phi
-          gPad->RedrawAxis ();
-        } else {
-          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-
-            TGAE* g = GetTGAE (useTrkPt ? h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
-            RecenterGraph (g);
-
-            if (!plotAsSystematic) {
-              ResetXErrors (g);
-              g->SetMarkerStyle (markerStyle);
-              g->SetMarkerColor (colors[iPhi]);
-              g->SetLineColor (colors[iPhi]);
-              g->SetMarkerSize (1);
-              g->SetLineWidth (2);
-            } else {
-              g->SetMarkerSize (0); 
-              g->SetLineWidth (1);
-              g->SetLineColor (colors[iPhi]);
-              g->SetFillColorAlpha (fillColors[iPhi], 0.3);
+              myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
+              myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
             }
-
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            g->GetYaxis ()->SetRangeUser (min, max);
-
-            g->GetXaxis ()->SetMoreLogLabels ();
-
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            if (useTrkPt) g->GetYaxis ()->SetTitle ("Y_{jet} (#it{p}_{T}, #Delta#phi)");
-            else g->GetYaxis ()->SetTitle ("Y_{jet} (#it{z}_{h}, #Delta#phi)");
-
-            g->GetXaxis ()->SetTitleFont (43);
-            g->GetXaxis ()->SetTitleSize (axisTextSize);
-            g->GetXaxis ()->SetLabelFont (43);
-            g->GetXaxis ()->SetLabelSize (axisTextSize);
-
-            g->GetYaxis ()->SetTitleFont (43);
-            g->GetYaxis ()->SetTitleSize (axisTextSize);
-            g->GetYaxis ()->SetLabelFont (43);
-            g->GetYaxis ()->SetLabelSize (axisTextSize);
-
-            g->GetXaxis ()->SetTitleOffset (2.5 * g->GetXaxis ()->GetTitleOffset ());
-            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
-
-            if (!plotAsSystematic) {
-              string drawString = string (!canvasExists && iPhi == numPhiBins-1 ? "AP" : "P");
-              g->Draw (drawString.c_str ());
-            } else {
-              string drawString = string (!canvasExists && iPhi == numPhiBins-1 ? "A5P" : "5P");
-              ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
-              g->Draw ("2P");
-            }
-          } // end loop over phi
-        }
-
-        bottomPad->cd ();
-        GetDrawnObjects ();
-        plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
-        gPad->SetLogx ();
-        gPad->SetLogy ();
-
-        min = 1e30, max = 0;
-        GetMinAndMax (min, max, true);
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max) max = h->GetMaximum ();
-        } // end loop over phi
-        //delta = max - min;
-        //min = min - 0.3*delta;
-        //max = max + 0.3*delta;
-        delta = log10 (max) - log10 (min);
-        min = pow (10, log10 (min) - 0.1*delta);
-        max = pow (10, log10 (max) + 0.1*delta);
-        SetMinAndMax (min, max);
-
-        if (plotFill) {
-          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            TH1D* h = useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
-
-            if (!h) continue;
-
-            h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-            h->SetLineColor (kBlack);
-            h->SetMarkerSize (0);
-            h->SetLineWidth (0);
-            h->SetMarkerStyle (kFullCircle);
-
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            h->GetYaxis ()->SetRangeUser (min, max);
-
-            h->GetXaxis ()->SetMoreLogLabels ();
-
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            h->GetYaxis ()->SetTitle ("Y_{jet} / Y_{total}");
-
-            h->GetXaxis ()->SetTitleFont (43);
-            h->GetXaxis ()->SetTitleSize (axisTextSize);
-            h->GetXaxis ()->SetLabelFont (43);
-            h->GetXaxis ()->SetLabelSize (axisTextSize);
-
-            h->GetYaxis ()->SetTitleFont (43);
-            h->GetYaxis ()->SetTitleSize (axisTextSize);
-            h->GetYaxis ()->SetLabelFont (43);
-            h->GetYaxis ()->SetLabelSize (axisTextSize);
-
-            h->GetXaxis ()->SetTitleOffset (2.6 * h->GetXaxis ()->GetTitleOffset ());
-            h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
-
-            h->DrawCopy (plotNewAxes && iPhi == numPhiBins-1 ? "bar" : "bar same");
-            h->SetLineWidth (1);
-            h->Draw ("hist same");
-          } // end loop over phi
-          gPad->RedrawAxis ();
-        } else {
-          for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TGAE* g = GetTGAE (useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
-            RecenterGraph (g);
-
-            if (!plotAsSystematic) {
-              ResetXErrors (g);
-              g->SetMarkerStyle (markerStyle);
-              g->SetMarkerColor (colors[iPhi]);
-              g->SetLineColor (colors[iPhi]);
-              g->SetMarkerSize (1);
-              g->SetLineWidth (2);
-            } else {
-              g->SetMarkerSize (0); 
-              g->SetLineWidth (1);
-              g->SetLineColor (colors[iPhi]);
-              g->SetFillColorAlpha (fillColors[iPhi], 0.3);
-            }
-
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            g->GetYaxis ()->SetRangeUser (min, max);
-
-            g->GetXaxis ()->SetMoreLogLabels ();
-
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            g->GetYaxis ()->SetTitle ("Y_{jet} / Y_{total}");
-
-            g->GetXaxis ()->SetTitleFont (43);
-            g->GetXaxis ()->SetTitleSize (axisTextSize);
-            g->GetXaxis ()->SetLabelFont (43);
-            g->GetXaxis ()->SetLabelSize (axisTextSize);
-
-            g->GetYaxis ()->SetTitleFont (43);
-            g->GetYaxis ()->SetTitleSize (axisTextSize);
-            g->GetYaxis ()->SetLabelFont (43);
-            g->GetYaxis ()->SetLabelSize (axisTextSize);
-
-            g->GetXaxis ()->SetTitleOffset (2.6 * g->GetXaxis ()->GetTitleOffset ());
-            g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
-
-            if (!plotAsSystematic) {
-              string drawString = string (!canvasExists && iPhi == numPhiBins-1 ? "AP" : "P");
-              g->Draw (drawString.c_str ());
-            } else {
-              string drawString = string (!canvasExists && iPhi == numPhiBins-1 ? "A5P" : "5P");
-              ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
-              g->Draw ("2P");
-            }
-          } // end loop over phi
+          }
         }
       } // end loop over cents
       
@@ -1937,12 +1819,12 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max)  max = h->GetMaximum ();
+          TH1D* h = useTrkPt ? h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+          min = fmin (min, h->GetMinimum (0));
+          max = fmax (max, h->GetMaximum ());
         } // end loop over phi
-        min = (min > 0 ? 0.5*min : 0.1);
-        max = (max > 0 ? 2*max : 1);
+        min = (min > 0 ? (canvasExists ? 0.5 : 1)*min : 0.1);
+        max = (max > 0 ? (canvasExists ? 2 : 1)*max : 1);
         SetMinAndMax (min, max);
 
         if (plotFill) {
@@ -1956,7 +1838,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
@@ -1985,7 +1867,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
           }
           gPad->RedrawAxis ();
         } else {
-          for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
             TGAE* g = GetTGAE (useTrkPt ? h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
@@ -2005,7 +1888,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
@@ -2028,18 +1911,18 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
 
             if (!plotAsSystematic) {
-              string drawString = string (!canvasExists && iPhi == 0 ? "AP" : "P");
+              string drawString = string (!canvasExists && iPhi == 1 ? "AP" : "P");
               g->Draw (drawString.c_str ());
             } else {
-              string drawString = string (!canvasExists && iPhi == 0 ? "A5P" : "5P");
+              string drawString = string (!canvasExists && iPhi == 1 ? "A5P" : "5P");
               ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
               g->Draw ("2P");
             }
           } // end loop over phi
         }
 
-        if (!canvasExists)
-          for (int iPhi = 0; iPhi < numPhiBins; iPhi++)
+        if (!canvasExists || plotFill)
+          for (int iPhi = 1; iPhi < numPhiBins; iPhi++)
             LabelTrkYield (iCent, iPhi);
 
         if (!plotSignal)
@@ -2055,8 +1938,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
           TH1D* h = useTrkPt ? h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max) max = h->GetMaximum ();
+          min = fmin (min, h->GetMinimum (0));
+          max = fmax (max, h->GetMaximum ());
         } // end loop over phi
         float delta = log10 (max) - log10 (min);
         min = pow (10, log10 (min) - 0.1*delta);
@@ -2076,7 +1959,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetMarkerStyle (kFullCircle);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
@@ -2126,7 +2009,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
@@ -2170,8 +2053,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
           TH1D* h = useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
-          if (h->GetMaximum () > max) max = h->GetMaximum ();
+          min = fmin (min, h->GetMinimum (0));
+          max = fmax (max, h->GetMaximum ());
         } // end loop over phi
         //delta = max - min;
         //min = min - 0.3*delta;
@@ -2194,14 +2077,14 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetMarkerStyle (kFullCircle);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            h->GetYaxis ()->SetTitle ("Y_{jet} / Y_{total}");
+            h->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{total}/d#Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2242,14 +2125,14 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
-            g->GetYaxis ()->SetTitle ("Y_{jet} / Y_{total}");
+            g->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{bkg}/d#Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2298,20 +2181,21 @@ void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
   if (iCent == 0)
     myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
   else if (iCent == numCentBins-1) {
-    if (iPhi == 0) {
+    if (iPhi == 1) {
       //myText (0.35, 0.91, kBlack, "Z-tagged", 0.054);
-      ////myText (0.45, 0.91, kBlack, "Truth", 0.06);
+      //myText (0.44, 0.91, kBlack, "Reco.", 0.06);
+      //myText (0.57, 0.91, kBlack, "Truth", 0.06);
       //myText (0.544, 0.91, kBlack, "Minbias", 0.054);
       //myText (0.703, 0.91, kBlack, "#Delta#phi", 0.054);
 
       TVirtualPad* cPad = gPad; // store current pad
       myText (0.653, 0.91, kBlack, "#Delta#phi", 0.054);
-      TBox* b = TBoxNDC (0.598-0.018, 0.85-0.06*numPhiBins-0.016, 0.598+0.018, 0.85-0.06*numPhiBins+0.016);
+      TBox* b = TBoxNDC (0.598-0.018, 0.91-0.06*numPhiBins-0.016, 0.598+0.018, 0.91-0.06*numPhiBins+0.016);
       b->SetFillColorAlpha (fillColors[0], fillAlpha);
       b->Draw ("l");
       cPad->cd ();
 
-      myText (0.65, 0.85-0.06*numPhiBins, kBlack, "MinBias", 0.054);
+      myText (0.65, 0.91-0.06*numPhiBins, kBlack, "Minimum Bias", 0.054);
     }
 
     const char* lo = GetPiString (phiLowBins[iPhi]);
@@ -2324,8 +2208,11 @@ void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
     //myMarkerText (0.462, 0.852-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
     //myText (0.70, 0.85-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
 
-    myMarkerText (0.62, 0.852-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
-    myText (0.65, 0.85-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
+    myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
+
+    //myMarkerText (0.52, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
+    //myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.5, 0.054);
+    myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
     //cPad->cd ();
   }
 }
@@ -2349,7 +2236,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
           if (!h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* PbPbHist = (TH1D*)(h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
+            TH1D* PbPbHist = (TH1D*)(h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
             PbPbHist->Divide (ppHist);
             h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
           } 
@@ -2397,7 +2284,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 500*(numCentBins-1), 500);
+        c = new TCanvas (canvasName, "", 500*(numCentBins-1), 502);
         c->Divide (numCentBins-1, 1);
         gDirectory->Add (c);
       }
@@ -2416,8 +2303,8 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            h->GetYaxis ()->SetRangeUser (0, 2.4);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            h->GetYaxis ()->SetRangeUser (0, 1.4);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2468,8 +2355,8 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            g->GetYaxis ()->SetRangeUser (0, 2.4);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            g->GetYaxis ()->SetRangeUser (0, 1.4);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2596,8 +2483,8 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            h->GetYaxis ()->SetRangeUser (0, 2.4);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            h->GetYaxis ()->SetRangeUser (0, 1.4);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2650,8 +2537,8 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
-            g->GetYaxis ()->SetRangeUser (0, 2.4);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            g->GetYaxis ()->SetRangeUser (0, 1.4);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2742,7 +2629,7 @@ void PhysicsAnalysis :: CalculateICP () {
 
         for (short iCent = 2; iCent < numCentBins; iCent++) {
           if (!h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* centHist = (TH1D*)(h_z_trk_raw_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
+            TH1D* centHist = (TH1D*)(h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
             centHist->Divide (periphHist);
             h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent] = centHist;
           }
@@ -2811,7 +2698,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
 
             h->GetXaxis ()->SetMoreLogLabels ();
@@ -2863,7 +2750,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
 
             g->GetXaxis ()->SetMoreLogLabels ();
@@ -2989,7 +2876,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
 
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
 
             h->GetXaxis ()->SetMoreLogLabels ();
@@ -3041,7 +2928,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             }
 
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (xZTrkBins[0], xZTrkBins[nXZTrkBins]);
+            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
 
             g->GetXaxis ()->SetMoreLogLabels ();

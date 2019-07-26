@@ -25,6 +25,15 @@ class MinbiasAnalysis : public FullAnalysis {
     backgroundSubtracted = true;
     useHITight = _useHITight;
     LoadTrackingEfficiencies ();
+
+    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+    TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+    h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_minbias");
+    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+      h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_minbias", iCent));
+    }
+    h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
+
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -43,14 +52,6 @@ class MinbiasAnalysis : public FullAnalysis {
 // Main macro. Loops over minbias trees and fills histograms appropriately. (NEW VERSION)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: Execute () {
-  SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_minbias");
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-    h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_minbias", iCent));
-  }
-  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -64,6 +65,7 @@ void MinbiasAnalysis :: Execute () {
   int ntrk = 0;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
   vector<float>* trk_yield = nullptr, *trk_var = nullptr;
+  vector<float>* trk_zh_yield = nullptr, *trk_zh_var = nullptr;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,8 +75,10 @@ void MinbiasAnalysis :: Execute () {
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
     PbPbTree->SetBranchAddress ("q2",         &q2);
     PbPbTree->SetBranchAddress ("vz",         &vz);
-    PbPbTree->SetBranchAddress ("trk_yield",  &trk_yield);
-    PbPbTree->SetBranchAddress ("trk_var",    &trk_var);
+    PbPbTree->SetBranchAddress ("trk_pt_yield",  &trk_yield);
+    PbPbTree->SetBranchAddress ("trk_pt_var",    &trk_var);
+    PbPbTree->SetBranchAddress ("trk_zh_yield",  &trk_zh_yield);
+    PbPbTree->SetBranchAddress ("trk_zh_var",    &trk_zh_var);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -105,7 +109,7 @@ void MinbiasAnalysis :: Execute () {
         continue;
 
       fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
-      q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
+      //q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
 
       event_weight = fcal_weight * q2_weight * vz_weight;
       //event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
@@ -126,17 +130,26 @@ void MinbiasAnalysis :: Execute () {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent];
-        //for (int iPhiTrk = 0; iPhiTrk < 3; iPhiTrk++) {
-          for (int iPtTrk = 0; iPtTrk < 7; iPtTrk++) {
-            const int iPhi = 0;
-            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*iPhi) * event_weight);
-            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk+7*iPhi) * pow (event_weight, 2)));
-          } // end loop over PtTrk bins
-        //} // end loop over dPhiTrk (from grid)
+      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+        } // end loop over PtTrk bins
+        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+        for (int iZH = 0; iZH < nZHBins; iZH++) {
+          h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
+          h->SetBinError (iZH+1, sqrt (pow (h->GetBinError (iZH+1), 2) + trk_zh_var->at (iZH) * pow (event_weight, 2)));
+        } // end loop over ZH bins
       } // end loop over dPhi bins
 
+      for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        for (int iPhi = 0; iPhi < h->GetNbinsX (); iPhi++) {
+          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
+          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
+        }
+      }
     } // end loop over Pb+Pb tree
     cout << "Done minbias Pb+Pb loop." << endl;
   }
@@ -158,7 +171,7 @@ void MinbiasAnalysis :: Execute () {
       const short iPtZ = nPtZBins-1;
       const short iCent = 0; // iCent = 0 for pp
 
-      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+      //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
       event_weight = nch_weight;
 
@@ -171,16 +184,21 @@ void MinbiasAnalysis :: Execute () {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent];
-        //for (int iPhiTrk = 0; iPhiTrk < 3; iPhiTrk++) {
-          for (int iPtTrk = 0; iPtTrk < 7; iPtTrk++) {
-            const int iPhi = 0;
-            h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk+7*iPhi) * event_weight);
-            h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk+7*iPhi) * pow (event_weight, 2)));
-          } // end loop over PtTrk bins
-        //} // end loop over dPhiTrk (from grid)
+      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+        } // end loop over PtTrk bins
       } // end loop over dPhi bins
+
+      for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++) {
+          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+        }
+      }
     } // end loop over pp tree
     cout << "Done minbias pp loop." << endl;
   }
@@ -210,6 +228,10 @@ void MinbiasAnalysis :: CombineHists () {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][iPhi][iCent]);
         } // end loop over phi
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][nPtZBins-1][iPtTrk][iCent]);
+        }
         
         h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][nPtZBins-1][iCent]);
       } // end loop over pT^Z
@@ -239,28 +261,36 @@ void MinbiasAnalysis :: ScaleHists () {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
             h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
+            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
           }
         } // end loop over phi
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+          const double yieldNormFactor = countsHist->GetBinContent (1);
+          if (yieldNormFactor > 0)
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Scale (1. / yieldNormFactor);
+        }
       } // end loop over pT^Z
     } // end loop over centralities
   } // end loop over species
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-          for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
-            h->SetBinContent (ix, 1);
-            h->SetBinError (ix, 0);
-          }
+  //for (short iSpc = 0; iSpc < 3; iSpc++) {
+  //  for (short iCent = 0; iCent < numCentBins; iCent++) {
+  //    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+  //      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+  //        TH1D* h = h_z_trk_zh[iSpc][iPtZ][iPhi][iCent];
+  //        for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+  //          h->SetBinContent (ix, 1);
+  //          h->SetBinError (ix, 0);
+  //        }
 
-          double sf = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Integral ("width");
-          h->Scale (sf / 0.99);
-        }
-      }
-    }
-  }
+  //        double sf = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Integral ("width");
+  //        h->Scale (sf / 0.99);
+  //      }
+  //    }
+  //  }
+  //}
 
   histsScaled = true;
   return;
@@ -275,7 +305,7 @@ void MinbiasAnalysis :: ScaleHists () {
 void MinbiasAnalysis :: GenerateWeights () {
   const int gw_nFCalBins = 100;
   const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
-  const int gw_nQ2Bins = 50;
+  const int gw_nQ2Bins = 20;
   const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
 
   const int gw_nNchBins = 160;
@@ -323,7 +353,10 @@ void MinbiasAnalysis :: GenerateWeights () {
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
     PbPbTree->SetBranchAddress ("q2",         &q2);
     PbPbTree->SetBranchStatus ("vz",          0);
-    PbPbTree->SetBranchStatus ("trk_yield",   0);
+    PbPbTree->SetBranchStatus ("trk_pt_yield",   0);
+    PbPbTree->SetBranchStatus ("trk_pt_var",   0);
+    PbPbTree->SetBranchStatus ("trk_zh_yield",   0);
+    PbPbTree->SetBranchStatus ("trk_zh_var",   0);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -380,7 +413,9 @@ void MinbiasAnalysis :: GenerateWeights () {
     for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
       for (int ix = 1; ix <= _h_PbPbQ2_weights[iCent]->GetNbinsX (); ix++) {
         const double q2_weight = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? referenceQ2Dist[iCent]->GetBinContent (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix) : 0);
+        const double q2_weight_err = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? q2_weight * sqrt (pow (_h_PbPbQ2Dist[iCent]->GetBinError (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix), 2) + pow (referenceQ2Dist[iCent]->GetBinError (ix) / referenceQ2Dist[iCent]->GetBinContent (ix), 2)) : 0);
         _h_PbPbQ2_weights[iCent]->SetBinContent (ix, q2_weight);
+        _h_PbPbQ2_weights[iCent]->SetBinError (ix, q2_weight_err);
       }
     }
 
@@ -405,6 +440,9 @@ void MinbiasAnalysis :: GenerateWeights () {
       _h_ppNchDist->Fill (ntrk);//, event_weight);
     }
     cout << "Done pp loop." << endl;
+
+    if (_h_ppNchDist->Integral () > 0)
+      _h_ppNchDist->Scale (1./_h_ppNchDist->Integral ());
 
     if (name == "data") {
       for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {

@@ -1,5 +1,4 @@
-CXX=clang++
-CXXFLAGS=-shared -g -Wall `root-config --cflags` -I$(ATLAS_PATH)/include
+CXXFLAGS=-shared -g -Wall `root-config --cflags` -I$(ATLAS_PATH)/include -fPIC
 LDFLAGS=`root-config --glibs` -L$(ATLAS_PATH)/lib
 
 CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)

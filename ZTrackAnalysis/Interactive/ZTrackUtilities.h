@@ -20,15 +20,15 @@ short GetidPhi (const float dphi) {
 }
 
 
-short GetiXZTrk (const float xZTrk) {
-  short iXZTrk = 0;
-  while (iXZTrk < nXZTrkBins) {
-    if (xZTrkBins[iXZTrk+1] < xZTrk)
-      iXZTrk++;
+short GetiZH (const float zH) {
+  short iZH = 0;
+  while (iZH < nZHBins) {
+    if (zHBins[iZH+1] < zH)
+      iZH++;
     else
       break;
   }
-  return iXZTrk;
+  return iZH;
 }
 
 
@@ -44,15 +44,6 @@ TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y
   p->cd ();
   TBox* b = new TBox (x1, y1, x2, y2);
   return b;
-}
-
-
-void ResetXErrors (TGraphAsymmErrors* tg) {
-  for (int ix = 0; ix < tg->GetN (); ix++) {
-    tg->SetPointEXlow (ix, 0);
-    tg->SetPointEXhigh (ix, 0);
-  }
-  return;
 }
 
 

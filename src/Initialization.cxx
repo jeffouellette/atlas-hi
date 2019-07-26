@@ -31,7 +31,7 @@ void SetupTriggers (const int runNumber) {
   double trigLetaFloat, trigUetaFloat; 
   int trigMinPt, trigThresholdPt, trigLowerRunNumber, trigUpperRunNumber = 0;
 
-  Trigger* minbiasTrigger = new Trigger(minbiasTriggerName, 0, -4.9, 4.9, 0, INT_MAX);
+  Trigger* minbiasTrigger = new Trigger(minbiasTriggerName, 0, -4.9, 4.9, 0, 2147483647);
   minbiasTrigger->referenceTrigger = minbiasTrigger;
   minbiasTrigger->disabled = false;
   triggerVec.push_back(minbiasTrigger);

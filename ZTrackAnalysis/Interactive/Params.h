@@ -132,10 +132,8 @@ const double zPtBins[4] = {0, 5, 25, 10000};
 //const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
-//const double xZTrkBins[6] = {0, 0.2, 0.4, 0.6, 0.8, 1};
-//const double xZTrkBins[2] = {0, 10000};
-//const int nXZTrkBins = sizeof (xZTrkBins) / sizeof (xZTrkBins[0]) - 1;
-const int nXZTrkBins = 6;
-const double* xZTrkBins = logspace (0.01, 1, nXZTrkBins);
+//const int nZHBins = sizeof (zHBins) / sizeof (zHBins[0]) - 1;
+const int nZHBins = 6;
+const double* zHBins = logspace (0.01, 1, nZHBins);
 
 #endif

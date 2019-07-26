@@ -265,6 +265,29 @@ void ResetHistErrors (TH1D* h) {
 
 
 /**
+ * Sets all the errors in this TGraphAsymmErrors to 0.
+ */
+void ResetTGAEErrors (TGraphAsymmErrors* g) {
+  for (int ix = 0; ix < g->GetN (); ix++) {
+    g->SetPointEYhigh (ix, 0);
+    g->SetPointEYlow (ix, 0);
+  }
+}
+
+
+/**
+ * Sets all the x errors in this TGAE to 0.
+ */
+void ResetXErrors (TGraphAsymmErrors* tg) {
+  for (int ix = 0; ix < tg->GetN (); ix++) {
+    tg->SetPointEXlow (ix, 0);
+    tg->SetPointEXhigh (ix, 0);
+  }
+  return;
+}
+
+
+/**
  * Adds nSigma statistical error variations to this histogram
  */
 void AddStatVar (TH1D* h, const bool upvar, const float nSigma) {
@@ -293,6 +316,26 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
 
 
 /**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddErrorsInQuadrature (TGraphAsymmErrors* master, TGraphAsymmErrors* sys) {
+  for (int ix = 0; ix < master->GetN (); ix++) {
+    //double xm=0, ym=0, xs=0, ys=0;
+    //master->GetPoint (ix, xm, ym);
+    //sys->GetPoint (ix, xs, ys);
+
+    //if (xm != xs || ym != ys)
+    //  cout << "Warning: In Utilities.cxx::AddErrorsInQuadrature: Bins don't match!" << endl;
+
+    float newErr = sqrt (pow (master->GetErrorYhigh (ix), 2) + pow (sys->GetErrorYhigh (ix), 2));
+    master->SetPointEYhigh (ix, newErr);
+    newErr = sqrt (pow (master->GetErrorYlow (ix), 2) + pow (sys->GetErrorYlow (ix), 2));
+    master->SetPointEYlow (ix, newErr);
+  }
+}
+
+
+/**
  * Calculates simple systematics as maximum variations on the nominal.
  * Intended for combining up/down variations in an expandable way.
  */
@@ -300,6 +343,25 @@ void CalcSystematics (TH1D* sys, TH1D* var) {
   for (int ix = 1; ix <= sys->GetNbinsX (); ix++) {
     const float newErr = fabs (var->GetBinContent (ix) - sys->GetBinContent (ix));
     sys->SetBinError (ix, fmax (newErr, sys->GetBinError (ix)));
+  }
+}
+
+
+/**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ * dir represents the variation direction, -1 = down, 0 = either, 1 = up
+ */
+void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const short dir) {
+  for (int ix = 0; ix < sys->GetN (); ix++) {
+    double x, y;
+    sys->GetPoint (ix, x, y);
+    const float newErr = fabs (var->GetBinContent (ix+1) - y);
+
+    if (dir != -1) // if not a "down" variation set the "up" variation
+      sys->SetPointEYhigh (ix, fmax (newErr, sys->GetErrorYhigh (ix)));
+    if (dir != 1)  // if not a "up" variation set the "down" variation
+      sys->SetPointEYlow (ix, fmax (newErr, sys->GetErrorYlow (ix)));
   }
 }
 
@@ -379,6 +441,26 @@ void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
     if (centralValues->GetBinContent (ix) != 0)
       errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
     errors->SetBinError (ix, 0);
+  }
+}
+
+
+/**
+ * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
+ */
+void SaveRelativeErrors (TGraphAsymmErrors* errors, TGraphAsymmErrors* centralValues, TH1D* highs, TH1D* lows) {
+  for (int ix = 0; ix < centralValues->GetN (); ix++) {
+    double x = 0, y = 0, eyhi = 0, eylo = 0;
+    centralValues->GetPoint (ix, x, y);
+    eyhi = errors->GetErrorYhigh (ix);
+    eylo = errors->GetErrorYlow (ix);
+
+    if (y != 0) {
+      highs->SetBinContent (ix+1, eyhi / y);
+      lows->SetBinContent (ix+1, -eylo / y);
+    }
+    highs->SetBinError (ix+1, 0);
+    lows->SetBinError (ix+1, 0);
   }
 }
 

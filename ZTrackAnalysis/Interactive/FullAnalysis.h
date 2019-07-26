@@ -86,10 +86,11 @@ class FullAnalysis : public PhysicsAnalysis {
   virtual void ScaleHists () override;
   virtual void Execute () override;
 
-  void PrintZYields ();
+  //void PrintZYields ();
 
   void PlotFCalDists (const char* plotTag = "data");
   void PlotQ2Dists (const char* plotTag = "data");
+  void PlotQ2Weights ();
   void PlotVZDists (const char* plotTag = "data");
   void PlotNchDists (const char* plotTag = "data");
 
@@ -157,7 +158,7 @@ void FullAnalysis :: CreateHists () {
       h_lepton_pt[iCent][iSpc]      = new TH1D (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
       h_lepton_trk_pt[iCent][iSpc]  = new TH1D (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
       h_trk_pt[iCent][iSpc]         = new TH1D (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0, 100);
-      h_lepton_trk_dr[iCent][iSpc]  = new TH2D (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 40, 0., 1., 50, 2., 52.);
+      h_lepton_trk_dr[iCent][iSpc]  = new TH2D (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 40, 0., 1., 40, 0, 2);
       
       h_z_phi[iCent][iSpc]->Sumw2 ();
       h_z_pt[iCent][iSpc]->Sumw2 ();
@@ -519,6 +520,9 @@ void FullAnalysis :: Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
+      //if (z_m < 86 || z_m > 96)
+      //  continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       short iCent = 0;
@@ -610,13 +614,13 @@ void FullAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
@@ -652,7 +656,7 @@ void FullAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -661,7 +665,11 @@ void FullAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -707,8 +715,16 @@ void FullAnalysis :: Execute () {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
+      //if (z_m < 86 || z_m > 96)
+      //  continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
+
+      if (z_pt > 25) {
+        h_pp_nch->Fill (ntrk);
+        h_pp_nch_reweighted->Fill (ntrk, event_weight);
+      }
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -767,13 +783,13 @@ void FullAnalysis :: Execute () {
               //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
             }
           }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, trkpt);
+          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
@@ -808,8 +824,10 @@ void FullAnalysis :: Execute () {
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+            //if (idPhi == 0 && trkpt > 40)
+            //  cout << "event: " << iEvt << endl;
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -818,7 +836,11 @@ void FullAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -979,13 +1001,60 @@ void FullAnalysis :: PlotQ2Dists (const char* plotTag) {
 
   }
 
-  myText (0.41, 0.31, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-  myText (0.41, 0.23, kBlack, "Pb+Pb, 5.02 TeV", 0.05);
+  myText (0.52, 0.31, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.52, 0.23, kBlack, "Pb+Pb, 5.02 TeV", 0.05);
   //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
   c->SaveAs (Form ("%s/Q2Dists.pdf", plotPath.Data ()));
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Q2 weights
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotQ2Weights () {
+  const char* canvasName = "c_q2_weights";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1200, 1200);
+    gDirectory->Add (c);
+    c->Divide (3,3);
+  }
+
+  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+    c->cd (numFinerCentBins-iCent);
+
+    TH1D* h = h_PbPbQ2_weights[iCent];
+    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+
+    h->SetMarkerColor (colors[iCent]);
+    h->SetLineColor (colors[iCent]);
+
+    h->GetXaxis ()->SetTitle ("#left|#it{q}_{2}#right|");
+    h->GetYaxis ()->SetTitle ("Event Weight");
+
+    h->Draw (!canvasExists ? "e1" : "same e1");
+
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+  }
+
+  c->cd (1);
+
+  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+
+  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
+
+}
+
 
 
 
@@ -1083,7 +1152,10 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
 
   gPad->SetLogy ();
 
-  h_pp_nch->SetLineColor (kBlack);
+  if (strcmp (plotTag, "data") == 0)
+    h_pp_nch->SetLineColor (kBlack);
+  else
+    h_pp_nch->SetLineColor (kGray+1);
 
   h_pp_nch->GetXaxis ()->SetTitle ("N_{ch}");
   h_pp_nch->GetYaxis ()->SetTitle ("Events");
@@ -1091,7 +1163,7 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
   h_pp_nch->Draw (canvasExists ? "same hist" : "hist");
 
   if (strcmp (plotTag, "data") != 0) {
-    h_pp_nch_reweighted->SetLineColor (kBlue);
+    h_pp_nch_reweighted->SetLineColor (kRed+1);
 
     h_pp_nch_reweighted->GetXaxis ()->SetTitle ("N_{ch}");
     h_pp_nch_reweighted->GetYaxis ()->SetTitle ("Events");
@@ -1100,8 +1172,9 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
   }
 
   myText (0.68, 0.88, kBlack, "#it{pp}, 5.02 TeV", 0.04);
-  //myText (0.18, 0.81, kBlack, "Z-tagged data", 0.04);
-  myText (0.68, 0.81, kBlack, "Minimum bias", 0.04);
+  myText (0.68, 0.81, kBlack, "Z-tagged data", 0.04);
+  myText (0.68, 0.74, kGray+1, "Minimum bias", 0.04);
+  myText (0.68, 0.67, kRed+1, "MB Reweighted", 0.04);
 
   c->SaveAs (Form ("%s/NchDist_%s.pdf", plotPath.Data (), plotTag));
 }
@@ -1240,8 +1313,8 @@ void FullAnalysis :: PlotLeptonTrackDR () {
       h2->RebinX (2);
       h2->RebinY (2);
       h2->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      h2->GetYaxis ()->SetTitle ("#it{p}_{T}^{h} [GeV]");
-      //h2->GetYaxis ()->SetTitle ("|#Delta#it{p}_{T}| / <#it{p}_{T}>");
+      //h2->GetYaxis ()->SetTitle ("#it{p}_{T}^{h} [GeV]");
+      h2->GetYaxis ()->SetTitle ("|#Delta#it{p}_{T}| / <#it{p}_{T}>");
       //h2->GetYaxis ()->SetTitle ("#Delta#phi");
       h2->GetZaxis ()->SetTitle ("Counts");
 
@@ -1487,21 +1560,21 @@ void FullAnalysis :: PlotZPtSpectra () {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Prints yield of Z's that meet the event selection criteria in each centrality
-////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PrintZYields () {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "Z->ee" : (iSpc == 1 ? "Z->mumu" : "Z->ll"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      float yield = h_z_counts[iSpc][2][iCent]->GetBinContent (2);
-      if (iCent == 0) 
-        cout << "pp " << spc << " # Z's > 25 GeV  =  " << yield << endl;
-      else
-        cout << Form ("Pb+Pb %i-%i%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]) << spc << " # Z's > 25 GeV  =  " << yield << endl;
-    }
-  }
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Prints yield of Z's that meet the event selection criteria in each centrality
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void FullAnalysis :: PrintZYields () {
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "Z->ee" : (iSpc == 1 ? "Z->mumu" : "Z->ll"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      float yield = h_z_counts[iSpc][2][iCent]->GetBinContent (2);
+//      if (iCent == 0) 
+//        cout << "pp " << spc << " # Z's > 25 GeV  =  " << yield << endl;
+//      else
+//        cout << Form ("Pb+Pb %i-%i%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]) << spc << " # Z's > 25 GeV  =  " << yield << endl;
+//    }
+//  }
+//}
 
 
 
@@ -1878,7 +1951,7 @@ void FullAnalysis :: PlotZMassSpectra () {
           //h->GetYaxis ()->SetRangeUser (0, 1.3);
           h->GetYaxis ()->SetRangeUser (0, 0.12);
 
-          h->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
+          h->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           //h->GetYaxis ()->SetTitle ("Arb. Units");
           h->GetYaxis ()->SetTitle ("Counts / Total");
           h->GetXaxis ()->SetTitleSize (0.04/0.6);
@@ -1908,7 +1981,7 @@ void FullAnalysis :: PlotZMassSpectra () {
           //g->GetYaxis ()->SetRangeUser (0, 1.3);
           g->GetYaxis ()->SetRangeUser (0, 0.12);
 
-          g->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
+          g->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           //g->GetYaxis ()->SetTitle ("Arb. Units");
           g->GetYaxis ()->SetTitle ("Counts / Total");
           g->GetXaxis ()->SetTitleSize (0.04/0.6);
@@ -1937,7 +2010,7 @@ void FullAnalysis :: PlotZMassSpectra () {
           g->SetMarkerColor (kBlack);
           g->GetYaxis ()->SetRangeUser (0.5, 1.5);
 
-          g->GetXaxis ()->SetTitle ("m_{Z} [GeV]");
+          g->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           g->GetYaxis ()->SetTitle ("Data / MC");
           g->GetXaxis ()->SetTitleSize (0.04/0.4);
           g->GetYaxis ()->SetTitleSize (0.04/0.4);
@@ -1975,9 +2048,9 @@ void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, con
     myText (0.22, 0.75, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
   if (iReg == 0)
-    myText (0.22, 0.65, kBlack, "#left|y_{Z}#right| < 1", 0.04/0.6);
+    myText (0.22, 0.65, kBlack, Form ("#left|y_{%s}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
   else if (iReg == 1)
-    myText (0.22, 0.65, kBlack, "#left|y_{Z}#right| > 1", 0.04/0.6);
+    myText (0.22, 0.65, kBlack, Form ("#left|y_{%s}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
 }
 
 

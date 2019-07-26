@@ -95,6 +95,18 @@ void ResetHistErrors (TH1D* h);
 
 
 /**
+ * Sets all the errors in this TGAE to 0.
+ */
+void ResetTGAEErrors (TGraphAsymmErrors* g);
+
+
+/**
+ * Sets all the x errors in this TGAE to 0.
+ */
+void ResetXErrors (TGraphAsymmErrors* tg);
+
+
+/**
  * Adds nSigma statistical error variations to this histogram
  */
 void AddStatVar (TH1D* h, const bool upvar = true, const float nSigma = 1);
@@ -107,10 +119,23 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys);
 
 
 /**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddErrorsInQuadrature (TGraphAsymmErrors* master, TGraphAsymmErrors* sys);
+
+
+/**
  * Calculates simple systematics as maximum variations on the nominal.
  * Intended for combining up/down variations in an expandable way.
  */
 void CalcSystematics (TH1D* sys, TH1D* var);
+
+
+/**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ */
+void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const short dir = 0);
 
 
 /**
@@ -129,6 +154,12 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal
  * Sets the bin contents in target as the error / central values in centralValues
  */
 void SaveRelativeErrors (TH1D* errors, TH1D* centralValues);
+
+
+/**
+ * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
+ */
+void SaveRelativeErrors (TGraphAsymmErrors* errors, TGraphAsymmErrors* centralValues, TH1D* highs, TH1D* lows);
 
 
 /**

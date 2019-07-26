@@ -17,7 +17,7 @@ void SafeWrite (TObject* tobj) {
 
 const int gw_nFCalBins = 100;
 const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
-const int gw_nQ2Bins = 50;
+const int gw_nQ2Bins = 20;
 const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
 
 const int gw_nNchBins = 160;
@@ -192,8 +192,10 @@ void GenerateWeights (const TString name) {
 
   if (ppTree) {
     float event_weight = 0;
+    float zpt = 0;
     int ntrk = 0;
     ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("z_pt", &zpt);
     ppTree->SetBranchAddress ("ntrk", &ntrk);
 
     const int nEvts = ppTree->GetEntries ();
@@ -201,6 +203,9 @@ void GenerateWeights (const TString name) {
       if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
+
+      if (zpt < 25)
+        continue; // candidate events
 
       h_ppNchDist->Fill (ntrk, event_weight);
     }

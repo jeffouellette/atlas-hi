@@ -23,6 +23,15 @@ class MCAnalysis : public FullAnalysis {
     useAltMarker = false;
     useHITight = _useHITight;
     LoadTrackingEfficiencies ();
+
+    SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+    TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+    h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_mc");
+    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+      h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_mc", iCent));
+    }
+    h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_mc");
+
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -34,14 +43,6 @@ class MCAnalysis : public FullAnalysis {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute () {
-  SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_mc");
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-    h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_mc", iCent));
-  }
-  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_mc");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -63,6 +64,7 @@ void MCAnalysis :: Execute () {
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
+    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",      &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",   &fcal_et);
     PbPbTree->SetBranchAddress ("q2",        &q2);
@@ -128,9 +130,9 @@ void MCAnalysis :: Execute () {
       }
 
       fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
-      q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
+      //q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
 
-      event_weight = fcal_weight * q2_weight * vz_weight;
+      event_weight *= fcal_weight * q2_weight * vz_weight;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -190,9 +192,9 @@ void MCAnalysis :: Execute () {
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
@@ -228,7 +230,7 @@ void MCAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -237,7 +239,11 @@ void MCAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -255,6 +261,7 @@ void MCAnalysis :: Execute () {
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
+    ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("isEE",      &isEE);
     ppTree->SetBranchAddress ("vz",        &vz);
     ppTree->SetBranchAddress ("z_pt",      &z_pt);
@@ -297,9 +304,9 @@ void MCAnalysis :: Execute () {
           iPtZ++;
       }
 
-      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+      //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
-      event_weight = vz_weight * nch_weight;
+      event_weight *= vz_weight * nch_weight;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -351,9 +358,9 @@ void MCAnalysis :: Execute () {
           //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
-        const float xZTrk = trkpt / z_pt;
-        const short iXZTrk = GetiXZTrk (xZTrk);
-        if (iXZTrk < 0 || iXZTrk > nXZTrkBins-1)
+        const float zH = trkpt / z_pt;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
@@ -389,7 +396,7 @@ void MCAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xZTrk, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -398,7 +405,11 @@ void MCAnalysis :: Execute () {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
         
       } // end loop over tracks
 
