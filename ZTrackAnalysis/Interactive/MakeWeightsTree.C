@@ -1,4 +1,3 @@
-
 /**
  * Takes in a file path and file pattern, and "adds" all the TTrees together in a TChain and slims it down for generating event-level weights.
  */
@@ -75,4 +74,9 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
 
   outTree->SetDirectory (outFile);
   outFile->Close ();
+}
+
+
+void MakeMinbiasWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal", "3*.root");
 }
