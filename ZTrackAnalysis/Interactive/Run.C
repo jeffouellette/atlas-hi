@@ -10,18 +10,13 @@
 
 #include "Systematic.h"
 
-const bool doSys = true;
+const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data = nullptr;
 MCAnalysis* mc = nullptr;
 MinbiasAnalysis* bkg = nullptr;
 TruthAnalysis* truth = nullptr;
-
-//PhysicsAnalysis* data_samesign = nullptr;
-//FullAnalysis* data_dr10 = nullptr, *data_dr20 = nullptr, *data_dr02 = nullptr;
-//MCAnalysis* mc_dr10 = nullptr, *mc_dr20 = nullptr;
-//MinbiasAnalysis* bkg_nch = nullptr;
 
 // master systematics objects
 Systematic* combSys = nullptr;
@@ -53,17 +48,6 @@ void Run () {
   bkg     = new MinbiasAnalysis ();
   truth   = new TruthAnalysis ();
 
-  //bkg_nch = new MinbiasAnalysis ("bkg_nch", "Nominal/NchWeighted");
-
-  //data_samesign         = new PhysicsAnalysis ("data_samesign", "Variations/SameSignLeptons");
-
-  //data_dr10 = new DataAnalysis ("data_dr10", "Variations/TracksDR10");
-  //mc_dr10   = new MCAnalysis ("mc_dr10", "Variations/TracksDR10");
-  //data_dr20 = new DataAnalysis ("data_dr20", "Variations/TracksDR20");
-  //mc_dr20   = new MCAnalysis ("mc_dr20", "Variations/TracksDR20");
-
-  //data_dr02 = new DataAnalysis ("data_dr02", "Variations/TracksDR02");
-
   if (doSys) {
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar", "Variations/TrackHITightWPVariation", true);
     bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar", "Variations/TrackHITightWPVariation", true);
@@ -87,15 +71,6 @@ void Run () {
   //data->Execute ();
   //truth->Execute ();
 
-  //data_samesign->Execute ();
-
-  //data_dr10->Execute ();
-  //mc_dr10->Execute ();
-  //data_dr20->Execute ();
-  //mc_dr20->Execute ();
-  //data_dr02->Execute ();
-  //bkg_nch->Execute ();
-
   if (doSys) {
     //data_trackHItight->Execute ();
     //data_electronPtUp->Execute ();
@@ -111,19 +86,9 @@ void Run () {
 
 
   data->LoadHists ();
-  //mc->LoadHists ();
+  mc->LoadHists ();
   bkg->LoadHists ();
   //truth->LoadHists ();
-
-  //data_samesign->LoadHists ();
-
-  //data_dr10->LoadHists ();
-  //mc_dr10->LoadHists ();
-  //data_dr20->LoadHists ();
-  //mc_dr20->LoadHists ();
-  //data_dr02->LoadHists ();
-
-  //bkg_nch->LoadHists ();
 
   if (doSys) {
     data_bkgStatUpVar->CopyAnalysis (data);
@@ -140,15 +105,14 @@ void Run () {
     data_bkgStatDownVar->CalculateICP ();
   }
 
-  ////data->SubtractSameSigns (data_samesign);
-  //data->SubtractBackground (bkg);
-  //data->CalculateIAA ();
-  //data->CalculateICP ();
+  data->SubtractBackground (bkg);
+  data->CalculateIAA ();
+  data->CalculateICP ();
 
-  //data->CalculateZPtDistRatio (mc);
-  //data->CalculateZEtaDistRatio ();
-  //data->CalculateZYDistRatio ();
-  //data->CalculateZMassSpectraRatio (mc);
+  data->CalculateZPtDistRatio (mc);
+  data->CalculateZEtaDistRatio ();
+  data->CalculateZYDistRatio ();
+  data->CalculateZMassSpectraRatio (mc);
 
   if (doSys) {
     data_trackHItight->LoadHists ();

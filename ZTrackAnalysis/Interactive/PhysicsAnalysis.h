@@ -57,8 +57,10 @@ class PhysicsAnalysis {
   TH1D* h_ppNch_weights     = nullptr;
 
   // Efficiencies
-  TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
-  TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numFinerCentBins); // iCent, iEta
+  TH1D*** h_trk_effs   = Get2DArray <TH1D*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_effs  = Get1DArray <TH2D*> (numFinerCentBins); // iCent, iEta
+  //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
+  //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numFinerCentBins); // iCent, iEta
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins);
 
@@ -501,8 +503,8 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iSpc = 0; iSpc < 2; iSpc++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iSpc = 0; iSpc < 2; iSpc++) {
         //for (short iZH = 0; iZH < nZHBins; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][2]->Add (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
         //}
@@ -511,7 +513,8 @@ void PhysicsAnalysis :: CombineHists () {
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          //h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
           h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
         //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
@@ -541,7 +544,6 @@ void PhysicsAnalysis :: ScaleHists () {
           TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
           const double yieldNormFactor = countsHist->GetBinContent (1) * (phiHighBins[iPhi]-phiLowBins[iPhi]);
 
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
             h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
@@ -888,9 +890,9 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   TDirectory* _gDirectory = gDirectory;
 
   if (!useHITight)
-    trkEffFile = new TFile (Form ("%s/trackingEfficiencies.root", rootPath.Data ()), "read");
+    trkEffFile = new TFile (Form ("%s/Nominal/trackingEfficiencies.root", rootPath.Data ()), "read");
   else
-    trkEffFile = new TFile (Form ("%s/Variations/HITightVar/trackingEfficiencies.root", rootPath.Data ()), "read");
+    trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingEfficiencies.root", rootPath.Data ()), "read");
 
   for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
     h2_num_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_matched_reco_tracks_iCent%i", iCent));
@@ -903,22 +905,27 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
       h2_den_trk_effs[iCent]->RebinY (2);
     }
 
-    h2_trk_effs[iCent] = new TEfficiency (*(h2_num_trk_effs[iCent]), *(h2_den_trk_effs[iCent]));
+    //h2_trk_effs[iCent] = new TEfficiency (*(h2_num_trk_effs[iCent]), *(h2_den_trk_effs[iCent]));
+    h2_trk_effs[iCent] = (TH2D*) h2_num_trk_effs[iCent]->Clone (Form ("h2_trk_eff_iCent%i", iCent));
+    h2_trk_effs[iCent]->Divide (h2_den_trk_effs[iCent]);
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      TH1* num = ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
-      TH1* den = ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
+      TH1D* num = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
+      TH1D* den = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
 
       if (iCent > 0) {
         num->Rebin (2);
         den->Rebin (2);
       }
 
-      h_trk_effs[iCent][iEta] =  new TEfficiency (*num, *den);
+      //h_trk_effs[iCent][iEta] =  new TEfficiency (*num, *den);
+      h_trk_effs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
+      h_trk_effs[iCent][iEta]->Divide (den);
+      //h_trk_effs[iCent][iEta]->SetDirectory (_gDirectory);
 
       delete num;
       delete den;
-      h_trk_effs[iCent][iEta]->SetName ("h_trk_eff_iCent%i_iEta%i");
+      //h_trk_effs[iCent][iEta]->SetName ("h_trk_eff_iCent%i_iEta%i");
       
       //h_trk_effs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
     }
@@ -947,28 +954,16 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
       return 0;
   }
 
-  //short iEta = 0;
-  //while (iEta < numEtaTrkBins) {
-  //  if (fabs (trk_eta) < etaTrkBins[iEta+1])
-  //    break;
-  //  else
-  //    iEta++;
-  //}
-  //if (iEta < 0 || iEta >= numEtaTrkBins)
-  //  return 0;
+  //TEfficiency* t = h2_trk_effs[iCent];
 
-  //if (iCent != 0)
-  //  return 1; // no efficiencies for PbPb yet...
+  //double eff = t->GetEfficiency (t->FindFixBin (trk_eta, trk_pt));
+  //if (trkEffNSigma > 0)
+  //  eff += trkEffNSigma * t->GetEfficiencyErrorUp (t->FindFixBin (trk_eta, trk_pt));
+  //else if (trkEffNSigma < 0)
+  //  eff += trkEffNSigma * t->GetEfficiencyErrorLow (t->FindFixBin (trk_eta, trk_pt));
 
-  //const double eff = h_trk_effs[iCent][iEta]->GetEfficiency (h_trk_effs[iCent][iEta]->FindFixBin (trk_pt));
-
-  TEfficiency* t = h2_trk_effs[iCent];
-
-  double eff = t->GetEfficiency (t->FindFixBin (trk_eta, trk_pt));
-  if (trkEffNSigma > 0)
-    eff += trkEffNSigma * t->GetEfficiencyErrorUp (t->FindFixBin (trk_eta, trk_pt));
-  else if (trkEffNSigma < 0)
-    eff += trkEffNSigma * t->GetEfficiencyErrorLow (t->FindFixBin (trk_eta, trk_pt));
+  TH2D* t = h2_trk_effs[iCent];
+  double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkEffNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 
   //if (eff == 0)
   //  return 1;
@@ -1298,20 +1293,24 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 //    if (iCent > 0) continue;
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      TEfficiency* eff = h_trk_effs[iCent][iEta];
+      //TEfficiency* eff = h_trk_effs[iCent][iEta];
+      TH1D* eff = h_trk_effs[iCent][iEta];
 
       eff->SetLineColor (colors[iEta]);
       eff->SetMarkerColor (colors[iEta]);
       eff->SetMarkerSize (0);
 
       eff->SetTitle (";#it{p}_{T} [GeV];Reco. Eff.");
+      eff->GetXaxis ()->SetRangeUser (0.5, 65);
+      eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      eff->Draw (iEta == 0 ? "APL" : "LP same");
+      eff->Draw (iEta == 0 ? "e1" : "same e1");
+      //eff->Draw (iEta == 0 ? "APL" : "LP same");
 
-      gPad->Update ();
+      //gPad->Update ();
 
-      eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 80);
-      eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
+      //eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
+      //eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
       LabelTrackingEfficiencies (iCent, iEta);
     }
@@ -1346,7 +1345,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
     //if (iCent > 0) continue;
     gPad->SetLogy ();
 
-    TEfficiency* eff = h2_trk_effs[iCent];
+    //TEfficiency* eff = h2_trk_effs[iCent];
+    TH2D* eff = h2_trk_effs[iCent];
 
     eff->Draw ("colz");
     //eff->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);

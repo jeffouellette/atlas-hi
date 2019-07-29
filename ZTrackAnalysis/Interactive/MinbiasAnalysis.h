@@ -137,6 +137,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
           h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
         } // end loop over PtTrk bins
+        h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
+        } // end loop over PtTrk bins
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         for (int iZH = 0; iZH < nZHBins; iZH++) {
           h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
@@ -193,6 +198,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
           h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
         } // end loop over PtTrk bins
+        h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
+        } // end loop over PtTrk bins
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         for (int iZH = 0; iZH < nZHBins; iZH++) {
           h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
@@ -235,6 +245,7 @@ void MinbiasAnalysis :: CombineHists () {
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][iPhi][iCent]);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][nPtZBins-1][iPhi][iCent]);
         } // end loop over phi
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
@@ -265,7 +276,6 @@ void MinbiasAnalysis :: ScaleHists () {
           TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
           const double yieldNormFactor = countsHist->GetBinContent (1) * (pi);
           //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
             h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
