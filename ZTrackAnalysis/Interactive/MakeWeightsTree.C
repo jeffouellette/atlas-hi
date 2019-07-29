@@ -1,5 +1,7 @@
 
-
+/**
+ * Takes in a file path and file pattern, and "adds" all the TTrees together in a TChain and slims it down for generating event-level weights.
+ */
 void MakeWeightsTree (const char* path, const char* filePattern) {
 
   TChain* inTree = new TChain ("PbPbZTrackTree", "PbPbZTrackTree");
@@ -25,8 +27,15 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("trk_eta", 0);
   inTree->SetBranchStatus ("trk_phi", 0);
   inTree->SetBranchStatus ("trk_charge", 0);
+  inTree->SetBranchStatus ("trk_pt_yield", 0);
+  inTree->SetBranchStatus ("trk_pt_var", 0);
+  inTree->SetBranchStatus ("trk_zh_yield", 0);
+  inTree->SetBranchStatus ("trk_zh_var", 0);
 
   TFile* outFile = new TFile (Form ("%s/eventWeightsTree.root", path), "recreate");
+  outFile->Delete ("PbPbZTrackTree;*");
+  outFile->Delete ("ppZTrackTree;*");
+
   outFile->cd ();
   TTree* outTree = inTree->CloneTree ();
 
@@ -57,6 +66,10 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("trk_eta", 0);
   inTree->SetBranchStatus ("trk_phi", 0);
   inTree->SetBranchStatus ("trk_charge", 0);
+  inTree->SetBranchStatus ("trk_pt_yield", 0);
+  inTree->SetBranchStatus ("trk_pt_var", 0);
+  inTree->SetBranchStatus ("trk_zh_yield", 0);
+  inTree->SetBranchStatus ("trk_zh_var", 0);
 
   outTree = inTree->CloneTree ();
 

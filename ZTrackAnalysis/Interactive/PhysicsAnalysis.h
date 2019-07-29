@@ -890,7 +890,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   if (!useHITight)
     trkEffFile = new TFile (Form ("%s/trackingEfficiencies.root", rootPath.Data ()), "read");
   else
-    trkEffFile = new TFile (Form ("%s/Variations/HITight/trackingEfficiencies.root", rootPath.Data ()), "read");
+    trkEffFile = new TFile (Form ("%s/Variations/HITightVar/trackingEfficiencies.root", rootPath.Data ()), "read");
 
   for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
     h2_num_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_matched_reco_tracks_iCent%i", iCent));

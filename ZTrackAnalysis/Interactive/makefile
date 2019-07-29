@@ -5,7 +5,7 @@ CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
 all : ProcessFile
 
-ProcessFile :
+ProcessFile : ProcessFile.cxx *.h
 	$(CC) -o ${ATLAS_PATH}/ZTrackAnalysis/Interactive/ProcessFile ${ATLAS_PATH}/ZTrackAnalysis/Interactive/ProcessFile.cxx
 
 clean :

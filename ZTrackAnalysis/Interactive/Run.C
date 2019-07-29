@@ -10,7 +10,7 @@
 
 #include "Systematic.h"
 
-const bool doSys = false;
+const bool doSys = true;
 
 // nominal analyses
 FullAnalysis* data = nullptr;
@@ -84,9 +84,7 @@ void Run () {
 
 
 
-  data->Execute ();
-  //mc->Execute ();
-  //bkg->Execute ();
+  //data->Execute ();
   //truth->Execute ();
 
   //data_samesign->Execute ();
@@ -100,7 +98,6 @@ void Run () {
 
   if (doSys) {
     //data_trackHItight->Execute ();
-    //bkg_trackHItight->Execute ();
     //data_electronPtUp->Execute ();
     //data_electronPtDown->Execute ();
     //data_muonPtUp->Execute ();
@@ -113,9 +110,9 @@ void Run () {
 
 
 
-  //data->LoadHists ();
+  data->LoadHists ();
   //mc->LoadHists ();
-  //bkg->LoadHists ();
+  bkg->LoadHists ();
   //truth->LoadHists ();
 
   //data_samesign->LoadHists ();
@@ -175,7 +172,7 @@ void Run () {
     //trkEffSys = new Systematic (data, "trkEffSys", "Tracking Efficiency");
     //trkEffSys->AddVariation (data_trkEffStatUpVar, -1);
     //trkEffSys->AddVariation (data_trkEffStatDownVar, 1);
-
+    //
     bkgSys = new Systematic (data, "bkgSys", "Background");
     bkgSys->AddVariation (data_bkgStatUpVar, -1);
     bkgSys->AddVariation (data_bkgStatDownVar, 1);

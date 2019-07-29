@@ -65,7 +65,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   int ntrk = 0;
   float fcal_et = 0, q2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
-  vector<float>* trk_yield = nullptr, *trk_var = nullptr;
+  vector<float>* trk_pt_yield = nullptr, *trk_pt_var = nullptr;
   vector<float>* trk_zh_yield = nullptr, *trk_zh_var = nullptr;
 
   
@@ -76,8 +76,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
     PbPbTree->SetBranchAddress ("q2",         &q2);
     PbPbTree->SetBranchAddress ("vz",         &vz);
-    PbPbTree->SetBranchAddress ("trk_pt_yield",  &trk_yield);
-    PbPbTree->SetBranchAddress ("trk_pt_var",    &trk_var);
+    PbPbTree->SetBranchAddress ("trk_pt_yield",  &trk_pt_yield);
+    PbPbTree->SetBranchAddress ("trk_pt_var",    &trk_pt_var);
     PbPbTree->SetBranchAddress ("trk_zh_yield",  &trk_zh_yield);
     PbPbTree->SetBranchAddress ("trk_zh_var",    &trk_zh_var);
 
@@ -134,8 +134,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
         TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
         } // end loop over PtTrk bins
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         for (int iZH = 0; iZH < nZHBins; iZH++) {
@@ -147,8 +147,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
         for (int iPhi = 0; iPhi < h->GetNbinsX (); iPhi++) {
-          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
-          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
+          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
+          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
         }
       }
     } // end loop over Pb+Pb tree
@@ -159,8 +159,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   if (ppTree) {
     ppTree->SetBranchAddress ("vz",         &vz);
     ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_yield",  &trk_yield);
-    ppTree->SetBranchAddress ("trk_var",    &trk_var);
+    ppTree->SetBranchAddress ("trk_pt_yield",  &trk_pt_yield);
+    ppTree->SetBranchAddress ("trk_pt_var",    &trk_pt_var);
+    ppTree->SetBranchAddress ("trk_zh_yield",  &trk_zh_yield);
+    ppTree->SetBranchAddress ("trk_zh_var",    &trk_zh_var);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -188,8 +190,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
         TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
         } // end loop over PtTrk bins
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         for (int iZH = 0; iZH < nZHBins; iZH++) {
@@ -201,8 +203,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
         for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++) {
-          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_var->at (iPtTrk) * pow (event_weight, 2)));
+          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight);
+          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
         }
       }
     } // end loop over pp tree
@@ -327,7 +329,7 @@ void MinbiasAnalysis :: GenerateWeights () {
   
 
   SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
-  TFile* inFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/Nominal/eventWeightsTree.root", rootPath.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -358,11 +360,9 @@ void MinbiasAnalysis :: GenerateWeights () {
   if (PbPbTree) {
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
     PbPbTree->SetBranchAddress ("q2",         &q2);
+    PbPbTree->SetBranchStatus ("ntrk",        0);
     PbPbTree->SetBranchStatus ("vz",          0);
-    PbPbTree->SetBranchStatus ("trk_pt_yield",   0);
-    PbPbTree->SetBranchStatus ("trk_pt_var",   0);
-    PbPbTree->SetBranchStatus ("trk_zh_yield",   0);
-    PbPbTree->SetBranchStatus ("trk_zh_var",   0);
+    PbPbTree->SetBranchStatus ("psi2",        0);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -432,9 +432,7 @@ void MinbiasAnalysis :: GenerateWeights () {
   }
 
   if (ppTree) {
-    //float event_weight = 0;
     int ntrk = 0;
-    //ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("ntrk", &ntrk);
 
     const int nEvts = ppTree->GetEntries ();
