@@ -57,12 +57,12 @@ class PhysicsAnalysis {
   TH1D* h_ppNch_weights     = nullptr;
 
   // Efficiencies
-  TH1D*** h_trk_effs   = Get2DArray <TH1D*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D**  h2_trk_effs  = Get1DArray <TH2D*> (numFinerCentBins); // iCent, iEta
-  //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
-  //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numFinerCentBins); // iCent, iEta
-  TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins); // iCent
-  TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numFinerCentBins);
+  TH1D*** h_trk_effs   = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_effs  = Get1DArray <TH2D*> (numCentBins); // iCent, iEta
+  //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numCentBins); // iCent, iEta
+  TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
+  TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
 
   //// Correlations plots
   //TH2D****   h_z_trk_pt_phi  = Get3DArray <TH2D*> (nPtZBins, numCentBins, 3);             // iPtZ, iCent, iSpc (0=ee, 1=mumu, 2=combined)
@@ -102,10 +102,10 @@ class PhysicsAnalysis {
   virtual ~PhysicsAnalysis () {
     Delete1DArray (h_PbPbQ2_weights,  numFinerCentBins);
 
-    Delete2DArray (h_trk_effs,      numFinerCentBins, numEtaTrkBins);
-    Delete1DArray (h2_trk_effs,     numFinerCentBins);
-    Delete1DArray (h2_num_trk_effs, numFinerCentBins);
-    Delete1DArray (h2_den_trk_effs, numFinerCentBins);
+    Delete2DArray (h_trk_effs,      numCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_effs,     numCentBins);
+    Delete1DArray (h2_num_trk_effs, numCentBins);
+    Delete1DArray (h2_den_trk_effs, numCentBins);
 
     Delete4DArray (h_z_trk_raw_pt,  3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_pt,      3, nPtZBins, numPhiBins, numCentBins);
@@ -895,7 +895,8 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   else
     trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingEfficiencies.root", rootPath.Data ()), "read");
 
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+  //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
     h2_num_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_matched_reco_tracks_iCent%i", iCent));
     h2_den_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_tracks_iCent%i", iCent));
 
@@ -911,8 +912,11 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
     h2_trk_effs[iCent]->Divide (h2_den_trk_effs[iCent]);
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      TH1D* num = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
-      TH1D* den = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
+      //TH1D* num = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
+      //TH1D* den = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
+
+      TH1D* num = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_num_iCent%i_iEta%i", iCent, iEta));
+      TH1D* den = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_den_iCent%i_iEta%i", iCent, iEta));
 
       if (iCent > 0) {
         num->Rebin (2);
@@ -924,8 +928,8 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
       h_trk_effs[iCent][iEta]->Divide (den);
       //h_trk_effs[iCent][iEta]->SetDirectory (_gDirectory);
 
-      delete num;
-      delete den;
+      //delete num;
+      //delete den;
       //h_trk_effs[iCent][iEta]->SetName ("h_trk_eff_iCent%i_iEta%i");
       
       //h_trk_effs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
@@ -945,13 +949,13 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
   short iCent = 0;
   if (isPbPb) {
-    while (iCent < numFinerCentBins) {
-      if (fcal_et < finerCentBins[iCent])
+    while (iCent < numCentBins) {
+      if (fcal_et < centBins[iCent])
         break;
       else
         iCent++;
     }
-    if (iCent < 1 || iCent > numFinerCentBins-1)
+    if (iCent < 1 || iCent > numCentBins-1)
       return 0;
   }
 
