@@ -17,8 +17,8 @@ namespace atlashi {
 /** User defined parameters **/
 
 const bool debugStatements = false; // Print out periodic statements to monitor code flow
-const TString homePath = "/atlasgpfs01/usatlas/workarea/jeff/atlas-hi/"; // ATLAS Heavy Ions home directory
-const TString drivePath = "/atlasgpfs01/usatlas/data/jeff/"; // ATLAS Heavy Ions external drive directory
+const TString homePath = std::getenv ("ATLAS_PATH"); // ATLAS Heavy Ions home directory
+const TString drivePath = std::getenv ("ATLAS_DATA_PATH"); // ATLAS Heavy Ions external drive directory
 
 const double dR_HEC = 0.0; // details on the hadronic end cap data cuts.
 const double lowerPhiCut = TMath::Pi()-dR_HEC;
