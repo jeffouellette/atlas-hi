@@ -1663,9 +1663,9 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) h->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)");
-            else h->GetYaxis ()->SetTitle ("Y (#it{z}_{h}, #Delta#phi)");
+            else h->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -1713,9 +1713,9 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) g->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)");
-            else g->GetYaxis ()->SetTitle ("Y (#it{z}_{h}, #Delta#phi)");
+            else g->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -1883,9 +1883,9 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else h->GetYaxis ()->SetTitle ("dY/d#it{z}_{h}d#Delta#phi");
+            else h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -1933,9 +1933,9 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else g->GetYaxis ()->SetTitle ("dY/d#it{z}_{h}d#Delta#phi");
+            else g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2004,9 +2004,9 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) h->GetYaxis ()->SetTitle ("dY_{jet}/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else h->GetYaxis ()->SetTitle ("dY_{jet}/d#it{z}_{h}d#Delta#phi");
+            else h->GetYaxis ()->SetTitle ("dY_{jet}/d#it{x}_{zh}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2054,9 +2054,9 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             if (useTrkPt) g->GetYaxis ()->SetTitle ("dY_{jet}/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else g->GetYaxis ()->SetTitle ("dY_{jet}/d#it{z}_{h}d#Delta#phi");
+            else g->GetYaxis ()->SetTitle ("dY_{jet}/d#it{x}_{zh}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2122,7 +2122,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{total}/d#Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2170,7 +2170,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{bkg}/d#Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -2348,7 +2348,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2400,7 +2400,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -2528,7 +2528,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2582,7 +2582,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -2743,7 +2743,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2795,7 +2795,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -2921,7 +2921,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             h->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2973,7 +2973,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             g->GetXaxis ()->SetMoreLogLabels ();
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{z}_{h}");
+            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);

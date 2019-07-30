@@ -598,10 +598,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
       h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
       h_z_y[iCent][iSpc]->Fill (z_y, event_weight);
-      if (z_pt > zPtBins[1]) {
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+      if (z_pt > zPtBins[1]) {
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
@@ -774,9 +774,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
       h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
       h_z_y[iCent][iSpc]->Fill (z_y, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
@@ -1520,7 +1521,7 @@ void FullAnalysis :: PlotZPtSpectra () {
 
       gPad->RedrawAxis ();
     } else {
-      TGraphAsymmErrors* g = make_graph (h);
+      TGraphAsymmErrors* g = GetTGAE (h);
       ResetXErrors (g);
 
       const int markerStyle = kFullCircle;
@@ -1545,7 +1546,7 @@ void FullAnalysis :: PlotZPtSpectra () {
     dPad->cd ();
     h = h_z_pt_ratio[iCent][2];
     if (h) {
-      TGraphAsymmErrors* g = make_graph (h);
+      TGraphAsymmErrors* g = GetTGAE (h);
       ResetXErrors (g);
 
       const int markerStyle = kFullCircle;
@@ -1713,7 +1714,7 @@ void FullAnalysis :: PlotZEtaMap () {
 
       TH1D* h = h_z_eta[iCent][iSpc];
 
-      TGraphAsymmErrors* g = make_graph (h);
+      TGraphAsymmErrors* g = GetTGAE (h);
       ResetXErrors (g);
       //deltaize (g, 0.1*(-1.5+iCent));
 
@@ -1750,7 +1751,7 @@ void FullAnalysis :: PlotZEtaMap () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       TH1D* h = h_z_eta_ratio[iCent][iSpc];
       if (h) {
-        TGraphAsymmErrors* g = make_graph (h);
+        TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
 
         const int markerStyle = kFullCircle;
@@ -1839,7 +1840,7 @@ void FullAnalysis :: PlotZYMap () {
 
       TH1D* h = h_z_y[iCent][iSpc];
 
-      TGraphAsymmErrors* g = make_graph (h);
+      TGraphAsymmErrors* g = GetTGAE (h);
       ResetXErrors (g);
       //deltaize (g, 0.1*(-1.5+iCent));
 
@@ -1876,7 +1877,7 @@ void FullAnalysis :: PlotZYMap () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       TH1D* h = h_z_y_ratio[iCent][iSpc];
       if (h) {
-        TGraphAsymmErrors* g = make_graph (h);
+        TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
 
         const int markerStyle = kFullCircle;
@@ -1998,7 +1999,7 @@ void FullAnalysis :: PlotZMassSpectra () {
           gPad->RedrawAxis ();
         }
         else {
-          TGraphAsymmErrors* g = make_graph (h);
+          TGraphAsymmErrors* g = GetTGAE (h);
           ResetXErrors (g);
           //deltaize (g, 0.1*(-1.5+iCent));
 
@@ -2026,9 +2027,9 @@ void FullAnalysis :: PlotZMassSpectra () {
         
 
         dPad->cd ();
-        h = h_z_m_ratio[iCent][iSpc][2];
+        h = h_z_m_ratio[iCent][iSpc][iReg];
         if (h) {
-          TGraphAsymmErrors* g = make_graph (h);
+          TGraphAsymmErrors* g = GetTGAE (h);
           ResetXErrors (g);
 
           const int markerStyle = kFullCircle;
@@ -2038,7 +2039,7 @@ void FullAnalysis :: PlotZMassSpectra () {
           g->SetLineWidth (1);
           g->SetLineColor (kBlack);
           g->SetMarkerColor (kBlack);
-          g->GetYaxis ()->SetRangeUser (0.5, 1.5);
+          g->GetYaxis ()->SetRangeUser (0.1, 2.4);
 
           g->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           g->GetYaxis ()->SetTitle ("Data / MC");
@@ -2050,6 +2051,14 @@ void FullAnalysis :: PlotZMassSpectra () {
           g->GetYaxis ()->SetTitleOffset (1.5*0.4);
           g->GetYaxis ()->CenterTitle ();
           g->Draw (!canvasExists ? "AP" : "P");
+
+          if (!canvasExists) {
+            TLine* l = new TLine (76, 1, 106, 1);
+            l->SetLineColor (46);
+            l->SetLineWidth (2);
+            l->SetLineStyle (5);
+            l->Draw ("same");
+          }
         }
         else {
           cout << "Warning in FullAnalysis :: PlotZMassSpectra: Z mass spectra ratio not stored, needs to be calculated!" << endl;
@@ -2111,7 +2120,7 @@ void FullAnalysis :: PlotZPhiYield () {
     //delete fit;
     //fit = nullptr;
 
-    TGraphAsymmErrors* g = make_graph (h);
+    TGraphAsymmErrors* g = GetTGAE (h);
     deltaize (g, (1.5-iCent)*0.02, false);
 
     g->GetXaxis ()->SetTitle ("2#left|#phi_{Z} - #Psi_{2}#right|");
