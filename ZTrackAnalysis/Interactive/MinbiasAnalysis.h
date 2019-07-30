@@ -179,7 +179,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       const short iPtZ = nPtZBins-1;
       const short iCent = 0; // iCent = 0 for pp
 
-      //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
       event_weight = nch_weight;
 

@@ -1391,7 +1391,8 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
       TH2D* h2 = h_lepton_trk_dr[iCent][iSpc];
 
-      TH1D* h = h2->ProjectionX ("temp0", h2->GetYaxis ()->FindBin (2), h2->GetYaxis ()->FindBin (3)-1);
+      TH1D* h = h2->ProjectionX ();
+      //TH1D* h = h2->ProjectionX ("temp0", h2->GetYaxis ()->FindBin (2), h2->GetYaxis ()->FindBin (3)-1);
       h->Rebin (2);
       h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       h->GetYaxis ()->SetTitle ("Counts");
@@ -1403,33 +1404,33 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       h->DrawCopy ("e1");
       delete h;
 
-      h = h2->ProjectionX ("temp1", h2->GetYaxis ()->FindBin (8), h2->GetYaxis ()->FindBin (10)-1);
-      h->Rebin (2);
-      h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      h->GetYaxis ()->SetTitle ("Counts");
-      h->SetLineColor (colors[1]);
-      h->SetMarkerColor (colors[1]);
-      h->GetYaxis ()->SetRangeUser (0.6, 2e5);
-      h->GetYaxis ()->SetTitleOffset (1.1);
+      //h = h2->ProjectionX ("temp1", h2->GetYaxis ()->FindBin (8), h2->GetYaxis ()->FindBin (10)-1);
+      //h->Rebin (2);
+      //h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
+      //h->GetYaxis ()->SetTitle ("Counts");
+      //h->SetLineColor (colors[1]);
+      //h->SetMarkerColor (colors[1]);
+      //h->GetYaxis ()->SetRangeUser (0.6, 2e5);
+      //h->GetYaxis ()->SetTitleOffset (1.1);
 
-      h->DrawCopy ("e1 same");
-      delete h;
+      //h->DrawCopy ("e1 same");
+      //delete h;
 
-      h = h2->ProjectionX ("temp2", h2->GetYaxis ()->FindBin (30), h2->GetYaxis ()->FindBin (40)-1);
-      h->Rebin (2);
-      h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      h->GetYaxis ()->SetTitle ("Counts");
-      h->SetLineColor (colors[2]);
-      h->SetMarkerColor (colors[2]);
-      h->GetYaxis ()->SetRangeUser (0.6, 2e5);
-      h->GetYaxis ()->SetTitleOffset (1.1);
+      //h = h2->ProjectionX ("temp2", h2->GetYaxis ()->FindBin (30), h2->GetYaxis ()->FindBin (40)-1);
+      //h->Rebin (2);
+      //h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
+      //h->GetYaxis ()->SetTitle ("Counts");
+      //h->SetLineColor (colors[2]);
+      //h->SetMarkerColor (colors[2]);
+      //h->GetYaxis ()->SetRangeUser (0.6, 2e5);
+      //h->GetYaxis ()->SetTitleOffset (1.1);
 
-      h->DrawCopy ("e1 same");
-      delete h;
+      //h->DrawCopy ("e1 same");
+      //delete h;
 
-      myText (0.65, 0.34, colors[0], "2 < #it{p}_{T} < 3 GeV", 0.04);
-      myText (0.65, 0.28, colors[1], "8 < #it{p}_{T} < 10 GeV", 0.04);
-      myText (0.65, 0.22, colors[2], "30 < #it{p}_{T} < 40 GeV", 0.04);
+      //myText (0.65, 0.34, colors[0], "2 < #it{p}_{T} < 3 GeV", 0.04);
+      //myText (0.65, 0.28, colors[1], "8 < #it{p}_{T} < 10 GeV", 0.04);
+      //myText (0.65, 0.22, colors[2], "30 < #it{p}_{T} < 40 GeV", 0.04);
 
       myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
 
