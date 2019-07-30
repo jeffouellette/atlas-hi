@@ -48,7 +48,7 @@ class TruthAnalysis : public FullAnalysis {
 
   void CreateHists () override;
   void ScaleHists () override;
-  void LoadHists (const char* histFileName) override;
+  void LoadHists (const char* histFileName, const bool _finishHists = true) override;
   void SaveHists (const char* histFileName) override;  
 
   void PlotZJetPt ();
@@ -118,11 +118,12 @@ void TruthAnalysis::ScaleHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::LoadHists (const char* histFileName) {
+void TruthAnalysis::LoadHists (const char* histFileName, const bool _finishHists) {
   if (histsLoaded)
     return;
 
-  FullAnalysis::LoadHists (histFileName);
+  FullAnalysis :: LoadHists (histFileName, false);
+
   //if (!histFile) {
   //  SetupDirectories (directory, "ZTrackAnalysis/");
   //  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
@@ -158,8 +159,10 @@ void TruthAnalysis::LoadHists (const char* histFileName) {
 
   histsLoaded = true;
 
-  FullAnalysis :: CombineHists ();
-  TruthAnalysis :: ScaleHists ();
+  if (_finishHists) {
+    FullAnalysis :: CombineHists ();
+    TruthAnalysis :: ScaleHists ();
+  }
 
   return;
 }

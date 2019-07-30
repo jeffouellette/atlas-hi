@@ -146,7 +146,7 @@ class PhysicsAnalysis {
   virtual void CreateHists ();
   virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
   virtual void CombineHists ();
-  virtual void LoadHists (const char* histFileName = "savedHists.root");
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true);
   virtual void SaveHists (const char* histFileName = "savedHists.root");
   virtual void ScaleHists ();
   virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root");
@@ -405,7 +405,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadHists (const char* histFileName) {
+void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (histsLoaded)
     return;
@@ -437,11 +437,12 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName) {
     }
   }
 
-  PhysicsAnalysis :: CombineHists ();
-  PhysicsAnalysis :: ScaleHists ();
-  
   histsLoaded = true;
-  histsScaled = true;
+
+  if (_finishHists) {
+    PhysicsAnalysis :: CombineHists ();
+    PhysicsAnalysis :: ScaleHists ();
+  }
 
   _gDirectory->cd ();
   return;
@@ -1294,7 +1295,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
       //TEfficiency* eff = h_trk_effs[iCent][iEta];
-      TH1D* eff = h_trk_effs[iCent][iEta];
+      TGAE* eff = GetTGAE (h_trk_effs[iCent][iEta]);
+
 
       eff->SetLineColor (colors[iEta]);
       eff->SetMarkerColor (colors[iEta]);
@@ -1304,7 +1306,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       eff->GetXaxis ()->SetRangeUser (0.5, 65);
       eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      eff->Draw (iEta == 0 ? "e1" : "same e1");
+      eff->Draw (iEta == 0 ? "AP" : "same P");
       //eff->Draw (iEta == 0 ? "APL" : "LP same");
 
       //gPad->Update ();
