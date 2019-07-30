@@ -47,6 +47,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   SetupDirectories (directory, "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  if (!inFile || !inFile->IsOpen ()) {
+    cout << "Error in Execute: File not open!" << endl;
+    return;
+  }
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
@@ -144,14 +148,16 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
@@ -316,14 +322,16 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
