@@ -47,6 +47,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   SetupDirectories (directory, "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
+  if (!inFile || !inFile->IsOpen ()) {
+    cout << "Error in Execute: File not open!" << endl;
+    return;
+  }
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
@@ -55,7 +59,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, vz_weight = 1, q2_weight = 1, fcal_weight = 1, nch_weight = 1;
+  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, vz_weight = 1, q2_weight = 1, fcal_weight = 1, nch_weight = 1;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
   //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
@@ -143,15 +147,21 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
+      TLorentzVector zvec;
+      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
+      z_eta = zvec.Eta ();
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
@@ -315,15 +325,21 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
+      TLorentzVector zvec;
+      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
+      z_eta = zvec.Eta ();
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
         h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
         h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
