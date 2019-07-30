@@ -1155,7 +1155,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 
     //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
     //b->SetFillColorAlpha (fillColors[iPtTrk], fillAlpha);
-    //myMarkerText (0.23, 0.89-0.04*iPtTrk, colors[iPtTrk], kFullCircle, "", 1.25, 0.04);
+    //myMarkerTextNoLine (0.23, 0.89-0.04*iPtTrk, colors[iPtTrk], kFullCircle, "", 1.25, 0.04);
 
     //b->Draw ("l");
     //cPad->cd ();
@@ -1282,14 +1282,14 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1200, 800);
+    c = new TCanvas (canvasName, "", 1000, 800);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (4, 3);
+    c->Divide (2, 2);
   }
   c->cd ();
 
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
 //    if (iCent > 0) continue;
 
@@ -1302,7 +1302,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       eff->SetMarkerColor (colors[iEta]);
       eff->SetMarkerSize (0);
 
-      eff->SetTitle (";#it{p}_{T} [GeV];Reco. Eff.");
+      eff->SetTitle (";#it{p}_{T} [GeV];Weighted Reco. Eff.");
       eff->GetXaxis ()->SetRangeUser (0.5, 65);
       eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
@@ -1334,30 +1334,31 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1200, 800);
+    c = new TCanvas (canvasName, "", 1000, 800);
     FormatTH2Canvas (c, true);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (4, 3);
+    c->Divide (2, 2);
   }
   c->cd ();
 
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
     //if (iCent > 0) continue;
     gPad->SetLogy ();
 
     //TEfficiency* eff = h2_trk_effs[iCent];
     TH2D* eff = h2_trk_effs[iCent];
+    eff->GetZaxis ()->SetRangeUser (0.3, 1.00);
 
     eff->Draw ("colz");
     //eff->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);
     gPad->Update ();
 
     if (iCent == 0)
-      myText (0.22, 0.88, kBlack, "#it{pp}", 0.1);
+      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
     else
-      myText (0.22, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.1);
+      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
   }
 
   c->SaveAs (Form ("%s/TrackingEfficiencies2D.pdf", plotPath.Data ()));
@@ -1371,13 +1372,13 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const short iEta) {
   if (iCent == 0)
-    myText (0.22, 0.88, kBlack, "#it{pp}", 0.1);
+    myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
   else
-    myText (0.22, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.1);
+    myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
 
   if (iCent == 0) {
   //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerText (0.5, 0.5-0.08*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+    myMarkerTextNoLine (0.5, 0.5-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
   }
 }
 
@@ -1764,7 +1765,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
               const char* lo = GetPiString (phiLowBins[iPhi]);
               const char* hi = GetPiString (phiHighBins[iPhi]);
 
-              myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
+              myMarkerTextNoLine (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
               myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
             }
           }
@@ -2244,13 +2245,13 @@ void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
     //TBox* b = TBoxNDC (0.612-0.032, 0.85-0.06*iPhi-0.016, 0.612+0.032, 0.85-0.06*iPhi+0.016);
     //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     //b->Draw ("l");
-    //myMarkerText (0.462, 0.852-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
+    //myMarkerTextNoLine (0.462, 0.852-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054);
     //myText (0.70, 0.85-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
 
-    myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
+    myMarkerTextNoLine (0.62, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
 
-    //myMarkerText (0.52, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
-    //myMarkerText (0.62, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.5, 0.054);
+    //myMarkerTextNoLine (0.52, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
+    //myMarkerTextNoLine (0.62, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.5, 0.054);
     myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.054);
     //cPad->cd ();
   }
@@ -2468,9 +2469,9 @@ void PhysicsAnalysis :: LabelIAAdPhi (const short iCent, const short iPhi) {
     //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     //b->Draw ("l");
     //cPad->cd ();
-    //myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
-    //myMarkerText (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
-    myMarkerText (0.63, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    myMarkerTextNoLine (0.63, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
     myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
   }
 }
@@ -2641,9 +2642,9 @@ void PhysicsAnalysis :: LabelIAAdCent (const short iCent, const short iPhi) {
     //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     //b->Draw ("l");
     //cPad->cd ();
-    //myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
-    //myMarkerText (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
-    myMarkerText (0.63, 0.912-0.06*iCent, colors[iCent], kFullCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.512, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    myMarkerTextNoLine (0.63, 0.912-0.06*iCent, colors[iCent], kFullCircle, "", 1.4, 0.05);
     myText (0.65, 0.91-0.06*iCent, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
   }
 }
@@ -2862,8 +2863,8 @@ void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi) {
     //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     //b->Draw ("l");
     //cPad->cd ();
-    //myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
-    myMarkerText (0.612, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    myMarkerTextNoLine (0.612, 0.912-0.06*iPhi, colors[iPhi], kFullCircle, "", 1.4, 0.05);
     myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
   }
 }
@@ -3030,8 +3031,8 @@ void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi) {
     //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
     //b->Draw ("l");
     //cPad->cd ();
-    //myMarkerText (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
-    myMarkerText (0.582, 0.912-0.06*(iCent-1), colors[iCent-1], kFullCircle, "", 1.4, 0.05);
+    //myMarkerTextNoLine (0.61, 0.912-0.06*iPhi, colors[iPhi], kOpenCircle, "", 1.4, 0.05);
+    myMarkerTextNoLine (0.582, 0.912-0.06*(iCent-1), colors[iCent-1], kFullCircle, "", 1.4, 0.05);
     myText (0.6, 0.91-0.06*(iCent-1), kBlack, Form ("%i-%i%% / %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1], (int)centCuts[1], (int)centCuts[0]), 0.05);
   }
 }

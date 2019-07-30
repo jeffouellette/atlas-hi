@@ -2075,21 +2075,30 @@ void FullAnalysis :: PlotZMassSpectra () {
 
 
 
-
 void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, const short iReg) {
   myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/0.6);
-  const char* spc = iSpc == 0 ? "Z #rightarrow e^{+}e^{-} Events" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-} Events" : "Z #rightarrow l^{+}l^{-} Events");
-  myText (0.66, 0.85, kBlack, spc, 0.04/0.6);
+  const char* spc = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+  myText (0.71, 0.85, kBlack, spc, 0.04/0.6);
   if (iCent == 0) {
-    myText (0.22, 0.75, colors[0], Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+    myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
   }
   else
-    myText (0.22, 0.75, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+    myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+
+  myOnlyBoxText (0.76, 0.67, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001);
+
+  //TVirtualPad* cPad = gPad; // store current pad
+  //TBox* b = TBoxNDC (0.4+0.6*(0.598-0.025), 0.67-0.06*numPhiBins-0.018, 0.4+0.6*(0.598+0.025), 0.67-0.06*numPhiBins+0.018);
+  //b->SetFillColorAlpha (fillColors[iCent], fillAlpha);
+  //b->Draw ("l");
+  //cPad->cd ();
+  //myText (0.753, 0.67, kBlack, "MC", 0.04/0.6);
+  myMarkerText (0.753, 0.76, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
 
   if (iReg == 0)
-    myText (0.22, 0.65, kBlack, Form ("#left|y_{%s}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+    myText (0.22, 0.67, kBlack, Form ("#left|y^{%s}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
   else if (iReg == 1)
-    myText (0.22, 0.65, kBlack, Form ("#left|y_{%s}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+    myText (0.22, 0.67, kBlack, Form ("#left|y^{%s}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
 }
 
 
