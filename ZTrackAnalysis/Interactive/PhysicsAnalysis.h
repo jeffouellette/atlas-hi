@@ -146,7 +146,7 @@ class PhysicsAnalysis {
   virtual void CreateHists ();
   virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
   virtual void CombineHists ();
-  virtual void LoadHists (const char* histFileName = "savedHists.root");
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true);
   virtual void SaveHists (const char* histFileName = "savedHists.root");
   virtual void ScaleHists ();
   virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root");
@@ -405,7 +405,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadHists (const char* histFileName) {
+void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (histsLoaded)
     return;
@@ -439,8 +439,10 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName) {
 
   histsLoaded = true;
 
-  PhysicsAnalysis :: CombineHists ();
-  PhysicsAnalysis :: ScaleHists ();
+  if (_finishHists) {
+    PhysicsAnalysis :: CombineHists ();
+    PhysicsAnalysis :: ScaleHists ();
+  }
 
   _gDirectory->cd ();
   return;

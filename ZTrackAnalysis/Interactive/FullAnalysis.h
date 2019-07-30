@@ -102,7 +102,7 @@ class FullAnalysis : public PhysicsAnalysis {
   virtual void CreateHists () override;
   virtual void CopyAnalysis (FullAnalysis* a, const bool copyBkgs = false);
   virtual void CombineHists () override;
-  virtual void LoadHists (const char* histFileName = "savedHists.root") override;
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   virtual void SaveHists (const char* histFileName = "savedHists.root") override;
   virtual void ScaleHists () override;
   virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
@@ -271,12 +271,12 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: LoadHists (const char* histFileName) {
+void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   if (histsLoaded)
     return;
 
-  PhysicsAnalysis :: LoadHists (histFileName);
+  PhysicsAnalysis :: LoadHists (histFileName, false);
 
   TDirectory* _gDirectory = gDirectory;
   if (!histFile->IsOpen ()) {
@@ -326,8 +326,10 @@ void FullAnalysis :: LoadHists (const char* histFileName) {
   
   histsLoaded = true;
 
-  CombineHists ();
-  ScaleHists ();
+  if (_finishHists) {
+    CombineHists ();
+    ScaleHists ();
+  }
 
   _gDirectory->cd ();
   return;
