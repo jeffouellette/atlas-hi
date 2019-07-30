@@ -437,11 +437,10 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName) {
     }
   }
 
+  histsLoaded = true;
+
   PhysicsAnalysis :: CombineHists ();
   PhysicsAnalysis :: ScaleHists ();
-  
-  histsLoaded = true;
-  histsScaled = true;
 
   _gDirectory->cd ();
   return;
@@ -1294,7 +1293,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
       //TEfficiency* eff = h_trk_effs[iCent][iEta];
-      TH1D* eff = h_trk_effs[iCent][iEta];
+      TGAE* eff = GetTGAE (h_trk_effs[iCent][iEta]);
+
 
       eff->SetLineColor (colors[iEta]);
       eff->SetMarkerColor (colors[iEta]);
@@ -1304,7 +1304,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       eff->GetXaxis ()->SetRangeUser (0.5, 65);
       eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      eff->Draw (iEta == 0 ? "e1" : "same e1");
+      eff->Draw (iEta == 0 ? "AP" : "same P");
       //eff->Draw (iEta == 0 ? "APL" : "LP same");
 
       //gPad->Update ();

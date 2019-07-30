@@ -325,10 +325,9 @@ void FullAnalysis :: LoadHists (const char* histFileName) {
   h_pp_nch_reweighted    = (TH1D*) histFile->Get (Form ("h_pp_nch_reweighted_%s", name.c_str ()));
   
   histsLoaded = true;
-  histsScaled = true;
 
-  FullAnalysis :: CombineHists ();
-  FullAnalysis :: ScaleHists ();
+  CombineHists ();
+  ScaleHists ();
 
   _gDirectory->cd ();
   return;
@@ -405,6 +404,8 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: CombineHists () {
 
+  PhysicsAnalysis :: CombineHists ();
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       h_z_phi[iCent][2]->Add (h_z_phi[iCent][iSpc]);
@@ -436,6 +437,8 @@ void FullAnalysis :: CombineHists () {
 void FullAnalysis :: ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
+
+  PhysicsAnalysis :: ScaleHists ();
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -1180,16 +1183,18 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
   else
     h_pp_nch->SetLineColor (kGray+1);
 
+  h_pp_nch->Scale (1./h_pp_nch->Integral ());
   h_pp_nch->GetXaxis ()->SetTitle ("N_{ch}");
-  h_pp_nch->GetYaxis ()->SetTitle ("Events");
+  h_pp_nch->GetYaxis ()->SetTitle ("dN_{evt} / N_{evt}");
 
   h_pp_nch->Draw (canvasExists ? "same hist" : "hist");
 
   if (strcmp (plotTag, "data") != 0) {
+    h_pp_nch_reweighted->Scale (1./h_pp_nch_reweighted->Integral ());
     h_pp_nch_reweighted->SetLineColor (kRed+1);
 
     h_pp_nch_reweighted->GetXaxis ()->SetTitle ("N_{ch}");
-    h_pp_nch_reweighted->GetYaxis ()->SetTitle ("Events");
+    h_pp_nch_reweighted->GetYaxis ()->SetTitle ("dN_{evt} / N_{evt");
 
     h_pp_nch_reweighted->Draw ("same hist");
   }
