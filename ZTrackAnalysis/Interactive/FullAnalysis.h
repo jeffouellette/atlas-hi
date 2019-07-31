@@ -1376,18 +1376,18 @@ void FullAnalysis :: PlotLeptonTrackDR () {
 void FullAnalysis :: PlotLeptonTrackDRProjX () {
   
   for (short iSpc = 0; iSpc < 3; iSpc++) {
+    const char* canvasName = Form ("c_%s_trk_dr", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"));
+    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+    TCanvas* c = nullptr;
+    if (canvasExists)
+      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    else {
+      c = new TCanvas (canvasName, "", 800, 600);
+      gDirectory->Add (c);
+    }
+    c->cd ();
+
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      const char* canvasName = Form ("c_%s_trk_dr", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"));
-      const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-      TCanvas* c = nullptr;
-      if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-      else {
-        c = new TCanvas (canvasName, "", 800, 600);
-        gDirectory->Add (c);
-        c->SetLogy ();
-      }
-      c->cd ();
 
       TH2D* h2 = h_lepton_trk_dr[iCent][iSpc];
 
@@ -1396,53 +1396,24 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       h->Rebin (2);
       h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       h->GetYaxis ()->SetTitle ("Counts");
-      h->SetLineColor (colors[0]);
-      h->SetMarkerColor (colors[0]);
-      h->GetYaxis ()->SetRangeUser (0.6, 2e5);
+      h->SetLineColor (colors[iCent]);
+      h->SetMarkerColor (colors[iCent]);
+      h->GetYaxis ()->SetRangeUser (0, 2e4);
       h->GetYaxis ()->SetTitleOffset (1.1);
 
-      h->DrawCopy ("e1");
+      h->DrawCopy (iCent == 0 ? "e1" : "e1 same");
       delete h;
 
-      //h = h2->ProjectionX ("temp1", h2->GetYaxis ()->FindBin (8), h2->GetYaxis ()->FindBin (10)-1);
-      //h->Rebin (2);
-      //h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      //h->GetYaxis ()->SetTitle ("Counts");
-      //h->SetLineColor (colors[1]);
-      //h->SetMarkerColor (colors[1]);
-      //h->GetYaxis ()->SetRangeUser (0.6, 2e5);
-      //h->GetYaxis ()->SetTitleOffset (1.1);
-
-      //h->DrawCopy ("e1 same");
-      //delete h;
-
-      //h = h2->ProjectionX ("temp2", h2->GetYaxis ()->FindBin (30), h2->GetYaxis ()->FindBin (40)-1);
-      //h->Rebin (2);
-      //h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      //h->GetYaxis ()->SetTitle ("Counts");
-      //h->SetLineColor (colors[2]);
-      //h->SetMarkerColor (colors[2]);
-      //h->GetYaxis ()->SetRangeUser (0.6, 2e5);
-      //h->GetYaxis ()->SetTitleOffset (1.1);
-
-      //h->DrawCopy ("e1 same");
-      //delete h;
-
-      //myText (0.65, 0.34, colors[0], "2 < #it{p}_{T} < 3 GeV", 0.04);
-      //myText (0.65, 0.28, colors[1], "8 < #it{p}_{T} < 10 GeV", 0.04);
-      //myText (0.65, 0.22, colors[2], "30 < #it{p}_{T} < 40 GeV", 0.04);
-
-      myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
 
       if (iCent != 0) {
-        myText (0.56, 0.82, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-        myText (0.56, 0.76, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+        myText (0.22, 0.82-iCent*0.06, colors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
       }
       else
-        myText (0.56, 0.82, kBlack, "#it{pp}, 5.02 TeV", 0.04);
+        myText (0.22, 0.82, kBlack, "#it{pp}, 5.02 TeV", 0.04);
 
-      c->SaveAs (Form ("%s/LeptonTrackDists/%sTrackDist_ProjX_iCent%i.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : (iSpc == 1 ? "Muon" : "Lepton"), iCent));
     }
+    c->SaveAs (Form ("%s/LeptonTrackDists/%sTrackDist_ProjX.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : (iSpc == 1 ? "Muon" : "Lepton")));
   }
 }
 

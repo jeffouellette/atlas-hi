@@ -66,7 +66,7 @@ void Run () {
   }
 
 
-  data->Execute ();
+  //data->Execute ();
   //truth->Execute ();
 
   if (doSys) {

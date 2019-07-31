@@ -130,7 +130,7 @@ const char* GetPiString (double phi) {
 }
 
 //const double zPtBins[7] = {0, 5, 10, 20, 40, 80, 10000};
-const double zPtBins[4] = {0, 5, 25, 10000};
+const double zPtBins[7] = {0, 5, 10, 15, 25, 50, 10000};
 //const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 

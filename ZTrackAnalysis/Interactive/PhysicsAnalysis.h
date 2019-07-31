@@ -1143,7 +1143,8 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent) {
   if (iCent == 0) {
-    myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Simulation", 0.05);
+    //myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Simulation", 0.05);
+    myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
     myText (0.67, 0.20, kBlack, "#it{pp}, 5.02 TeV", 0.05);
     //myText (0.16, 0.93, kBlack, "Data", 0.04);
     //myText (0.30, 0.93, kBlack, "Minbias", 0.05);
