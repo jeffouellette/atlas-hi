@@ -285,10 +285,17 @@ void MinbiasAnalysis :: ScaleHists () {
         } // end loop over phi
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-          const double yieldNormFactor = countsHist->GetBinContent (1);
-          if (yieldNormFactor > 0)
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Scale (1. / yieldNormFactor);
+          const double normFactor = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
+          //h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = h_z_trk_pt_phi[iPtZ][iCent][iSpc]->ProjectionX (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()), iPtTrk+1, iPtTrk+1);
+
+          TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+          h->Rebin (2);
+          if (iPtTrk > 3)
+            h->Rebin (2);
+          if (iCent != 0)
+            h->Rebin (2);
+          if (normFactor > 0)
+            h->Scale (1. / normFactor);
         }
       } // end loop over pT^Z
     } // end loop over centralities

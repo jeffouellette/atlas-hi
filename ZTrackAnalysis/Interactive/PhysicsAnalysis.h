@@ -127,11 +127,11 @@ class PhysicsAnalysis {
   protected:
   void LabelTrackingEfficiencies (const short iCent, const short iEta);
   void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent);
-  void LabelTrkYield (const short iCent, const short iPhi);
-  void LabelIAAdPhi (const short iCent, const short iPhi);
-  void LabelIAAdCent (const short iCent, const short iPhi);
-  void LabelICPdPhi (const short iCent, const short iPhi);
-  void LabelICPdCent (const short iCent, const short iPhi);
+  void LabelTrkYield (const short iCent, const short iPhi, const short iPtZ);
+  void LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ);
+  void LabelIAAdCent (const short iCent, const short iPhi, const short iPtZ);
+  void LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ);
+  void LabelICPdCent (const short iCent, const short iPhi, const short iPtZ);
 
   void GetDrawnObjects ();
   void GetMinAndMax (double &min, double &max, const bool log = false);
@@ -161,7 +161,7 @@ class PhysicsAnalysis {
   void PrintZYields (const int iPtZ = 2);
 
   //void Plot3DDist ();
-  void PlotCorrelations (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotCorrelations (const short pSpc = 2, const short pPtZ = nPtZBins-1, const bool _subBkg = false);
   //void PlotZMissingPt ();
   void PlotTrackingEfficiencies ();
   void PlotTrackingEfficiencies2D ();
@@ -1022,7 +1022,7 @@ void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot dPhi - pTTrk 2d projections
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, const bool _subBkg) {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
@@ -1033,7 +1033,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue;
 
-      const char* canvasName = Form ("c_z_trk_phi_pttrk_iPtZ%i_%s", iPtZ, spc);
+      const char* canvasName = Form ("c_z_trk_phi_pttrk_iPtZ%i_%s%s", iPtZ, spc, _subBkg ? "_subBkg":"");
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -1061,7 +1061,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+          TH1D* h = (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
           if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
           if (h->GetMaximum () > max) max = h->GetMaximum ();
         } // end loop over iPtTrk
@@ -1071,7 +1071,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
 
         if (plotFill) {
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TH1D* h = (TH1D*)h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone ();
+            TH1D* h = (TH1D*) (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])->Clone ();
 
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1102,7 +1102,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
           gPad->RedrawAxis ();
         } else {
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TGAE* g = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+            TGAE* g = GetTGAE (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
             ResetXErrors (g);
 
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
@@ -1130,7 +1130,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ) {
         }
       } // end loop over centrality
 
-      c->SaveAs (Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_%s.pdf", plotPath.Data (), iPtZ, spc));
+      c->SaveAs (Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_%s%s.pdf", plotPath.Data (), iPtZ, spc, _subBkg ? "_subBkg":""));
     } // end loop over pT^Z
   } // end loop over species
 }
@@ -1155,7 +1155,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     const float pt_hi = ptTrkBins[iPtTrk+1];
     //if (iPtTrk == 0)
     //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
-    myText (0.24, 0.93-0.05*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.05);
+    myText (0.2, 0.93-0.04*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.04);
     //myText (0.3, 0.89-0.04*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.04);
 
     //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
@@ -1166,6 +1166,15 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     //cPad->cd ();
   } else {
     myText (0.67, 0.20, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
+  }
+
+  if (iCent == 1) {
+    if (iPtZ == nPtZBins-1) {
+      myText (0.67, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.06);
+    }
+    else {
+      myText (0.67, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.06);
+    }
   }
 }
 
@@ -1483,8 +1492,8 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
             //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
             sub = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
             for (int ix = 1; ix <= sub->GetNbinsX (); ix++) {
-              sub->SetBinContent (ix, sub->GetBinContent (ix) * sub->GetBinWidth (ix));
-              sub->SetBinError (ix, sub->GetBinError (ix) * sub->GetBinWidth (ix));
+              sub->SetBinContent (ix, sub->GetBinContent (ix));
+              sub->SetBinError (ix, sub->GetBinError (ix));
             }
           }
           if (sub != nullptr) {
@@ -1968,7 +1977,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
         if (!canvasExists || plotFill)
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++)
-            LabelTrkYield (iCent, iPhi);
+            LabelTrkYield (iCent, iPhi, iPtZ);
 
         if (!plotSignal)
           continue;
@@ -2215,7 +2224,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for track pT distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
+void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi, const short iPtZ) {
   //const Style_t markerStyle = (iPhi == 0 ? kFullSquare : kFullCircle);
 
   if (iCent == 0)
@@ -2225,6 +2234,14 @@ void PhysicsAnalysis :: LabelTrkYield (const short iCent, const short iPhi) {
 
   if (iCent == 0)
     myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+  else if (iCent == 1) {
+    if (iPtZ == nPtZBins-1) {
+      myText (0.485, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.06);
+    }
+    else {
+      myText (0.485, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.06);
+    }
+  }
   else if (iCent == numCentBins-1) {
     if (iPhi == 1) {
       //myText (0.35, 0.91, kBlack, "Z-tagged", 0.054);
@@ -2374,7 +2391,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineWidth (1);
             h->Draw ("hist same");
 
-            LabelIAAdPhi (iCent, iPhi);
+            LabelIAAdPhi (iCent, iPhi, iPtZ);
           } // end loop over phi
           gPad->RedrawAxis ();
         } else {
@@ -2431,7 +2448,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
               g->Draw ("2P");
             }
 
-            LabelIAAdPhi (iCent, iPhi);
+            LabelIAAdPhi (iCent, iPhi, iPtZ);
           } // end loop over phi
         }
       } // end loop over cents
@@ -2453,10 +2470,18 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelIAAdPhi (const short iCent, const short iPhi) {
+void PhysicsAnalysis :: LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ) {
 
   if (iCent == 1)
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+  else if (iCent == 2) {
+    if (iPtZ == nPtZBins-1) {
+      myText (0.50, 0.80, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    }
+    else {
+      myText (0.50, 0.80, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+    }
+  }
   else if (iCent == numCentBins-1) {
     if (iPhi == 1) {
       //myText (0.44, 0.91, kBlack, "MBM", 0.05);
@@ -2556,7 +2581,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (1);
             h->Draw ("hist same");
 
-            LabelIAAdCent (iCent, iPhi);
+            LabelIAAdCent (iCent, iPhi, iPtZ);
           } // end loop over phi
           gPad->RedrawAxis ();
         } else {
@@ -2613,7 +2638,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
               g->Draw ("2P");
             }
 
-            LabelIAAdCent (iCent, iPhi);
+            LabelIAAdCent (iCent, iPhi, iPtZ);
           } // end loop over phi
         }
       } // end loop over cents
@@ -2637,10 +2662,17 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelIAAdCent (const short iCent, const short iPhi) {
+void PhysicsAnalysis :: LabelIAAdCent (const short iCent, const short iPhi, const short iPtZ) {
 
-  if (iPhi == 1)
+  if (iPhi == 1) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+    if (iPtZ == nPtZBins-1) {
+      myText (0.50, 0.80, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    }
+    else {
+      myText (0.50, 0.80, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+    }
+  }
   else if (iPhi == numPhiBins-1) {
     //TVirtualPad* cPad = gPad; // store current pad
     //TBox* b = TBoxNDC (0.61-0.024, 0.91-0.06*iPhi-0.016, 0.61+0.024, 0.91-0.06*iPhi+0.016);
@@ -2769,7 +2801,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineWidth (1);
             h->Draw ("hist same");
 
-            LabelICPdPhi (iCent, iPhi);
+            LabelICPdPhi (iCent, iPhi, iPtZ);
           } // end loop over phi
           gPad->RedrawAxis ();
         } else {
@@ -2826,7 +2858,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
               g->Draw ("2P");
             }
 
-            LabelICPdPhi (iCent, iPhi);
+            LabelICPdPhi (iCent, iPhi, iPtZ);
           } // end loop over phi
         }
       } // end loop over cents
@@ -2848,9 +2880,16 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi) {
-  if (iCent == 2)
+void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ) {
+  if (iCent == 2) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+    if (iPtZ == nPtZBins-1) {
+      myText (0.50, 0.80, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    }
+    else {
+      myText (0.50, 0.80, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+    }
+  }
   else if (iCent == numCentBins-1) {
     if (iPhi == 1) {
       //myText (0.55, 0.91, kBlack, "Data", 0.05);
@@ -2947,7 +2986,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (1);
             h->Draw ("hist same");
 
-            LabelICPdCent (iCent, iPhi);
+            LabelICPdCent (iCent, iPhi, iPtZ);
           } // end loop over phi
           gPad->RedrawAxis ();
         } else {
@@ -3004,7 +3043,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
               g->Draw ("2P");
             }
 
-            LabelICPdCent (iCent, iPhi);
+            LabelICPdCent (iCent, iPhi, iPtZ);
           } // end loop over phi
         }
       } // end loop over cents
@@ -3027,9 +3066,16 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi) {
-  if (iPhi == 1)
+void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi, const short iPtZ) {
+  if (iPhi == 1) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}}  Internal", 0.06);
+    if (iPtZ == nPtZBins-1) {
+      myText (0.50, 0.80, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    }
+    else {
+      myText (0.50, 0.80, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+    }
+  }
   else if (iPhi == numPhiBins-1) {
     //TVirtualPad* cPad = gPad; // store current pad
     //TBox* b = TBoxNDC (0.71-0.024, 0.91-0.06*iPhi-0.016, 0.71+0.024, 0.91-0.06*iPhi+0.016);
