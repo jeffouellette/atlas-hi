@@ -213,8 +213,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
         TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
         for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++) {
-          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
+          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
+          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
         }
       }
     } // end loop over pp tree

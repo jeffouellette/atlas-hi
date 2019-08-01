@@ -66,7 +66,7 @@ void Run () {
   }
 
 
-  //data->Execute ();
+  data->Execute ();
   //truth->Execute ();
 
   if (doSys) {
@@ -84,8 +84,8 @@ void Run () {
 
 
   data->LoadHists ();
-  mc->LoadHists ();
-  bkg->LoadHists ();
+  //mc->LoadHists ();
+  //bkg->LoadHists ();
   //truth->LoadHists ();
 
   if (doSys) {

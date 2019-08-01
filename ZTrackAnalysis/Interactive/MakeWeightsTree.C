@@ -80,3 +80,8 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
 void MakeMinbiasWeightsTree () {
   MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal", "3*.root");
 }
+
+
+void MakeMCWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal", "*Z*.root");
+}

@@ -1,4 +1,5 @@
 #include "MCAnalysis.h"
+#include "TruthAnalysis.h"
 #include "MinbiasAnalysis.h"
 
 int main (int argc, char** argv) {
@@ -21,6 +22,12 @@ int main (int argc, char** argv) {
       mc = new MCAnalysis ("mc_trackHITightVar", "Variations/TrackHITightWPVariation", true);
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
+  }
+  else if (algo == "truth") {
+    TruthAnalysis* truth = nullptr;
+    truth = new TruthAnalysis ();
+    truth->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete truth;
   }
   else if (algo == "minbias") {
     MinbiasAnalysis* bkg = nullptr;
