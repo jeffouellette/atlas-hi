@@ -13,7 +13,7 @@ using namespace atlashi;
 typedef TGraphAsymmErrors TGAE;
 
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
-const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kMagenta, kGreen+2, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kBlue+1};
+const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kBlue+1};
 const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
@@ -130,7 +130,7 @@ const char* GetPiString (double phi) {
 }
 
 //const double zPtBins[7] = {0, 5, 10, 20, 40, 80, 10000};
-const double zPtBins[6] = {0, 5, 10, 25, 50, 10000};
+const double zPtBins[5] = {0, 5, 10, 25, 10000};
 //const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 

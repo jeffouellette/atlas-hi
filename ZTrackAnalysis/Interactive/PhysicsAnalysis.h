@@ -1126,6 +1126,21 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
             g->Draw (!canvasExists && iPtTrk == 0 ? "AP" : "P");
 
             LabelCorrelations (iPtZ, iPtTrk, iCent);
+
+            TLine* line1 = new TLine (phiLowBins[1], min, phiLowBins[1], max);
+            TLine* line2 = new TLine (2*pi - phiLowBins[1], min, 2*pi - phiLowBins[1], max);
+            TLine* line3 = new TLine (phiLowBins[2], min, phiLowBins[2], max);
+            TLine* line4 = new TLine (2*pi - phiLowBins[2], min, 2*pi - phiLowBins[2], max);
+
+            line1->SetLineStyle (2);
+            line2->SetLineStyle (2);
+            line3->SetLineStyle (2);
+            line4->SetLineStyle (2);
+
+            line1->Draw ("same");
+            line2->Draw ("same");
+            line3->Draw ("same");
+            line4->Draw ("same");
           } // end loop over iPtTrk
         }
       } // end loop over centrality
@@ -1170,10 +1185,10 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 
   if (iCent == 1) {
     if (iPtZ == nPtZBins-1) {
-      myText (0.67, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.06);
+      myText (0.67, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
     }
     else {
-      myText (0.67, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.06);
+      myText (0.67, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
     }
   }
 }
@@ -2020,8 +2035,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) h->GetYaxis ()->SetTitle ("dY_{jet}/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else h->GetYaxis ()->SetTitle ("dY_{jet}/d#it{x}_{zh}d#Delta#phi");
+            if (useTrkPt) h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
+            else h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2070,8 +2085,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) g->GetYaxis ()->SetTitle ("dY_{jet}/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else g->GetYaxis ()->SetTitle ("dY_{jet}/d#it{x}_{zh}d#Delta#phi");
+            if (useTrkPt) g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
+            else g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2138,7 +2153,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            h->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{total}/d#Delta#phi)");
+            h->GetYaxis ()->SetTitle ("(dY/d#Delta#phi) / (dY_{total}/d#Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2186,7 +2201,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            g->GetYaxis ()->SetTitle ("(dY_{jet}/d#Delta#phi) / (dY_{bkg}/d#Delta#phi)");
+            g->GetYaxis ()->SetTitle ("(dY/d#Delta#phi) / (dY_{bkg}/d#Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);

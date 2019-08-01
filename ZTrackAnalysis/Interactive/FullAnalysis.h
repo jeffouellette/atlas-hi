@@ -1440,34 +1440,58 @@ void FullAnalysis :: CalculateZPtDistRatio (FullAnalysis* a) {
 // Plot Z Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotZPtSpectra () {
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    const char* canvasName = Form ("c_z_pt_iCent%i", iCent);
-    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-    TCanvas* c = nullptr;
-    TPad* uPad = nullptr, *dPad = nullptr;
-    if (canvasExists) {
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-      uPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_uPad", canvasName)));
-      dPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_dPad", canvasName)));
-    }
-    else {
-      c = new TCanvas (canvasName, "", 800, 800);
-      c->cd ();
-      uPad = new TPad (Form ("%s_uPad", canvasName), "", 0.0, 0.4, 1.0, 1.0);
-      dPad = new TPad (Form ("%s_dPad", canvasName), "", 0.0, 0.0, 1.0, 0.4);
-      uPad->SetBottomMargin (0);
-      dPad->SetTopMargin (0);
-      dPad->SetBottomMargin (0.25);
-      uPad->Draw ();
-      dPad->Draw ();
-      gDirectory->Add (c);
-      gDirectory->Add (uPad);
-      gDirectory->Add (dPad);
-    }
+  const char* canvasName = "c_z_pt";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  //TPad* uPad = nullptr, *dPad = nullptr;
+  if (canvasExists) {
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    //uPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_uPad", canvasName)));
+    //dPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_dPad", canvasName)));
+  }
+  else {
+    c = new TCanvas (canvasName, "", 800, 800);
     c->cd ();
+    //uPad = new TPad (Form ("%s_uPad", canvasName), "", 0.0, 0.4, 1.0, 1.0);
+    //dPad = new TPad (Form ("%s_dPad", canvasName), "", 0.0, 0.0, 1.0, 0.4);
+    //uPad->SetBottomMargin (0);
+    //dPad->SetTopMargin (0);
+    //dPad->SetBottomMargin (0.25);
+    //uPad->Draw ();
+    //dPad->Draw ();
+    gDirectory->Add (c);
+    //gDirectory->Add (uPad);
+    //gDirectory->Add (dPad);
+  }
+  c->cd ();
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    //const char* canvasName = Form ("c_z_pt_iCent%i", iCent);
+    //const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+    //TCanvas* c = nullptr;
+    //TPad* uPad = nullptr, *dPad = nullptr;
+    //if (canvasExists) {
+    //  c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    //  uPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_uPad", canvasName)));
+    //  dPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_dPad", canvasName)));
+    //}
+    //else {
+    //  c = new TCanvas (canvasName, "", 800, 800);
+    //  c->cd ();
+    //  uPad = new TPad (Form ("%s_uPad", canvasName), "", 0.0, 0.4, 1.0, 1.0);
+    //  dPad = new TPad (Form ("%s_dPad", canvasName), "", 0.0, 0.0, 1.0, 0.4);
+    //  uPad->SetBottomMargin (0);
+    //  dPad->SetTopMargin (0);
+    //  dPad->SetBottomMargin (0.25);
+    //  uPad->Draw ();
+    //  dPad->Draw ();
+    //  gDirectory->Add (c);
+    //  gDirectory->Add (uPad);
+    //  gDirectory->Add (dPad);
+    //}
+    //c->cd ();
 
-    uPad->cd ();
-    uPad->SetLogy ();
+    //uPad->cd ();
+    gPad->SetLogy ();
 
     TH1D* h = h_z_pt[iCent][2];
 
@@ -1480,12 +1504,12 @@ void FullAnalysis :: PlotZPtSpectra () {
 
       h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
       h->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#it{p}_{T} [GeV^{-1}]");
-      h->GetXaxis ()->SetTitleSize (0.04/0.6);
-      h->GetYaxis ()->SetTitleSize (0.04/0.6);
-      h->GetXaxis ()->SetLabelSize (0.04/0.6);
-      h->GetYaxis ()->SetLabelSize (0.04/0.6);
-      h->GetXaxis ()->SetTitleOffset (1.5*0.6);
-      h->GetYaxis ()->SetTitleOffset (1.5*0.6);
+      h->GetXaxis ()->SetTitleSize (0.04);
+      h->GetYaxis ()->SetTitleSize (0.04);
+      h->GetXaxis ()->SetLabelSize (0.04);
+      h->GetYaxis ()->SetLabelSize (0.04);
+      h->GetXaxis ()->SetTitleOffset (1.5);
+      h->GetYaxis ()->SetTitleOffset (1.5);
 
       h->DrawCopy (!canvasExists ? "bar" : "bar same");
       h->SetLineWidth (1);
@@ -1498,66 +1522,69 @@ void FullAnalysis :: PlotZPtSpectra () {
 
       const int markerStyle = kFullCircle;
       g->SetMarkerStyle (markerStyle);
-      g->SetMarkerSize (1);
-      g->SetLineWidth (1);
-      g->SetLineColor (kBlack);
-      g->SetMarkerColor (kBlack);
+      g->SetMarkerSize (1.25);
+      g->SetLineWidth (2);
+      g->SetLineColor (colors[iCent]);
+      g->SetMarkerColor (colors[iCent]);
       g->GetYaxis ()->SetRangeUser (1e-6, 0.06);
 
       g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
       g->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#it{p}_{T} [GeV^{-1}]");
-      g->GetXaxis ()->SetTitleSize (0.04/0.6);
-      g->GetYaxis ()->SetTitleSize (0.04/0.6);
-      g->GetXaxis ()->SetLabelSize (0.04/0.6);
-      g->GetYaxis ()->SetLabelSize (0.04/0.6);
-      g->GetXaxis ()->SetTitleOffset (1.5*0.6);
-      g->GetYaxis ()->SetTitleOffset (1.5*0.6);
-      g->Draw (!canvasExists ? "AP" : "P");
+      g->GetXaxis ()->SetTitleSize (0.04);
+      g->GetYaxis ()->SetTitleSize (0.04);
+      g->GetXaxis ()->SetLabelSize (0.04);
+      g->GetYaxis ()->SetLabelSize (0.04);
+      g->GetXaxis ()->SetTitleOffset (1.5);
+      g->GetYaxis ()->SetTitleOffset (1.5);
+      g->Draw (!canvasExists && iCent == 0 ? "AP" : "P");
     }
 
-    dPad->cd ();
-    h = h_z_pt_ratio[iCent][2];
-    if (h) {
-      TGraphAsymmErrors* g = GetTGAE (h);
-      ResetXErrors (g);
+    //dPad->cd ();
+    //h = h_z_pt_ratio[iCent][2];
+    //if (h) {
+    //  TGraphAsymmErrors* g = GetTGAE (h);
+    //  ResetXErrors (g);
 
-      const int markerStyle = kFullCircle;
-      g->SetMarkerStyle (markerStyle);
-      g->SetMarkerStyle (markerStyle);
-      g->SetMarkerSize (1);
-      g->SetLineWidth (1);
-      g->SetLineColor (kBlack);
-      g->SetMarkerColor (kBlack);
-      g->GetYaxis ()->SetRangeUser (0.5, 1.5);
+    //  const int markerStyle = kFullCircle;
+    //  g->SetMarkerStyle (markerStyle);
+    //  g->SetMarkerStyle (markerStyle);
+    //  g->SetMarkerSize (1);
+    //  g->SetLineWidth (1);
+    //  g->SetLineColor (kBlack);
+    //  g->SetMarkerColor (kBlack);
+    //  g->GetYaxis ()->SetRangeUser (0.5, 1.5);
 
-      g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
-      g->GetYaxis ()->SetTitle ("Data / MC");
-      g->GetXaxis ()->SetTitleSize (0.04/0.4);
-      g->GetYaxis ()->SetTitleSize (0.04/0.4);
-      g->GetXaxis ()->SetLabelSize (0.04/0.4);
-      g->GetYaxis ()->SetLabelSize (0.04/0.4);
-      g->GetXaxis ()->SetTitleOffset (2.5*0.4);
-      g->GetYaxis ()->SetTitleOffset (1.5*0.4);
-      g->GetYaxis ()->CenterTitle ();
-      g->Draw (!canvasExists ? "AP" : "P");
-    }
-    else {
-      cout << "Warning in FullAnalysis :: PlotZPtSpectra: Z pT spectra ratio not stored, needs to be calculated!" << endl;
-    }
+    //  g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
+    //  g->GetYaxis ()->SetTitle ("Data / MC");
+    //  g->GetXaxis ()->SetTitleSize (0.04/0.4);
+    //  g->GetYaxis ()->SetTitleSize (0.04/0.4);
+    //  g->GetXaxis ()->SetLabelSize (0.04/0.4);
+    //  g->GetYaxis ()->SetLabelSize (0.04/0.4);
+    //  g->GetXaxis ()->SetTitleOffset (2.5*0.4);
+    //  g->GetYaxis ()->SetTitleOffset (1.5*0.4);
+    //  g->GetYaxis ()->CenterTitle ();
+    //  g->Draw (!canvasExists && iCent == 0 ? "AP" : "P");
+    //}
+    //else {
+    //  cout << "Warning in FullAnalysis :: PlotZPtSpectra: Z pT spectra ratio not stored, needs to be calculated!" << endl;
+    //}
 
-    uPad->cd ();
+    //uPad->cd ();
 
-    myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/0.6);
-    myText (0.26, 0.85, kBlack, "Z #rightarrow l^{+}l^{-} Events", 0.04/0.6);
+    myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+    myText (0.26, 0.85, kBlack, "Z #rightarrow l^{+}l^{-} Events", 0.04);
     if (iCent == 0)
-      myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+      //myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
+      myMarkerTextNoLine (0.66, 0.75, kBlack, kFullCircle, "#it{pp}", 1.25, 0.04);
     else {
-      myText (0.66, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.04/0.6);
-      myText (0.66, 0.65, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      //myText (0.66, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+      //myText (0.66, 0.65, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+      myMarkerTextNoLine (0.66, 0.75-0.06*iCent, colors[iCent], kFullCircle, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 1.25, 0.04);
     }
 
-    c->SaveAs (Form ("%s/ZPtSpectra/z_pt_spectrum_iCent%i.pdf", plotPath.Data (), iCent));
+    //c->SaveAs (Form ("%s/ZPtSpectra/z_pt_spectrum_iCent%i.pdf", plotPath.Data (), iCent));
   }
+  c->SaveAs (Form ("%s/ZPtSpectra/z_pt_spectrum.pdf", plotPath.Data ()));
 }
 
 
