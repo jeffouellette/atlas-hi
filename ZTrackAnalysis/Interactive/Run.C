@@ -10,7 +10,7 @@
 
 #include "Systematic.h"
 
-const bool doSys = false;
+const bool doSys = true;
 
 // nominal analyses
 FullAnalysis* data = nullptr;
@@ -61,24 +61,20 @@ void Run () {
     data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar", "Variations/BkgStatDownVariation");
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
     bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
-    //data_trkEffUpStatVar    = new PhysicsAnalysis ("data_trkEffUpStatVar", "Variations/TrkEffStatUpVariation");
-    //data_trkEffDownStatVar  = new PhysicsAnalysis ("data_trkEffDownStatVar", "Variations/TrkEffStatDownVariation");
   }
 
 
-  data->Execute ();
+  //data->Execute ();
   //truth->Execute ();
 
   if (doSys) {
-    //data_trackHItight->Execute ();
-    //data_electronPtUp->Execute ();
-    //data_electronPtDown->Execute ();
-    //data_muonPtUp->Execute ();
-    //data_muonPtDown->Execute ();
-    //data_electronLHMedium->Execute ();
-    //data_muonLoose->Execute ();
-    //data_trkEffStatUpVar->Execute ();
-    //data_trkEffStatDownVar->Execute ();
+    data_trackHItight->Execute ();
+    data_electronPtUp->Execute ();
+    data_electronPtDown->Execute ();
+    data_muonPtUp->Execute ();
+    data_muonPtDown->Execute ();
+    data_electronLHMedium->Execute ();
+    data_muonLoose->Execute ();
   }
 
 
@@ -130,11 +126,6 @@ void Run () {
     data_electronLHMedium->SubtractBackground (bkg);
     data_muonLoose->SubtractBackground (bkg);
 
-
-    //trkEffSys = new Systematic (data, "trkEffSys", "Tracking Efficiency");
-    //trkEffSys->AddVariation (data_trkEffStatUpVar, -1);
-    //trkEffSys->AddVariation (data_trkEffStatDownVar, 1);
-    //
     bkgSys = new Systematic (data, "bkgSys", "Background");
     bkgSys->AddVariation (data_bkgStatUpVar, -1);
     bkgSys->AddVariation (data_bkgStatDownVar, 1);
@@ -163,7 +154,6 @@ void Run () {
     muonLooseSys->AddVariations ();
 
     combSys = new Systematic (data, "combSys", "Total");
-    //combSys->AddSystematic (trkEffSys);
     combSys->AddSystematic (trkSys);
     combSys->AddSystematic (bkgSys);
     combSys->AddSystematic (electronLHMedSys);
