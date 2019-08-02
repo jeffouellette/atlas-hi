@@ -64,17 +64,17 @@ void Run () {
   }
 
 
-  //data->Execute ();
+  data->Execute ();
   //truth->Execute ();
 
   if (doSys) {
-    data_trackHItight->Execute ();
-    data_electronPtUp->Execute ();
-    data_electronPtDown->Execute ();
-    data_muonPtUp->Execute ();
-    data_muonPtDown->Execute ();
-    data_electronLHMedium->Execute ();
-    data_muonLoose->Execute ();
+    //data_trackHItight->Execute ();
+    //data_electronPtUp->Execute ();
+    //data_electronPtDown->Execute ();
+    //data_muonPtUp->Execute ();
+    //data_muonPtDown->Execute ();
+    //data_electronLHMedium->Execute ();
+    //data_muonLoose->Execute ();
   }
 
 
