@@ -15,6 +15,11 @@ using namespace atlashi;
 
 class MinbiasAnalysis : public FullAnalysis {
 
+  private:
+  TFile* zMixFile = nullptr;
+
+  TTree* LoadEventMixingTree ();
+
   public:
   MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
     name = _name;
@@ -49,6 +54,21 @@ class MinbiasAnalysis : public FullAnalysis {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Loads the file for mixing Z's into minimum bias events
+////////////////////////////////////////////////////////////////////////////////////////////////
+TTree* MinbiasAnalysis :: LoadEventMixingTree () {
+  if (! (zMixFile && zMixFile->IsOpen ())) {
+    SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+    zMixFile = new TFile (Form ("%s/zMixFile.root", rootPath.Data ()), "read");
+    SetupDirectories (directory, "ZTrackAnalysis/");
+  }
+  return (TTree*) zMixFile->Get ("zMixTree");
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over minbias trees and fills histograms appropriately. (NEW VERSION)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName) {
@@ -65,21 +85,29 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   int ntrk = 0;
   float fcal_et = 0, q2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
-  vector<float>* trk_pt_yield = nullptr, *trk_pt_var = nullptr;
-  vector<float>* trk_zh_yield = nullptr, *trk_zh_var = nullptr;
+  float trk_pt[5000];
+  float trk_eta[5000];
+  float trk_phi[5000];
+
+  int nMixEvts = 0;
+  float z_pt = 0, z_phi = 0;
+  TTree* zMixTree = LoadEventMixingTree ();
+  nMixEvts = zMixTree->GetEntries ();
+  zMixTree->SetBranchAddress ("z_pt",   &z_pt);
+  zMixTree->SetBranchAddress ("z_phi",  &z_phi);
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchAddress ("vz",         &vz);
-    PbPbTree->SetBranchAddress ("trk_pt_yield",  &trk_pt_yield);
-    PbPbTree->SetBranchAddress ("trk_pt_var",    &trk_pt_var);
-    PbPbTree->SetBranchAddress ("trk_zh_yield",  &trk_zh_yield);
-    PbPbTree->SetBranchAddress ("trk_zh_var",    &trk_zh_var);
+    PbPbTree->SetBranchAddress ("fcal_et",  &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",       &q2);
+    PbPbTree->SetBranchAddress ("vz",       &vz);
+    PbPbTree->SetBranchAddress ("ntrk",     &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",   &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",  &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",  &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -87,8 +115,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
+      zMixTree->GetEntry (iEvt % nMixEvts);
+
       const short iSpc = 0;
       const short iPtZ = nPtZBins-1;
+      const short iPhi = 0;
       short iCent = 0;
       while (iCent < numCentBins) {
         if (fcal_et < centBins[iCent])
@@ -131,31 +162,27 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
-        } // end loop over PtTrk bins
-        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
-        } // end loop over PtTrk bins
-        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        for (int iZH = 0; iZH < nZHBins; iZH++) {
-          h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
-          h->SetBinError (iZH+1, sqrt (pow (h->GetBinError (iZH+1), 2) + trk_zh_var->at (iZH) * pow (event_weight, 2)));
-        } // end loop over ZH bins
-      } // end loop over dPhi bins
+      for (int iTrk = 0; iTrk < ntrk; iTrk++) {
+        const float trkEff = GetTrackingEfficiency (fcal_et, trk_pt[iTrk], trk_eta[iTrk], true);
 
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-        TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        for (int iPhi = 0; iPhi < h->GetNbinsX (); iPhi++) {
-          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
-          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
-        }
+        if (trkEff == 0)
+          continue;
+
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk], event_weight / trkEff);
+
+        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk], event_weight / trkEff);
+
+        int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
+        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
+          h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+
+        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk] / z_pt, event_weight / trkEff);
       }
+
     } // end loop over Pb+Pb tree
     cout << "Done minbias Pb+Pb loop." << endl;
   }
@@ -164,10 +191,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   if (ppTree) {
     ppTree->SetBranchAddress ("vz",         &vz);
     ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_pt_yield",  &trk_pt_yield);
-    ppTree->SetBranchAddress ("trk_pt_var",    &trk_pt_var);
-    ppTree->SetBranchAddress ("trk_zh_yield",  &trk_zh_yield);
-    ppTree->SetBranchAddress ("trk_zh_var",    &trk_zh_var);
+    ppTree->SetBranchAddress ("trk_pt",   &trk_pt);
+    //ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",  &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -175,9 +201,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
+      zMixTree->GetEntry (iEvt % nMixEvts);
+
       const short iSpc = 0;
       const short iPtZ = nPtZBins-1;
       const short iCent = 0; // iCent = 0 for pp
+      const short iPhi = 0;
 
       nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
@@ -192,30 +221,25 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
-        } // end loop over PtTrk bins
-        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h->SetBinContent (iPtTrk+1, h->GetBinContent (iPtTrk+1) + trk_pt_yield->at (iPtTrk) * event_weight);
-          h->SetBinError (iPtTrk+1, sqrt (pow (h->GetBinError (iPtTrk+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight, 2)));
-        } // end loop over PtTrk bins
-        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        for (int iZH = 0; iZH < nZHBins; iZH++) {
-          h->SetBinContent (iZH+1, h->GetBinContent (iZH+1) + trk_zh_yield->at (iZH) * event_weight);
-          h->SetBinError (iZH+1, sqrt (pow (h->GetBinError (iZH+1), 2) + trk_zh_var->at (iZH) * pow (event_weight, 2)));
-        } // end loop over ZH bins
-      } // end loop over dPhi bins
+      for (int iTrk = 0; iTrk < ntrk; iTrk++) {
+        const float trkEff = GetTrackingEfficiency (fcal_et, trk_pt[iTrk], trk_eta[iTrk], true);
 
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-        TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++) {
-          h->SetBinContent (iPhi+1, h->GetBinContent (iPhi+1) + trk_pt_yield->at (iPtTrk) * event_weight / h->GetNbinsX ());
-          h->SetBinError (iPhi+1, sqrt (pow (h->GetBinError (iPhi+1), 2) + trk_pt_var->at (iPtTrk) * pow (event_weight / h->GetNbinsX (), 2)));
-        }
+        if (trkEff == 0)
+          continue;
+
+        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk], event_weight / trkEff);
+
+        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk], event_weight / trkEff);
+
+        int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
+        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
+          h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+
+        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+        h->Fill (trk_pt[iTrk] / z_pt, event_weight / trkEff);
       }
     } // end loop over pp tree
     cout << "Done minbias pp loop." << endl;
@@ -240,16 +264,18 @@ void MinbiasAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        if (iSpc == 0 && iPtZ == nPtZBins-1)
-          continue;
 
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][iPhi][iCent]);
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][nPtZBins-1][iPhi][iCent]);
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][nPtZBins-1][iPhi][iCent]);
+        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+          if (iSpc == 0 && iPtZ == nPtZBins-1 && iPhi == 0)
+            continue;
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][0][iCent]);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][nPtZBins-1][0][iCent]);
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][nPtZBins-1][0][iCent]);
         } // end loop over phi
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (iSpc == 0 && iPtZ == nPtZBins-1)
+            continue;
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][nPtZBins-1][iPtTrk][iCent]);
         }
         
