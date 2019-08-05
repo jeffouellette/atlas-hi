@@ -44,8 +44,8 @@ PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
 
 void Run () {
 
-  //data = new FullAnalysis ("data_preleptfix", "PreLeptonFix");
-  data    = new FullAnalysis ("data", "DataAnalysis/Nominal");
+  data = new FullAnalysis ("data_preleptfix", "DataAnalysis/Nominal/preLeptonFix");
+  //data    = new FullAnalysis ("data", "DataAnalysis/Nominal");
   mc      = new MCAnalysis ();
   bkg     = new MinbiasAnalysis ();
   //truth   = new TruthAnalysis ();
@@ -68,17 +68,17 @@ void Run () {
   }
 
 
-  //data->Execute ();
+  data->Execute ();
   //truth->Execute ();
 
   if (doSys) {
-    //data_trackHItight->Execute ();
-    //data_electronPtUp->Execute ();
-    //data_electronPtDown->Execute ();
-    //data_muonPtUp->Execute ();
-    //data_muonPtDown->Execute ();
-    //data_electronLHMedium->Execute ();
-    //data_muonTight->Execute ();
+    data_trackHItight->Execute ();
+    data_electronPtUp->Execute ();
+    data_electronPtDown->Execute ();
+    data_muonPtUp->Execute ();
+    data_muonPtDown->Execute ();
+    data_electronLHMedium->Execute ();
+    data_muonTight->Execute ();
   }
 
 
