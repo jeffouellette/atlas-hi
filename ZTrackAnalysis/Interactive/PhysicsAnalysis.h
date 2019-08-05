@@ -2366,6 +2366,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
         gDirectory->Add (c);
       }
 
+      double xmin = 0, xmax = 0;
       for (short iCent = 1; iCent < numCentBins; iCent++) {
         c->cd (iCent);
         gPad->SetLogx ();
@@ -2382,6 +2383,8 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 1.4);
+            xmin = h->GetXaxis ()->GetXmin ();
+            xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2440,6 +2443,8 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
             else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
+            xmin = g->GetXaxis ()->GetXmin ();
+            xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2472,6 +2477,12 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
       for (short iCent = 1; iCent < numCentBins; iCent++) {
         c->cd (iCent);
         myText (0.22, 0.24, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
+
+        TLine* l = new TLine (xmin, 1, xmax, 1);
+        l->SetLineStyle (2);
+        l->SetLineWidth (2);
+        l->SetLineColor (kPink-8);
+        l->Draw ("same");
       } // end loop over cents
 
       c->SaveAs (Form ("%s/IAA/iaa_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
@@ -2554,6 +2565,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
         gDirectory->Add (c);
       }
 
+      double xmin = 0, xmax = 0;
       for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
         c->cd (iPhi);
         gPad->SetLogx ();
@@ -2570,6 +2582,8 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 1.4);
+            xmin = h->GetXaxis ()->GetXmin ();
+            xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2624,6 +2638,8 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 1.4);
+            xmin = g->GetXaxis ()->GetXmin ();
+            xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2664,6 +2680,12 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
         const char* lo = GetPiString (phiLowBins[iPhi]);
         const char* hi = GetPiString (phiHighBins[iPhi]);
         myText (0.22, 0.24, kBlack, Form ("%s < #Delta#phi < %s", lo, hi), 0.06);
+
+        TLine* l = new TLine (xmin, 1, xmax, 1);
+        l->SetLineStyle (2);
+        l->SetLineWidth (2);
+        l->SetLineColor (kPink-8);
+        l->Draw ("same");
       } // end loop over cents
 
       c->SaveAs (Form ("%s/IAA/iaa_dCent_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
@@ -2776,6 +2798,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
         gDirectory->Add (c);
       }
 
+      double xmin = 0, xmax = 0;
       for (short iCent = 2; iCent < numCentBins; iCent++) {
         c->cd (iCent-1);
         gPad->SetLogx ();
@@ -2792,6 +2815,8 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
+            xmin = h->GetXaxis ()->GetXmin ();
+            xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2844,6 +2869,8 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
+            xmin = g->GetXaxis ()->GetXmin ();
+            xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2882,6 +2909,12 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
       for (short iCent = 2; iCent < numCentBins; iCent++) {
         c->cd (iCent-1);
         myText (0.22, 0.24, kBlack, Form ("%i-%i%% / %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1], (int)centCuts[1], (int)centCuts[0]), 0.06);
+
+        TLine* l = new TLine (xmin, 1, xmax, 1);
+        l->SetLineStyle (2);
+        l->SetLineWidth (2);
+        l->SetLineColor (kPink-8);
+        l->Draw ("same");
       } // end loop over cents
 
       c->SaveAs (Form ("%s/ICP/icp_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
@@ -2961,6 +2994,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
         gDirectory->Add (c);
       }
 
+      double xmin = 0, xmax = 0;
       for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
         c->cd (iPhi);
         gPad->SetLogx ();
@@ -2977,6 +3011,8 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
+            xmin = h->GetXaxis ()->GetXmin ();
+            xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -3029,6 +3065,8 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
+            xmin = g->GetXaxis ()->GetXmin ();
+            xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
@@ -3068,6 +3106,12 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
         const char* lo = GetPiString (phiLowBins[iPhi]);
         const char* hi = GetPiString (phiHighBins[iPhi]);
         myText (0.22, 0.24, kBlack, Form ("%s < #Delta#phi < %s", lo, hi), 0.06);
+
+        TLine* l = new TLine (xmin, 1, xmax, 1);
+        l->SetLineStyle (2);
+        l->SetLineWidth (2);
+        l->SetLineColor (kPink-8);
+        l->Draw ("same");
       } // end loop over cents
 
       c->SaveAs (Form ("%s/ICP/icp_dCent_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
