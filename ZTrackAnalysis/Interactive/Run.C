@@ -10,13 +10,15 @@
 
 #include "Systematic.h"
 
-const bool doSys = true;
+const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data = nullptr;
 MCAnalysis* mc = nullptr;
 MinbiasAnalysis* bkg = nullptr;
 TruthAnalysis* truth = nullptr;
+
+//FullAnalysis* data_prefix = nullptr;
 
 // master systematics objects
 Systematic* combSys = nullptr;
@@ -25,7 +27,7 @@ Systematic* trkSys = nullptr;
 Systematic* electronPtSys = nullptr;
 Systematic* muonPtSys = nullptr;
 Systematic* electronLHMedSys = nullptr;
-Systematic* muonLooseSys = nullptr;
+Systematic* muonTightSys = nullptr;
 //Systematic* trkEffSys = nullptr;
 
 // variations for systematics
@@ -34,7 +36,7 @@ MinbiasAnalysis* bkg_trackHItight = nullptr;
 PhysicsAnalysis* data_electronPtUp = nullptr, *data_electronPtDown = nullptr;
 PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 PhysicsAnalysis* data_electronLHMedium = nullptr;
-PhysicsAnalysis* data_muonLoose = nullptr;
+PhysicsAnalysis* data_muonTight = nullptr;
 
 MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
@@ -46,7 +48,9 @@ void Run () {
   data    = new FullAnalysis ("data", "DataAnalysis/Nominal");
   mc      = new MCAnalysis ();
   bkg     = new MinbiasAnalysis ();
-  truth   = new TruthAnalysis ();
+  //truth   = new TruthAnalysis ();
+
+  //data_prefix = new FullAnalysis ("data_prefix", "DataAnalysis/PreLeptonFix");
 
   if (doSys) {
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar", "Variations/TrackHITightWPVariation", true);
@@ -56,7 +60,7 @@ void Run () {
     data_muonPtUp           = new PhysicsAnalysis ("data_muonPtUpVar", "Variations/MuonPtUpVariation");
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar", "Variations/MuonPtDownVariation");
     data_electronLHMedium   = new PhysicsAnalysis ("data_electronLHMediumVar", "Variations/ElectronLHMediumWPVariation");
-    data_muonLoose          = new PhysicsAnalysis ("data_muonLooseVar", "Variations/MuonLooseWPVariation");
+    data_muonTight          = new PhysicsAnalysis ("data_muonTightVar", "Variations/MuonTightWPVariation");
     data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar", "Variations/BkgStatUpVariation");
     data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar", "Variations/BkgStatDownVariation");
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
@@ -64,7 +68,7 @@ void Run () {
   }
 
 
-  data->Execute ();
+  //data->Execute ();
   //truth->Execute ();
 
   if (doSys) {
@@ -74,15 +78,17 @@ void Run () {
     //data_muonPtUp->Execute ();
     //data_muonPtDown->Execute ();
     //data_electronLHMedium->Execute ();
-    //data_muonLoose->Execute ();
+    //data_muonTight->Execute ();
   }
 
 
 
   data->LoadHists ();
-  //mc->LoadHists ();
-  //bkg->LoadHists ();
+  mc->LoadHists ();
+  bkg->LoadHists ();
   //truth->LoadHists ();
+
+  //data_prefix->LoadHists();
 
   if (doSys) {
     data_bkgStatUpVar->CopyAnalysis (data);
@@ -116,7 +122,7 @@ void Run () {
     data_muonPtUp->LoadHists ();
     data_muonPtDown->LoadHists ();
     data_electronLHMedium->LoadHists ();
-    data_muonLoose->LoadHists ();
+    data_muonTight->LoadHists ();
 
     data_trackHItight->SubtractBackground (bkg_trackHItight);
     data_electronPtUp->SubtractBackground (bkg);
@@ -124,7 +130,7 @@ void Run () {
     data_muonPtUp->SubtractBackground (bkg);
     data_muonPtDown->SubtractBackground (bkg);
     data_electronLHMedium->SubtractBackground (bkg);
-    data_muonLoose->SubtractBackground (bkg);
+    data_muonTight->SubtractBackground (bkg);
 
     bkgSys = new Systematic (data, "bkgSys", "Background");
     bkgSys->AddVariation (data_bkgStatUpVar, -1);
@@ -149,15 +155,15 @@ void Run () {
     electronLHMedSys->AddVariation (data_electronLHMedium);
     electronLHMedSys->AddVariations ();
 
-    muonLooseSys = new Systematic (data, "muonLoose", "Muon quality");
-    muonLooseSys->AddVariation (data_muonLoose);
-    muonLooseSys->AddVariations ();
+    muonTightSys = new Systematic (data, "muonTight", "Muon quality");
+    muonTightSys->AddVariation (data_muonTight);
+    muonTightSys->AddVariations ();
 
     combSys = new Systematic (data, "combSys", "Total");
     combSys->AddSystematic (trkSys);
     combSys->AddSystematic (bkgSys);
     combSys->AddSystematic (electronLHMedSys);
-    combSys->AddSystematic (muonLooseSys);
+    combSys->AddSystematic (muonTightSys);
     combSys->AddSystematic (electronPtSys);
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematics ();

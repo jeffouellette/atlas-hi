@@ -290,21 +290,21 @@ void MinbiasAnalysis :: CombineHists () {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (iSpc == 0 && iPtZ == nPtZBins-1 && iPhi == 0)
+          if (iSpc == 0 && iPhi == 0)
             continue;
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][0][iCent]);
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][nPtZBins-1][0][iCent]);
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][nPtZBins-1][0][iCent]);
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][0][iCent]);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][0][iCent]);
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][0][iCent]);
         } // end loop over phi
 
-        if (iSpc == 0 && iPtZ == nPtZBins-1)
+        if (iSpc == 0)
           continue;
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][nPtZBins-1][iPtTrk][iCent]);
+          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][iPtZ][iPtTrk][iCent]);
         }
         
-        h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][nPtZBins-1][iCent]);
+        h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][iPtZ][iCent]);
       } // end loop over pT^Z
     } // end loop over species
   } // end loop over centralities
