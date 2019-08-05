@@ -18,7 +18,7 @@ class MinbiasAnalysis : public FullAnalysis {
   private:
   TFile* zMixFile = nullptr;
 
-  TTree* LoadEventMixingTree ();
+  TTree* LoadEventMixingTree (const char* _treeName);
 
   public:
   MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
@@ -56,13 +56,13 @@ class MinbiasAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Loads the file for mixing Z's into minimum bias events
 ////////////////////////////////////////////////////////////////////////////////////////////////
-TTree* MinbiasAnalysis :: LoadEventMixingTree () {
+TTree* MinbiasAnalysis :: LoadEventMixingTree (const char* _treeName) {
   if (! (zMixFile && zMixFile->IsOpen ())) {
     SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
-    zMixFile = new TFile (Form ("%s/zMixFile.root", rootPath.Data ()), "read");
+    zMixFile = new TFile (Form ("%s/Nominal/zMixFile.root", rootPath.Data ()), "read");
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
-  return (TTree*) zMixFile->Get ("zMixTree");
+  return (TTree*) zMixFile->Get (_treeName);
 }
 
 
@@ -89,25 +89,25 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   float trk_eta[5000];
   float trk_phi[5000];
 
-  int nMixEvts = 0;
   float z_pt = 0, z_phi = 0;
-  TTree* zMixTree = LoadEventMixingTree ();
-  nMixEvts = zMixTree->GetEntries ();
-  zMixTree->SetBranchAddress ("z_pt",   &z_pt);
-  zMixTree->SetBranchAddress ("z_phi",  &z_phi);
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
+    TTree* zMixTree = LoadEventMixingTree ("PbPbZTree");
+    const int nMixEvts = zMixTree->GetEntries ();
+    zMixTree->SetBranchAddress ("z_pt",   &z_pt);
+    zMixTree->SetBranchAddress ("z_phi",  &z_phi);
+
     PbPbTree->SetBranchAddress ("fcal_et",  &fcal_et);
     PbPbTree->SetBranchAddress ("q2",       &q2);
     PbPbTree->SetBranchAddress ("vz",       &vz);
     PbPbTree->SetBranchAddress ("ntrk",     &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",   &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",  &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",  &trk_phi);
+    PbPbTree->SetBranchAddress ("trk_pt",   trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",  trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",  trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -118,8 +118,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       zMixTree->GetEntry (iEvt % nMixEvts);
 
       const short iSpc = 0;
-      const short iPtZ = nPtZBins-1;
       const short iPhi = 0;
+
+      short iPtZ = 0;
+      while (iPtZ < nPtZBins) {
+        if (z_pt < zPtBins[iPtZ+1])
+          break;
+        else
+          iPtZ++;
+      }
+
       short iCent = 0;
       while (iCent < numCentBins) {
         if (fcal_et < centBins[iCent])
@@ -174,10 +182,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trk_pt[iTrk], event_weight / trkEff);
 
-        int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
-        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
-          h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        const int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
+        if (iPtTrk >= 0 && iPtTrk < nPtTrkBins) {
+          h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+          for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
+            h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        }
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trk_pt[iTrk] / z_pt, event_weight / trkEff);
@@ -189,11 +199,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
 
   if (ppTree) {
+    TTree* zMixTree = LoadEventMixingTree ("ppZTree");
+    const int nMixEvts = zMixTree->GetEntries ();
+    zMixTree->SetBranchAddress ("z_pt",   &z_pt);
+    zMixTree->SetBranchAddress ("z_phi",  &z_phi);
+
     ppTree->SetBranchAddress ("vz",         &vz);
     ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",   &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",  &trk_phi);
+    ppTree->SetBranchAddress ("trk_pt",     trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",    trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",    trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -204,11 +219,18 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       zMixTree->GetEntry (iEvt % nMixEvts);
 
       const short iSpc = 0;
-      const short iPtZ = nPtZBins-1;
-      const short iCent = 0; // iCent = 0 for pp
       const short iPhi = 0;
+      const short iCent = 0; // iCent = 0 for pp
 
-      nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
+      short iPtZ = 0;
+      while (iPtZ < nPtZBins) {
+        if (z_pt < zPtBins[iPtZ+1])
+          break;
+        else
+          iPtZ++;
+      }
+
+      //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
       event_weight = nch_weight;
 
@@ -222,7 +244,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkEff = GetTrackingEfficiency (fcal_et, trk_pt[iTrk], trk_eta[iTrk], true);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trk_pt[iTrk], trk_eta[iTrk], false);
 
         if (trkEff == 0)
           continue;
@@ -233,10 +255,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trk_pt[iTrk], event_weight / trkEff);
 
-        int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
-        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
-          h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        const int iPtTrk = h->FindFixBin (trk_pt[iTrk]) - 1;
+        if (iPtTrk >= 0 && iPtTrk < nPtTrkBins) {
+          h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+          for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
+            h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        }
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trk_pt[iTrk] / z_pt, event_weight / trkEff);

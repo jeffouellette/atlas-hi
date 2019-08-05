@@ -16,6 +16,7 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("l2_pt", 0);
   inTree->SetBranchStatus ("l2_eta", 0);
   inTree->SetBranchStatus ("l2_phi", 0);
+  inTree->SetBranchStatus ("l2_charge", 0);
   inTree->SetBranchStatus ("z_y", 0);
   inTree->SetBranchStatus ("z_phi", 0);
   inTree->SetBranchStatus ("z_m", 0);
@@ -55,6 +56,7 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("l2_pt", 0);
   inTree->SetBranchStatus ("l2_eta", 0);
   inTree->SetBranchStatus ("l2_phi", 0);
+  inTree->SetBranchStatus ("l2_charge", 0);
   inTree->SetBranchStatus ("z_y", 0);
   inTree->SetBranchStatus ("z_phi", 0);
   inTree->SetBranchStatus ("z_m", 0);
