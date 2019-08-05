@@ -265,7 +265,7 @@ void MinbiasAnalysis :: CombineHists () {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
 
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (iSpc == 0 && iPtZ == nPtZBins-1 && iPhi == 0)
             continue;
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][nPtZBins-1][0][iCent]);
@@ -273,9 +273,10 @@ void MinbiasAnalysis :: CombineHists () {
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][nPtZBins-1][0][iCent]);
         } // end loop over phi
 
+        if (iSpc == 0 && iPtZ == nPtZBins-1)
+          continue;
+
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          if (iSpc == 0 && iPtZ == nPtZBins-1)
-            continue;
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][nPtZBins-1][iPtTrk][iCent]);
         }
         
