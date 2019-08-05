@@ -192,7 +192,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->SetBranchAddress ("vz",         &vz);
     ppTree->SetBranchAddress ("ntrk",       &ntrk);
     ppTree->SetBranchAddress ("trk_pt",   &trk_pt);
-    //ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
+    ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
     ppTree->SetBranchAddress ("trk_phi",  &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
