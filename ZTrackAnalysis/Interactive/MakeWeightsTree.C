@@ -27,10 +27,6 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("trk_eta", 0);
   inTree->SetBranchStatus ("trk_phi", 0);
   inTree->SetBranchStatus ("trk_charge", 0);
-  inTree->SetBranchStatus ("trk_pt_yield", 0);
-  inTree->SetBranchStatus ("trk_pt_var", 0);
-  inTree->SetBranchStatus ("trk_zh_yield", 0);
-  inTree->SetBranchStatus ("trk_zh_var", 0);
 
   TFile* outFile = new TFile (Form ("%s/eventWeightsTree.root", path), "recreate");
   outFile->Delete ("PbPbZTrackTree;*");
@@ -67,15 +63,16 @@ void MakeWeightsTree (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("trk_eta", 0);
   inTree->SetBranchStatus ("trk_phi", 0);
   inTree->SetBranchStatus ("trk_charge", 0);
-  inTree->SetBranchStatus ("trk_pt_yield", 0);
-  inTree->SetBranchStatus ("trk_pt_var", 0);
-  inTree->SetBranchStatus ("trk_zh_yield", 0);
-  inTree->SetBranchStatus ("trk_zh_var", 0);
 
   outTree = inTree->CloneTree ();
 
   outTree->SetDirectory (outFile);
   outFile->Close ();
+}
+
+
+void MakeDataWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal", "outFile.root");
 }
 
 
