@@ -38,7 +38,7 @@ void PlotTriggerEffs () {
   myText (0.24, 0.9, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
   myText (0.24, 0.85, kBlack, "2018 Pb+Pb, 1.4 nb^{-1}", 0.04);
   myText (0.24, 0.8, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
-  myMarkerText (0.65, 0.9, kBlack, kFullCircle, "HLT_mu14", 1.25, 0.04);
+  myMarkerTextNoLine (0.65, 0.9, kBlack, kFullCircle, "HLT_mu14", 1.25, 0.04);
 
   c->SaveAs ("Plots/muonTrigEffPt.pdf");
 
@@ -53,7 +53,7 @@ void PlotTriggerEffs () {
   myText (0.62, 0.35, kBlack, "2018 Pb+Pb, 1.4 nb^{-1}", 0.04);
   myText (0.62, 0.3, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.04);
-  myMarkerText (0.65, 0.9, kBlack, kFullCircle, "HLT_mu14", 1.25, 0.04);
+  myMarkerTextNoLine (0.65, 0.9, kBlack, kFullCircle, "HLT_mu14", 1.25, 0.04);
 
   c->SaveAs ("Plots/muonTrigEffFCal.pdf");
 
