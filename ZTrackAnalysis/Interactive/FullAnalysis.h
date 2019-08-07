@@ -1341,8 +1341,8 @@ void FullAnalysis :: PlotLeptonTrackDR () {
       c->cd ();
 
       TH2D* h2 = h_lepton_trk_dr[iCent][iSpc];
-      h2->RebinX (2);
-      h2->RebinY (2);
+      //h2->RebinX (2);
+      //h2->RebinY (2);
       h2->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       //h2->GetYaxis ()->SetTitle ("#it{p}_{T}^{h} [GeV]");
       h2->GetYaxis ()->SetTitle ("|#Delta#it{p}_{T}| / <#it{p}_{T}>");
@@ -1386,6 +1386,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       gDirectory->Add (c);
     }
     c->cd ();
+    c->SetLogy ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
 
@@ -1393,12 +1394,13 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
       TH1D* h = h2->ProjectionX ();
       //TH1D* h = h2->ProjectionX ("temp0", h2->GetYaxis ()->FindBin (2), h2->GetYaxis ()->FindBin (3)-1);
-      h->Rebin (2);
+      //h->Rebin (2);
       h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       h->GetYaxis ()->SetTitle ("Counts");
       h->SetLineColor (colors[iCent]);
       h->SetMarkerColor (colors[iCent]);
-      h->GetYaxis ()->SetRangeUser (0, 2e4);
+      h->GetXaxis ()->SetRangeUser (0, 0.2);
+      h->GetYaxis ()->SetRangeUser (0.5, 2e4);
       h->GetYaxis ()->SetTitleOffset (1.1);
 
       h->DrawCopy (iCent == 0 ? "e1" : "e1 same");
