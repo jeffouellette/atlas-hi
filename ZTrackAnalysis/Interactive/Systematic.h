@@ -370,7 +370,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
               highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("Relative error");
+            highs->GetYaxis ()->SetTitle ("Y (#it{p}_{T}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -389,7 +389,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
               lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("Relative error");
+            lows->GetYaxis ()->SetTitle ("Y (#it{p}_{T}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);
@@ -511,7 +511,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
               highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("Y_{jet} relative error");
+            highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -530,7 +530,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
               lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("Y_{jet} relative error");
+            lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);
@@ -650,7 +650,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
               highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("I_{AA} relative error");
+            highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -669,7 +669,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
               lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("I_{AA} relative error");
+            lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);

@@ -1321,27 +1321,48 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
 //    if (iCent > 0) continue;
+    gPad->SetLogx ();
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
       //TEfficiency* eff = h_trk_effs[iCent][iEta];
       TGAE* eff = GetTGAE (h_trk_effs[iCent][iEta]);
 
-
       eff->SetLineColor (colors[iEta]);
       eff->SetMarkerColor (colors[iEta]);
-      eff->SetMarkerSize (0);
+      eff->SetMarkerSize (0.5);
 
       eff->SetTitle (";#it{p}_{T} [GeV];Weighted Reco. Eff.");
       eff->GetXaxis ()->SetRangeUser (0.5, 65);
       eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      eff->Draw (iEta == 0 ? "AP" : "same P");
+      eff->GetXaxis ()->SetMoreLogLabels ();
+
+      eff->Draw (iEta == 0 ? "AP" : "P");
       //eff->Draw (iEta == 0 ? "APL" : "LP same");
 
       //gPad->Update ();
 
       //eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
       //eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
+
+      TH1D* confInts = new TH1D ("confInts", "", nPtTrkBins, ptTrkBins);
+      TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
+      fit->SetParameter (0, 1);
+      fit->SetParameter (1, 0);
+      fit->SetParameter (2, 0);
+      //fit->SetParameter (3, 0);
+      h_trk_effs[iCent][iEta]->Fit (fit, "RN0Q");
+      fit->SetLineColor (colors[iEta]);
+      fit->SetFillColor (colors[iEta]);
+      fit->SetLineWidth (1);
+      fit->Draw ("same");
+      (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
+      confInts->SetMarkerSize (0);
+      confInts->SetFillColorAlpha (colors[iEta], 0.3);
+      confInts->SetLineColor (colors[iEta]);
+      confInts->DrawCopy ("e3 same");
+      delete confInts;
 
       LabelTrackingEfficiencies (iCent, iEta);
     }
@@ -1379,6 +1400,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
     //TEfficiency* eff = h2_trk_effs[iCent];
     TH2D* eff = h2_trk_effs[iCent];
     eff->GetZaxis ()->SetRangeUser (0.3, 1.00);
+
+    eff->GetYaxis ()->SetMoreLogLabels ();
 
     eff->Draw ("colz");
     //eff->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);
@@ -2228,7 +2251,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         }
       } // end loop over cents
       
-      c->SaveAs (Form ("%s/TrkYields/pTTrk_dists_%s_iPtZ%i.pdf", plotPath.Data (), spc, iPtZ));
+      c->SaveAs (Form ("%s/TrkYields/%s_dists_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xZh", spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
 }

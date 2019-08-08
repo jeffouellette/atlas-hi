@@ -109,11 +109,11 @@ class FullAnalysis : public PhysicsAnalysis {
 
   //void PrintZYields ();
 
-  void PlotFCalDists (const char* plotTag = "data");
-  void PlotQ2Dists (const char* plotTag = "data");
+  void PlotFCalDists (const bool _treatAsData = true);
+  void PlotQ2Dists (const bool _treatAsData = true);
   void PlotQ2Weights ();
-  void PlotVZDists (const char* plotTag = "data");
-  void PlotNchDists (const char* plotTag = "data");
+  void PlotVZDists (const bool _treatAsData = true);
+  void PlotNchDists (const bool _treatAsData = true);
 
   void PlotLeptonPtSpectra ();
   void PlotLeptonTrackPtSpectra ();
@@ -900,7 +900,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot FCal distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotFCalDists (const char* plotTag) {
+void FullAnalysis :: PlotFCalDists (const bool _treatAsData) {
   const char* canvasName = "c_fcal_et";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -916,33 +916,43 @@ void FullAnalysis :: PlotFCalDists (const char* plotTag) {
 
   c->SetLogy ();
 
-  h_fcal_et->SetLineColor (kBlack);
+  if (!_treatAsData) {
+    //h_fcal_et->Scale (1./h_fcal_et->Integral ());
+    h_fcal_et->SetLineColor (kGray+1);
 
-  h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-  h_fcal_et->GetYaxis ()->SetTitle ("Counts");
+    h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
+    h_fcal_et->GetYaxis ()->SetTitle ("Counts");
 
-  h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
+    h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
 
-  if (strcmp (plotTag, "data") != 0) {
     h_fcal_et_reweighted->SetLineColor (kBlue);
+    //h_fcal_et_reweighted->Scale (1./h_fcal_et_reweighted->Integral ());
 
     h_fcal_et_reweighted->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
     h_fcal_et_reweighted->GetYaxis ()->SetTitle ("Counts");
 
     h_fcal_et_reweighted->Draw ("same hist");
 
-    myText (0.65, 0.88, kBlack, "Unweighted", 0.04);
-    myText (0.65, 0.81, kBlue, "Reweighted", 0.04);
-  }
+    myText (0.72, 0.81, kGray+1, "Unweighted", 0.04);
+    myText (0.72, 0.74, kBlue, "Reweighted", 0.04);
 
-  if (strcmp (plotTag, "data") != 0)
     myText (0.22, 0.21, kBlack, "Minimum bias", 0.04);
-  else
-    myText (0.22, 0.21, kBlack, "Z-tagged data", 0.04);
+  }
+  else {
+    h_fcal_et->SetLineColor (kBlack);
+    //h_fcal_et->Scale (1./h_fcal_et->Integral ());
+
+    h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
+    h_fcal_et->GetYaxis ()->SetTitle ("Counts");
+
+    h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
+
+    myText (0.72, 0.88, kBlack, "Z-tagged data", 0.04);
+  }
 
   myText (0.22, 0.28, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
 
-  c->SaveAs (Form ("%s/FCalDist_%s.pdf", plotPath.Data (), plotTag));
+  c->SaveAs (Form ("%s/FCalDist.pdf", plotPath.Data ()));
 }
 
 
@@ -951,7 +961,7 @@ void FullAnalysis :: PlotFCalDists (const char* plotTag) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Q2 distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotQ2Dists (const char* plotTag) {
+void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
   const char* canvasName = "c_q2";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -974,7 +984,7 @@ void FullAnalysis :: PlotQ2Dists (const char* plotTag) {
     GetMinAndMax (min, max, true);
     SetMinAndMax (min, max);
 
-    if (strcmp (plotTag, "data") != 0) {
+    if (!_treatAsData) {
 
       float max = std::fmax (h_q2[iCent]->GetMaximum (), h_q2_reweighted[iCent]->GetMaximum ());
       float min = std::fmin (h_q2[iCent]->GetMinimum (0), h_q2_reweighted[iCent]->GetMinimum (0));
@@ -1091,7 +1101,7 @@ void FullAnalysis :: PlotQ2Weights () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot VZ distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotVZDists (const char* plotTag) {
+void FullAnalysis :: PlotVZDists (const bool _treatAsData) {
   const char* canvasName = "c_vz";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1127,7 +1137,7 @@ void FullAnalysis :: PlotVZDists (const char* plotTag) {
 
   c->cd (1);
 
-  if (strcmp (plotTag, "data") != 0) {
+  if (!_treatAsData) {
     h_PbPb_vz_reweighted->SetLineColor (kBlue);
 
     h_PbPb_vz_reweighted->GetXaxis ()->SetTitle ("#it{v}_{z} [mm]");
@@ -1142,7 +1152,7 @@ void FullAnalysis :: PlotVZDists (const char* plotTag) {
 
   c->cd (2);
 
-  if (strcmp (plotTag, "data") != 0) {
+  if (!_treatAsData) {
     h_pp_vz_reweighted->SetLineColor (kBlue);
 
     h_pp_vz_reweighted->GetXaxis ()->SetTitle ("#it{v}_{z} [mm]");
@@ -1158,7 +1168,7 @@ void FullAnalysis :: PlotVZDists (const char* plotTag) {
   //myText (0.18, 0.81, kBlack, "Z-tagged data", 0.04);
   myText (0.18, 0.81, kBlack, "Minimum bias", 0.04);
 
-  c->SaveAs (Form ("%s/VZDist_%s.pdf", plotPath.Data (), plotTag));
+  c->SaveAs (Form ("%s/VZDist.pdf", plotPath.Data ()));
 }
 
 
@@ -1167,7 +1177,7 @@ void FullAnalysis :: PlotVZDists (const char* plotTag) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot VZ distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotNchDists (const char* plotTag) {
+void FullAnalysis :: PlotNchDists (const bool _treatAsData) {
   const char* canvasName = "c_nch";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1181,7 +1191,7 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
 
   gPad->SetLogy ();
 
-  if (strcmp (plotTag, "data") == 0)
+  if (_treatAsData)
     h_pp_nch->SetLineColor (kBlack);
   else
     h_pp_nch->SetLineColor (kGray+1);
@@ -1192,7 +1202,7 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
 
   h_pp_nch->Draw (canvasExists ? "same hist" : "hist");
 
-  if (strcmp (plotTag, "data") != 0) {
+  if (!_treatAsData) {
     h_pp_nch_reweighted->Scale (1./h_pp_nch_reweighted->Integral ());
     h_pp_nch_reweighted->SetLineColor (kRed+1);
 
@@ -1207,7 +1217,7 @@ void FullAnalysis :: PlotNchDists (const char* plotTag) {
   myText (0.68, 0.74, kGray+1, "Minimum bias", 0.04);
   myText (0.68, 0.67, kRed+1, "MB Reweighted", 0.04);
 
-  c->SaveAs (Form ("%s/NchDist_%s.pdf", plotPath.Data (), plotTag));
+  c->SaveAs (Form ("%s/NchDist.pdf", plotPath.Data ()));
 }
 
 
