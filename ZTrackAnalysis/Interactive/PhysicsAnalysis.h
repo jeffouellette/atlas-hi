@@ -16,6 +16,7 @@
 #include <TF1.h>
 #include <TLorentzVector.h>
 #include <TBox.h>
+#include <TVirtualFitter.h>
 
 #include <iostream>
 #include <string>
