@@ -129,8 +129,8 @@ const char* GetPiString (double phi) {
     return Form ("%i#pi/%i", numer, denom);
 }
 
-//const double zPtBins[7] = {0, 5, 10, 20, 40, 80, 10000};
-const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
+const double zPtBins[5] = {0, 5, 20, 40, 10000};
+//const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
 //const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
