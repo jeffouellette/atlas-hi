@@ -14,9 +14,12 @@ typedef TGraphAsymmErrors TGAE;
 
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
 const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kOrange+1, kViolet-3, kCyan+1, kMagenta, kGreen-7, kBlue+1};
-const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
+const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange, kGreen-2, kCyan-6, kMagenta-10, kViolet-2, kGray};
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
+
+//enum XAxisVar { trkPt = 0, xZh = 1}
+//enum BinVar { trkPt = 0, dphi = 1, xZh = 2, zPt = 3}
 
 double* doubleLogSpace (const double lo, const double hi, const int num) {
   double* arr = Get1DArray <double> (2*num+1);

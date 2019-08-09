@@ -183,7 +183,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trk_pt[iTrk], event_weight / trkEff);
 
-        const int iPtTrk = h->FindFixBin (trk_pt[iTrk]);
+        const int iPtTrk = h->FindFixBin (trk_pt[iTrk]) - 1;
         if (iPtTrk >= 0 && iPtTrk < nPtTrkBins) {
           h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
           for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
@@ -296,7 +296,9 @@ void MinbiasAnalysis :: CombineHists () {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][0][iCent]);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][0][iCent]);
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][0][iCent]);
+
         } // end loop over phi
+        h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][0][iCent]);
 
         if (iSpc == 0)
           continue;
@@ -325,8 +327,8 @@ void MinbiasAnalysis :: ScaleHists () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
           const double yieldNormFactor = countsHist->GetBinContent (1) * (pi);
           //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
@@ -335,6 +337,7 @@ void MinbiasAnalysis :: ScaleHists () {
             h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
           }
         } // end loop over phi
+        h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (countsHist->GetBinContent (1) * (pi)), "width");
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           const double normFactor = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
