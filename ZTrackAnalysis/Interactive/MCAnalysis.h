@@ -23,6 +23,7 @@ class MCAnalysis : public FullAnalysis {
     useAltMarker = false;
     useHITight = _useHITight;
     LoadTrackingEfficiencies ();
+    LoadTrackingPurities ();
 
     SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
@@ -251,7 +252,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
@@ -423,7 +424,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);

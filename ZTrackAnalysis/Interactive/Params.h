@@ -13,7 +13,7 @@ using namespace atlashi;
 typedef TGraphAsymmErrors TGAE;
 
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
-const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kBlue+1};
+const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kOrange+1, kViolet-3, kCyan+1, kMagenta, kGreen-7, kBlue+1};
 const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
@@ -67,17 +67,36 @@ const double phiLowBins[3] = {0,      3*pi/4,     15*pi/16};
 const double phiHighBins[3] = {pi/2,  15*pi/16,   pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
+const double zPtBins[5] = {0, 5, 20, 40, 10000};
+//const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
+//const double zPtBins[3] = {0, 5, 10000};
+const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
+
+//const int nZHBins = sizeof (zHBins) / sizeof (zHBins[0]) - 1;
+const int nZHBins = 6;
+const double* zHBins = logspace (0.01, 1, nZHBins);
+
 const double trk_min_pt = 2;
 const int nPtTrkBins = 7;
-const double* ptTrkBins = logspace (trk_min_pt, 65, nPtTrkBins);
-//const double ptTrkBins[7] = {3, 5.2, 9.0, 15.6, 27.0, 46.7, 120};
-//const int nPtTrkBins = sizeof (ptTrkBins) / sizeof (ptTrkBins[0]) - 1;
+
+double** init_ptTrkBins () {
+  double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
+
+  for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    _ptTrkBins[iPtZ] = logspace (trk_min_pt, fmin (65, zPtBins[iPtZ+1]), nPtTrkBins);
+  }
+  return _ptTrkBins;
+}
+double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
+//logspace (trk_min_pt, 65, nPtTrkBins);
+
 
 void PrintPtBins () {
   for (int i = 0; i <= nPtTrkBins; i++) {
     cout << ptTrkBins[i] << endl;
   }
 }
+
 
 long gcd(long a, long b)
 {
@@ -91,6 +110,7 @@ long gcd(long a, long b)
     else
         return gcd(b, a % b);
 }
+
 
 const char* GetPiString (double phi) {
   phi = phi / pi;
@@ -128,15 +148,6 @@ const char* GetPiString (double phi) {
   else
     return Form ("%i#pi/%i", numer, denom);
 }
-
-const double zPtBins[5] = {0, 5, 20, 40, 10000};
-//const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
-//const double zPtBins[3] = {0, 5, 10000};
-const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
-
-//const int nZHBins = sizeof (zHBins) / sizeof (zHBins[0]) - 1;
-const int nZHBins = 6;
-const double* zHBins = logspace (0.01, 1, nZHBins);
 
 
 short GetidPhi (const float dphi) {

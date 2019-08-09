@@ -51,6 +51,7 @@ class PhysicsAnalysis {
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
+  float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
   // Event info distributions (for reweighting)
   TH1D* h_PbPbFCal_weights  = nullptr;
@@ -58,12 +59,18 @@ class PhysicsAnalysis {
   TH1D* h_ppNch_weights     = nullptr;
 
   // Efficiencies
-  TH1D*** h_trk_effs   = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D**  h2_trk_effs  = Get1DArray <TH2D*> (numCentBins); // iCent, iEta
+  TH1D*** h_trk_effs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_effs   = Get1DArray <TH2D*> (numCentBins); // iCent
   //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
   //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numCentBins); // iCent, iEta
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
+
+  // Tracking purities
+  TH1D*** h_trk_purs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_purs   = Get1DArray <TH2D*> (numCentBins); // iCent
+  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numCentBins); // iCent
+  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numCentBins);
 
   //// Correlations plots
   //TH2D****   h_z_trk_pt_phi  = Get3DArray <TH2D*> (nPtZBins, numCentBins, 3);             // iPtZ, iCent, iSpc (0=ee, 1=mumu, 2=combined)
@@ -97,6 +104,7 @@ class PhysicsAnalysis {
     plotFill = false;
     useHITight = _useHITight;
     LoadTrackingEfficiencies ();
+    LoadTrackingPurities ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -107,6 +115,11 @@ class PhysicsAnalysis {
     Delete1DArray (h2_trk_effs,     numCentBins);
     Delete1DArray (h2_num_trk_effs, numCentBins);
     Delete1DArray (h2_den_trk_effs, numCentBins);
+
+    Delete2DArray (h_trk_purs,      numCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_purs,     numCentBins);
+    Delete1DArray (h2_num_trk_purs, numCentBins);
+    Delete1DArray (h2_den_trk_purs, numCentBins);
 
     Delete4DArray (h_z_trk_raw_pt,  3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_pt,      3, nPtZBins, numPhiBins, numCentBins);
@@ -127,6 +140,7 @@ class PhysicsAnalysis {
 
   protected:
   void LabelTrackingEfficiencies (const short iCent, const short iEta);
+  void LabelTrackingPurities (const short iCent, const short iEta);
   void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent);
   void LabelTrkYield (const short iCent, const short iPhi, const short iPtZ);
   void LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ);
@@ -159,6 +173,9 @@ class PhysicsAnalysis {
   virtual void LoadTrackingEfficiencies (); // defaults to HILoose
   virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
 
+  virtual void LoadTrackingPurities (); // defaults to HILoose
+  virtual double GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
+
   void PrintZYields (const int iPtZ = 2);
 
   //void Plot3DDist ();
@@ -166,6 +183,8 @@ class PhysicsAnalysis {
   //void PlotZMissingPt ();
   void PlotTrackingEfficiencies ();
   void PlotTrackingEfficiencies2D ();
+  void PlotTrackingPurities ();
+  void PlotTrackingPurities2D ();
 
   void CalculateIAA ();
   void CalculateICP ();
@@ -265,9 +284,9 @@ void PhysicsAnalysis :: CreateHists () {
         //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
         //}
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins[iPtZ]);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins[iPtZ]);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nZHBins, zHBins);
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
@@ -735,7 +754,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);dd
@@ -852,7 +871,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          if (ptTrkBins[iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtTrk+1])
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
@@ -970,6 +989,103 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
 
   TH2D* t = h2_trk_effs[iCent];
   double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkEffNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
+
+  //if (eff == 0)
+  //  return 1;
+
+  return eff;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load the tracking purities into memory
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: LoadTrackingPurities () {
+  SetupDirectories ("TrackingPurities/", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+
+  if (!useHITight)
+    trkEffFile = new TFile (Form ("%s/Nominal/trackingPurities.root", rootPath.Data ()), "read");
+  else
+    trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingPurities.root", rootPath.Data ()), "read");
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+  //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+    h2_num_trk_purs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_primary_reco_tracks_iCent%i", iCent));
+    h2_den_trk_purs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_reco_tracks_iCent%i", iCent));
+
+    if (iCent > 0) {
+      h2_num_trk_purs[iCent]->RebinX (2);
+      h2_num_trk_purs[iCent]->RebinY (2);
+      h2_den_trk_purs[iCent]->RebinX (2);
+      h2_den_trk_purs[iCent]->RebinY (2);
+    }
+
+    //h2_trk_purs[iCent] = new TEfficiency (*(h2_num_trk_purs[iCent]), *(h2_den_trk_purs[iCent]));
+    h2_trk_purs[iCent] = (TH2D*) h2_num_trk_purs[iCent]->Clone (Form ("h2_trk_pur_iCent%i", iCent));
+    h2_trk_purs[iCent]->Divide (h2_den_trk_purs[iCent]);
+
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      //TH1D* num = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
+      //TH1D* den = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
+
+      TH1D* num = (TH1D*) trkEffFile->Get (Form ("h_trk_pur_num_iCent%i_iEta%i", iCent, iEta));
+      TH1D* den = (TH1D*) trkEffFile->Get (Form ("h_trk_pur_den_iCent%i_iEta%i", iCent, iEta));
+
+      if (iCent > 0) {
+        num->Rebin (2);
+        den->Rebin (2);
+      }
+
+      //h_trk_purs[iCent][iEta] =  new TEfficiency (*num, *den);
+      h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      h_trk_purs[iCent][iEta]->Divide (den);
+      //h_trk_purs[iCent][iEta]->SetDirectory (_gDirectory);
+
+      //delete num;
+      //delete den;
+      //h_trk_purs[iCent][iEta]->SetName ("h_trk_pur_iCent%i_iEta%i");
+      
+      //h_trk_purs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+    }
+  }
+
+  _gDirectory->cd ();
+  return;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the appropriate tracking purity factor for this track and centrality.
+////////////////////////////////////////////////////////////////////////////////////////////////
+double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+  short iCent = 0;
+  if (isPbPb) {
+    while (iCent < numCentBins) {
+      if (fcal_et < centBins[iCent])
+        break;
+      else
+        iCent++;
+    }
+    if (iCent < 1 || iCent > numCentBins-1)
+      return 0;
+  }
+
+  //TEfficiency* t = h2_trk_effs[iCent];
+
+  //double eff = t->GetEfficiency (t->FindFixBin (trk_eta, trk_pt));
+  //if (trkEffNSigma > 0)
+  //  eff += trkEffNSigma * t->GetEfficiencyErrorUp (t->FindFixBin (trk_eta, trk_pt));
+  //else if (trkEffNSigma < 0)
+  //  eff += trkEffNSigma * t->GetEfficiencyErrorLow (t->FindFixBin (trk_eta, trk_pt));
+
+  TH2D* t = h2_trk_purs[iCent];
+  double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkPurNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 
   //if (eff == 0)
   //  return 1;
@@ -1167,8 +1283,8 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     //TVirtualPad* cPad = gPad; // store current pad
     //TBox* b = nullptr;
 
-    const float pt_lo = ptTrkBins[iPtTrk];
-    const float pt_hi = ptTrkBins[iPtTrk+1];
+    const float pt_lo = ptTrkBins[iPtZ][iPtTrk];
+    const float pt_hi = ptTrkBins[iPtZ][iPtTrk+1];
     //if (iPtTrk == 0)
     //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
     myText (0.2, 0.93-0.04*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.04);
@@ -1346,7 +1462,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       //eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
       //eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      TH1D* confInts = new TH1D ("confInts", "", nPtTrkBins, ptTrkBins);
+      TH1D* confInts = (TH1D*) h_trk_effs[iCent][iEta]->Clone ("confInts");
       TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
       //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
       fit->SetParameter (0, 1);
@@ -1439,6 +1555,142 @@ void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const shor
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots tracking purities
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrackingPurities () {
+  const char* canvasName = "c_trk_purs";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1000, 800);
+    gDirectory->Add (c);
+    c->cd ();
+    c->Divide (2, 2);
+  }
+  c->cd ();
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    c->cd (iCent+1);
+//    if (iCent > 0) continue;
+    gPad->SetLogx ();
+
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      //TEfficiency* pur = h_trk_purs[iCent][iEta];
+      TGAE* pur = GetTGAE (h_trk_purs[iCent][iEta]);
+
+      pur->SetLineColor (colors[iEta]);
+      pur->SetMarkerColor (colors[iEta]);
+      pur->SetMarkerSize (0.5);
+
+      pur->SetTitle (";#it{p}_{T} [GeV];Primary Track Fraction");
+      pur->GetXaxis ()->SetRangeUser (0.5, 65);
+      pur->GetYaxis ()->SetRangeUser (0.93, 1.05);
+
+      pur->GetXaxis ()->SetMoreLogLabels ();
+
+      pur->Draw (iEta == 0 ? "AP" : "P");
+      //pur->Draw (iEta == 0 ? "APL" : "LP same");
+
+      //gPad->Update ();
+
+      //pur->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
+      //pur->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
+
+      TH1D* confInts = (TH1D*) h_trk_purs[iCent][iEta]->Clone ("confInts");
+      TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
+      fit->SetParameter (0, 1);
+      fit->SetParameter (1, 0);
+      fit->SetParameter (2, 0);
+      //fit->SetParameter (3, 0);
+      h_trk_purs[iCent][iEta]->Fit (fit, "RN0Q");
+      fit->SetLineColor (colors[iEta]);
+      fit->SetFillColor (colors[iEta]);
+      fit->SetLineWidth (1);
+      fit->Draw ("same");
+      (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
+      confInts->SetMarkerSize (0);
+      confInts->SetFillColorAlpha (colors[iEta], 0.3);
+      confInts->SetLineColor (colors[iEta]);
+      confInts->DrawCopy ("e3 same");
+      delete confInts;
+
+      LabelTrackingPurities (iCent, iEta);
+    }
+  }
+
+  c->SaveAs (Form ("%s/TrackingPurities.pdf", plotPath.Data ()));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots tracking purities as a 2D histogram
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrackingPurities2D () {
+  const char* canvasName = "c_trk_purs_2d";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1000, 800);
+    FormatTH2Canvas (c, true);
+    gDirectory->Add (c);
+    c->cd ();
+    c->Divide (2, 2);
+  }
+  c->cd ();
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    c->cd (iCent+1);
+    //if (iCent > 0) continue;
+    gPad->SetLogy ();
+
+    //TEfficiency* pur = h2_trk_purs[iCent];
+    TH2D* pur = h2_trk_purs[iCent];
+    pur->GetZaxis ()->SetRangeUser (0.96, 1.00);
+
+    pur->GetYaxis ()->SetMoreLogLabels ();
+
+    pur->Draw ("colz");
+    //pur->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);
+    gPad->Update ();
+
+    if (iCent == 0)
+      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
+    else
+      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+  }
+
+  c->SaveAs (Form ("%s/TrackingPurities2D.pdf", plotPath.Data ()));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary (non-virtual) plot labelling for track purity plots
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: LabelTrackingPurities (const short iCent, const short iEta) {
+  if (iCent == 0)
+    myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
+  else
+    myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+
+  if (iCent == 0) {
+  //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+    myMarkerTextNoLine (0.5, 0.5-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+  }
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Subtracts default (HM) background from track yields
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
@@ -1452,10 +1704,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           //******** Do subtraction of pT ********//
-          TH1D* h = new TH1D (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
-          h->Sumw2 ();
+          TH1D* h = (TH1D*) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          //h->Sumw2 ();
 
-          h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          //h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
           TH1D* sub = nullptr;
           if (a == nullptr) {
             //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
@@ -1472,11 +1724,11 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
           h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
-          h = new TH1D (Form ("h_z_trk_pt_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins);
-          h->Sumw2 ();
+          h = (TH1D*) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          //h->Sumw2 ();
 
           if (sub != nullptr) {
-            h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            //h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
             h->Add (sub, -1);
             h->Divide (sub);
           }
@@ -1710,7 +1962,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1760,7 +2012,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1930,7 +2182,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1980,7 +2232,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
@@ -2051,7 +2303,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
             h->SetMarkerStyle (kFullCircle);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -2101,7 +2353,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
@@ -2169,7 +2421,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
             h->SetMarkerStyle (kFullCircle);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
@@ -2217,7 +2469,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
@@ -2404,7 +2656,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 1.4);
             xmin = h->GetXaxis ()->GetXmin ();
@@ -2458,7 +2710,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 1.4);
 
@@ -2603,7 +2855,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 1.4);
             xmin = h->GetXaxis ()->GetXmin ();
@@ -2659,7 +2911,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iCent], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 1.4);
             xmin = g->GetXaxis ()->GetXmin ();
@@ -2836,7 +3088,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = h->GetXaxis ()->GetXmin ();
@@ -2890,7 +3142,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = g->GetXaxis ()->GetXmin ();
@@ -3032,7 +3284,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = h->GetXaxis ()->GetXmin ();
@@ -3086,7 +3338,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iCent-1], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[0], ptTrkBins[nPtTrkBins]);
+            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = g->GetXaxis ()->GetXmin ();

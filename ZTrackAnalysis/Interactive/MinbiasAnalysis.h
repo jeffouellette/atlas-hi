@@ -30,6 +30,7 @@ class MinbiasAnalysis : public FullAnalysis {
     backgroundSubtracted = true;
     useHITight = _useHITight;
     LoadTrackingEfficiencies ();
+    LoadTrackingPurities ();
 
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
