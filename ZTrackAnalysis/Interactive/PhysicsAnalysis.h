@@ -60,6 +60,7 @@ class PhysicsAnalysis {
 
   // Efficiencies
   TH1D*** h_trk_effs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TF1**   f_trk_effs    = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
   TH2D**  h2_trk_effs   = Get1DArray <TH2D*> (numCentBins); // iCent
   //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
   //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numCentBins); // iCent, iEta
@@ -1483,6 +1484,11 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
   }
   c->cd ();
 
+  TGraphErrors* g0[numCentBins];
+  TGraphErrors* g1[numCentBins];
+  TGraphErrors* g2[numCentBins];
+  TGraphErrors* g3[numCentBins];
+
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
 //    if (iCent > 0) continue;
@@ -1518,6 +1524,17 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       fit->SetParameter (2, 0);
       //fit->SetParameter (3, 0);
       h_trk_effs[iCent][iEta]->Fit (fit, "RN0Q");
+
+      g0[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (0));
+      g1[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (1));
+      g2[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (2));
+      g3[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (3));
+
+      g0[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (0));
+      g1[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (1));
+      g2[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (2));
+      g3[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (3));
+
       fit->SetLineColor (colors[iEta]);
       fit->SetFillColor (colors[iEta]);
       fit->SetLineWidth (1);
@@ -1534,6 +1551,27 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
   }
 
   c->SaveAs (Form ("%s/TrackingEfficiencies.pdf", plotPath.Data ()));
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    g0[iCent]->SetLineColor (colors[iCent]);
+    g1[iCent]->SetLineColor (colors[iCent]);
+    g2[iCent]->SetLineColor (colors[iCent]);
+    g3[iCent]->SetLineColor (colors[iCent]);
+    g0[iCent]->SetMarkerColor (colors[iCent]);
+    g1[iCent]->SetMarkerColor (colors[iCent]);
+    g2[iCent]->SetMarkerColor (colors[iCent]);
+    g3[iCent]->SetMarkerColor (colors[iCent]);
+
+    c->cd (1);
+    g0[iCent]->Draw (iCent == 0 ? "AP":"P");
+    c->cd (2);
+    g1[iCent]->Draw (iCent == 0 ? "AP":"P");
+    c->cd (3);
+    g2[iCent]->Draw (iCent == 0 ? "AP":"P");
+    c->cd (4);
+    g3[iCent]->Draw (iCent == 0 ? "AP":"P");
+  }
+  c->SaveAs (Form ("%s/TrackingEfficienciesEtaDep.pdf", plotPath.Data ()));
 }
 
 
@@ -2256,6 +2294,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
+            h->GetYaxis ()->SetRangeUser (10,100);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
@@ -2306,6 +2345,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
             else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
+            g->GetYaxis ()->SetRangeUser (10,100);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
