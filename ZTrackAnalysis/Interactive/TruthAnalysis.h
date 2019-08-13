@@ -230,10 +230,13 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_eta = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float z_pt = 0, z_y = 0, z_phi = 0, z_eta = 0, z_m = 0;
+  float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0, njet = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *jet_pt = nullptr, *jet_eta = nullptr, *jet_phi = nullptr, *jet_e = nullptr;
-  //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
+  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
+  vector<float>* jet_pt = nullptr, *jet_eta = nullptr, *jet_phi = nullptr, *jet_e = nullptr;
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,12 +330,6 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      //for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //  for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
-
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -347,28 +344,6 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
-
-        //// Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
-        //  iPhi++;
-        //}
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -388,16 +363,8 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, event_weight);
-        
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over Pb+Pb tree
     cout << "Done truth-level Pb+Pb loop." << endl;
   }
@@ -449,11 +416,11 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
       }
 
       bool triggerEvent = false;
-      float triggerPhi = 0;
+      //float triggerPhi = 0;
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         if (trk_pt->at (iTrk) > 20 && DeltaPhi (z_phi, trk_phi->at (iTrk)) < pi/2) {
           triggerEvent = true;
-          triggerPhi = trk_phi->at (iTrk);
+          //triggerPhi = trk_phi->at (iTrk);
         }
       }
 
@@ -554,28 +521,6 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
-        //// Add to missing pT (requires dphi in -pi/2 to pi/2)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi);
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi);
-        //  iPhi++;
-        //}
-        
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
@@ -594,15 +539,8 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, event_weight);
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over pp tree
     cout << "Done truth-level pp loop." << endl;
   }
@@ -614,8 +552,6 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
-
-  //Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins);
 }
 
 

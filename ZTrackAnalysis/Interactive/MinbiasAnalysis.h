@@ -85,10 +85,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   CreateHists ();
 
   int ntrk = 0;
-  float fcal_et = 0, q2 = 0, vz = 0, event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
-  float trk_pt[10000];
-  float trk_eta[10000];
-  float trk_phi[10000];
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float fcal_et = 0, q2 = 0, vz = 0;
+  float trk_pt[10000], trk_eta[10000], trk_phi[10000];
 
   float z_pt = 0, z_phi = 0;
 

@@ -78,9 +78,6 @@ class PhysicsAnalysis {
   //TH1D*****  h_z_trk_phi     = Get4DArray <TH1D*> (nPtTrkBins, nPtZBins, numCentBins, 3); // iPtTrk, iPtZ, iCent, iSpc
   
   // Physics plots
-  //TH2D*****   h_z_missing_pt      = nullptr;
-  //TH1D*****   h_z_missing_pt_avg  = nullptr;
-  //TH1D*****   h_z_missing_pt_int  = nullptr;
   TH1D*****   h_z_trk_raw_pt      = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
   TH1D*****   h_z_trk_pt          = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
   TH1D****    h_z_trk_zpt         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
@@ -298,10 +295,6 @@ void PhysicsAnalysis :: CreateHists () {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = new TH2D (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2, nPtTrkBins, ptTrkBins);
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Sumw2 ();
         //}
-        //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = new TH2D (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", numZMissingPtBins, zMissingPtBins, nPtTrkBins, ptTrkBins);
-        //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
-        //}
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins[iPtZ]);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
@@ -355,9 +348,6 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
         //for (short iZH = 0; iZH < nZHBins; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
-        //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = (TH2D*) a->h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-        //} // end loop over iPhi
 
         h_z_trk_zpt[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -488,9 +478,6 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
         h_z_trk_zpt[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zpt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins, ptTrkBins[iPtZ]);
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Sumw2 ();
         
-        //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        //  h_z_missing_pt[iSpc][iPtZ][iPhi][iCent] = (TH2D*) histFile->Get (Form ("h_z_missing_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-        //}
         h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       }
     }
@@ -533,9 +520,6 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
-        //}
-        //for (int iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        //  SafeWrite (h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]);
         //}
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           SafeWrite (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
@@ -584,9 +568,6 @@ void PhysicsAnalysis :: CombineHists () {
 
           h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
-        //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-        //  h_z_missing_pt[2][iPtZ][iPhi][iCent]->Add (h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]);
-        //} // end loop over phi
         h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
       } // end loop over pT^Z
     } // end loop over species
@@ -669,40 +650,46 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float event_weight = 1;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
+  float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
-  //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
+  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",      &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",   &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",        &q2);
-    PbPbTree->SetBranchAddress ("psi2",      &psi2);
-    PbPbTree->SetBranchAddress ("vz",        &vz);
-    PbPbTree->SetBranchAddress ("z_pt",      &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",       &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",     &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",       &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",     &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",    &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",    &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge", &l1_charge);
-    PbPbTree->SetBranchAddress ("l2_pt",     &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",    &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",    &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge", &l2_charge);
-    PbPbTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
-    PbPbTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
-    PbPbTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",      &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",    &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",   &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",   &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",       &isEE);
+    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",         &q2);
+    PbPbTree->SetBranchAddress ("psi2",       &psi2);
+    PbPbTree->SetBranchAddress ("vz",         &vz);
+    PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",        &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",        &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",      &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",     &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",     &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",  &l1_charge);
+    PbPbTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
+    PbPbTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
+    PbPbTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
+    PbPbTree->SetBranchAddress ("l2_pt",      &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",     &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",     &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",  &l2_charge);
+    PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
+    PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
+    PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -743,12 +730,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      //for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //  for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
-
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -765,28 +746,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0)
           continue;
-
-        //// Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
-        //  iPhi++;
-        //}
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -809,12 +768,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);dd
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over Pb+Pb tree
     cout << "Done primary Pb+Pb loop." << endl;
   }
@@ -824,27 +777,30 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",      &isEE);
-    ppTree->SetBranchAddress ("vz",        &vz);
-    ppTree->SetBranchAddress ("z_pt",      &z_pt);
-    ppTree->SetBranchAddress ("z_y",       &z_y);
-    ppTree->SetBranchAddress ("z_phi",     &z_phi);
-    ppTree->SetBranchAddress ("z_m",       &z_m);
-    ppTree->SetBranchAddress ("l1_pt",     &l1_pt);
-    ppTree->SetBranchAddress ("l1_eta",    &l1_eta);
-    ppTree->SetBranchAddress ("l1_phi",    &l1_phi);
-    ppTree->SetBranchAddress ("l1_charge", &l1_charge);
-    ppTree->SetBranchAddress ("l2_pt",     &l2_pt);
-    ppTree->SetBranchAddress ("l2_eta",    &l2_eta);
-    ppTree->SetBranchAddress ("l2_phi",    &l2_phi);
-    ppTree->SetBranchAddress ("l2_charge", &l2_charge);
-    ppTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
-    ppTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
-    ppTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",      &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",    &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",   &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",   &trk_phi);
+    ppTree->SetBranchAddress ("isEE",       &isEE);
+    ppTree->SetBranchAddress ("vz",         &vz);
+    ppTree->SetBranchAddress ("z_pt",       &z_pt);
+    ppTree->SetBranchAddress ("z_y",        &z_y);
+    ppTree->SetBranchAddress ("z_phi",      &z_phi);
+    ppTree->SetBranchAddress ("z_m",        &z_m);
+    ppTree->SetBranchAddress ("l1_pt",      &l1_pt);
+    ppTree->SetBranchAddress ("l1_eta",     &l1_eta);
+    ppTree->SetBranchAddress ("l1_phi",     &l1_phi);
+    ppTree->SetBranchAddress ("l1_charge",  &l1_charge);
+    ppTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
+    ppTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
+    ppTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
+    ppTree->SetBranchAddress ("l2_pt",      &l2_pt);
+    ppTree->SetBranchAddress ("l2_eta",     &l2_eta);
+    ppTree->SetBranchAddress ("l2_phi",     &l2_phi);
+    ppTree->SetBranchAddress ("l2_charge",  &l2_charge);
+    ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
+    ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
+    ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
+    ppTree->SetBranchAddress ("ntrk",       &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -883,28 +839,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (trkEff == 0)
           continue;
 
-        //// Add to missing pT (requires dphi in -pi/2 to pi/2)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
-        //  iPhi++;
-        //}
-        
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
@@ -923,15 +857,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over pp tree
     cout << "Done primary pp loop." << endl;
   }
@@ -1373,111 +1300,6 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Plot Z yield with respect to the event plane angle
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//void PhysicsAnalysis :: PlotZMissingPt () {
-//  const char* canvasName = "c_z_missing_pt";
-//  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-//  TCanvas* c = nullptr;
-//  if (canvasExists)
-//    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-//  else {
-//    c = new TCanvas (canvasName, "", 600*numPhiTrkBins, 500);
-//    gDirectory->Add (c);
-//    c->cd ();
-//    c->Divide (2, 1);
-//  }
-//  c->cd ();
-//
-//  for (short iSpc = 0; iSpc < 2; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : "mumu");
-//    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//      for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-//        c->cd (iPhi+1);
-//        gPad->SetLogx ();
-//        for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-//          TH1D* h = new TH1D (Form ("h_z_missing_pt_avg_%s_iPtZ%i_iPhi%i_iCent%i", spc, iPtZ, iPhi, iCent), "", nPtTrkBins, ptTrkBins);
-//          TH1D* integral = new TH1D (Form ("h_z_missing_pt_int_%s_iPtZ%i_iPhi%i_iCent%i", spc, iPtZ, iPhi, iCent), "", nPtTrkBins, ptTrkBins);
-//          h->Sumw2 ();
-//          integral->Sumw2 ();
-//          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-//            TH1D* px = h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->ProjectionX ("_px", iPtTrk+1, iPtTrk+1);
-//            TF1* fit = new TF1 ("fit", "gaus(0)", zMissingPtBins[0], zMissingPtBins[numZMissingPtBins]);
-//            px->Fit (fit, "RN0Q");
-//            h->SetBinContent (iPtTrk+1, fit->GetParameter (1));
-//            h->SetBinError (iPtTrk+1, fit->GetParError (1));
-//            if (px) delete px;
-//
-//            px = h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->ProjectionX ("_px", 0, iPtTrk+1);
-//            px->Fit (fit, "RN0Q");
-//            integral->SetBinContent (iPtTrk+1, fit->GetParameter (1));
-//            integral->SetBinError (iPtTrk+1, fit->GetParError (1));
-//            if (px) delete px;
-//
-//            if (fit) delete fit;
-//          }
-//          h_z_missing_pt_avg[iSpc][iPtZ][iPhi][iCent] = h;
-//          h_z_missing_pt_int[iSpc][iPtZ][iPhi][iCent] = integral;
-//
-//          integral->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch}  [GeV]");
-//          integral->GetYaxis ()->SetTitle ("<#it{p}_{T}^{ ||}>  [GeV]");
-//          integral->GetXaxis ()->SetTitleSize (0.06);
-//          integral->GetYaxis ()->SetTitleSize (0.06);
-//          integral->GetXaxis ()->SetLabelSize (0.06);
-//          integral->GetYaxis ()->SetLabelSize (0.06);
-//          integral->GetXaxis ()->SetTitleOffset (1.2);
-//          integral->GetYaxis ()->SetTitleOffset (1.2);
-//
-//          integral->GetYaxis ()->SetRangeUser (-32, 16);
-//
-//          integral->SetFillColorAlpha (fillColors[iCent], fillAlpha);
-//          integral->SetLineColor (kBlack);
-//          integral->SetMarkerSize (0);
-//          integral->SetLineWidth (0);
-//          integral->DrawCopy (iCent == numCentBins-1 ? "b" : "b same");
-//          integral->SetLineWidth (1);
-//          integral->Draw ("hist same");
-//        }
-//
-//        TLine* l = new TLine (ptTrkBins[0], 0, ptTrkBins[nPtTrkBins], 0);
-//        l->Draw ("same");
-//
-//        for (short iCent = numCentBins-1; iCent >= 0; iCent--) {
-//          TGAE* g = GetTGAE (h_z_missing_pt_avg[iSpc][iPtZ][iPhi][iCent]);
-//          RecenterGraph (g);
-//          ResetXErrors (g);
-//          deltaize (g, (1.5-iCent)*0.04, false);
-//
-//          g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch}  [GeV]");
-//          g->GetYaxis ()->SetTitle ("<#it{p}_{T}^{ ||}>  [GeV]");
-//
-//          g->SetLineColor (colors[iCent]);
-//          g->SetMarkerColor (colors[iCent]);
-//          g->SetMarkerSize (0.75);
-//          g->Draw ("P");
-//        } // end loop over cents
-//        if (iPhi == 0) {
-//          myText (0.25, 0.88, kBlack, "0 < #Delta#phi < #pi/8 or 7#pi/8 < #Delta#phi < #pi", 0.05);
-//          myText (0.25, 0.81, kBlack, Form ("%g < #it{p}_{T}^{ Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
-//        }
-//        else if (iPhi == 1)
-//          myText (0.25, 0.88, kBlack, "0 < #Delta#phi < #pi", 0.05);
-//      } // end loop over directions
-//
-//      myText (0.66, 0.88, colors[0], "#it{pp}", 0.05);
-//      for (short iCent = 1; iCent < numCentBins; iCent++) {
-//        myText (0.66, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
-//      }
-//
-//      c->SaveAs (Form ("%s/ZMissingPt.pdf", plotPath.Data ()));
-//    } // end loop over pT^Z bins
-//  } // end loop over species
-//}
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking efficiencies
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1532,7 +1354,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       //eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
       //eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      TH1D* confInts = (TH1D*) h_trk_effs[iCent][iEta]->Clone ("confInts");
+      //TH1D* confInts = (TH1D*) h_trk_effs[iCent][iEta]->Clone ("confInts");
       TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
       //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
       fit->SetParameter (0, 1);

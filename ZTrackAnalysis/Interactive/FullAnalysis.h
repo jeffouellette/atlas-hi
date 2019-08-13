@@ -509,40 +509,46 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_pt = 0, z_y = 0, z_eta = 0, z_phi = 0, z_m = 0, l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float event_weight = 1;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
+  float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
+  float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr, *l_trk_pt = nullptr, *l_trk_eta = nullptr, *l_trk_phi = nullptr;
-  //double** trkPtProj = Get2DArray <double> (numPhiBins, nPtTrkBins);
+  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",      &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",   &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",        &q2);
-    PbPbTree->SetBranchAddress ("psi2",      &psi2);
-    PbPbTree->SetBranchAddress ("vz",        &vz);
-    PbPbTree->SetBranchAddress ("z_pt",      &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",       &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",     &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",       &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",     &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",    &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",    &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge", &l1_charge);
-    PbPbTree->SetBranchAddress ("l2_pt",     &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",    &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",    &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge", &l2_charge);
-    PbPbTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
-    PbPbTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
-    PbPbTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",      &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",    &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",   &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",   &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",       &isEE);
+    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",         &q2);
+    PbPbTree->SetBranchAddress ("psi2",       &psi2);
+    PbPbTree->SetBranchAddress ("vz",         &vz);
+    PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",        &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",        &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",      &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",     &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",     &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",  &l1_charge);
+    PbPbTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
+    PbPbTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
+    PbPbTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
+    PbPbTree->SetBranchAddress ("l2_pt",      &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",     &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",     &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",  &l2_charge);
+    PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
+    PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
+    PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -613,16 +619,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
-          h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
-        }
+        h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
+        h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
       }
-
-      //for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //  for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -634,18 +633,18 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         {
           float mindr = pi;
-          //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
-            const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
-            if (dr < mindr) {
-              mindr = dr;
-              ptdiff = 2 * fabs (trkpt - l_trk_pt->at (iLTrk)) / (trkpt + l_trk_pt->at (iLTrk));
-              //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
-            }
+          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
+          if (dr < mindr) {
+            mindr = dr;
+            ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
+          }
+          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
+          if (dr < mindr) {
+            mindr = dr;
+            ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
-          //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
         const float zH = trkpt / z_pt;
@@ -658,28 +657,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
-
-        //// Add to missing pT (requires dphi in +/-pi/2 to +/-pi)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
-        //  iPhi++;
-        //}
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -699,15 +676,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over Pb+Pb tree
     cout << "Done primary Pb+Pb loop." << endl;
   }
@@ -717,27 +687,30 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",      &isEE);
-    ppTree->SetBranchAddress ("vz",        &vz);
-    ppTree->SetBranchAddress ("z_pt",      &z_pt);
-    ppTree->SetBranchAddress ("z_y",       &z_y);
-    ppTree->SetBranchAddress ("z_phi",     &z_phi);
-    ppTree->SetBranchAddress ("z_m",       &z_m);
-    ppTree->SetBranchAddress ("l1_pt",     &l1_pt);
-    ppTree->SetBranchAddress ("l1_eta",    &l1_eta);
-    ppTree->SetBranchAddress ("l1_phi",    &l1_phi);
-    ppTree->SetBranchAddress ("l1_charge", &l1_charge);
-    ppTree->SetBranchAddress ("l2_pt",     &l2_pt);
-    ppTree->SetBranchAddress ("l2_eta",    &l2_eta);
-    ppTree->SetBranchAddress ("l2_phi",    &l2_phi);
-    ppTree->SetBranchAddress ("l2_charge", &l2_charge);
-    ppTree->SetBranchAddress ("l_trk_pt",  &l_trk_pt);
-    ppTree->SetBranchAddress ("l_trk_eta", &l_trk_eta);
-    ppTree->SetBranchAddress ("l_trk_phi", &l_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",      &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",    &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",   &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",   &trk_phi);
+    ppTree->SetBranchAddress ("isEE",       &isEE);
+    ppTree->SetBranchAddress ("vz",         &vz);
+    ppTree->SetBranchAddress ("z_pt",       &z_pt);
+    ppTree->SetBranchAddress ("z_y",        &z_y);
+    ppTree->SetBranchAddress ("z_phi",      &z_phi);
+    ppTree->SetBranchAddress ("z_m",        &z_m);
+    ppTree->SetBranchAddress ("l1_pt",      &l1_pt);
+    ppTree->SetBranchAddress ("l1_eta",     &l1_eta);
+    ppTree->SetBranchAddress ("l1_phi",     &l1_phi);
+    ppTree->SetBranchAddress ("l1_charge",  &l1_charge);
+    ppTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
+    ppTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
+    ppTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
+    ppTree->SetBranchAddress ("l2_pt",      &l2_pt);
+    ppTree->SetBranchAddress ("l2_eta",     &l2_eta);
+    ppTree->SetBranchAddress ("l2_phi",     &l2_phi);
+    ppTree->SetBranchAddress ("l2_charge",  &l2_charge);
+    ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
+    ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
+    ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
+    ppTree->SetBranchAddress ("ntrk",       &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -789,9 +762,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
-          h_lepton_trk_pt[iCent][iSpc]->Fill (l_trk_pt->at (iLTrk), event_weight);
-        }
+        h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
+        h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
       }
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
@@ -804,18 +776,18 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         {
           float mindr = pi;
-          //float phidiff = 0;
           float ptdiff = 0;
-          for (int iLTrk = 0; iLTrk < (int)l_trk_pt->size (); iLTrk++) {
-            const float dr = DeltaR (trk_eta->at (iTrk), l_trk_eta->at (iLTrk), trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
-            if (dr < mindr) {
-              mindr = dr;
-              ptdiff = 2. * fabs (trkpt - l_trk_pt->at (iLTrk)) / (trkpt + l_trk_pt->at (iLTrk));
-              //phidiff = DeltaPhi (trk_phi->at (iTrk), l_trk_phi->at (iLTrk));
-            }
+          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
+          if (dr < mindr) {
+            mindr = dr;
+            ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
+          }
+          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
+          if (dr < mindr) {
+            mindr = dr;
+            ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
-          //h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, phidiff);
         }
 
         const float zH = trkpt / z_pt;
@@ -829,28 +801,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
-        //// Add to missing pT (requires dphi in -pi/2 to pi/2)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
-        //  iPhi++;
-        //}
-        
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
@@ -871,15 +821,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
       } // end loop over tracks
 
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over pp tree
     cout << "Done primary pp loop." << endl;
   }
@@ -891,8 +834,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
-
-  //Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins);
 }
 
 
