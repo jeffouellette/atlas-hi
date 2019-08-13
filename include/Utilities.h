@@ -8,6 +8,7 @@
 #include <TH2D.h>
 #include <TH3D.h>
 #include <TGraphAsymmErrors.h>
+#include <TEfficiency.h>
 
 namespace atlashi {
 
@@ -178,6 +179,12 @@ void deltaize (TGraphAsymmErrors* tg, const double delta = 0, const bool logx = 
  * Makes a TGraphAsymmErrors from the input histogram.
  */
 TGraphAsymmErrors* make_graph (TH1* h, const float cutoff = -1);
+
+
+/**
+ * Converts a TEfficiency to a TGAE
+ */
+TGraphAsymmErrors* TEff2TGAE (TEfficiency* e);
 
 
 /**

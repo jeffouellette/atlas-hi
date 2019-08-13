@@ -675,6 +675,23 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
 
 
 /**
+ * Converts a TEfficiency to a TGAE
+ */
+TGraphAsymmErrors* TEff2TGAE (TEfficiency* e) {
+  const int nx = e->GetTotalHistogram ()->GetNbinsX ();
+  TGraphAsymmErrors* g = new TGraphAsymmErrors (nx);
+  for (int ix = 0; ix < nx; ix++) {
+    g->SetPoint (ix, e->GetTotalHistogram ()->GetBinCenter (ix+1), e->GetEfficiency (ix+1));
+    g->SetPointEXhigh (ix, 0.5*e->GetTotalHistogram ()->GetBinWidth (ix+1));
+    g->SetPointEXlow (ix, 0.5*e->GetTotalHistogram ()->GetBinWidth (ix+1));
+    g->SetPointEYhigh (ix, e->GetEfficiencyErrorUp (ix+1));
+    g->SetPointEYlow (ix, e->GetEfficiencyErrorLow (ix+1));
+  }
+  return g;
+}
+
+
+/**
  * Recenters a TGraphAsymmErrors point for a log scale.
  */
 void RecenterGraph (TGraphAsymmErrors* g) {
