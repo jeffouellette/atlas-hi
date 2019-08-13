@@ -60,16 +60,16 @@ class PhysicsAnalysis {
 
   // Efficiencies
   TH1D*** h_trk_effs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TF1**   f_trk_effs    = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
+  //TF1**   f_trk_effs    = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
   TH2D**  h2_trk_effs   = Get1DArray <TH2D*> (numCentBins); // iCent
   //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  //TEfficiency**  h2_trk_effs  = Get1DArray <TEfficiency*> (numCentBins); // iCent, iEta
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
 
   // Tracking purities
-  TH1D*** h_trk_purs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  //TH1D*** h_trk_purs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
   TH2D**  h2_trk_purs   = Get1DArray <TH2D*> (numCentBins); // iCent
+  TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
   TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numCentBins); // iCent
   TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numCentBins);
 
@@ -1089,9 +1089,10 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
         den->Rebin (2);
       }
 
-      //h_trk_purs[iCent][iEta] =  new TEfficiency (*num, *den);
-      h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
-      h_trk_purs[iCent][iEta]->Divide (den);
+      h_trk_purs[iCent][iEta] =  new TEfficiency (*num, *den);
+      h_trk_purs[iCent][iEta]->SetName (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      //h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      //h_trk_purs[iCent][iEta]->Divide (den);
       //h_trk_purs[iCent][iEta]->SetDirectory (_gDirectory);
 
       //delete num;
@@ -1149,15 +1150,25 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float tr
 // Prints yield of Z's that meet the event selection criteria in each centrality
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "Z->ee" : (iSpc == 1 ? "Z->mumu" : "Z->ll"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      float yield = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
-      if (iCent == 0) 
-        cout << "pp " << spc << " # Z's > " << zPtBins[iPtZ] << " GeV  =  " << yield << endl;
-      else
-        cout << Form ("Pb+Pb %i-%i%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]) << spc << " # Z's > " << zPtBins[iPtZ] << " GeV  =  " << yield << endl;
-    }
+  cout << "\t\t\t\\multirow{4}{*}";
+  if (iPtZ == nPtZBins)
+    cout << Form ("{\\pt > \\SI{%g}{\\GeV}$}& ", zPtBins[iPtZ]);
+  else
+    cout << Form ("{$%g < \\pt < \\SI{%g}{\\GeV}$}& ", zPtBins[iPtZ], zPtBins[iPtZ+1]);
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    if (iCent == 0)
+      cout << "\\pp ";
+    else
+      cout << Form ("& Pb+Pb / %i-%i\\%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]);
+
+    for (short iSpc = 0; iSpc < 3; iSpc++)
+      cout << Form ("& %g ", h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2));
+    cout << "\\\\";
+
+    if (iCent == numCentBins-1)
+      cout << " \\hline";
+    cout << endl << "\t\t\t";
   }
 }
 
@@ -1494,6 +1505,11 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 //    if (iCent > 0) continue;
     gPad->SetLogx ();
 
+    g0[iCent] = new TGraphErrors (numEtaTrkBins);
+    g1[iCent] = new TGraphErrors (numEtaTrkBins);
+    g2[iCent] = new TGraphErrors (numEtaTrkBins);
+    g3[iCent] = new TGraphErrors (numEtaTrkBins);
+
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
       //TEfficiency* eff = h_trk_effs[iCent][iEta];
       TGAE* eff = GetTGAE (h_trk_effs[iCent][iEta]);
@@ -1535,16 +1551,16 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       g2[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (2));
       g3[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (3));
 
-      fit->SetLineColor (colors[iEta]);
-      fit->SetFillColor (colors[iEta]);
-      fit->SetLineWidth (1);
-      fit->Draw ("same");
-      (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
-      confInts->SetMarkerSize (0);
-      confInts->SetFillColorAlpha (colors[iEta], 0.3);
-      confInts->SetLineColor (colors[iEta]);
-      confInts->DrawCopy ("e3 same");
-      delete confInts;
+      //fit->SetLineColor (colors[iEta]);
+      //fit->SetFillColor (colors[iEta]);
+      //fit->SetLineWidth (1);
+      //fit->Draw ("same");
+      //(TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
+      //confInts->SetMarkerSize (0);
+      //confInts->SetFillColorAlpha (colors[iEta], 0.3);
+      //confInts->SetLineColor (colors[iEta]);
+      //confInts->DrawCopy ("e3 same");
+      //delete confInts;
 
       LabelTrackingEfficiencies (iCent, iEta);
     }
@@ -1552,26 +1568,30 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 
   c->SaveAs (Form ("%s/TrackingEfficiencies.pdf", plotPath.Data ()));
 
-  for (int iCent = 0; iCent < numCentBins; iCent++) {
-    g0[iCent]->SetLineColor (colors[iCent]);
-    g1[iCent]->SetLineColor (colors[iCent]);
-    g2[iCent]->SetLineColor (colors[iCent]);
-    g3[iCent]->SetLineColor (colors[iCent]);
-    g0[iCent]->SetMarkerColor (colors[iCent]);
-    g1[iCent]->SetMarkerColor (colors[iCent]);
-    g2[iCent]->SetMarkerColor (colors[iCent]);
-    g3[iCent]->SetMarkerColor (colors[iCent]);
+  //for (int iCent = 0; iCent < numCentBins; iCent++) {
+  //  g0[iCent]->SetLineColor (colors[iCent]);
+  //  g1[iCent]->SetLineColor (colors[iCent]);
+  //  g2[iCent]->SetLineColor (colors[iCent]);
+  //  g3[iCent]->SetLineColor (colors[iCent]);
+  //  g0[iCent]->SetMarkerColor (colors[iCent]);
+  //  g1[iCent]->SetMarkerColor (colors[iCent]);
+  //  g2[iCent]->SetMarkerColor (colors[iCent]);
+  //  g3[iCent]->SetMarkerColor (colors[iCent]);
 
-    c->cd (1);
-    g0[iCent]->Draw (iCent == 0 ? "AP":"P");
-    c->cd (2);
-    g1[iCent]->Draw (iCent == 0 ? "AP":"P");
-    c->cd (3);
-    g2[iCent]->Draw (iCent == 0 ? "AP":"P");
-    c->cd (4);
-    g3[iCent]->Draw (iCent == 0 ? "AP":"P");
-  }
-  c->SaveAs (Form ("%s/TrackingEfficienciesEtaDep.pdf", plotPath.Data ()));
+  //  c->cd (1);
+  //  gPad->SetLogx (false);
+  //  g0[iCent]->Draw (iCent == 0 ? "AP":"P");
+  //  c->cd (2);
+  //  gPad->SetLogx (false);
+  //  g1[iCent]->Draw (iCent == 0 ? "AP":"P");
+  //  c->cd (3);
+  //  gPad->SetLogx (false);
+  //  g2[iCent]->Draw (iCent == 0 ? "AP":"P");
+  //  c->cd (4);
+  //  gPad->SetLogx (false);
+  //  g3[iCent]->Draw (iCent == 0 ? "AP":"P");
+  //}
+  //c->SaveAs (Form ("%s/TrackingEfficienciesEtaDep.pdf", plotPath.Data ()));
 }
 
 
@@ -1654,17 +1674,16 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
     gDirectory->Add (c);
     c->cd ();
     c->Divide (2, 2);
+    c->Draw ();
   }
   c->cd ();
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
-//    if (iCent > 0) continue;
     gPad->SetLogx ();
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      //TEfficiency* pur = h_trk_purs[iCent][iEta];
-      TGAE* pur = GetTGAE (h_trk_purs[iCent][iEta]);
+      TGAE* pur = TEff2TGAE (h_trk_purs[iCent][iEta]);
 
       pur->SetLineColor (colors[iEta]);
       pur->SetMarkerColor (colors[iEta]);
@@ -1672,36 +1691,30 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
 
       pur->SetTitle (";#it{p}_{T} [GeV];Primary Track Fraction");
       pur->GetXaxis ()->SetRangeUser (0.5, 65);
-      pur->GetYaxis ()->SetRangeUser (0.93, 1.05);
+      pur->GetYaxis ()->SetRangeUser (0.97, 1.005);
 
       pur->GetXaxis ()->SetMoreLogLabels ();
 
       pur->Draw (iEta == 0 ? "AP" : "P");
-      //pur->Draw (iEta == 0 ? "APL" : "LP same");
 
-      //gPad->Update ();
-
-      //pur->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
-      //pur->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
-
-      TH1D* confInts = (TH1D*) h_trk_purs[iCent][iEta]->Clone ("confInts");
-      TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
-      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
-      fit->SetParameter (0, 1);
-      fit->SetParameter (1, 0);
-      fit->SetParameter (2, 0);
-      //fit->SetParameter (3, 0);
-      h_trk_purs[iCent][iEta]->Fit (fit, "RN0Q");
-      fit->SetLineColor (colors[iEta]);
-      fit->SetFillColor (colors[iEta]);
-      fit->SetLineWidth (1);
-      fit->Draw ("same");
-      (TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
-      confInts->SetMarkerSize (0);
-      confInts->SetFillColorAlpha (colors[iEta], 0.3);
-      confInts->SetLineColor (colors[iEta]);
-      confInts->DrawCopy ("e3 same");
-      delete confInts;
+      //TH1D* confInts = (TH1D*) h_trk_purs[iCent][iEta]->Clone ("confInts");
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
+      ////TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
+      //fit->SetParameter (0, 1);
+      //fit->SetParameter (1, 0);
+      //fit->SetParameter (2, 0);
+      ////fit->SetParameter (3, 0);
+      //h_trk_purs[iCent][iEta]->Fit (fit, "RN0Q");
+      //fit->SetLineColor (colors[iEta]);
+      //fit->SetFillColor (colors[iEta]);
+      //fit->SetLineWidth (1);
+      //fit->Draw ("same");
+      //(TVirtualFitter::GetFitter ())->GetConfidenceIntervals (confInts, 0.68);
+      //confInts->SetMarkerSize (0);
+      //confInts->SetFillColorAlpha (colors[iEta], 0.3);
+      //confInts->SetLineColor (colors[iEta]);
+      //confInts->DrawCopy ("e3 same");
+      //delete confInts;
 
       LabelTrackingPurities (iCent, iEta);
     }

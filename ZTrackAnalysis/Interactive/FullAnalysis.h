@@ -1386,17 +1386,18 @@ void FullAnalysis :: PlotLeptonTrackDR () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotLeptonTrackDRProjX () {
   
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* canvasName = Form ("c_%s_trk_dr", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"));
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
       c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
     else {
-      c = new TCanvas (canvasName, "", 800, 600);
+      c = new TCanvas (canvasName, "", 1400, 600);
       gDirectory->Add (c);
+      c->Divide (2, 1);
     }
-    c->cd ();
+    c->cd (iSpc+1);
     c->SetLogy ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -1426,8 +1427,8 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
         myText (0.22, 0.82, kBlack, "#it{pp}, 5.02 TeV", 0.04);
 
     }
-    c->SaveAs (Form ("%s/LeptonTrackDists/%sTrackDist_ProjX.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : (iSpc == 1 ? "Muon" : "Lepton")));
   }
+  c->SaveAs (Form ("%s/LeptonTrackDists/LeptonTrackDist_ProjX.pdf", plotPath.Data ()));
 }
 
 
