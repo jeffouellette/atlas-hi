@@ -7,6 +7,7 @@
 #include <ArrayTemplates.h>
 
 #include <TEfficiency.h>
+#include <TTree.h>
 
 #include <iostream>
 
@@ -40,13 +41,15 @@ TH1D* h_ppNchDist = nullptr;
 TH1D* h_ppNch_weights = nullptr;
 
 
-void GenerateWeights (const TString name, const TString inFileName = "outFile.root") {
+void GenerateWeights (const TString name, const TString inFileName = "outFile.root", const TString outFileName = "eventWeightsFile.root") {
 
   if (name == "data")
     SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
   else if (name == "mc")
     SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
   else if (name == "minbias")
+    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+  else if (name == "hijing")
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
   else if (name == "truth")
     SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
@@ -80,12 +83,12 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    float event_weight = 0, fcal_et = 0, q2 = 0, zpt = 0;
+    float event_weight = 1, fcal_et = 0, q2 = 0, zpt = 0;
 
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
-    PbPbTree->SetBranchAddress ("z_pt",         &zpt);
+    //PbPbTree->SetBranchAddress ("z_pt",         &zpt);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -93,8 +96,8 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      if (zpt < 25)
-        continue; // candidate events
+      //if (zpt < 25)
+      //  continue; // candidate events
 
       short iCent = 0;
       while (iCent < numFinerCentBins) {
@@ -154,8 +157,8 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
           cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
         PbPbTree->GetEntry (iEvt);
 
-        if (zpt < 25)
-          continue; // candidate events
+        //if (zpt < 25)
+        //  continue; // candidate events
 
         short iCent = 0;
         while (iCent < numFinerCentBins) {
@@ -192,6 +195,8 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
       else if (name == "minbias")
         SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+      else if (name == "hijing")
+        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
       else if (name == "truth")
         SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
     }
@@ -199,10 +204,10 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
 
   if (ppTree) {
     float event_weight = 0;
-    float zpt = 0;
+    //float zpt = 0;
     int ntrk = 0;
     ppTree->SetBranchAddress ("event_weight", &event_weight);
-    ppTree->SetBranchAddress ("z_pt", &zpt);
+    //ppTree->SetBranchAddress ("z_pt", &zpt);
     ppTree->SetBranchAddress ("ntrk", &ntrk);
 
     const int nEvts = ppTree->GetEntries ();
@@ -211,8 +216,8 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      if (zpt < 25)
-        continue; // candidate events
+      //if (zpt < 25)
+      //  continue; // candidate events
 
       h_ppNchDist->Fill (ntrk, event_weight);
     }
@@ -240,13 +245,15 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
       else if (name == "minbias")
         SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+      else if (name == "hijing")
+        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
       else if (name == "truth")
         SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
     }
   }
 
 
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
+  TFile* eventWeightsFile = new TFile (Form ("%s/%s", rootPath.Data (), outFileName.Data ()), "recreate");
 
   SafeWrite (h_PbPbFCalDist);
   SafeWrite (h_PbPbFCal_weights);
@@ -258,6 +265,27 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
   SafeWrite (h_ppNch_weights);
 
   eventWeightsFile->Close ();
+}
+
+
+void GenerateDataWeights () {
+  GenerateWeights ("data");
+}
+
+void GenerateMCWeights () {
+  GenerateWeights ("mc");
+}
+
+void GenerateTruthWeights () {
+  GenerateWeights ("truth");
+}
+
+void Generate2015HijingWeights () {
+  GenerateWeights ("hijing", "PbPb_Hijing_15.root", "PbPb_Hijing_15_eventWeights.root");
+}
+
+void Generate2018HijingWeights () {
+  GenerateWeights ("hijing", "PbPb_Hijing_18.root", "PbPb_Hijing_18_eventWeights.root");
 }
 
 #endif

@@ -416,7 +416,6 @@ void MinbiasAnalysis :: GenerateWeights () {
   if (PbPbTree) {
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
     PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchStatus ("ntrk",        0);
     PbPbTree->SetBranchStatus ("vz",          0);
     PbPbTree->SetBranchStatus ("psi2",        0);
 
@@ -489,7 +488,7 @@ void MinbiasAnalysis :: GenerateWeights () {
 
   if (ppTree) {
     int ntrk = 0;
-    ppTree->SetBranchAddress ("ntrk", &ntrk);
+    //ppTree->SetBranchAddress ("ntrk", &ntrk);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
