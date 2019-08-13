@@ -70,8 +70,8 @@ const double phiLowBins[3] = {0,      3*pi/4,     15*pi/16};
 const double phiHighBins[3] = {pi/2,  15*pi/16,   pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
-const double zPtBins[5] = {0, 5, 20, 40, 10000};
-//const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
+//const double zPtBins[5] = {0, 5, 20, 40, 10000};
+const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
 //const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
@@ -79,7 +79,7 @@ const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 const int nZHBins = 6;
 const double* zHBins = logspace (0.01, 1, nZHBins);
 
-const double trk_min_pt = 2;
+const double trk_min_pt = 1;
 const int nPtTrkBins = 7;
 
 double** init_ptTrkBins () {
