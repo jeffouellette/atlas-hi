@@ -402,7 +402,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
         for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 1; iCent < numCentBins; iCent++) {
 
-            if (a->h_z_trk_pt_iaa[iSpc][iPtZ][iCent]) {
+            if (a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]) {
               h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
             }
 
@@ -424,7 +424,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
         for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 2; iCent < numCentBins; iCent++) {
 
-            if (a->h_z_trk_pt_icp[iSpc][iPtZ][iCent]) {
+            if (a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]) {
               h_z_trk_zpt_icp[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_icp_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
             }
 
@@ -987,6 +987,11 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
     trkEffFile = new TFile (Form ("%s/Nominal/trackingPurities.root", rootPath.Data ()), "read");
   else
     trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingPurities.root", rootPath.Data ()), "read");
+
+  if (!trkEffFile || !trkEffFile->IsOpen ()) {
+    cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
+    return;
+  }
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {

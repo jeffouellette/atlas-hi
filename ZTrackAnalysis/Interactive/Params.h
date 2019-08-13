@@ -77,7 +77,7 @@ const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
 //const int nZHBins = sizeof (zHBins) / sizeof (zHBins[0]) - 1;
 const int nZHBins = 6;
-const double* zHBins = logspace (0.01, 1, nZHBins);
+const double* zHBins = logspace (0.04, 1, nZHBins);
 
 const double trk_min_pt = 1;
 const int nPtTrkBins = 7;
