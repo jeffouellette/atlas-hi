@@ -1910,7 +1910,6 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
           if (sub != nullptr) {
             while (sub->GetNbinsX () > h->GetNbinsX ()) {
               sub->Rebin (2);
-              sub->Scale (0.5);
             }
             h->Add (sub, -1);
           }
