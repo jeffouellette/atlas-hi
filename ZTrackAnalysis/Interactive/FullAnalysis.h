@@ -1386,19 +1386,20 @@ void FullAnalysis :: PlotLeptonTrackDR () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotLeptonTrackDRProjX () {
   
+  const char* canvasName = Form ("c_trk_dr");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1400, 600);
+    gDirectory->Add (c);
+    c->Divide (2, 1);
+  }
+
   for (short iSpc = 0; iSpc < 2; iSpc++) {
-    const char* canvasName = Form ("c_%s_trk_dr", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"));
-    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-    TCanvas* c = nullptr;
-    if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-    else {
-      c = new TCanvas (canvasName, "", 1400, 600);
-      gDirectory->Add (c);
-      c->Divide (2, 1);
-    }
     c->cd (iSpc+1);
-    c->SetLogy ();
+    gPad->SetLogy ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
 
