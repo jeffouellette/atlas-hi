@@ -581,22 +581,22 @@ void PhysicsAnalysis :: CombineHists () {
         //h_z_trk_pt_phi[iPtZ][iCent][2]->Add (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
         //}
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
 
-          h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
 
           if (iPhi != 0) {
-            h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-            h_z_trk_zpt[2][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-            h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            h_z_trk_zxzh[2][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[2][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[2][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           }
 
-          h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
         h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
       } // end loop over pT^Z
