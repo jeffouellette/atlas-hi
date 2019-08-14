@@ -298,6 +298,7 @@ void MinbiasAnalysis :: CombineHists () {
 
         } // end loop over phi
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][0][iCent]);
+        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][0][iCent]);
 
         if (iSpc == 0)
           continue;
@@ -337,9 +338,10 @@ void MinbiasAnalysis :: ScaleHists () {
           }
         } // end loop over phi
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (countsHist->GetBinContent (1) * (pi)), "width");
+        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (countsHist->GetBinContent (1) * (pi)), "width");
 
+        const double normFactor = countsHist->GetBinContent (1);
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          const double normFactor = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
           //h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = h_z_trk_pt_phi[iPtZ][iCent][iSpc]->ProjectionX (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()), iPtTrk+1, iPtTrk+1);
 
           TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
