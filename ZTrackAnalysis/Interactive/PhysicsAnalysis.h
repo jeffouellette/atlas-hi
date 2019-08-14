@@ -50,6 +50,7 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
+  bool use2015Effs    = false; // whether to use tracking efficiencies fromo 2015
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
@@ -886,10 +887,12 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  if (!useHITight)
-    trkEffFile = new TFile (Form ("%s/Nominal/trackingEfficiencies.root", rootPath.Data ()), "read");
-  else
+  if (useHITight)
     trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingEfficiencies.root", rootPath.Data ()), "read");
+  else if (use2015Effs)
+    trkEffFile = new TFile (Form ("%s/Nominal/PbPb_Hijing_15.root", rootPath.Data ()), "read");
+  else if (!useHITight)
+    trkEffFile = new TFile (Form ("%s/Nominal/trackingEfficiencies.root", rootPath.Data ()), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {

@@ -273,7 +273,7 @@ void GenerateDataWeights () {
 }
 
 void GenerateMCWeights () {
-  GenerateWeights ("mc");
+  GenerateWeights ("mc", "eventWeightsTree.root");
 }
 
 void GenerateTruthWeights () {
