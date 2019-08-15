@@ -35,9 +35,12 @@ class TruthAnalysis : public FullAnalysis {
     SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
 
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_truth");
-    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-      h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_truth", iCent));
+    for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_truth", iPtZ));
+      for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+        h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_truth", iCent, iPtZ));
+        h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_truth", iCent, iPtZ));
+      }
     }
     h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_truth");
 
@@ -210,14 +213,6 @@ void TruthAnalysis::SaveHists (const char* histFileName) {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
-  SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_truth");
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-    h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_truth", iCent));
-  }
-  h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_truth");
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -230,7 +225,7 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_eta = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -301,18 +296,19 @@ void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
           iPtZ++;
       }
 
-      fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
-      //q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
+      fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+      //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
+      //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight = fcal_weight * q2_weight * vz_weight;
+      event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
 
       h_fcal_et->Fill (fcal_et);
-      //h_fcal_et_q2->Fill (fcal_et, q2);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
-      //h_fcal_et_q2_reweighted->Fill (fcal_et, q2, event_weight);
 
       h_q2[iFinerCent]->Fill (q2);
       h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
+      h_psi2[iFinerCent]->Fill (psi2);
+      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 

@@ -55,9 +55,10 @@ class PhysicsAnalysis {
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
   // Event info distributions (for reweighting)
-  TH1D* h_PbPbFCal_weights  = nullptr;
-  TH1D** h_PbPbQ2_weights   = Get1DArray <TH1D*> (numFinerCentBins);
-  TH1D* h_ppNch_weights     = nullptr;
+  TH1D** h_PbPbFCal_weights   = Get1DArray <TH1D*> (nPtZBins);
+  TH1D*** h_PbPbQ2_weights    = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins);
+  TH1D*** h_PbPbPsi2_weights  = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins);
+  TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
   TH1D*** h_trk_effs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
@@ -122,7 +123,9 @@ class PhysicsAnalysis {
   }
 
   virtual ~PhysicsAnalysis () {
-    Delete1DArray (h_PbPbQ2_weights,  numFinerCentBins);
+    Delete1DArray (h_PbPbFCal_weights,  nPtZBins);
+    Delete2DArray (h_PbPbQ2_weights,    numFinerCentBins, nPtZBins);
+    Delete2DArray (h_PbPbPsi2_weights,  numFinerCentBins, nPtZBins);
 
     Delete2DArray (h_trk_effs,      numCentBins, numEtaTrkBins);
     Delete1DArray (h2_trk_effs,     numCentBins);
@@ -345,8 +348,9 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
   // Don't need to clone these histograms
 
   // Reweighting histograms
-  h_PbPbFCal_weights  = nullptr;
-  h_PbPbQ2_weights    = Get1DArray <TH1D*> (numFinerCentBins);
+  h_PbPbFCal_weights  = Get1DArray <TH1D*> (nPtZBins);
+  h_PbPbQ2_weights    = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins);
+  h_PbPbPsi2_weights  = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins);
 
   // Efficiencies
   h_trk_effs      = a->h_trk_effs;
@@ -921,7 +925,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
     trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingEfficiencies.root", rootPath.Data ()), "read");
   else if (use2015Effs)
     trkEffFile = new TFile (Form ("%s/Nominal/PbPb_Hijing_15.root", rootPath.Data ()), "read");
-  else if (!useHITight)
+  else
     trkEffFile = new TFile (Form ("%s/Nominal/trackingEfficiencies.root", rootPath.Data ()), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {

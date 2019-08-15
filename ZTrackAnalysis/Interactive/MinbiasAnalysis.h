@@ -34,9 +34,12 @@ class MinbiasAnalysis : public FullAnalysis {
 
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get ("h_PbPbFCal_weights_minbias");
-    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-      h_PbPbQ2_weights[iCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_minbias", iCent));
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_minbias", iPtZ));
+      for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+        h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_minbias", iCent, iPtZ));
+        h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_minbias", iCent, iPtZ));
+      }
     }
     h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
 
@@ -85,8 +88,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   CreateHists ();
 
   int ntrk = 0;
-  float event_weight = 1, fcal_weight = 1, q2_weight = 1, vz_weight = 1, nch_weight = 1;
-  float fcal_et = 0, q2 = 0, vz = 0;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
 
   float z_pt = 0, z_phi = 0;
@@ -103,6 +106,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
     PbPbTree->SetBranchAddress ("fcal_et",  &fcal_et);
     PbPbTree->SetBranchAddress ("q2",       &q2);
+    PbPbTree->SetBranchAddress ("psi2",     &psi2);
     PbPbTree->SetBranchAddress ("vz",       &vz);
     PbPbTree->SetBranchAddress ("ntrk",     &ntrk);
     PbPbTree->SetBranchAddress ("trk_pt",   trk_pt);
@@ -148,11 +152,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
         continue;
 
-      fcal_weight = h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
-      //q2_weight = h_PbPbQ2_weights[iFinerCent]->GetBinContent (h_PbPbQ2_weights[iFinerCent]->FindBin (q2));
+      fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+      //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
+      //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight = fcal_weight * q2_weight * vz_weight;
-      //event_weight = h_PbPb_event_reweights->GetBinContent (h_PbPb_event_reweights->FindBin (fcal_et, q2, vz));
+      event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
 
       if (event_weight == 0)
         continue;
@@ -164,6 +168,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       h_q2[iFinerCent]->Fill (q2);
       h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
+      h_psi2[iFinerCent]->Fill (psi2);
+      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
