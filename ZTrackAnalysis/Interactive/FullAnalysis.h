@@ -596,6 +596,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       h_q2[iFinerCent]->Fill (q2);
       h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
+      h_psi2[iFinerCent]->Fill (psi2);
+      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
