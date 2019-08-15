@@ -1968,16 +1968,13 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) h->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)");
-            else h->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)") : h->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2018,16 +2015,13 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) g->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)");
-            else g->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)") : g->GetYaxis ()->SetTitle ("Y (#it{x}_{zh}, #Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2188,17 +2182,14 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
             h->GetYaxis ()->SetRangeUser (10,100);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2239,17 +2230,14 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
             g->GetYaxis ()->SetRangeUser (10,100);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2311,16 +2299,13 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
             h->SetMarkerStyle (kFullCircle);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2361,16 +2346,13 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
-            if (useTrkPt) g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-            else g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetYaxis ()->SetTitle ("dY/d#it{p}_{T}d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("dY/d#it{x}_{zh}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -2405,7 +2387,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+          TH1D* h = (useTrkPt ? h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
           min = fmin (min, h->GetMinimum (0));
           max = fmax (max, h->GetMaximum ());
         } // end loop over phi
@@ -2429,14 +2411,12 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
             h->SetLineWidth (0);
             h->SetMarkerStyle (kFullCircle);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (min, max);
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("(dY/d#Delta#phi) / (dY_{total}/d#Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -2477,14 +2457,12 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (min, max);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("(dY/d#Delta#phi) / (dY_{bkg}/d#Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -2766,7 +2744,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       min = 1e30, max = 0;
       GetMinAndMax (min, max, true);
       for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        TH1D* h = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+        TH1D* h = (useTrkPt ? h_z_trk_zpt_sub[iSpc][iPtZ][iCent] : h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
         min = fmin (min, h->GetMinimum (0));
         max = fmax (max, h->GetMaximum ());
       } // end loop over phi
@@ -2875,7 +2853,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       min = 1e30, max = 0;
       GetMinAndMax (min, max, true);
       for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        TH1D* h = h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent];
+        TH1D* h = (useTrkPt ? h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent] : h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
         min = fmin (min, h->GetMinimum (0));
         max = fmax (max, h->GetMaximum ());
       } // end loop over phi
@@ -3135,16 +3113,14 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
-            h->GetYaxis ()->SetRangeUser (0, 1.4);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            h->GetYaxis ()->SetRangeUser (0, 4.4);
             xmin = h->GetXaxis ()->GetXmin ();
             xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -3189,14 +3165,12 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
-            g->GetYaxis ()->SetRangeUser (0, 1.4);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            g->GetYaxis ()->SetRangeUser (0, 4.4);
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
             xmin = g->GetXaxis ()->GetXmin ();
             xmax = g->GetXaxis ()->GetXmax ();
@@ -3334,16 +3308,14 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 1.4);
             xmin = h->GetXaxis ()->GetXmin ();
             xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -3390,16 +3362,14 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iCent], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 1.4);
             xmin = g->GetXaxis ()->GetXmin ();
             xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -3756,16 +3726,14 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = h->GetXaxis ()->GetXmin ();
             xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -3810,16 +3778,14 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = g->GetXaxis ()->GetXmin ();
             xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -3952,16 +3918,14 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
             h->SetLineColor (kBlack);
             h->SetLineWidth (0);
 
-            if (useTrkPt) h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? h->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             h->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = h->GetXaxis ()->GetXmin ();
             xmax = h->GetXaxis ()->GetXmax ();
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -4006,16 +3970,14 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
               g->SetFillColorAlpha (fillColors[iCent-1], 0.3);
             }
 
-            if (useTrkPt) g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
-            else g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+            useTrkPt ? g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
             g->GetYaxis ()->SetRangeUser (0, 2.4);
             xmin = g->GetXaxis ()->GetXmin ();
             xmax = g->GetXaxis ()->GetXmax ();
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            if (useTrkPt) g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-            else g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
+            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{zh}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);

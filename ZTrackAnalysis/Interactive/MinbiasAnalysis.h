@@ -312,7 +312,6 @@ void MinbiasAnalysis :: CombineHists () {
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][iPtZ][iPtTrk][iCent]);
         }
-        
         h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][iPtZ][iCent]);
       } // end loop over pT^Z
     } // end loop over species
