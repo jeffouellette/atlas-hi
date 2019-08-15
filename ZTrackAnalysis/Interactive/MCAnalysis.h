@@ -190,7 +190,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         {
@@ -208,11 +212,6 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
-
-        const float zH = trkpt / z_pt;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
-          continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0)
@@ -335,7 +334,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         {
@@ -353,11 +356,6 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
-
-        const float zH = trkpt / z_pt;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
-          continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0)

@@ -770,10 +770,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
-          continue;
-
         const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
         const short iZH = GetiZH (zH);
         if (iZH < 0 || iZH > nZHBins-1)
           continue;
@@ -862,10 +861,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
-          continue;
-
         const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
         const short iZH = GetiZH (zH);
         if (iZH < 0 || iZH > nZHBins-1)
           continue;
@@ -2651,7 +2649,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineColor (kBlack);
           h->SetLineWidth (0);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, 65) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -2696,7 +2694,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, 65) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -2765,7 +2763,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineWidth (0);
           h->SetMarkerStyle (kFullCircle);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, 65) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -2812,7 +2810,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, 65) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -2877,7 +2875,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineWidth (0);
           h->SetMarkerStyle (kFullCircle);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, 65) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -2923,7 +2921,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, 65) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (zHBins[0], zHBins[nZHBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();

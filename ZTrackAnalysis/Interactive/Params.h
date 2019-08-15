@@ -33,8 +33,8 @@ double* doubleLogSpace (const double lo, const double hi, const int num) {
   return arr;
 }
 
-const int nFCalBins = 300;
-const double* fcalBins = linspace (0, 6000, nFCalBins);
+const int nFCalBins = 250;
+const double* fcalBins = linspace (0, 5000, nFCalBins);
 
 const int numZMissingPtBins = 16;
 const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
@@ -56,12 +56,12 @@ const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 //const double centThicks[8] = {0.223102, 0.564885, 1.2811,  2.63435, 4.94611, 8.63844, 14.3345, 23.3523};
 
 // Centrality cuts in GeV:  80%  -  30%  -  10%  -   0%
-//const double centBins[4] = {63.719, 1368.75, 2989.31, 5200}; // 2015 recommendations
-const double centBins[4] = {66.402, 1378.92, 2995.94, 5200}; // updated recommendations
-const int centCuts[4] =    {80,     30,     10,      0};
+//const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations
+const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations
+const int centCuts[4]    = {80,     30,     10,      0};
 
-const double finerCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5200};
-const int finerCentCuts[10] = {80, 70, 60, 50, 40, 30, 20, 10, 5, 0};
+const double finerCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
+const int finerCentCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
 
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 const int numFinerCentBins = sizeof (finerCentBins) / sizeof (finerCentBins[0]);
@@ -72,21 +72,20 @@ const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
 //const double zPtBins[5] = {0, 5, 20, 40, 10000};
 const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
-//const double zPtBins[3] = {0, 5, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
-//const int nZHBins = sizeof (zHBins) / sizeof (zHBins[0]) - 1;
 const int nZHBins = 6;
-const double* zHBins = logspace (0.04, 1, nZHBins);
+const double* zHBins = logspace (1./15., 1, nZHBins);
 
 const double trk_min_pt = 1;
+const double trk_max_pt = 60;
 const int nPtTrkBins = 7;
 
 double** init_ptTrkBins () {
   double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _ptTrkBins[iPtZ] = logspace (trk_min_pt, fmin (65, zPtBins[iPtZ+1]), nPtTrkBins);
+    _ptTrkBins[iPtZ] = logspace (trk_min_pt, fmin (trk_max_pt, zPtBins[iPtZ]), nPtTrkBins);
   }
   return _ptTrkBins;
 }

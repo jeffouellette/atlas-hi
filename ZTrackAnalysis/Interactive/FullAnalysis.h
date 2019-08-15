@@ -113,6 +113,8 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotFCalDists (const bool _treatAsData = true);
   void PlotQ2Dists (const bool _treatAsData = true);
   void PlotQ2Weights ();
+  void PlotPsi2Dists (const bool _treatAsData = true);
+  void PlotPsi2Weights ();
   void PlotVZDists (const bool _treatAsData = true);
   void PlotNchDists (const bool _treatAsData = true);
 
@@ -628,7 +630,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         {
@@ -646,11 +652,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
-
-        const float zH = trkpt / z_pt;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
-          continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0)
@@ -771,7 +772,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt)
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+          continue;
+        const short iZH = GetiZH (zH);
+        if (iZH < 0 || iZH > nZHBins-1)
           continue;
 
         {
@@ -789,11 +794,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           }
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
-
-        const float zH = trkpt / z_pt;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
-          continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0)
@@ -1033,6 +1033,145 @@ void FullAnalysis :: PlotQ2Weights () {
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
   c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
+
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Psi2 distributions
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
+  const char* canvasName = "c_psi2";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1200, 1200);
+    gDirectory->Add (c);
+    c->Divide (3, 3);
+  }
+
+  c->cd ();
+
+  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+    c->cd (numFinerCentBins-iCent);
+    gPad->SetLogy ();
+
+    double min = 1e30, max = 0;
+    GetDrawnObjects ();
+    GetMinAndMax (min, max, true);
+    SetMinAndMax (min, max);
+
+    if (!_treatAsData) {
+
+      float max = std::fmax (h_psi2[iCent]->GetMaximum (), h_psi2_reweighted[iCent]->GetMaximum ());
+      float min = std::fmin (h_psi2[iCent]->GetMinimum (0), h_psi2_reweighted[iCent]->GetMinimum (0));
+      TH1D* h = h_psi2[iCent];
+
+      h->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
+
+      //h->SetLineColor (colors[iCent]);
+      h->SetLineColor (kGray+1);
+
+      h->GetXaxis ()->SetTitle ("#Psi_{2}");
+      h->GetYaxis ()->SetTitle ("Counts");
+
+      h->Draw (!canvasExists ? "hist" : "same hist");
+
+      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+
+      h = h_psi2_reweighted[iCent];
+
+      h->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
+
+      h->SetLineColor (colors[iCent]);
+      //h->SetLineStyle (2);
+
+      h->GetXaxis ()->SetTitle ("#Psi_{2}");
+      h->GetYaxis ()->SetTitle ("Counts");
+
+      h->Draw ("same hist");
+
+      myText (0.61, 0.74, colors[iCent], "Reweighted", 0.05);
+      myText (0.61, 0.68, kGray+1, "Unweighted", 0.05);
+    }
+
+    else {
+      TH1D* h = h_psi2[iCent];
+
+      if (h->GetMinimum (0) < min)
+        min = h->GetMinimum (0);
+      if (h->GetMaximum () > max)
+        max = h->GetMaximum ();
+
+      h->SetLineColor (kBlack);
+
+      h->GetXaxis ()->SetTitle ("#Psi_{2}");
+      h->GetYaxis ()->SetTitle ("Counts");
+
+      h->Draw (!canvasExists ? "hist" : "same hist");
+
+      myText (0.61, 0.80, kBlack, "Z-tagged Data", 0.05);
+    }
+
+    SetMinAndMax (0.5*min, 2*max);
+
+  }
+
+  myText (0.52, 0.31, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.52, 0.23, kBlack, "Pb+Pb, 5.02 TeV", 0.05);
+  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+
+  c->SaveAs (Form ("%s/Psi2Dists.pdf", plotPath.Data ()));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Psi2 weights
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotPsi2Weights () {
+  const char* canvasName = "c_psi2_weights";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1200, 1200);
+    gDirectory->Add (c);
+    c->Divide (3,3);
+  }
+
+  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+    c->cd (numFinerCentBins-iCent);
+
+    TH1D* h = h_PbPbPsi2_weights[iCent][0];
+    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+
+    h->SetMarkerColor (colors[iCent]);
+    h->SetLineColor (colors[iCent]);
+
+    h->GetXaxis ()->SetTitle ("#Psi_{2}");
+    h->GetYaxis ()->SetTitle ("Event Weight");
+
+    h->Draw (!canvasExists ? "e1" : "same e1");
+
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+  }
+
+  c->cd (1);
+
+  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+
+  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
 
 }
 
