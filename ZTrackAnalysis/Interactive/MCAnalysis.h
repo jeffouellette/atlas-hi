@@ -170,31 +170,28 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      if (z_pt > zPtBins[1]) {
-        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
-        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
-        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      float dphi = DeltaPhi (z_phi, psi2, false);
+      if (dphi > pi/2)
+        dphi = pi - dphi;
+      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
-        h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
-      }
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
+
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         {
@@ -222,10 +219,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
-          }
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -236,6 +231,16 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
+
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
         }
       } // end loop over tracks
 
@@ -314,31 +319,28 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      if (z_pt > zPtBins[1]) {
-        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
-        h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
-        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      float dphi = DeltaPhi (z_phi, psi2, false);
+      if (dphi > pi/2)
+        dphi = pi - dphi;
+      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
 
-        h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
-        h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
-      }
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
+
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         {
@@ -363,35 +365,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
 
-        //// Add to missing pT (requires dphi in -pi/2 to pi/2)
-        //float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        //bool awaySide = false;
-        //if (dphi > pi/2) {
-        //  dphi = pi-dphi;
-        //  awaySide = true;
-        //}
-
-        //short iPtTrk = 0;
-        //while (iPtTrk < nPtTrkBins && trkpt > ptTrkBins[iPtTrk+1])
-        //  iPtTrk++;
-        //// start at the 1st phi bin and integrate outwards until the track is no longer contained 
-        //// e.g. so 7pi/8->pi is a subset of pi/2->pi
-        //short iPhi = 0;
-        //while (iPhi < numPhiTrkBins && dphi > phiTrkBins[iPhi]) {
-        //  if (awaySide)
-        //    trkPtProj[iPhi][iPtTrk] += -trkpt * cos (dphi) / trkEff;
-        //  else
-        //    trkPtProj[iPhi][iPtTrk] += trkpt * cos (dphi) / trkEff;
-        //  iPhi++;
-        //}
-        
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
-          }
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -403,8 +381,16 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
         
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+        }
       } // end loop over tracks
 
       //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {

@@ -51,6 +51,7 @@ class PhysicsAnalysis {
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool use2015Effs    = false; // whether to use tracking efficiencies fromo 2015
+  bool doLeptonRejVar = false; // whether to impose an additional dR cut on tracks away from the leptons
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
@@ -770,11 +771,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
+
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
@@ -784,10 +784,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
-          }
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -799,7 +797,16 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
         }
-        //h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Fill (dphi, trkpt, event_weight / trkEff);dd
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
+
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+        }
       } // end loop over tracks
 
     } // end loop over Pb+Pb tree
@@ -861,11 +868,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
-        const short iZH = GetiZH (zH);
-        if (iZH < 0 || iZH > nZHBins-1)
+
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
@@ -875,10 +881,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
-          }
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -889,6 +893,16 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+        }
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
+
+        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
         }
       } // end loop over tracks
 

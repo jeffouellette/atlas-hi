@@ -179,8 +179,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
@@ -200,6 +199,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
             h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
         }
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         h->Fill (zH, event_weight / trkEff);
@@ -258,8 +261,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins] || trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
@@ -279,6 +281,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
             h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
         }
+
+        const float zH = trkpt / z_pt;
+        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+          continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
         h->Fill (zH, event_weight / trkEff);
@@ -451,11 +457,11 @@ void MinbiasAnalysis :: GenerateWeights () {
 
     SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
     TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get ("h_PbPbFCalDist_data");
+    TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get (Form ("h_PbPbFCalDist_iPtZ%i_data", nPtZBins));
 
     TH1D* referenceQ2Dist[numFinerCentBins];
     for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-      referenceQ2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbQ2Dist_iCent%i_data", iCent));
+      referenceQ2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbQ2Dist_iCent%i_iPtZ%i_data", iCent, nPtZBins));
     }
 
     for (int ix = 1; ix <= _h_PbPbFCal_weights->GetNbinsX (); ix++) {

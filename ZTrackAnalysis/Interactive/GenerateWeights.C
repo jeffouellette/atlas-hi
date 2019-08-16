@@ -106,10 +106,10 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
     int ntrk = 0;
-    float event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, z_pt = 0;
+    float b_event_weight = 1, event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, z_pt = 0;
 
     if (name != "minbias")
-      PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+      PbPbTree->SetBranchAddress ("event_weight", &b_event_weight);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
@@ -123,24 +123,6 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      h_PbPbFCalDist[nPtZBins]->Fill (fcal_et, event_weight);
-      short iPtZ = 0;
-      if (name == "data" || name == "mc") {
-        while (iPtZ < nPtZBins) {
-          if (z_pt < zPtBins[iPtZ+1])
-            break;
-          else
-            iPtZ++;
-        }
-        h_PbPbFCalDist[iPtZ]->Fill (fcal_et, event_weight);
-      }
-      else {
-        for (iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-          h_PbPbFCalDist[iPtZ]->Fill (fcal_et, event_weight);
-        }
-      }
-      h_PbPbNchDist->Fill (ntrk, event_weight);
-
       short iCent = 0;
       while (iCent < numFinerCentBins) {
         if (fcal_et < finerCentBins[iCent])
@@ -151,11 +133,30 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
       if (iCent < 1 || iCent > numFinerCentBins-1)
         continue;
 
+      short iPtZ = 0;
+      if (name == "data" || name == "mc") {
+        while (iPtZ < nPtZBins) {
+          if (z_pt < zPtBins[iPtZ+1])
+            break;
+          else
+            iPtZ++;
+        }
+        h_PbPbFCalDist[iPtZ]->Fill (fcal_et, b_event_weight);
+      }
+      else {
+        for (iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+          h_PbPbFCalDist[iPtZ]->Fill (fcal_et, b_event_weight);
+        }
+      }
+      h_PbPbNchDist->Fill (ntrk, event_weight);
+
+      h_PbPbFCalDist[nPtZBins]->Fill (fcal_et, b_event_weight);
+
       if (name == "data") {
-        h_PbPbQ2Dist[iCent][iPtZ]->Fill (q2, event_weight);
-        h_PbPbPsi2Dist[iCent][iPtZ]->Fill (psi2, event_weight);
-        h_PbPbQ2Dist[iCent][nPtZBins]->Fill (q2, event_weight);
-        h_PbPbPsi2Dist[iCent][nPtZBins]->Fill (psi2, event_weight);
+        h_PbPbQ2Dist[iCent][iPtZ]->Fill (q2, b_event_weight);
+        h_PbPbPsi2Dist[iCent][iPtZ]->Fill (psi2, b_event_weight);
+        h_PbPbQ2Dist[iCent][nPtZBins]->Fill (q2, b_event_weight);
+        h_PbPbPsi2Dist[iCent][nPtZBins]->Fill (psi2, b_event_weight);
       }
     }
     cout << "Done 1st Pb+Pb loop." << endl;
@@ -163,7 +164,7 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
 
 
     // Normalize histograms
-    for (int iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (int iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
       if (h_PbPbFCalDist[iPtZ]->Integral () > 0)
         h_PbPbFCalDist[iPtZ]->Scale (1./h_PbPbFCalDist[iPtZ]->Integral ());
 
@@ -261,17 +262,18 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
             else
               iPtZ++;
           }
-          event_weight *= h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+          event_weight = b_event_weight * h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
           h_PbPbQ2Dist[iCent][iPtZ]->Fill (q2, event_weight);
           h_PbPbPsi2Dist[iCent][iPtZ]->Fill (psi2, event_weight);
         }
         else {
           for (iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-            event_weight *= h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+            event_weight = b_event_weight * h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
             h_PbPbQ2Dist[iCent][iPtZ]->Fill (q2, event_weight);
             h_PbPbPsi2Dist[iCent][iPtZ]->Fill (psi2, event_weight);
           }
         }
+        event_weight = b_event_weight * h_PbPbFCal_weights[nPtZBins]->GetBinContent (h_PbPbFCal_weights[nPtZBins]->FindBin (fcal_et));
         h_PbPbQ2Dist[iCent][nPtZBins]->Fill (q2, event_weight);
         h_PbPbPsi2Dist[iCent][nPtZBins]->Fill (psi2, event_weight);
       }
@@ -290,11 +292,15 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
           for (int ix = 1; ix <= h_PbPbQ2_weights[iCent][iPtZ]->GetNbinsX (); ix++) {
             const double q2_weight = (h_PbPbQ2Dist[iCent][iPtZ]->GetBinContent (ix) != 0 ? referenceQ2Dist[iCent][iPtZ]->GetBinContent (ix) / h_PbPbQ2Dist[iCent][iPtZ]->GetBinContent (ix) : 0);
+            const double q2_weight_err = (h_PbPbQ2Dist[iCent][iPtZ]->GetBinContent (ix) != 0 ? q2_weight * sqrt (pow (h_PbPbQ2Dist[iCent][iPtZ]->GetBinError (ix) / h_PbPbQ2Dist[iCent][iPtZ]->GetBinContent (ix), 2) + pow (referenceQ2Dist[iCent][iPtZ]->GetBinError (ix) / referenceQ2Dist[iCent][iPtZ]->GetBinContent (ix), 2)) : 0);
             h_PbPbQ2_weights[iCent][iPtZ]->SetBinContent (ix, q2_weight);
+            h_PbPbQ2_weights[iCent][iPtZ]->SetBinError (ix, q2_weight_err);
           }
           for (int ix = 1; ix <= h_PbPbPsi2_weights[iCent][iPtZ]->GetNbinsX (); ix++) {
             const double psi2_weight = (h_PbPbPsi2Dist[iCent][iPtZ]->GetBinContent (ix) != 0 ? referencePsi2Dist[iCent][iPtZ]->GetBinContent (ix) / h_PbPbPsi2Dist[iCent][iPtZ]->GetBinContent (ix) : 0);
+            const double psi2_weight_err = (h_PbPbPsi2Dist[iCent][iPtZ]->GetBinContent (ix) != 0 ? psi2_weight * sqrt (pow (h_PbPbPsi2Dist[iCent][iPtZ]->GetBinError (ix) / h_PbPbPsi2Dist[iCent][iPtZ]->GetBinContent (ix), 2) + pow (referencePsi2Dist[iCent][iPtZ]->GetBinError (ix) / referencePsi2Dist[iCent][iPtZ]->GetBinContent (ix), 2)) : 0);
             h_PbPbPsi2_weights[iCent][iPtZ]->SetBinContent (ix, psi2_weight);
+            h_PbPbPsi2_weights[iCent][iPtZ]->SetBinError (ix, psi2_weight_err);
           }
         }
       }
