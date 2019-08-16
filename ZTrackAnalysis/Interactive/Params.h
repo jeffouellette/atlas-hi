@@ -85,7 +85,7 @@ double** init_ptTrkBins () {
   double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    if (trk_min_pt > zPtBins[iPtZ]);
+    if (trk_min_pt > zPtBins[iPtZ])
       _ptTrkBins[iPtZ] = logspace (trk_min_pt, trk_max_pt, nPtTrkBins);
     else
       _ptTrkBins[iPtZ] = logspace (trk_min_pt, fmin (trk_max_pt, zPtBins[iPtZ]), nPtTrkBins);
