@@ -27,7 +27,7 @@ class MCAnalysis : public FullAnalysis {
 
     SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
       h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_mc", iPtZ));
       for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
         h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_mc", iCent, iPtZ));

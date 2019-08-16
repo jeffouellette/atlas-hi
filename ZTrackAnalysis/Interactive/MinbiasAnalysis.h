@@ -34,7 +34,7 @@ class MinbiasAnalysis : public FullAnalysis {
 
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
       h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_minbias", iPtZ));
       for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
         h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_minbias", iCent, iPtZ));
@@ -316,10 +316,10 @@ void MinbiasAnalysis :: CombineHists () {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (iSpc == 0 && iPhi == 0)
             continue;
+          cout<<iCent<<","<<iSpc<<","<<iPtZ<<","<<iPhi<<endl;
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][0][iCent]);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][0][iCent]);
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][0][iCent]);
-
         } // end loop over phi
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][0][iCent]);
         h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][0][iCent]);
@@ -353,7 +353,6 @@ void MinbiasAnalysis :: ScaleHists () {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           const double yieldNormFactor = countsHist->GetBinContent (1) * (pi);
-          //RescaleWithError (h, yieldNormFactor, yieldNormFactorError);
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
           if (yieldNormFactor > 0) {
             h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
@@ -365,8 +364,6 @@ void MinbiasAnalysis :: ScaleHists () {
 
         const double normFactor = countsHist->GetBinContent (1);
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          //h_z_trk_phi[iPtTrk][iPtZ][iCent][iSpc] = h_z_trk_pt_phi[iPtZ][iCent][iSpc]->ProjectionX (Form ("h_z_trk_phi_iPtTrk%i_iPtZ%i_iCent%i_%s", iPtTrk, iPtZ, iCent, name.c_str ()), iPtTrk+1, iPtTrk+1);
-
           TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
           h->Rebin (2);
           if (iPtTrk > 3)
