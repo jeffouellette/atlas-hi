@@ -193,12 +193,17 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trkpt, event_weight / trkEff);
 
-        const int iPtTrk = h->FindFixBin (trkpt) - 1;
-        if (iPtTrk >= 0 && iPtTrk < nPtTrkBins) {
-          h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-          for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
-            h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        short iPtTrk = 0;
+        while (iPtTrk < nPtTrkBins) {
+          if (trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+            break;
+          iPtTrk++;
         }
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
+        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        h->Fill (dphi, event_weight / trkEff);
 
         const float zH = trkpt / z_pt;
         if (zH < zHBins[0] || zH > zHBins[nZHBins])
@@ -275,12 +280,17 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
         h->Fill (trkpt, event_weight / trkEff);
 
-        const int iPtTrk = h->FindFixBin (trkpt) - 1;
-        if (iPtTrk >= 0 && iPtTrk < nPtTrkBins) {
-          h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-          for (int iPhi = 1; iPhi <= h->GetNbinsX (); iPhi++)
-            h->Fill (h->GetBinCenter (iPhi), event_weight / trkEff / h->GetNbinsX ());
+        short iPtTrk = 0;
+        while (iPtTrk < nPtTrkBins) {
+          if (trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+            break;
+          iPtTrk++;
         }
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
+        if (dphi < -pi/2)
+          dphi = dphi + 2*pi;
+        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+        h->Fill (dphi, event_weight / trkEff);
 
         const float zH = trkpt / z_pt;
         if (zH < zHBins[0] || zH > zHBins[nZHBins])
@@ -316,7 +326,6 @@ void MinbiasAnalysis :: CombineHists () {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (iSpc == 0 && iPhi == 0)
             continue;
-          cout<<iCent<<","<<iSpc<<","<<iPtZ<<","<<iPhi<<endl;
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][0][iCent]);
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][0][iCent]);
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][0][iCent]);

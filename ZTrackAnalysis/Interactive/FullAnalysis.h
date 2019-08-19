@@ -1615,12 +1615,12 @@ void FullAnalysis :: PlotZPtSpectra () {
 
       h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
       h->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#it{p}_{T} [GeV^{-1}]");
-      h->GetXaxis ()->SetTitleSize (0.04);
-      h->GetYaxis ()->SetTitleSize (0.04);
-      h->GetXaxis ()->SetLabelSize (0.04);
-      h->GetYaxis ()->SetLabelSize (0.04);
-      h->GetXaxis ()->SetTitleOffset (1.5);
-      h->GetYaxis ()->SetTitleOffset (1.5);
+      h->GetXaxis ()->SetTitleSize (0.04/0.6);
+      h->GetYaxis ()->SetTitleSize (0.04/0.6);
+      h->GetXaxis ()->SetLabelSize (0.04/0.6);
+      h->GetYaxis ()->SetLabelSize (0.04/0.6);
+      h->GetXaxis ()->SetTitleOffset (1.5*0.6);
+      h->GetYaxis ()->SetTitleOffset (1.5*0.6);
 
       h->DrawCopy (!canvasExists ? "bar" : "bar same");
       h->SetLineWidth (1);
@@ -1643,12 +1643,12 @@ void FullAnalysis :: PlotZPtSpectra () {
 
       g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
       g->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#it{p}_{T} [GeV^{-1}]");
-      g->GetXaxis ()->SetTitleSize (0.04);
-      g->GetYaxis ()->SetTitleSize (0.04);
-      g->GetXaxis ()->SetLabelSize (0.04);
-      g->GetYaxis ()->SetLabelSize (0.04);
-      g->GetXaxis ()->SetTitleOffset (1.5);
-      g->GetYaxis ()->SetTitleOffset (1.5);
+      g->GetXaxis ()->SetTitleSize (0.04/0.6);
+      g->GetYaxis ()->SetTitleSize (0.04/0.6);
+      g->GetXaxis ()->SetLabelSize (0.04/0.6);
+      g->GetYaxis ()->SetLabelSize (0.04/0.6);
+      g->GetXaxis ()->SetTitleOffset (1.5*0.6);
+      g->GetYaxis ()->SetTitleOffset (1.5*0.6);
       g->Draw (!canvasExists/* && iCent == 0*/ ? "AP" : "P");
     }
 
@@ -1684,16 +1684,15 @@ void FullAnalysis :: PlotZPtSpectra () {
 
     uPad->cd ();
 
-    myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-    myText (0.26, 0.85, kBlack, "Z #rightarrow l^{+}l^{-} Events", 0.04);
+    myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.04/0.6);
+    myText (0.26, 0.85, kBlack, "Z #rightarrow l^{+}l^{-} Events", 0.04/0.6);
+    myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+    myOnlyBoxText (0.76, 0.55, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001);
+
     if (iCent == 0)
-      //myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
-      myMarkerTextNoLine (0.66, 0.75, kBlack, kFullCircle, "#it{pp}", 1.25, 0.04);
-    else {
-      //myText (0.66, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-      //myText (0.66, 0.65, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-      myMarkerTextNoLine (0.66, 0.75-0.06*iCent, colors[iCent], kFullCircle, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 1.25, 0.04);
-    }
+      myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+    else
+      myText (0.66, 0.75, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
     c->SaveAs (Form ("%s/ZPtSpectra/z_pt_spectrum_iCent%i.pdf", plotPath.Data (), iCent));
   }
@@ -1860,7 +1859,7 @@ void FullAnalysis :: PlotZEtaMap () {
     }
 
     dPad->cd ();
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iCent = 1; iCent < numCentBins; iCent++) {
       TH1D* h = h_z_eta_ratio[iCent][iSpc];
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
@@ -1876,7 +1875,7 @@ void FullAnalysis :: PlotZEtaMap () {
         g->GetYaxis ()->SetRangeUser (0.76, 1.24);
 
         g->GetXaxis ()->SetTitle ("#eta");
-        g->GetYaxis ()->SetTitle ("Data / MC");
+        g->GetYaxis ()->SetTitle ("Pb+Pb / #it{pp}");
         g->GetXaxis ()->SetTitleSize (0.04/0.4);
         g->GetYaxis ()->SetTitleSize (0.04/0.4);
         g->GetXaxis ()->SetLabelSize (0.04/0.4);
@@ -1885,7 +1884,7 @@ void FullAnalysis :: PlotZEtaMap () {
         g->GetYaxis ()->SetTitleOffset (1.5*0.4);
 
         g->GetYaxis ()->CenterTitle ();
-        g->Draw (!canvasExists && iCent == 0 ? "AP" : "P");
+        g->Draw (!canvasExists && iCent == 1 ? "AP" : "P");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZEtaDst: Z Eta spectra ratio not stored, needs to be calculated!" << endl;
@@ -1986,7 +1985,7 @@ void FullAnalysis :: PlotZYMap () {
     }
 
     dPad->cd ();
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iCent = 1; iCent < numCentBins; iCent++) {
       TH1D* h = h_z_y_ratio[iCent][iSpc];
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
@@ -2002,7 +2001,7 @@ void FullAnalysis :: PlotZYMap () {
         g->GetYaxis ()->SetRangeUser (0.76, 1.24);
 
         g->GetXaxis ()->SetTitle ("y");
-        g->GetYaxis ()->SetTitle ("Data / MC");
+        g->GetYaxis ()->SetTitle ("Pb+Pb / #it{pp}");
         g->GetXaxis ()->SetTitleSize (0.04/0.4);
         g->GetYaxis ()->SetTitleSize (0.04/0.4);
         g->GetXaxis ()->SetLabelSize (0.04/0.4);
@@ -2011,7 +2010,7 @@ void FullAnalysis :: PlotZYMap () {
         g->GetYaxis ()->SetTitleOffset (1.5*0.4);
 
         g->GetYaxis ()->CenterTitle ();
-        g->Draw (iCent == 0 ? "AP" : "P");
+        g->Draw (iCent == 1 ? "AP" : "P");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZEtaDst: Z Eta spectra ratio not stored, needs to be calculated!" << endl;

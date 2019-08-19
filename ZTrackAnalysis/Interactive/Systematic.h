@@ -57,7 +57,9 @@ class Systematic : public PhysicsAnalysis {
 
   void PlotTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   void PlotSignalTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotSignalTrkYieldSystematicsPtZ (const short pSpc = 2);
   void PlotIAASystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotIAASystematicsPtZ (const short pSpc);
 
 };
 
@@ -73,11 +75,9 @@ void Systematic :: CreateSysGraphs () {
 
           if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])));
+
           if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])));
-          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])
-            graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])));
-
           if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])));
           if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])
@@ -87,6 +87,8 @@ void Systematic :: CreateSysGraphs () {
           if (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent])));
 
+          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])
+            graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])));
           if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])));
           if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])
@@ -96,6 +98,36 @@ void Systematic :: CreateSysGraphs () {
           if (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent])
             graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent], make_graph (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent])));
         } // end loop over iPhi
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])
+            graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent], make_graph (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])));
+          if (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])
+            graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent], make_graph (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])));
+        } // end loop over iPtTrk
+
+        if (h_z_trk_zpt[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zpt[iSpc][iPtZ][iCent], make_graph (h_z_trk_zpt[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zpt_sub[iSpc][iPtZ][iCent], make_graph (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], make_graph (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent], make_graph (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zpt_icp[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zpt_icp[iSpc][iPtZ][iCent], make_graph (h_z_trk_zpt_icp[iSpc][iPtZ][iCent])));
+
+        if (h_z_trk_zxzh[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zxzh[iSpc][iPtZ][iCent], make_graph (h_z_trk_zxzh[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], make_graph (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], make_graph (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], make_graph (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent])));
+        if (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent])
+          graphMap.insert ( std::pair <TH1D*, TGAE*> (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent], make_graph (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent])));
+        
       } // end loop over iPtZ
     } // end loop over iSpc
   } // end loop over iCent
@@ -174,32 +206,62 @@ void Systematic :: AddVariations () {
             sys = GetTGAE (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            //sys = GetTGAE (h_z_trk_raw_xzh[iSpc][iPtZ][iPhi][iCent]);
-            //var = a->h_z_trk_raw_xzh[iSpc][iPtZ][iPhi][iCent];
-            //if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
 
             sys = GetTGAE (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            sys = GetTGAE (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            var = a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            
             sys = GetTGAE (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            sys = GetTGAE (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
-            var = a->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
-            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-
             sys = GetTGAE (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+
+            sys = GetTGAE (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            var = a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
+            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+            sys = GetTGAE (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
+            var = a->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
             sys = GetTGAE (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
         } // end loop over phi
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          for (short iCent = 0; iCent < numCentBins; iCent++) {
+            sys = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+            var = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+            sys = GetTGAE (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            var = a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent];
+            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          } // end loop over cents
+        } // end loop over iPtTrk
+
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          sys = GetTGAE (h_z_trk_zpt[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zpt[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          sys = GetTGAE (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          sys = GetTGAE (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+
+          sys = GetTGAE (h_z_trk_zxzh[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zxzh[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          sys = GetTGAE (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          sys = GetTGAE (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+        } // end loop over cents
+
 
         // IAA, ICP systematics
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
@@ -211,6 +273,7 @@ void Systematic :: AddVariations () {
             var = a->h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
+
           for (short iCent = 2; iCent < numCentBins; iCent++) {
             sys = GetTGAE (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
             var = a->h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent];
@@ -220,6 +283,26 @@ void Systematic :: AddVariations () {
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
         } // end loop over phi
+
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          sys = GetTGAE (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+
+          sys = GetTGAE (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+        }
+
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          sys = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+
+          sys = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+          var = a->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent];
+          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+        } // end loop over cents
 
       } // end loop over pT^Z bins
     } // end loop over species
@@ -260,35 +343,66 @@ void Systematic :: AddSystematics () {
         // Hadron yield systematics, signal & signal+bkg levels
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            master = GetTGAE (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (master && sys) AddErrorsInQuadrature (master, sys);
-            master = GetTGAE (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            if (master && sys) AddErrorsInQuadrature (master, sys);
-
             master = GetTGAE (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
             sys = s->GetTGAE (s->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
-            //master = GetTGAE (h_z_trk_raw_xzh[iSpc][iPtZ][iPhi][iCent]);
-            //sys = s->GetTGAE (s->h_z_trk_raw_xzh[iSpc][iPtZ][iPhi][iCent]);
-            //if (master && sys) AddErrorsInQuadrature (master, sys);
 
+            master = GetTGAE (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            sys = s->GetTGAE (s->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (master && sys) AddErrorsInQuadrature (master, sys);
             master = GetTGAE (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]);
             sys = s->GetTGAE (s->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
-            master = GetTGAE (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
-            if (master && sys) AddErrorsInQuadrature (master, sys);
-
             master = GetTGAE (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
             sys = s->GetTGAE (s->h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+            if (master && sys) AddErrorsInQuadrature (master, sys);
+
+            master = GetTGAE (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            sys = s->GetTGAE (s->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            if (master && sys) AddErrorsInQuadrature (master, sys);
+            master = GetTGAE (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
+            sys = s->GetTGAE (s->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
             master = GetTGAE (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
             sys = s->GetTGAE (s->h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
           } // end loop over cents
         } // end loop over phi
+
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          for (short iCent = 0; iCent < numCentBins; iCent++) {
+            master = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+            sys = s->GetTGAE (s->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+            if (master && sys) AddErrorsInQuadrature (master, sys);
+
+            master = GetTGAE (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            sys = s->GetTGAE (s->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            if (master && sys) AddErrorsInQuadrature (master, sys);
+          } // end loop over cents
+        } // end loop over iPtTrk
+
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          master = GetTGAE (h_z_trk_zpt[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zpt[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+          master = GetTGAE (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+          master = GetTGAE (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+
+          master = GetTGAE (h_z_trk_zxzh[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zxzh[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+          master = GetTGAE (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+          master = GetTGAE (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+        } // end loop over cents
+
 
         // IAA, ICP systematics
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
@@ -309,11 +423,30 @@ void Systematic :: AddSystematics () {
             if (master && sys) AddErrorsInQuadrature (master, sys);
           } // end loop over cents
         } // end loop over phi
+
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          master = GetTGAE (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+
+          master = GetTGAE (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+        }
+
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          master = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+
+          master = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+          sys = s->GetTGAE (s->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+          if (master && sys) AddErrorsInQuadrature (master, sys);
+        } // end loop over cents
       } // end loop over pT^Z bins
     } // end loop over species
 
-  }
-
+  } // end loop over systematics
 }
 
 
@@ -443,9 +576,14 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
           }
 
+          if (iPtZ == nPtZBins-1)
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          else
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.86, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
           c->SaveAs (Form ("%s/TrkYieldSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -465,7 +603,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
 // Plot this set of systematics on the signal track yield
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short pPtZ) {
-  const char* canvasName = Form ("c_SignalTrkYieldSys");
+  const char* canvasName = Form ("c_SignalTrkYieldSysPtZ");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
@@ -584,15 +722,161 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
           }
 
+          if (iPtZ == nPtZBins-1)
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          else
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.86, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
           c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
         } // end loop over centralities
 
       } // end loop over Phi bins
+
+    } // end loop over PtZ
+  } // end loop over species
+  
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot this set of systematics on the signal track yield
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const short pSpc) {
+  const char* canvasName = Form ("c_SignalTrkYieldSys");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    gDirectory->Add (c);
+    gPad->SetLogx ();
+  }
+  c->cd ();
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+
+        gPad->Clear ();
+
+        TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+        centralVals = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+
+        if (!centralVals) continue;
+
+        bool drawn = false;
+        short iSys = 0;
+        for (Systematic* sys : systematics) {
+
+          TH1D* h = sys->h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+          highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysLow").c_str ());
+          
+          SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
+
+          highs->GetXaxis ()->SetMoreLogLabels ();
+          if (iCent == 0)
+            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          else
+            highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+          highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
+
+          highs->SetLineColor (colors[iSys+1]);
+          highs->SetLineStyle (2);
+          highs->SetLineWidth (5);
+
+          if (!drawn)
+            highs->DrawCopy ("][ hist");
+          else
+            highs->DrawCopy ("][ hist same");
+          drawn = true;
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          if (iCent == 0)
+            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          else
+            lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+          lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
+
+          lows->SetLineColor (colors[iSys+1]);
+          lows->SetLineStyle (2);
+          lows->SetLineWidth (5);
+
+          lows->DrawCopy ("][ same hist");
+
+          myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+
+          delete highs, lows;
+          iSys++;
+        }
+
+
+        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+        highs->GetXaxis ()->SetMoreLogLabels ();
+        if (iCent == 0)
+          highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        else
+          highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+        highs->SetLineColor (kBlack);
+        highs->SetLineStyle (1);
+        highs->SetLineWidth (3);
+
+        myText (0.65, 0.92, kBlack, "Total", 0.026);
+        
+        highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        if (iCent == 0)
+          lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        else
+          lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+        lows->SetLineColor (kBlack);
+        lows->SetLineStyle (1);
+        lows->SetLineWidth (3);
+
+        lows->DrawCopy ("][ same hist");
+
+        delete highs, lows;
+
+        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        if (iCent == 0)
+          myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+        else {
+          myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+        }
+
+        if (iPtZ == nPtZBins-1)
+          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+        else
+          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
+        const char* lo = GetPiString (phiLowBins[1]);
+        const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
+        myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+
+        c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iCent));
+
+      } // end loop over centralities
 
     } // end loop over PtZ
   } // end loop over species
@@ -722,15 +1006,158 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
           }
 
+          if (iPtZ == nPtZBins-1)
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          else
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.86, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
           c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
         } // end loop over centralities
 
       } // end loop over Phi bins
+
+    } // end loop over PtZ
+  } // end loop over species
+  
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot this set of systematics on the signal track yield
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PlotIAASystematicsPtZ (const short pSpc) {
+  const char* canvasName = Form ("c_iaasys");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    gDirectory->Add (c);
+    gPad->SetLogx ();
+  }
+  c->cd ();
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 1; iCent < numCentBins; iCent++) {
+
+        TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+        centralVals = h_z_trk_zpt_iaa[iSpc][iPtZ][iCent];
+
+        if (!centralVals) continue;
+
+        bool drawn = false;
+        short iSys = 0;
+        for (Systematic* sys : systematics) {
+
+          TH1D* h = sys->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent];
+          highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysLow").c_str ());
+          
+          SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
+
+          highs->GetXaxis ()->SetMoreLogLabels ();
+          if (iCent == 0)
+            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          else
+            highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+          highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
+
+          highs->SetLineColor (colors[iSys+1]);
+          highs->SetLineStyle (2);
+          highs->SetLineWidth (5);
+
+          if (!drawn)
+            highs->DrawCopy ("][ hist");
+          else
+            highs->DrawCopy ("][ hist same");
+          drawn = true;
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          if (iCent == 0)
+            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          else
+            lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
+          lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
+
+          lows->SetLineColor (colors[iSys+1]);
+          lows->SetLineStyle (2);
+          lows->SetLineWidth (5);
+
+          lows->DrawCopy ("][ same hist");
+
+          myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+
+          delete highs, lows;
+          iSys++;
+        }
+
+        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+        highs->GetXaxis ()->SetMoreLogLabels ();
+        if (iCent == 0)
+          highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        else
+          highs->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+        highs->SetLineColor (kBlack);
+        highs->SetLineStyle (1);
+        highs->SetLineWidth (3);
+
+        myText (0.65, 0.92, kBlack, "Total", 0.026);
+        
+        highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        if (iCent == 0)
+          lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        else
+          lows->GetYaxis ()->SetRangeUser (-0.4, 0.4);
+
+        lows->SetLineColor (kBlack);
+        lows->SetLineStyle (1);
+        lows->SetLineWidth (3);
+
+        lows->DrawCopy ("][ same hist");
+
+        delete highs, lows;
+
+        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        if (iCent == 0)
+          myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+        else {
+          myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+        }
+
+        if (iPtZ == nPtZBins-1)
+          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+        else
+          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
+        const char* lo = GetPiString (phiLowBins[1]);
+        const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
+        myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+
+        c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iCent));
+
+      } // end loop over centralities
 
     } // end loop over PtZ
   } // end loop over species

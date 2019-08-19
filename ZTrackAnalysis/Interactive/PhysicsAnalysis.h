@@ -389,7 +389,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
         for (short iCent = 0; iCent < numCentBins; iCent++) {
-          for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+          for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
 
             if (a->h_z_trk_pt_sub[iSpc][iPtZ][iCent]) {
               h_z_trk_zpt_sub[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
@@ -424,7 +424,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     if (a->iaaCalculated) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-        for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 1; iCent < numCentBins; iCent++) {
 
             if (a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]) {
@@ -449,7 +449,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     if (a->icpCalculated) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-        for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 2; iCent < numCentBins; iCent++) {
 
             if (a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]) {
@@ -1209,7 +1209,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         c->cd (iCent+1);
         GetDrawnObjects ();
-        gPad->SetLogy ();
+        //gPad->SetLogy ();
 
         gPad->SetTopMargin (0.01);
         gPad->SetBottomMargin (0.12);
@@ -1220,15 +1220,15 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
         GetMinAndMax (min, max, true);
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           TH1D* h = (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-          if (h->GetMinimum (0) < min) min = h->GetMinimum (0);
+          if (h->GetMinimum (/*0*/) < min) min = h->GetMinimum (/*0*/);
           if (h->GetMaximum () > max) max = h->GetMaximum ();
         } // end loop over iPtTrk
-        min *= 0.5;
-        max = max <= 0 ? 1 : 14*max;
+        //min *= 0.5;
+        max = max <= 0 ? 1 : 1.4*max;
         SetMinAndMax (min, max);
 
         if (plotFill) {
-          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          for (short iPtTrk = 0; iPtTrk < nPtTrkBins-2; iPtTrk++) {
             TH1D* h = (TH1D*) (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])->Clone ();
 
             h->GetYaxis ()->SetRangeUser (min, max);
@@ -1259,7 +1259,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
           } // end loop over iPtTrk
           gPad->RedrawAxis ();
         } else {
-          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+          for (short iPtTrk = 0; iPtTrk < nPtTrkBins-2; iPtTrk++) {
             TGAE* g = GetTGAE (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
             ResetXErrors (g);
 
@@ -1317,8 +1317,8 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
 void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent) {
   if (iCent == 0) {
     //myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Simulation", 0.05);
-    myText (0.67, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-    myText (0.67, 0.20, kBlack, "#it{pp}, 5.02 TeV", 0.05);
+    myText (0.2, 0.91, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+    myText (0.2, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.05);
     //myText (0.16, 0.93, kBlack, "Data", 0.04);
     //myText (0.30, 0.93, kBlack, "Minbias", 0.05);
     //TVirtualPad* cPad = gPad; // store current pad
@@ -1328,7 +1328,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     const float pt_hi = ptTrkBins[iPtZ][iPtTrk+1];
     //if (iPtTrk == 0)
     //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
-    myText (0.2, 0.93-0.04*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.04);
+    myText (0.2, 0.79-0.04*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.04);
     //myText (0.3, 0.89-0.04*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.04);
 
     //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
@@ -1338,15 +1338,15 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     //b->Draw ("l");
     //cPad->cd ();
   } else {
-    myText (0.67, 0.20, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
+    myText (0.2, 0.91, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
   }
 
   if (iCent == 1) {
     if (iPtZ == nPtZBins-1) {
-      myText (0.67, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+      myText (0.2, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
     }
     else {
-      myText (0.67, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+      myText (0.2, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
     }
   }
 }
@@ -1675,7 +1675,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
@@ -2966,7 +2966,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       }
     } // end loop over cents
     
-    c->SaveAs (Form ("%s/TrkYields/pTTrk_dists_%s.pdf", plotPath.Data (), spc));
+    c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc));
   } // end loop over species
 }
 
@@ -2992,23 +2992,6 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ) {
     myText (0.485, 0.88, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.06);
   }
   else if (iCent == numCentBins-1) {
-    if (iPtZ-2 == 1) {
-      //myText (0.35, 0.91, kBlack, "Z-tagged", 0.054);
-      //myText (0.44, 0.91, kBlack, "Reco.", 0.06);
-      //myText (0.57, 0.91, kBlack, "Truth", 0.06);
-      //myText (0.544, 0.91, kBlack, "Minbias", 0.054);
-      //myText (0.703, 0.91, kBlack, "#Delta#phi", 0.054);
-
-      TVirtualPad* cPad = gPad; // store current pad
-      //myText (0.653, 0.91, kBlack, "#Delta#phi", 0.054);
-      TBox* b = TBoxNDC (0.598-0.018, 0.91-0.06*(nPtZBins-2)-0.016, 0.598+0.018, 0.91-0.06*(nPtZBins-2)+0.016);
-      b->SetFillColorAlpha (fillColors[0], fillAlpha);
-      b->Draw ("l");
-      cPad->cd ();
-
-      myText (0.65, 0.91-0.06*(nPtZBins-2), kBlack, "Minimum Bias", 0.054);
-    }
-
     myMarkerTextNoLine (0.56, 0.912-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
 
     if (iPtZ == nPtZBins-1) {
@@ -3034,7 +3017,7 @@ void PhysicsAnalysis :: CalculateIAA () {
     return;
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       TH1D* ppHist = nullptr, *PbPbHist = nullptr;
 
       ppHist = h_z_trk_zpt_sub[iSpc][iPtZ][0];
@@ -3601,7 +3584,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
       l->Draw ("same");
     } // end loop over cents
 
-    c->SaveAs (Form ("%s/IAA/iaa_dPtZ_%s.pdf", plotPath.Data (), spc));
+    c->SaveAs (Form ("%s/IAA/iaa_%s_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "ptTrk":"xhz", spc));
     // end loop over pT^Z bins
   } // end loop over species
 }
@@ -3646,7 +3629,7 @@ void PhysicsAnalysis :: CalculateICP () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       TH1D* periphHist = nullptr, *centHist = nullptr;
 
       periphHist = h_z_trk_zpt_sub[iSpc][iPtZ][0];
