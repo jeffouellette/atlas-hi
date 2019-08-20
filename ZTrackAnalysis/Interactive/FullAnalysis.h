@@ -617,7 +617,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-      if (z_pt > 5)
+      if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
           dphi = pi - dphi;
