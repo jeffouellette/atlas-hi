@@ -33,6 +33,9 @@ double* doubleLogSpace (const double lo, const double hi, const int num) {
   return arr;
 }
 
+float max_iaa = 1.4;
+float max_icp = 1.4;
+
 const int nFCalBins = 250;
 const double* fcalBins = linspace (0, 5000, nFCalBins);
 

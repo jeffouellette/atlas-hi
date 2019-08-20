@@ -51,8 +51,8 @@ class TruthAnalysis : public FullAnalysis {
 
   void CreateHists () override;
   void ScaleHists () override;
-  void LoadHists (const char* histFileName, const bool _finishHists = true) override;
-  void SaveHists (const char* histFileName) override;  
+  void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
+  void SaveHists (const char* histFileName = "savedHists.root") override;
 
   void PlotZJetPt ();
   void PlotxZJet ();
@@ -64,8 +64,8 @@ class TruthAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Create new histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::CreateHists () {
-  FullAnalysis::CreateHists ();
+void TruthAnalysis :: CreateHists () {
+  FullAnalysis :: CreateHists ();
 
   h_z_jet_pt = new TH2D ("h_z_jet_pt", "", 75, 0, 300, 75, 1, 300);
   h_z_jet_pt->Sumw2 ();
@@ -94,9 +94,11 @@ void TruthAnalysis::CreateHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Scale histograms for plotting, calculating signals, etc.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::ScaleHists () {
+void TruthAnalysis :: ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
+
+  FullAnalysis :: ScaleHists ();
 
   for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     h_z_jet_dphi[iPtZ][0] = h_z_jet_deta_dphi[iPtZ][0]->ProjectionY (Form ("h_z_jet_dphi_iPtZ%i_inclusive", iPtZ));
@@ -121,7 +123,7 @@ void TruthAnalysis::ScaleHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::LoadHists (const char* histFileName, const bool _finishHists) {
+void TruthAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   if (histsLoaded)
     return;
 
@@ -174,8 +176,8 @@ void TruthAnalysis::LoadHists (const char* histFileName, const bool _finishHists
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::SaveHists (const char* histFileName) {
-  FullAnalysis::SaveHists (histFileName);
+void TruthAnalysis :: SaveHists (const char* histFileName) {
+  FullAnalysis :: SaveHists (histFileName);
 
   if (!histFile) {
     SetupDirectories (directory, "ZTrackAnalysis/");
@@ -212,7 +214,7 @@ void TruthAnalysis::SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void TruthAnalysis::Execute (const char* inFileName, const char* outFileName) {
+void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 

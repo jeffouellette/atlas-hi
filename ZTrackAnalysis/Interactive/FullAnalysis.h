@@ -617,10 +617,12 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      if (z_pt > 5)
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
@@ -764,10 +766,12 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      if (z_pt > 5) {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
@@ -1489,7 +1493,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     c->cd (iSpc+1);
-    gPad->SetLogy ();
+    //gPad->SetLogy ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
 
@@ -1509,7 +1513,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       h->SetLineColor (colors[iCent]);
       h->SetMarkerColor (colors[iCent]);
       h->GetXaxis ()->SetRangeUser (0, 0.2);
-      //h->GetYaxis ()->SetRangeUser (0.5, 2e4);
+      h->GetYaxis ()->SetRangeUser (0.5, 0.5e4);
       h->GetYaxis ()->SetTitleOffset (1.1);
 
       h->DrawCopy (iCent == 0 ? "e1" : "e1 same");
@@ -1518,10 +1522,10 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
 
       if (iCent != 0) {
-        myText (0.22, 0.38-iCent*0.06, colors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+        myText (0.22, 0.80-iCent*0.06, colors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
       }
       else
-        myText (0.22, 0.38, kBlack, "#it{pp}, 5.02 TeV", 0.04);
+        myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.04);
 
     }
   }

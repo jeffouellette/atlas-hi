@@ -321,7 +321,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 void MinbiasAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (iSpc == 0 && iPhi == 0)
@@ -358,20 +358,23 @@ void MinbiasAnalysis :: ScaleHists () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+        const float counts = countsHist->GetBinContent (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          const double yieldNormFactor = countsHist->GetBinContent (1) * (pi);
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ countsHist->GetBinContent (1));
-          if (yieldNormFactor > 0) {
-            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
-            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / yieldNormFactor, "width");
+          const double countsdPhi = counts * (pi);
+          if (countsdPhi > 0) {
+            h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
+            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
           }
         } // end loop over phi
-        h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (countsHist->GetBinContent (1) * (pi)), "width");
-        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (countsHist->GetBinContent (1) * (pi)), "width");
 
-        const double normFactor = countsHist->GetBinContent (1);
+        if (counts > 0) {
+          h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
+          h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
+        }
+
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
           h->Rebin (2);
@@ -379,8 +382,8 @@ void MinbiasAnalysis :: ScaleHists () {
             h->Rebin (2);
           if (iCent != 0)
             h->Rebin (2);
-          if (normFactor > 0)
-            h->Scale (1. / normFactor);
+          if (counts > 0)
+            h->Scale (1. / counts);
         }
       } // end loop over pT^Z
     } // end loop over centralities
