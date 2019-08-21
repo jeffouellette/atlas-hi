@@ -33,6 +33,7 @@ class PhysicsAnalysis {
   string directory = "";
   bool backgroundSubtracted = false;
   bool sameSignsSubtracted = false;
+  bool hasBkg = true;
 
   vector<TH1*> drawnHists;
   vector<TGAE*> drawnGraphs;
@@ -172,7 +173,7 @@ class PhysicsAnalysis {
   protected:
   void LabelTrackingEfficiencies (const short iCent, const short iEta);
   void LabelTrackingPurities (const short iCent, const short iEta);
-  void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent);
+  void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent, const bool subBkg);
   void LabelTrkYield (const short iCent, const short iPhi, const short iPtZ);
   void LabelTrkYieldZPt (const short iCent, const short iPtZ);
   void LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ);
@@ -1177,119 +1178,136 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue;
 
-      const char* canvasName = Form ("c_z_trk_phi_pttrk_iPtZ%i_%s%s", iPtZ, spc, _subBkg ? "_subBkg":"");
+      //const char* canvasName = Form ("c_z_trk_phi_pttrk_iPtZ%i_%s%s", iPtZ, spc, _subBkg ? "_subBkg":"");
+      const char* canvasName = Form ("c_z_trk_phi_pttrk_iPtZ%i_%s", iPtZ, spc);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 1200, 900);
+        c = new TCanvas (canvasName, "", 1200, 450*numCentBins);
         gDirectory->Add (c);
         c->cd ();
-        c->Divide (2, 2);
+        c->Divide (2, numCentBins);
       }
 
       //for (short iCent = 0; iCent < 1; iCent++) {
       //  c->cd ();
       //  gPad->SetLogy ();
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        c->cd (iCent+1);
-        GetDrawnObjects ();
-        //gPad->SetLogy ();
+        for (bool subBkg : {false, true}) {
+          if (subBkg && !_subBkg)
+            continue;
 
-        gPad->SetTopMargin (0.01);
-        gPad->SetBottomMargin (0.12);
-        gPad->SetRightMargin (0.01);
-        gPad->SetLeftMargin (0.12);
+          c->cd ((2*iCent)+1 + (int)subBkg);
+          GetDrawnObjects ();
+          //gPad->SetLogy ();
 
-        double min = 1e30, max = 0;
-        GetMinAndMax (min, max, true);
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-          TH1D* h = (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-          if (h->GetMinimum (/*0*/) < min) min = h->GetMinimum (/*0*/);
-          if (h->GetMaximum () > max) max = h->GetMaximum ();
-        } // end loop over iPtTrk
-        //min *= 0.5;
-        max = max <= 0 ? 1 : 1.2*max;
-        SetMinAndMax (min, max);
+          gPad->SetTopMargin (0.01);
+          gPad->SetBottomMargin (0.12);
+          gPad->SetRightMargin (0.01);
+          gPad->SetLeftMargin (0.12);
 
-        if (plotFill) {
+          double min = 1e30, max = 0;
+          GetMinAndMax (min, max, true);
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TH1D* h = (TH1D*) (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])->Clone ();
-
-            h->GetYaxis ()->SetRangeUser (min, max);
-
-            h->SetLineColor (fillColors[iPtTrk]);
-            h->SetLineWidth (4);
-            h->SetMarkerSize (0);
-
-            h->GetXaxis ()->SetTitle ("#Delta#phi");
-            //h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
-            h->GetYaxis ()->SetTitle ("Y (#Delta#phi)");
-
-            h->GetXaxis ()->SetTitleOffset (0.6);
-            h->GetYaxis ()->SetTitleOffset (0.8);
-            h->GetXaxis ()->SetTitleSize (0.08);
-            h->GetYaxis ()->SetTitleSize (0.06);
-            h->GetXaxis ()->SetLabelSize (0.06);
-            h->GetYaxis ()->SetLabelSize (0.06);
-
-            h->DrawCopy (!canvasExists && iPtTrk == 0 ? "hist" : "same hist");
-            //h->SetLineWidth (1);
-            //h->Draw ("hist same");
-
-            //TLine* line = new TLine (h->GetBinLowEdge (1), 0, h->GetBinLowEdge (h->GetNbinsX ()), 0);
-            //line->Draw ("same");
-
-            LabelCorrelations (iPtZ, iPtTrk, iCent);
+            TH1D* h = (!subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            if (h->GetMinimum (/*0*/) < min) min = h->GetMinimum (/*0*/);
+            if (h->GetMaximum () > max) max = h->GetMaximum ();
           } // end loop over iPtTrk
-          gPad->RedrawAxis ();
-        } else {
-          for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
-            TGAE* g = GetTGAE (!_subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-            ResetXErrors (g);
+          //min *= 0.5;
+          max = max <= 0 ? 1 : 1.2*max;
+          SetMinAndMax (min, max);
 
-            const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
-            g->GetYaxis ()->SetRangeUser (min, max);
+          if (plotFill) {
+            for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+              TH1D* h = (TH1D*) (!subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])->Clone ();
 
-            g->GetXaxis ()->SetTitle ("#Delta#phi");
-            //g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
-            g->GetYaxis ()->SetTitle ("Y (#Delta#phi)");
+              h->GetYaxis ()->SetRangeUser (min, max);
 
-            g->SetMarkerStyle (markerStyle);
-            g->SetLineColor (colors[iPtTrk]);
-            g->SetMarkerColor (colors[iPtTrk]);
+              h->SetLineColor (fillColors[iPtTrk]);
+              h->SetLineWidth (4);
+              h->SetMarkerSize (0);
 
-            g->GetXaxis ()->SetTitleOffset (0.6);
-            g->GetYaxis ()->SetTitleOffset (0.8);
-            g->GetXaxis ()->SetTitleSize (0.08);
-            g->GetYaxis ()->SetTitleSize (0.06);
-            g->GetXaxis ()->SetLabelSize (0.06);
-            g->GetYaxis ()->SetLabelSize (0.06);
+              h->GetXaxis ()->SetTitle ("#Delta#phi");
+              //h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
+              h->GetYaxis ()->SetTitle ("Y (#Delta#phi)");
 
-            g->Draw (!canvasExists && iPtTrk == 0 ? "AP" : "P");
+              h->GetXaxis ()->SetTitleOffset (0.6);
+              h->GetYaxis ()->SetTitleOffset (0.8);
+              h->GetXaxis ()->SetTitleSize (0.08);
+              h->GetYaxis ()->SetTitleSize (0.06);
+              h->GetXaxis ()->SetLabelSize (0.06);
+              h->GetYaxis ()->SetLabelSize (0.06);
 
-            LabelCorrelations (iPtZ, iPtTrk, iCent);
+              h->DrawCopy (!canvasExists && iPtTrk == 0 ? "hist" : "same hist");
+              //h->SetLineWidth (1);
+              //h->Draw ("hist same");
 
-            TLine* line1 = new TLine (phiLowBins[1], min, phiLowBins[1], max);
-            TLine* line2 = new TLine (2*pi - phiLowBins[1], min, 2*pi - phiLowBins[1], max);
-            TLine* line3 = new TLine (phiLowBins[2], min, phiLowBins[2], max);
-            TLine* line4 = new TLine (2*pi - phiLowBins[2], min, 2*pi - phiLowBins[2], max);
+              //TLine* line = new TLine (h->GetBinLowEdge (1), 0, h->GetBinLowEdge (h->GetNbinsX ()), 0);
+              //line->Draw ("same");
 
-            line1->SetLineStyle (2);
-            line2->SetLineStyle (2);
-            line3->SetLineStyle (2);
-            line4->SetLineStyle (2);
+              if (_subBkg) LabelCorrelations (iPtZ, iPtTrk, iCent, subBkg);
+            } // end loop over iPtTrk
+            gPad->RedrawAxis ();
+          } else {
+            for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+              TGAE* g = GetTGAE (!subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+              ResetXErrors (g);
 
-            line1->Draw ("same");
-            line2->Draw ("same");
-            line3->Draw ("same");
-            line4->Draw ("same");
-          } // end loop over iPtTrk
+              const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
+              g->GetYaxis ()->SetRangeUser (min, max);
+
+              g->GetXaxis ()->SetTitle ("#Delta#phi");
+              //g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{ch}/d#Delta#phi (\"ZYAM\")");
+              g->GetYaxis ()->SetTitle ("Y (#Delta#phi)");
+
+              g->SetMarkerStyle (markerStyle);
+              g->SetLineColor (colors[iPtTrk]);
+              g->SetMarkerColor (colors[iPtTrk]);
+
+              g->GetXaxis ()->SetTitleOffset (0.6);
+              g->GetYaxis ()->SetTitleOffset (0.8);
+              g->GetXaxis ()->SetTitleSize (0.08);
+              g->GetYaxis ()->SetTitleSize (0.06);
+              g->GetXaxis ()->SetLabelSize (0.06);
+              g->GetYaxis ()->SetLabelSize (0.06);
+
+              g->Draw (!canvasExists && iPtTrk == 0 ? "AP" : "P");
+
+              if (_subBkg) LabelCorrelations (iPtZ, iPtTrk, iCent, subBkg);
+
+              TLine* line1 = new TLine (phiLowBins[1], min, phiLowBins[1], max);
+              TLine* line2 = new TLine (2*pi - phiLowBins[1], min, 2*pi - phiLowBins[1], max);
+              TLine* line3 = new TLine (phiLowBins[2], min, phiLowBins[2], max);
+              TLine* line4 = new TLine (2*pi - phiLowBins[2], min, 2*pi - phiLowBins[2], max);
+
+              line1->SetLineStyle (2);
+              line2->SetLineStyle (2);
+              line3->SetLineStyle (2);
+              line4->SetLineStyle (2);
+
+              line1->SetLineWidth (2);
+              line2->SetLineWidth (2);
+              line3->SetLineWidth (2);
+              line4->SetLineWidth (2);
+
+              line1->SetLineColor (kBlack);
+              line2->SetLineColor (kBlack);
+              line3->SetLineColor (kGray);
+              line4->SetLineColor (kGray);
+
+              line1->Draw ("same");
+              line2->Draw ("same");
+              line3->Draw ("same");
+              line4->Draw ("same");
+            } // end loop over iPtTrk
+          }
         }
       } // end loop over centrality
 
-      c->SaveAs (Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_%s%s.pdf", plotPath.Data (), iPtZ, spc, _subBkg ? "_subBkg":""));
+      //c->SaveAs (Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_%s%s.pdf", plotPath.Data (), iPtZ, spc, _subBkg ? "_subBkg":""));
+      c->SaveAs (Form ("%s/dPhi_Distributions/dPhi_pTtrk_iPtZ%i_%s.pdf", plotPath.Data (), iPtZ, spc));
     } // end loop over pT^Z
   } // end loop over species
 }
@@ -1300,40 +1318,42 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for track dPhi distributions
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent) {
+void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent, const bool subBkg) {
   if (iCent == 0) {
-    //myText (0.2, 0.91, kBlack, "#bf{#it{ATLAS}} Simulation", 0.05);
-    myText (0.2, 0.91, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-    myText (0.2, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.05);
-    //myText (0.16, 0.93, kBlack, "Data", 0.04);
-    //myText (0.30, 0.93, kBlack, "Minbias", 0.05);
-    //TVirtualPad* cPad = gPad; // store current pad
-    //TBox* b = nullptr;
-
-    const float pt_lo = ptTrkBins[iPtZ][iPtTrk];
-    const float pt_hi = ptTrkBins[iPtZ][iPtTrk+1];
-    //if (iPtTrk == 0)
-    //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
-    myText (0.2, 0.79-0.04*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.04);
-    //myText (0.3, 0.89-0.04*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.04);
-
-    //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
-    //b->SetFillColorAlpha (fillColors[iPtTrk], fillAlpha);
-    //myMarkerTextNoLine (0.23, 0.89-0.04*iPtTrk, colors[iPtTrk], kFullCircle, "", 1.25, 0.04);
-
-    //b->Draw ("l");
-    //cPad->cd ();
-  } else {
-    myText (0.2, 0.91, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
-  }
-
-  if (iCent == 1) {
-    if (iPtZ == nPtZBins-1) {
-      myText (0.2, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    if (!subBkg) {
+      //myText (0.2, 0.91, kBlack, "#bf{#it{ATLAS}} Simulation", 0.07);
+      myText (0.2, 0.91, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+      myText (0.2, 0.82, kBlack, "#it{pp}, 5.02 TeV", 0.07);
+      //myText (0.16, 0.93, kBlack, "Data", 0.04);
+      //myText (0.30, 0.93, kBlack, "Minbias", 0.05);
+      //TVirtualPad* cPad = gPad; // store current pad
+      //TBox* b = nullptr;
+      if (iPtZ == nPtZBins-1)
+        myText (0.2, 0.73, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.07);
+      else
+        myText (0.2, 0.73, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.07);
+      myMarkerTextNoLine (0.24, 0.64, kBlack, kFullCircle, "Z-tagged Data", 1.25, 0.07);
+      myOnlyBoxText (0.24, 0.55, 1.2, fillColors[0], kBlack, 1, "Minimum Bias", 0.07, 1001);
     }
     else {
-      myText (0.2, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
+      myText (0.2, 0.91, kBlack, "After UE subtraction", 0.07);
+
+      const float pt_lo = ptTrkBins[iPtZ][iPtTrk];
+      const float pt_hi = ptTrkBins[iPtZ][iPtTrk+1];
+      //if (iPtTrk == 0)
+      //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
+      myText (0.2, 0.83-0.05*iPtTrk, colors[iPtTrk], Form ("%.1f < #it{p}_{T} < %.1f GeV", pt_lo, pt_hi), 0.05);
+      //myText (0.3, 0.89-0.04*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.04);
+
+      //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
+      //b->SetFillColorAlpha (fillColors[iPtTrk], fillAlpha);
+      //myMarkerTextNoLine (0.23, 0.89-0.04*iPtTrk, colors[iPtTrk], kFullCircle, "", 1.25, 0.04);
+
+      //b->Draw ("l");
+      //cPad->cd ();
     }
+  } else if (!subBkg) {
+    myText (0.2, 0.91, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.07);
   }
 }
 
@@ -1666,9 +1686,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
         TH1D* sub = nullptr;
-        if (a != nullptr)
+        if (a != nullptr) {
           sub = a->h_z_trk_zpt[iSpc][iPtZ][iCent];
           h->Add (sub, -1);
+        }
         //else
         //  cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
 
@@ -1690,9 +1711,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         h = (TH1D*) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zxzh_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
-        if (a != nullptr)
+        if (a != nullptr) {
           sub = a->h_z_trk_zxzh[iSpc][iPtZ][iCent];
           h->Add (sub, -1);
+        }
         //else
         //  cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
 
@@ -2844,6 +2866,9 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
         } // end loop over phi
       }
 
+      if (!hasBkg)
+        continue;
+
       bottomPad->cd ();
       GetDrawnObjects ();
       plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
@@ -2977,26 +3002,27 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ) {
     myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
   if (iCent == 0)
-    myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+    //myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
+    myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Simulation", 0.068);
   else if (iCent == 1) {
     const char* lo = GetPiString (phiLowBins[1]);
     const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
     myText (0.485, 0.88, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.06);
   }
   else if (iCent == numCentBins-1) {
-    myMarkerTextNoLine (0.56, 0.912-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
+    //myMarkerTextNoLine (0.56, 0.912-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
 
-    //if (iPtZ == 2) {
-    //  myText (0.44, 0.91, kBlack, "Reco.", 0.06);
-    //  myText (0.57, 0.91, kBlack, "Truth", 0.06);
-    //}
-    //myMarkerTextNoLine (0.52, 0.912-0.06*(iPtZ-2), colors[iPtZ-2], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
-    //myMarkerTextNoLine (0.62, 0.912-0.06*(iPtZ-2), colors[iPtZ-2], kOpenCircle, "", 1.5, 0.054);
+    if (iPtZ == 2) {
+      myText (0.34, 0.91, kBlack, "Reco.", 0.06);
+      myText (0.47, 0.91, kBlack, "Truth", 0.06);
+    }
+    myMarkerTextNoLine (0.42, 0.852-0.06*(iPtZ-2), colors[iPtZ-2], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
+    myMarkerTextNoLine (0.52, 0.852-0.06*(iPtZ-2), colors[iPtZ-2], kOpenCircle, "", 1.5, 0.054);
 
     if (iPtZ == nPtZBins-1)
-      myText (0.56, 0.91-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
+      myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
     else
-      myText (0.56, 0.91-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
+      myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
   }
 }
 

@@ -1501,19 +1501,22 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
       TH1D* h = h2->ProjectionX ();
 
-      //if (iCent == 3) h->Scale (1./7326);
-      //if (iCent == 2) h->Scale (1./7377);
-      //if (iCent == 1) h->Scale (1./3268);
-      //if (iCent == 0) h->Scale (1./138495);
+      int nEvt = 0;
+      for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        nEvt += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
+      }
+      h->Scale (1./nEvt);
+      
 
       //TH1D* h = h2->ProjectionX ("temp0", h2->GetYaxis ()->FindBin (2), h2->GetYaxis ()->FindBin (3)-1);
       //h->Rebin (2);
       h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
-      h->GetYaxis ()->SetTitle ("Counts");
+      h->GetYaxis ()->SetTitle ("Tracks / Event");
       h->SetLineColor (colors[iCent]);
       h->SetMarkerColor (colors[iCent]);
-      h->GetXaxis ()->SetRangeUser (0, 0.2);
-      h->GetYaxis ()->SetRangeUser (0.5, 0.5e4);
+      h->GetXaxis ()->SetRangeUser (0, 0.16);
+      //h->GetYaxis ()->SetRangeUser (0.5, 0.5e4);
+      h->GetYaxis ()->SetRangeUser (0, 1);
       h->GetYaxis ()->SetTitleOffset (1.1);
 
       h->DrawCopy (iCent == 0 ? "e1" : "e1 same");
@@ -2263,8 +2266,9 @@ void FullAnalysis :: PlotZPhiYield () {
   } // end loop over cents
 
   //myText (0.66, 0.88, colors[0], "#it{pp}", 0.04);
-  myText (0.25, 0.88, colors[0], "#bf{#it{ATLAS}} Internal", 0.04);
-  myText (0.66, 0.88, colors[0], "Pb+Pb, 5.02 TeV", 0.04);
+  myText (0.25, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
+  myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
   for (short iCent = 1; iCent < numCentBins; iCent++) {
     myText (0.66, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
   }

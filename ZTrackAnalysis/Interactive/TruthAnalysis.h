@@ -31,6 +31,7 @@ class TruthAnalysis : public FullAnalysis {
     directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
     useAltMarker = false;
+    hasBkg = false;
 
     SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
 
