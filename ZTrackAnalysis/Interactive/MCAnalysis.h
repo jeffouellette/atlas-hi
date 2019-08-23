@@ -16,14 +16,11 @@ using namespace atlashi;
 class MCAnalysis : public FullAnalysis {
 
   public:
-  MCAnalysis (const char* _name = "mc", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
+  MCAnalysis (const char* _name = "mc", const char* subDir = "") : FullAnalysis () {
     name = _name;
     directory = Form ("MCAnalysis/%s/", subDir);
     plotFill = true;
     useAltMarker = false;
-    useHITight = _useHITight;
-    LoadTrackingEfficiencies ();
-    LoadTrackingPurities ();
 
     SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");

@@ -21,16 +21,13 @@ class MinbiasAnalysis : public FullAnalysis {
   TTree* LoadEventMixingTree (const char* _treeName);
 
   public:
-  MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "Nominal", const bool _useHITight = false) : FullAnalysis () {
+  MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "") : FullAnalysis () {
     name = _name;
     directory = Form ("MinbiasAnalysis/%s/", subDir);
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
     backgroundSubtracted = true;
-    useHITight = _useHITight;
-    LoadTrackingEfficiencies ();
-    LoadTrackingPurities ();
 
     SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");

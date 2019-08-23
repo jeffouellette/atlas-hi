@@ -42,6 +42,9 @@ class PhysicsAnalysis {
   bool icpCalculated = false;
 
   TFile* trkEffFile = nullptr;
+  bool effsLoaded   = false;
+  TFile* trkPurFile = nullptr;
+  bool pursLoaded   = false;
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
@@ -118,13 +121,10 @@ class PhysicsAnalysis {
 
   PhysicsAnalysis () { }
 
-  PhysicsAnalysis (const char* _name, const char* subDir, const bool _useHITight = false) {
+  PhysicsAnalysis (const char* _name, const char* subDir) {
     name = _name;
     directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;
-    useHITight = _useHITight;
-    LoadTrackingEfficiencies ();
-    LoadTrackingPurities ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
@@ -771,7 +771,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
-        const float trkWeight = event_weight * trkPur / trkEff;
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
@@ -871,7 +870,6 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
-        const float trkWeight = event_weight * trkPur / trkEff;
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
@@ -927,6 +925,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 // Load the tracking efficiencies into memory
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LoadTrackingEfficiencies () {
+  if (effsLoaded)
+    return;
+
   SetupDirectories ("TrackingEfficiencies/", "ZTrackAnalysis/");
 
   TDirectory* _gDirectory = gDirectory;
@@ -974,6 +975,8 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
     }
   }
 
+  effsLoaded = true;
+
   _gDirectory->cd ();
   return;
 }
@@ -985,6 +988,9 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 // Returns the appropriate tracking efficiency for this track and centrality.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+  if (!effsLoaded)
+    LoadTrackingEfficiencies ();
+
   short iCent = 0;
   if (isPbPb) {
     while (iCent < numCentBins) {
@@ -1021,6 +1027,9 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
 // Load the tracking purities into memory
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LoadTrackingPurities () {
+  if (pursLoaded)
+    return;
+
   SetupDirectories ("TrackingPurities/", "ZTrackAnalysis/");
 
   TDirectory* _gDirectory = gDirectory;
@@ -1074,6 +1083,8 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
     }
   }
 
+  pursLoaded = true;
+
   _gDirectory->cd ();
   return;
 }
@@ -1085,6 +1096,9 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 // Returns the appropriate tracking purity factor for this track and centrality.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+  if (!pursLoaded)
+    LoadTrackingPurities ();
+
   short iCent = 0;
   if (isPbPb) {
     while (iCent < numCentBins) {
@@ -1367,6 +1381,9 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 // Plots tracking efficiencies
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotTrackingEfficiencies () {
+  if (!effsLoaded)
+    LoadTrackingEfficiencies ();
+
   const char* canvasName = "c_trk_effs";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1549,6 +1566,9 @@ void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const shor
 // Plots tracking purities
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotTrackingPurities () {
+  if (!pursLoaded)
+    LoadTrackingPurities ();
+
   const char* canvasName = "c_trk_purs";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;

@@ -61,14 +61,11 @@ class FullAnalysis : public PhysicsAnalysis {
 
   FullAnalysis () : PhysicsAnalysis () { }
 
-  FullAnalysis (const char* _name, const char* subDir, const bool _useHITight = false) {
+  FullAnalysis (const char* _name, const char* subDir) {
     FullAnalysis ();
     name = _name;
     directory = Form ("%s/", subDir);
     plotFill = false;
-    useHITight = _useHITight;
-    LoadTrackingEfficiencies ();
-    LoadTrackingPurities ();
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
 

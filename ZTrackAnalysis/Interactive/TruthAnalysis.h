@@ -26,7 +26,7 @@ class TruthAnalysis : public FullAnalysis {
   TH1D**  h_jet_trk_dphi      = Get1DArray <TH1D*> (nPtZBins); // iPtZ
   
 
-  TruthAnalysis (const char* _name = "truth", const char* subDir = "Nominal") : FullAnalysis () {
+  TruthAnalysis (const char* _name = "truth", const char* subDir = "") : FullAnalysis () {
     name = _name;
     directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
