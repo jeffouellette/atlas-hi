@@ -1510,7 +1510,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
       //TH1D* h = h2->ProjectionX ("temp0", h2->GetYaxis ()->FindBin (2), h2->GetYaxis ()->FindBin (3)-1);
       //h->Rebin (2);
-      h->GetXaxis ()->SetTitle (Form ("min (#DeltaR (track, %s))", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
+      h->GetXaxis ()->SetTitle (Form ("Minimum #DeltaR (track, %s)", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       h->GetYaxis ()->SetTitle ("Tracks / Event");
       h->SetLineColor (colors[iCent]);
       h->SetMarkerColor (colors[iCent]);
@@ -2241,11 +2241,20 @@ void FullAnalysis :: PlotZPhiYield () {
     TH1D* h = h_z_phi[iCent][2];
     //h->Rebin (8);
     //h->Scale (1. / h->Integral (), "width");
+    float v2 = 0, v2err = 0;
+    float c = 0, cerr = 0;
 
-    //TF1* fit = new TF1 ("fit", "[0]+[1]*cos(x)+[2]*cos(2*x)", -pi/2, 3*pi/2);
-    //h->Fit (fit, "RN0");
-    //delete fit;
-    //fit = nullptr;
+    for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+      c += h->GetBinContent (ix);
+      cerr += pow (h->GetBinError (ix), 2);
+
+      v2 += h->GetBinContent (ix) * cos (h->GetBinCenter (ix));
+      v2err += pow (h->GetBinError (ix) * cos (h->GetBinCenter (ix)), 2);
+    }
+    cerr = sqrt (cerr);
+    v2err = sqrt (v2err);
+    v2 = v2 / c;
+    v2err = sqrt (pow (v2err / c, 2) + pow (v2 * cerr / (c*c), 2));
 
     TGraphAsymmErrors* g = GetTGAE (h);
     deltaize (g, (1.5-iCent)*0.02, false);
@@ -2263,15 +2272,15 @@ void FullAnalysis :: PlotZPhiYield () {
     else
       g->Draw ("p");
 
+    myText (0.22, 0.38-0.055*iCent, colors[iCent], Form ("v_{2} = %s", FormatMeasurement (v2, v2err, 2)), 0.04);
+    myText (0.66, 0.88-0.055*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+
   } // end loop over cents
 
   //myText (0.66, 0.88, colors[0], "#it{pp}", 0.04);
-  myText (0.25, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
+  myText (0.25, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.05);
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-  for (short iCent = 1; iCent < numCentBins; iCent++) {
-    myText (0.66, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-  }
 
   c->SaveAs (Form ("%s/ZPhiYields.pdf", plotPath.Data ()));
 }

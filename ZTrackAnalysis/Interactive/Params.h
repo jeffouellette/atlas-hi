@@ -35,6 +35,7 @@ double* doubleLogSpace (const double lo, const double hi, const int num) {
 
 float max_iaa = 1.4;
 float max_icp = 1.4;
+float max_rel_sys = 0.4;
 
 const int nFCalBins = 250;
 const double* fcalBins = linspace (0, 5000, nFCalBins);
@@ -98,10 +99,42 @@ double** init_ptTrkBins () {
 double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
 
 
-void PrintPtBins () {
+void PrintPtBins (const short iPtZ) {
   for (int i = 0; i <= nPtTrkBins; i++) {
-    cout << ptTrkBins[i] << endl;
+    cout << ptTrkBins[iPtZ][i] << endl;
   }
+}
+
+void PrintXHZBins () {
+  cout << "\\hline" << endl;
+  for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+    cout << "\\multicolumn{2}{";
+    if (iPtZ == 2)
+      cout << "|";
+    cout << " c |";
+    if (iPtZ != nPtZBins-1)
+      cout << "|";
+    cout << "}{";
+    cout << "\\pt^\\mathrm{Z} = \\SI{" << zPtBins[iPtZ] << "}{\\GeV}} & ";
+  }
+  cout << "\\\\ \\hline" << endl;
+  for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+    cout << "$x_\\mathrm{hZ}$ & $\\pt^\\mathrm{ch}$ [\\GeV] ";
+    if (iPtZ != nPtZBins-1)
+      cout << "& ";
+  }
+  cout << "\\\\ \\hline" << endl;
+  for (int i = 0; i <= nZHBins; i++) {
+    for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      cout << zHBins[i] << " & " << zHBins[i] * zPtBins[iPtZ] << " ";
+      if (iPtZ != nPtZBins-1)
+        cout << "& ";
+    }
+    //if (i != nZHBins)
+    cout << "\\\\ \\hline";
+    cout << endl;
+  }
+
 }
 
 
