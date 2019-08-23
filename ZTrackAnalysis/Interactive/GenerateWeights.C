@@ -407,7 +407,7 @@ void GenerateMCWeights () {
 }
 
 void GenerateTruthWeights () {
-  GenerateWeights ("truth");
+  GenerateWeights ("truth", "eventWeightsTree.root");
 }
 
 void Generate2015HijingWeights () {

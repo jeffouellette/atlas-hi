@@ -124,7 +124,7 @@ void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
     externalWorkPath = drivePath + thisWorkPath;
   }
 
-  rootPath = workPath + "rootFiles/" + dataSubDir;
+  rootPath = externalWorkPath + "rootFiles/" + dataSubDir;
   dataPath = externalWorkPath + "data/" + dataSubDir;
   plotPath = workPath + "Plots/" + dataSubDir;
   ptPath = rootPath + "ptData/";

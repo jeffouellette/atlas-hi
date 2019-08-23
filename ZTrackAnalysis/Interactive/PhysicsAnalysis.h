@@ -51,7 +51,8 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
-  bool use2015Effs    = true; // whether to use tracking efficiencies fromo 2015
+  bool use2015Effs    = false; // whether to use tracking efficiencies from 2015
+  bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
   bool doLeptonRejVar = false; // whether to impose an additional dR cut on tracks away from the leptons
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
@@ -921,12 +922,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  if (useHITight)
-    trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingEfficiencies.root", rootPath.Data ()), "read");
-  else if (use2015Effs)
-    trkEffFile = new TFile (Form ("%s/Nominal/PbPb_Hijing_15.root", rootPath.Data ()), "read");
-  else
-    trkEffFile = new TFile (Form ("%s/Nominal/trackingEfficiencies.root", rootPath.Data ()), "read");
+  trkEffFile = new TFile (Form ("%s/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Effs ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
@@ -1020,10 +1016,7 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  if (!useHITight)
-    trkEffFile = new TFile (Form ("%s/Nominal/trackingPurities.root", rootPath.Data ()), "read");
-  else
-    trkEffFile = new TFile (Form ("%s/Variations/TrackHITightWPVariation/trackingPurities.root", rootPath.Data ()), "read");
+  trkEffFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Effs ? "Hijing_15" : "Hijing_18"), "read");
 
   if (!trkEffFile || !trkEffFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
@@ -3645,7 +3638,7 @@ void PhysicsAnalysis :: LabelIAAdPtZ (const short iCent, const short iPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between some Pb+Pb centrality and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotAsSystematic, const short iCent = numCentBins-1, const short pSpc) {
+void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotAsSystematic, const short iCent, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)

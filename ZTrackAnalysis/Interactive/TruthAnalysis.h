@@ -299,7 +299,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
           iPtZ++;
       }
 
-      fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+      //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
       //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
       //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
@@ -316,13 +316,13 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
 
+      if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
           dphi = pi - dphi;

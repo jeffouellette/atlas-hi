@@ -91,6 +91,10 @@ void MakeMCWeightsTree () {
   MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal", "*Z*.root");
 }
 
+void MakeTruthWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/TruthAnalysis/Nominal", "*Z*.root");
+}
+
 
 //void Make2015HijingWeightsTree () {
 //  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal", "PbPb_Hijing_15.root", "hijing2015_eventWeightsTree.root");
