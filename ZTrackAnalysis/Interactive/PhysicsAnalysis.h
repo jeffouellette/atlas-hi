@@ -50,10 +50,13 @@ class PhysicsAnalysis {
   bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
+
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool use2015Effs    = false; // whether to use tracking efficiencies from 2015
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
+  bool use2015Purs    = false; // whether to use tracking purities from 2015
   bool doLeptonRejVar = false; // whether to impose an additional dR cut on tracks away from the leptons
+  bool doTrackPurVar  = false; // whether to impose an additional correction based on tracking purity
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
@@ -767,14 +770,17 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const float trkWeight = event_weight * trkPur / trkEff;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -784,7 +790,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -794,7 +800,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 
@@ -863,15 +869,18 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        if (trkEff == 0)
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const float trkWeight = event_weight * trkPur / trkEff;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -881,7 +890,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -891,7 +900,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 
@@ -1016,17 +1025,17 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  trkEffFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Effs ? "Hijing_15" : "Hijing_18"), "read");
+  trkPurFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Purs ? "Hijing_15" : "Hijing_18"), "read");
 
-  if (!trkEffFile || !trkEffFile->IsOpen ()) {
+  if (!trkPurFile || !trkPurFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
     return;
   }
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-    h2_num_trk_purs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_primary_reco_tracks_iCent%i", iCent));
-    h2_den_trk_purs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_reco_tracks_iCent%i", iCent));
+    h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i", iCent));
+    h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i", iCent));
 
     if (iCent > 0) {
       h2_num_trk_purs[iCent]->RebinX (2);
@@ -1040,11 +1049,11 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
     h2_trk_purs[iCent]->Divide (h2_den_trk_purs[iCent]);
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      //TH1D* num = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
-      //TH1D* den = (TH1D*) ((TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
+      //TH1D* num = (TH1D*) ((TEfficiency*) trkPurFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
+      //TH1D* den = (TH1D*) ((TEfficiency*) trkPurFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
 
-      TH1D* num = (TH1D*) trkEffFile->Get (Form ("h_trk_pur_num_iCent%i_iEta%i", iCent, iEta));
-      TH1D* den = (TH1D*) trkEffFile->Get (Form ("h_trk_pur_den_iCent%i_iEta%i", iCent, iEta));
+      TH1D* num = (TH1D*) trkPurFile->Get (Form ("h_trk_pur_num_iCent%i_iEta%i", iCent, iEta));
+      TH1D* den = (TH1D*) trkPurFile->Get (Form ("h_trk_pur_den_iCent%i_iEta%i", iCent, iEta));
 
       if (iCent > 0) {
         num->Rebin (2);
@@ -1061,7 +1070,7 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
       //delete den;
       //h_trk_purs[iCent][iEta]->SetName ("h_trk_pur_iCent%i_iEta%i");
       
-      //h_trk_purs[iCent][iEta] = (TEfficiency*) trkEffFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      //h_trk_purs[iCent][iEta] = (TEfficiency*) trkPurFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
     }
   }
 
