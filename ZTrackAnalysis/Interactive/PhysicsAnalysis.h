@@ -45,6 +45,8 @@ class PhysicsAnalysis {
   bool effsLoaded   = false;
   TFile* trkPurFile = nullptr;
   bool pursLoaded   = false;
+  TFile* trigEffFile = nullptr;
+  bool trigEffsLoaded = false;
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
@@ -54,10 +56,9 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
+  bool is2015Conds    = false; // whether this analysis uses 2015 data (different conditions)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
-  bool use2015Effs    = false; // whether to use tracking efficiencies from 2015
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
-  bool use2015Purs    = false; // whether to use tracking purities from 2015
   bool doLeptonRejVar = false; // whether to impose an additional dR cut on tracks away from the leptons
   bool doTrackPurVar  = false; // whether to impose an additional correction based on tracking purity
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
@@ -70,24 +71,24 @@ class PhysicsAnalysis {
   TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
-  TH1D*** h_trk_effs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  //TF1**   f_trk_effs    = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
-  TH2D**  h2_trk_effs   = Get1DArray <TH2D*> (numCentBins); // iCent
+  TH1D*** h_trk_effs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  //TF1**   f_trk_effs          = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
+  TH2D**  h2_trk_effs         = Get1DArray <TH2D*> (numCentBins); // iCent
   //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
 
-  // Tracking purities
-  //TH1D*** h_trk_purs    = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D**  h2_trk_purs   = Get1DArray <TH2D*> (numCentBins); // iCent
-  TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numCentBins); // iCent
-  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numCentBins);
+  TH2D* h2_muon_trig_effs_eta_phi[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  TH2D* h2_electron_trig_effs_pt_eta[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  TH1D* h_electron_trig_effs_fcal[2]; // 2018 Pb+Pb, 2015 Pb+Pb
 
-  //// Correlations plots
-  //TH2D****   h_z_trk_pt_phi  = Get3DArray <TH2D*> (nPtZBins, numCentBins, 3);             // iPtZ, iCent, iSpc (0=ee, 1=mumu, 2=combined)
-  //TH1D*****  h_z_trk_phi     = Get4DArray <TH1D*> (nPtTrkBins, nPtZBins, numCentBins, 3); // iPtTrk, iPtZ, iCent, iSpc
-  
+  // Tracking purities
+  //TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_purs         = Get1DArray <TH2D*> (numFinerCentBins); // iCent
+  TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numFinerCentBins); // iCent
+  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numFinerCentBins);
+
   // Physics plots
   TH1D*****   h_z_trk_phi         = Get4DArray <TH1D*> (3, nPtZBins, nPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
   TH1D*****   h_z_trk_phi_sub     = Get4DArray <TH1D*> (3, nPtZBins, nPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
@@ -214,6 +215,10 @@ class PhysicsAnalysis {
 
   virtual void LoadTrackingPurities (); // defaults to HILoose
   virtual double GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
+
+  virtual void LoadTriggerEfficiencies ();
+  virtual double GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb = true);
+  virtual double GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb = true);
 
   void PrintZYields (const int iPtZ = 2);
 
@@ -550,12 +555,9 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        //for (short iZH = 0; iZH < nZHBins; iZH++) {
-        //SafeWrite (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
-        //}
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           SafeWrite (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
           SafeWrite (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
@@ -584,9 +586,6 @@ void PhysicsAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iSpc = 0; iSpc < 2; iSpc++) {
-        //for (short iZH = 0; iZH < nZHBins; iZH++) {
-        //h_z_trk_pt_phi[iPtZ][iCent][2]->Add (h_z_trk_pt_phi[iPtZ][iCent][iSpc]);
-        //}
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
@@ -692,33 +691,34 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",       &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchAddress ("psi2",       &psi2);
-    PbPbTree->SetBranchAddress ("vz",         &vz);
-    PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",        &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",        &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",      &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",     &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",     &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge",  &l1_charge);
-    PbPbTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
-    PbPbTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
-    PbPbTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
-    PbPbTree->SetBranchAddress ("l2_pt",      &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",     &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",     &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge",  &l2_charge);
-    PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
-    PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
-    PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
+    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",           &q2);
+    PbPbTree->SetBranchAddress ("psi2",         &psi2);
+    PbPbTree->SetBranchAddress ("vz",           &vz);
+    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",          &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",          &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",        &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",       &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",       &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",    &l1_charge);
+    PbPbTree->SetBranchAddress ("l1_trk_pt",    &l1_trk_pt);
+    PbPbTree->SetBranchAddress ("l1_trk_eta",   &l1_trk_eta);
+    PbPbTree->SetBranchAddress ("l1_trk_phi",   &l1_trk_phi);
+    PbPbTree->SetBranchAddress ("l2_pt",        &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",       &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",       &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",    &l2_charge);
+    PbPbTree->SetBranchAddress ("l2_trk_pt",    &l2_trk_pt);
+    PbPbTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
+    PbPbTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -758,6 +758,15 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         else
           iPtZ++;
       }
+
+      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
+      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
+      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+
+      if (eff_z <= 0.)
+        continue;
+
+      event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -813,30 +822,31 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",       &isEE);
-    ppTree->SetBranchAddress ("vz",         &vz);
-    ppTree->SetBranchAddress ("z_pt",       &z_pt);
-    ppTree->SetBranchAddress ("z_y",        &z_y);
-    ppTree->SetBranchAddress ("z_phi",      &z_phi);
-    ppTree->SetBranchAddress ("z_m",        &z_m);
-    ppTree->SetBranchAddress ("l1_pt",      &l1_pt);
-    ppTree->SetBranchAddress ("l1_eta",     &l1_eta);
-    ppTree->SetBranchAddress ("l1_phi",     &l1_phi);
-    ppTree->SetBranchAddress ("l1_charge",  &l1_charge);
-    ppTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
-    ppTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
-    ppTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
-    ppTree->SetBranchAddress ("l2_pt",      &l2_pt);
-    ppTree->SetBranchAddress ("l2_eta",     &l2_eta);
-    ppTree->SetBranchAddress ("l2_phi",     &l2_phi);
-    ppTree->SetBranchAddress ("l2_charge",  &l2_charge);
-    ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
-    ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
-    ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
+    ppTree->SetBranchAddress ("isEE",         &isEE);
+    ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("vz",           &vz);
+    ppTree->SetBranchAddress ("z_pt",         &z_pt);
+    ppTree->SetBranchAddress ("z_y",          &z_y);
+    ppTree->SetBranchAddress ("z_phi",        &z_phi);
+    ppTree->SetBranchAddress ("z_m",          &z_m);
+    ppTree->SetBranchAddress ("l1_pt",        &l1_pt);
+    ppTree->SetBranchAddress ("l1_eta",       &l1_eta);
+    ppTree->SetBranchAddress ("l1_phi",       &l1_phi);
+    ppTree->SetBranchAddress ("l1_charge",    &l1_charge);
+    ppTree->SetBranchAddress ("l1_trk_pt",    &l1_trk_pt);
+    ppTree->SetBranchAddress ("l1_trk_eta",   &l1_trk_eta);
+    ppTree->SetBranchAddress ("l1_trk_phi",   &l1_trk_phi);
+    ppTree->SetBranchAddress ("l2_pt",        &l2_pt);
+    ppTree->SetBranchAddress ("l2_eta",       &l2_eta);
+    ppTree->SetBranchAddress ("l2_phi",       &l2_phi);
+    ppTree->SetBranchAddress ("l2_charge",    &l2_charge);
+    ppTree->SetBranchAddress ("l2_trk_pt",    &l2_trk_pt);
+    ppTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
+    ppTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
+    ppTree->SetBranchAddress ("ntrk",         &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -857,6 +867,15 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         else
           iPtZ++;
       }
+
+      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
+      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
+      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+
+      if (eff_z <= 0.)
+        continue;
+
+      event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -933,7 +952,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  trkEffFile = new TFile (Form ("%s/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Effs ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
+  trkEffFile = new TFile (Form ("%s/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
@@ -1035,15 +1054,15 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  trkPurFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", use2015Purs ? "Hijing_15" : "Hijing_18"), "read");
+  trkPurFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "Hijing_15" : "Hijing_18"), "read");
 
   if (!trkPurFile || !trkPurFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
     return;
   }
 
-  for (int iCent = 0; iCent < numCentBins; iCent++) {
-  //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  //for (int iCent = 0; iCent < numCentBins; iCent++) {
+  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
     h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i", iCent));
     h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i", iCent));
 
@@ -1102,13 +1121,13 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float tr
 
   short iCent = 0;
   if (isPbPb) {
-    while (iCent < numCentBins) {
-      if (fcal_et < centBins[iCent])
+    while (iCent < numFinerCentBins) {
+      if (fcal_et < finerCentBins[iCent])
         break;
       else
         iCent++;
     }
-    if (iCent < 1 || iCent > numCentBins-1)
+    if (iCent < 1 || iCent > numFinerCentBins-1)
       return 0;
   }
 
@@ -1127,6 +1146,101 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float tr
   //  return 1;
 
   return eff;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load the tracking purities into memory
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: LoadTriggerEfficiencies () {
+  if (trigEffsLoaded)
+    return;
+
+  SetupDirectories ("TriggerEffTagAndProbe/", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+
+  trigEffFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
+
+  if (!trigEffFile || !trigEffFile->IsOpen ()) {
+    cout << "Error in PhysicsAnalysis.h:: LoadTriggerEfficiencies can not find file for " << name << endl;
+    return;
+  }
+
+  TH1D* h_num, *h_den;
+  TH2D* h2_num, *h2_den;
+
+  h2_num = (TH2D*) trigEffFile->Get ("h_muonTrigEffNum_eta_phi_pp");
+  h2_den = (TH2D*) trigEffFile->Get ("h_muonTrigEffDen_eta_phi_pp");
+  h2_muon_trig_effs_eta_phi[0] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_pp");
+  h2_muon_trig_effs_eta_phi[0]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h_muonTrigEffNum_eta_phi_PbPb");
+  h2_den = (TH2D*) trigEffFile->Get ("h_muonTrigEffDen_eta_phi_PbPb");
+  h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb");
+  h2_muon_trig_effs_eta_phi[1]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_pp");
+  h2_electron_trig_effs_pt_eta[0] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_pp");
+  h2_electron_trig_effs_pt_eta[0]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb");
+  h2_electron_trig_effs_pt_eta[1] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_PbPb");
+  h2_electron_trig_effs_pt_eta[1]->Divide (h2_den);
+
+  h_num = (TH1D*) trigEffFile->Get ("h_electronTrigEffNum_fcal");
+  h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal");
+  h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal");
+  h_electron_trig_effs_fcal[0]->Divide (h_den);
+
+  trigEffsLoaded = true;
+
+  _gDirectory->cd ();
+  return;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the appropriate trigger efficiency factor for this electron
+////////////////////////////////////////////////////////////////////////////////////////////////
+double PhysicsAnalysis :: GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb) {
+  if (!trigEffsLoaded)
+    LoadTriggerEfficiencies ();
+
+  double trigEff = 1;
+  if (!isPbPb)
+    trigEff = h2_electron_trig_effs_pt_eta[0]->GetBinContent (h2_electron_trig_effs_pt_eta[0]->FindFixBin (electron_eta, electron_pt));
+  else if (isPbPb && !is2015Conds)
+    trigEff = h2_electron_trig_effs_pt_eta[1]->GetBinContent (h2_electron_trig_effs_pt_eta[1]->FindFixBin (electron_eta, electron_pt));
+  else if (isPbPb && is2015Conds)
+    trigEff = h2_electron_trig_effs_pt_eta[2]->GetBinContent (h2_electron_trig_effs_pt_eta[2]->FindFixBin (electron_eta, electron_pt));
+  return trigEff;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the appropriate trigger efficiency factor for this muon
+////////////////////////////////////////////////////////////////////////////////////////////////
+double PhysicsAnalysis :: GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb) {
+  if (!trigEffsLoaded)
+    LoadTriggerEfficiencies ();
+
+  double trigEff = 1;
+  if (!isPbPb)
+    trigEff = h2_muon_trig_effs_eta_phi[0]->GetBinContent (h2_muon_trig_effs_eta_phi[0]->FindFixBin (muon_eta, muon_phi));
+  else if (isPbPb && !is2015Conds)
+    trigEff = h2_muon_trig_effs_eta_phi[1]->GetBinContent (h2_muon_trig_effs_eta_phi[1]->FindFixBin (muon_eta, muon_phi));
+  else if (isPbPb && is2015Conds)
+    trigEff = h2_muon_trig_effs_eta_phi[2]->GetBinContent (h2_muon_trig_effs_eta_phi[2]->FindFixBin (muon_eta, muon_phi));
+  return trigEff;
 }
 
 

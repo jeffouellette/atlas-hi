@@ -9,8 +9,8 @@ void MakeZMixFile (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("event_number", 0);
   inTree->SetBranchStatus ("run_number", 0);
   inTree->SetBranchStatus ("event_weight", 0);
-  inTree->SetBranchStatus ("isEE", 0);
-  inTree->SetBranchStatus ("fcal_et", 0);
+  //inTree->SetBranchStatus ("isEE", 0);
+  //inTree->SetBranchStatus ("fcal_et", 0);
   inTree->SetBranchStatus ("q2", 0);
   inTree->SetBranchStatus ("psi2", 0);
   inTree->SetBranchStatus ("vz", 0);
@@ -49,7 +49,7 @@ void MakeZMixFile (const char* path, const char* filePattern) {
   inTree->SetBranchStatus ("event_number", 0);
   inTree->SetBranchStatus ("run_number", 0);
   inTree->SetBranchStatus ("event_weight", 0);
-  inTree->SetBranchStatus ("isEE", 0);
+  //inTree->SetBranchStatus ("isEE", 0);
   inTree->SetBranchStatus ("fcal_et", 0);
   inTree->SetBranchStatus ("q2", 0);
   inTree->SetBranchStatus ("psi2", 0);
@@ -85,4 +85,12 @@ void MakeZMixFile (const char* path, const char* filePattern) {
 
 void MakeDataZMixFile () {
   MakeZMixFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal", "outFile.root");
+}
+
+void MakeElectronLHMediumZMixFile () {
+  MakeZMixFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Variations/ElectronLHMediumWPVariation", "outFile.root");
+}
+
+void MakeMuonTightZMixFile () {
+  MakeZMixFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Variations/MuonTightWPVariation", "outFile.root");
 }

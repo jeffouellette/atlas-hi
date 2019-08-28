@@ -180,15 +180,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
-
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
         TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, event_weight / trkEff);
+        h->Fill (trkpt, trkWeight);
 
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, event_weight / trkEff);
+        h->Fill (trkpt, trkWeight);
 
         short iPtTrk = 0;
         while (iPtTrk < nPtTrkBins) {
@@ -200,14 +201,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
         h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        h->Fill (dphi, event_weight / trkEff);
+        h->Fill (dphi, trkWeight);
 
         const float zH = trkpt / z_pt;
         if (zH < zHBins[0] || zH > zHBins[nZHBins])
           continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (zH, event_weight / trkEff);
+        h->Fill (zH, trkWeight);
       }
 
     } // end loop over Pb+Pb tree
@@ -267,15 +268,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
-
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
         TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, event_weight / trkEff);
+        h->Fill (trkpt, trkWeight);
 
         h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, event_weight / trkEff);
+        h->Fill (trkpt, trkWeight);
 
         short iPtTrk = 0;
         while (iPtTrk < nPtTrkBins) {
@@ -287,14 +289,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
         h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        h->Fill (dphi, event_weight / trkEff);
+        h->Fill (dphi, trkWeight);
 
         const float zH = trkpt / z_pt;
         if (zH < zHBins[0] || zH > zHBins[nZHBins])
           continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (zH, event_weight / trkEff);
+        h->Fill (zH, trkWeight);
       }
     } // end loop over pp tree
     cout << "Done minbias pp loop." << endl;

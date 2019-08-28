@@ -208,16 +208,18 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -227,7 +229,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -237,7 +239,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 
@@ -357,16 +359,18 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -376,7 +380,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -386,7 +390,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 

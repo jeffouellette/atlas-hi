@@ -521,33 +521,34 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",       &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchAddress ("psi2",       &psi2);
-    PbPbTree->SetBranchAddress ("vz",         &vz);
-    PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",        &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",        &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",      &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",     &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",     &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge",  &l1_charge);
-    PbPbTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
-    PbPbTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
-    PbPbTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
-    PbPbTree->SetBranchAddress ("l2_pt",      &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",     &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",     &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge",  &l2_charge);
-    PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
-    PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
-    PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
+    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",           &q2);
+    PbPbTree->SetBranchAddress ("psi2",         &psi2);
+    PbPbTree->SetBranchAddress ("vz",           &vz);
+    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",          &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",          &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",        &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",       &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",       &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",    &l1_charge);
+    PbPbTree->SetBranchAddress ("l1_trk_pt",    &l1_trk_pt);
+    PbPbTree->SetBranchAddress ("l1_trk_eta",   &l1_trk_eta);
+    PbPbTree->SetBranchAddress ("l1_trk_phi",   &l1_trk_phi);
+    PbPbTree->SetBranchAddress ("l2_pt",        &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",       &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",       &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",    &l2_charge);
+    PbPbTree->SetBranchAddress ("l2_trk_pt",    &l2_trk_pt);
+    PbPbTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
+    PbPbTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -587,6 +588,15 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         else
           iPtZ++;
       }
+
+      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
+      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
+      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+
+      if (eff_z <= 0.)
+        continue;
+
+      event_weight *= 1./eff_z;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -652,16 +662,18 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -671,7 +683,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -681,7 +693,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 
@@ -694,30 +706,31 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",       &isEE);
-    ppTree->SetBranchAddress ("vz",         &vz);
-    ppTree->SetBranchAddress ("z_pt",       &z_pt);
-    ppTree->SetBranchAddress ("z_y",        &z_y);
-    ppTree->SetBranchAddress ("z_phi",      &z_phi);
-    ppTree->SetBranchAddress ("z_m",        &z_m);
-    ppTree->SetBranchAddress ("l1_pt",      &l1_pt);
-    ppTree->SetBranchAddress ("l1_eta",     &l1_eta);
-    ppTree->SetBranchAddress ("l1_phi",     &l1_phi);
-    ppTree->SetBranchAddress ("l1_charge",  &l1_charge);
-    ppTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
-    ppTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
-    ppTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
-    ppTree->SetBranchAddress ("l2_pt",      &l2_pt);
-    ppTree->SetBranchAddress ("l2_eta",     &l2_eta);
-    ppTree->SetBranchAddress ("l2_phi",     &l2_phi);
-    ppTree->SetBranchAddress ("l2_charge",  &l2_charge);
-    ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
-    ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
-    ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
+    ppTree->SetBranchAddress ("isEE",         &isEE);
+    ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("vz",           &vz);
+    ppTree->SetBranchAddress ("z_pt",         &z_pt);
+    ppTree->SetBranchAddress ("z_y",          &z_y);
+    ppTree->SetBranchAddress ("z_phi",        &z_phi);
+    ppTree->SetBranchAddress ("z_m",          &z_m);
+    ppTree->SetBranchAddress ("l1_pt",        &l1_pt);
+    ppTree->SetBranchAddress ("l1_eta",       &l1_eta);
+    ppTree->SetBranchAddress ("l1_phi",       &l1_phi);
+    ppTree->SetBranchAddress ("l1_charge",    &l1_charge);
+    ppTree->SetBranchAddress ("l1_trk_pt",    &l1_trk_pt);
+    ppTree->SetBranchAddress ("l1_trk_eta",   &l1_trk_eta);
+    ppTree->SetBranchAddress ("l1_trk_phi",   &l1_trk_phi);
+    ppTree->SetBranchAddress ("l2_pt",        &l2_pt);
+    ppTree->SetBranchAddress ("l2_eta",       &l2_eta);
+    ppTree->SetBranchAddress ("l2_phi",       &l2_phi);
+    ppTree->SetBranchAddress ("l2_charge",    &l2_charge);
+    ppTree->SetBranchAddress ("l2_trk_pt",    &l2_trk_pt);
+    ppTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
+    ppTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
+    ppTree->SetBranchAddress ("ntrk",         &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -746,6 +759,15 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         else
           iPtZ++;
       }
+
+      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
+      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
+      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+
+      if (eff_z <= 0.)
+        continue;
+
+      event_weight *= 1./eff_z;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
@@ -801,16 +823,18 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        if (trkEff == 0)
+        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
+        if (trkEff == 0 || trkPur == 0)
           continue;
+        const float trkWeight = event_weight * trkPur / trkEff;
 
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight / trkEff);
+        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
         }
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -820,7 +844,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight / trkEff);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         const float zH = trkpt / z_pt;
@@ -830,7 +854,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, trkWeight);
         }
       } // end loop over tracks
 

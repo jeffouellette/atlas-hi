@@ -54,7 +54,7 @@ int main (int argc, char** argv) {
     else if (doTrkPurVar)
       bkg = new MinbiasAnalysis ("bkg_trackPurityVar", "");
     else
-      bkg = new MinbiasAnalysis ("bkg", ""); 
+      bkg = new MinbiasAnalysis ("minbias", ""); 
     bkg->useHITight = doHITightVar;
     bkg->doTrackPurVar = doTrkPurVar;
     bkg->Execute (inFileName.c_str (), outFileName.c_str ());

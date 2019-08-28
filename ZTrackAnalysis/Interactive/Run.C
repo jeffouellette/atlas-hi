@@ -49,14 +49,15 @@ void Run () {
 
   data18    = new FullAnalysis ("data18", "DataAnalysis/");
   data15  = new FullAnalysis ("data15", "DataAnalysis/");
-  data15->use2015Effs = true;
+  data15->is2015Conds = true;
   data15->useHijingEffs = true;
-  data15->use2015Purs = true;
-  mc      = new MCAnalysis ("mc", "");
+  //mc      = new MCAnalysis ("mc", "");
   bkg     = new MinbiasAnalysis ("minbias", "");
   //truth   = new TruthAnalysis ("truth", "");
 
   if (doSys) {
+    data_trigEff            = new PhysicsAnalysis ("data_trigEff", "");
+
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar", "");
     data_trackHItight->useHITight = true;
     bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar", "");
@@ -89,6 +90,7 @@ void Run () {
   //truth->Execute ("Nominal/outFile.root", "Nominal/savedHists.root");
 
   if (doSys) {
+    data_trigEff->Execute ("Nominal/outFile.root", "Variations/TriggerEfficiencyCorrected/savedHists.root");
     //data_trackHItight->Execute ("Variations/TrackHITightWPVariation/outFile.root", "Variations/TrackHITightWPVariation/savedHists.root");
     //data_trackPurity->Execute ("Nominal/outFile.root", "Variations/TrackPurityVariation/savedHists.root");
     //data_leptonRejVar->Execute ("Nominal/outFile.root", "Variations/LeptonRejVariation/savedHists.root");
