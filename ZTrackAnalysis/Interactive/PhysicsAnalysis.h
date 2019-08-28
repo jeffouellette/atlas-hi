@@ -498,7 +498,7 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
         }
@@ -511,7 +511,8 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Sumw2 ();
         h_z_trk_zxzh[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zxzh_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nZHBins, zHBins);
         h_z_trk_zxzh[iSpc][iPtZ][iCent]->Sumw2 ();
-        
+      }  
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       }
     }
@@ -1955,7 +1956,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_RawTrkYield_%s_%s_iPtZ%i", useTrkPt ? "pt" : "zh", spc, iPtZ);
+      const char* canvasName = Form ("c_RawTrkYield_%s_%s_iPtZ%i", useTrkPt ? "pttrk" : "zh", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -2151,7 +2152,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_TrkYield_%s_%s_iPtZ%i", useTrkPt ? "pt" : "zh", spc, iPtZ);
+      const char* canvasName = Form ("c_TrkYield_%s_%s_iPtZ%i", useTrkPt ? "pttrk" : "zh", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -2621,7 +2622,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_TrkYield_pt_%s", spc);
+    const char* canvasName = Form ("c_TrkYield_zpt_%s_%s", useTrkPt ? "pttrk" : "xhz", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -3127,7 +3128,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_iaa_dPhi_%s_iPtZ%i", useTrkPt ? "pt" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_iaa_dPhi_%s_iPtZ%i", useTrkPt ? "pttrk" : "xzh", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -3322,7 +3323,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_iaa_dCent_%s_iPtZ%i", useTrkPt ? "pt" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_iaa_dCent_%s_iPtZ%i", useTrkPt ? "pttrk" : "xzh", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -3506,7 +3507,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_zpt_iaa_%s", spc);
+    const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s", useTrkPt ? "pttrk" : "xhz", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -3680,7 +3681,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_zpt_iaa_%s_iCent%i", spc, iCent);
+    const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s_iCent%i", useTrkPt ? "pttrk" : "xhz", spc, iCent);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -4262,7 +4263,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_%s_icp_dPtZ_%s", useTrkPt ? "pt" : "xzh", spc);
+    const char* canvasName = Form ("c_z_trk_%s_icp_dPtZ_%s", useTrkPt ? "pttrk" : "xzh", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)

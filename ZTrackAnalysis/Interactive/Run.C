@@ -10,7 +10,7 @@
 
 #include "Systematic.h"
 
-const bool doSys = true;
+const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
@@ -23,6 +23,7 @@ TruthAnalysis* truth = nullptr;
 Systematic* combSys = nullptr;
 Systematic* bkgSys = nullptr;
 Systematic* trkSys = nullptr;
+Systematic* trkPurSys = nullptr;
 Systematic* leptonRejSys = nullptr;
 Systematic* electronPtSys = nullptr;
 Systematic* muonPtSys = nullptr;
@@ -30,6 +31,7 @@ Systematic* electronLHMedSys = nullptr;
 Systematic* muonTightSys = nullptr;
 
 // variations for systematics
+PhysicsAnalysis* data_trigEff = nullptr;
 PhysicsAnalysis* data_trackHItight = nullptr;
 MinbiasAnalysis* bkg_trackHItight = nullptr;
 PhysicsAnalysis* data_trackPurity = nullptr;
@@ -50,8 +52,8 @@ void Run () {
   data15->use2015Effs = true;
   data15->useHijingEffs = true;
   data15->use2015Purs = true;
-  //mc      = new MCAnalysis ("mc", "");
-  bkg     = new MinbiasAnalysis ("bkg", "");
+  mc      = new MCAnalysis ("mc", "");
+  bkg     = new MinbiasAnalysis ("minbias", "");
   //truth   = new TruthAnalysis ("truth", "");
 
   if (doSys) {
@@ -60,9 +62,9 @@ void Run () {
     bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar", "");
     bkg_trackHItight->useHITight = true;
 
-    data_trackPurity        = new PhysicsAnalysis ("data_trackPur", "");
+    data_trackPurity        = new PhysicsAnalysis ("data_trackPurityVar", "");
     data_trackPurity->doTrackPurVar = true;
-    bkg_trackPurity         = new MinbiasAnalysis ("bkg_trackPur", "");
+    bkg_trackPurity         = new MinbiasAnalysis ("bkg_trackPurityVar", "");
     bkg_trackPurity->doTrackPurVar = true;
 
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar", "");
@@ -87,8 +89,8 @@ void Run () {
   //truth->Execute ("Nominal/outFile.root", "Nominal/savedHists.root");
 
   if (doSys) {
-    data_trackHItight->Execute ("Variations/TrackHITightWPVariation/outFile.root", "Variations/TrackHITightWPVariation/savedHists.root");
-    data_trackPurity->Execute ("Nominal/outFile.root", "Variations/TrackPurityVariation/savedHists.root");
+    //data_trackHItight->Execute ("Variations/TrackHITightWPVariation/outFile.root", "Variations/TrackHITightWPVariation/savedHists.root");
+    //data_trackPurity->Execute ("Nominal/outFile.root", "Variations/TrackPurityVariation/savedHists.root");
     //data_leptonRejVar->Execute ("Nominal/outFile.root", "Variations/LeptonRejVariation/savedHists.root");
     //data_electronPtUp->Execute ("Variations/ElectronPtUpVariation/outFile.root", "Variations/ElectronPtUpVariation/savedHists.root");
     //data_electronPtDown->Execute ("Variations/ElectronPtDownVariation/outFile.root", "Variations/ElectronPtDownVariation/savedHists.root");
@@ -99,10 +101,10 @@ void Run () {
   }
 
 
-/*
+
   data18->LoadHists ("Nominal/savedHists.root");
   data15->LoadHists ("Nominal/data15hi_hists.root");
-  //mc->LoadHists ("Nominal/savedHists.root", );
+  mc->LoadHists ("Nominal/savedHists.root");
   bkg->LoadHists ("Nominal/savedHists.root");
   //truth->LoadHists ("Nominal/savedHists.root");
 
@@ -125,14 +127,19 @@ void Run () {
   data18->CalculateIAA ();
   data18->CalculateICP ();
 
-  //data15->SubtractBackground (bkg);
-  //data15->CalculateIAA ();
-  //data15->CalculateICP ();
+  data15->SubtractBackground (bkg);
+  data15->CalculateIAA ();
+  data15->CalculateICP ();
 
   data18->CalculateZPtDistRatio (mc);
   data18->CalculateZEtaDistRatio ();
   data18->CalculateZYDistRatio ();
   data18->CalculateZMassSpectraRatio (mc);
+
+  mc->SubtractBackground (bkg);
+  //mc->CalculateIAA ();
+  //mc->CalculateICP ();
+  //truth->SubtractBackground ();
 
   if (doSys) {
     data_trackHItight->LoadHists ("Variations/TrackHITightWPVariation/savedHists.root");
@@ -162,12 +169,16 @@ void Run () {
     bkgSys->AddVariation (data_bkgStatDownVar, 1);
     bkgSys->AddVariations ();
 
-    trkSys = new Systematic (data18, "trkSys", "Tracks");
+    trkSys = new Systematic (data18, "trkSys", "Track ID");
     trkSys->AddVariation (data_trackHItight);
     trkSys->AddVariations ();
 
+    trkPurSys = new Systematic (data18, "trkPurSys", "Track Purity");
+    trkPurSys->AddVariation (data_trackPurity);
+    trkPurSys->AddVariations ();
+
     leptonRejSys = new Systematic (data18, "leptonRejSys", "Lepton Rejection");
-    leptonRejSys->AddVariation (data_leptonRejVar);
+    leptonRejSys->AddVariation (data_leptonRejVar, -1);
     leptonRejSys->AddVariations ();
 
     electronPtSys = new Systematic (data18, "electronPtSys", "Electron ES");
@@ -190,6 +201,7 @@ void Run () {
 
     combSys = new Systematic (data18, "combSys", "Total");
     combSys->AddSystematic (trkSys);
+    combSys->AddSystematic (trkPurSys);
     combSys->AddSystematic (bkgSys);
     combSys->AddSystematic (leptonRejSys);
     combSys->AddSystematic (electronLHMedSys);
@@ -198,10 +210,32 @@ void Run () {
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematics ();
   }
-*/
 
   SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");
 
+}
+
+
+void MakePhysicsPlots () {
+
+  combSys->PlotTrkYieldZPt (1, 1, 2);
+  data18->PlotTrkYieldZPt (1, 0, 2);
+
+  max_iaa = 10;
+  combSys->PlotSingleIAAdPtZ (1, 1);
+  data18->PlotSingleIAAdPtZ (1, 0);
+
+  combSys->PlotSingleIAAdPtZ (0, 1);
+  data18->PlotSingleIAAdPtZ (0, 0);
+
+  max_iaa = 3.2;
+  combSys->PlotIAAdPtZ (1, 1);
+  data18->PlotIAAdPtZ (1, 0);
+
+  max_icp = 3.;
+  combSys->PlotICPdPtZ (1, 1);
+  data18->PlotICPdPtZ (1, 0);
+  
 }
 
 

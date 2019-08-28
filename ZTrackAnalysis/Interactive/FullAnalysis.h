@@ -2242,16 +2242,18 @@ void FullAnalysis :: PlotZPhiYield () {
     float c = 0, cerr = 0;
 
     for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
-      c += h->GetBinContent (ix);
-      cerr += pow (h->GetBinError (ix), 2);
+      c += h->GetBinContent (ix) * h->GetBinWidth (ix);
+      cerr += pow (h->GetBinError (ix) * h->GetBinWidth (ix), 2);
 
-      v2 += h->GetBinContent (ix) * cos (h->GetBinCenter (ix));
-      v2err += pow (h->GetBinError (ix) * cos (h->GetBinCenter (ix)), 2);
+      v2 += h->GetBinContent (ix) * cos (h->GetBinCenter (ix)) * h->GetBinWidth (ix);
+      v2err += pow (h->GetBinError (ix) * cos (h->GetBinCenter (ix)) * h->GetBinWidth (ix), 2);
     }
     cerr = sqrt (cerr);
     v2err = sqrt (v2err);
-    v2 = v2 / c;
+    v2 = v2 / (c);
     v2err = sqrt (pow (v2err / c, 2) + pow (v2 * cerr / (c*c), 2));
+    c = c / pi;
+    cerr = cerr / pi;
 
     TGraphAsymmErrors* g = GetTGAE (h);
     deltaize (g, (1.5-iCent)*0.02, false);
@@ -2263,11 +2265,19 @@ void FullAnalysis :: PlotZPhiYield () {
 
     g->SetLineColor (colors[iCent]);
     g->SetMarkerColor (colors[iCent]);
-    g->SetMarkerSize (0.75);
+    g->SetMarkerSize (1);
     if (iCent == 1)
-      g->Draw ("ap");
+      g->Draw ("AP");
     else
-      g->Draw ("p");
+      g->Draw ("P");
+
+    TF1* fit = new TF1 (Form ("fit_iCent%i", iCent), "[0]*(1+2*[1]*cos(x))", 0, pi);
+    fit->FixParameter (0, c);
+    fit->FixParameter (1, v2);
+    fit->SetLineColor (colors[iCent]);
+    fit->SetLineStyle (2);
+    fit->SetLineWidth (2);
+    fit->Draw ("same");
 
     myText (0.22, 0.38-0.055*iCent, colors[iCent], Form ("v_{2} = %s", FormatMeasurement (v2, v2err, 2)), 0.04);
     myText (0.66, 0.88-0.055*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
