@@ -81,6 +81,8 @@ class PhysicsAnalysis {
   TH2D* h2_muon_trig_effs_eta_phi[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
   TH2D* h2_electron_trig_effs_pt_eta[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
   TH1D* h_electron_trig_effs_fcal[2]; // 2018 Pb+Pb, 2015 Pb+Pb
+  TH2D* h2_zmumu_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  TH2D* h2_zee_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
 
   // Tracking purities
   //TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
@@ -219,6 +221,7 @@ class PhysicsAnalysis {
   virtual void LoadTriggerEfficiencies ();
   virtual double GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb = true);
   virtual double GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb = true);
+  virtual double GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb = true);
 
   void PrintZYields (const int iPtZ = 2);
 
@@ -759,9 +762,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
-      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
-      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
+      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
+      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
       if (eff_z <= 0.)
         continue;
@@ -779,11 +783,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
         if (trkEff == 0 || trkPur == 0)
           continue;
-        const float trkWeight = event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -868,9 +872,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
-      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
-      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
+      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
+      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
       if (eff_z <= 0.)
         continue;
@@ -888,11 +893,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
         if (trkEff == 0 || trkPur == 0)
           continue;
-        const float trkWeight = event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -1172,15 +1177,25 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   TH1D* h_num, *h_den;
   TH2D* h2_num, *h2_den;
 
-  h2_num = (TH2D*) trigEffFile->Get ("h_muonTrigEffNum_eta_phi_pp");
-  h2_den = (TH2D*) trigEffFile->Get ("h_muonTrigEffDen_eta_phi_pp");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_pp");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_pp");
   h2_muon_trig_effs_eta_phi[0] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_pp");
   h2_muon_trig_effs_eta_phi[0]->Divide (h2_den);
 
-  h2_num = (TH2D*) trigEffFile->Get ("h_muonTrigEffNum_eta_phi_PbPb");
-  h2_den = (TH2D*) trigEffFile->Get ("h_muonTrigEffDen_eta_phi_PbPb");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb");
   h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb");
   h2_muon_trig_effs_eta_phi[1]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_pp");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_pp");
+  h2_zmumu_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_pp");
+  h2_zmumu_trig_effs_pt_y[0]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_PbPb");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_PbPb");
+  h2_zmumu_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_PbPb");
+  h2_zmumu_trig_effs_pt_y[1]->Divide (h2_den);
 
   h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
   h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_pp");
@@ -1196,6 +1211,16 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal");
   h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal");
   h_electron_trig_effs_fcal[0]->Divide (h_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_pp");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_pp");
+  h2_zee_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_pp");
+  h2_zee_trig_effs_pt_y[0]->Divide (h2_den);
+
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_PbPb");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_PbPb");
+  h2_zee_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_PbPb");
+  h2_zee_trig_effs_pt_y[1]->Divide (h2_den);
 
   trigEffsLoaded = true;
 
@@ -1216,10 +1241,14 @@ double PhysicsAnalysis :: GetElectronTriggerEfficiency (const float fcal_et, con
   double trigEff = 1;
   if (!isPbPb)
     trigEff = h2_electron_trig_effs_pt_eta[0]->GetBinContent (h2_electron_trig_effs_pt_eta[0]->FindFixBin (electron_eta, electron_pt));
-  else if (isPbPb && !is2015Conds)
+  else if (isPbPb && !is2015Conds) {
     trigEff = h2_electron_trig_effs_pt_eta[1]->GetBinContent (h2_electron_trig_effs_pt_eta[1]->FindFixBin (electron_eta, electron_pt));
-  else if (isPbPb && is2015Conds)
+    trigEff *= h_electron_trig_effs_fcal[0]->GetBinContent (h_electron_trig_effs_fcal[0]->FindFixBin (fcal_et * 1e-3));
+  }
+  else if (isPbPb && is2015Conds) {
     trigEff = h2_electron_trig_effs_pt_eta[2]->GetBinContent (h2_electron_trig_effs_pt_eta[2]->FindFixBin (electron_eta, electron_pt));
+    trigEff *= h_electron_trig_effs_fcal[1]->GetBinContent (h_electron_trig_effs_fcal[1]->FindFixBin (fcal_et * 1e-3));
+  }
   return trigEff;
 }
 
@@ -1235,11 +1264,37 @@ double PhysicsAnalysis :: GetMuonTriggerEfficiency (const float muon_eta, const 
 
   double trigEff = 1;
   if (!isPbPb)
-    trigEff = h2_muon_trig_effs_eta_phi[0]->GetBinContent (h2_muon_trig_effs_eta_phi[0]->FindFixBin (muon_eta, muon_phi));
+    trigEff = h2_muon_trig_effs_eta_phi[0]->GetBinContent (h2_muon_trig_effs_eta_phi[0]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
   else if (isPbPb && !is2015Conds)
-    trigEff = h2_muon_trig_effs_eta_phi[1]->GetBinContent (h2_muon_trig_effs_eta_phi[1]->FindFixBin (muon_eta, muon_phi));
+    trigEff = h2_muon_trig_effs_eta_phi[1]->GetBinContent (h2_muon_trig_effs_eta_phi[1]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
   else if (isPbPb && is2015Conds)
-    trigEff = h2_muon_trig_effs_eta_phi[2]->GetBinContent (h2_muon_trig_effs_eta_phi[2]->FindFixBin (muon_eta, muon_phi));
+    trigEff = h2_muon_trig_effs_eta_phi[2]->GetBinContent (h2_muon_trig_effs_eta_phi[2]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
+  return trigEff;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Returns the appropriate trigger efficiency factor for this Z boson
+////////////////////////////////////////////////////////////////////////////////////////////////
+double PhysicsAnalysis :: GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb) {
+  if (!trigEffsLoaded)
+    LoadTriggerEfficiencies ();
+
+  double trigEff = 1;
+  if (!isPbPb && !isEE)
+    trigEff = h2_zmumu_trig_effs_pt_y[0]->GetBinContent (h2_zmumu_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
+  else if (!isPbPb && isEE)
+    trigEff = h2_zee_trig_effs_pt_y[0]->GetBinContent (h2_zee_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
+  else if (isPbPb && !is2015Conds && !isEE)
+    trigEff = h2_zmumu_trig_effs_pt_y[1]->GetBinContent (h2_zmumu_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
+  else if (isPbPb && !is2015Conds && isEE)
+    trigEff = h2_zee_trig_effs_pt_y[1]->GetBinContent (h2_zee_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
+  else if (isPbPb && is2015Conds && !isEE)
+    trigEff = h2_zmumu_trig_effs_pt_y[2]->GetBinContent (h2_zmumu_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
+  else if (isPbPb && is2015Conds && isEE)
+    trigEff = h2_zee_trig_effs_pt_y[2]->GetBinContent (h2_zee_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
   return trigEff;
 }
 

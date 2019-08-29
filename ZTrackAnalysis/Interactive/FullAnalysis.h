@@ -589,9 +589,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           iPtZ++;
       }
 
-      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
-      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
-      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
+      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
+      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
       if (eff_z <= 0.)
         continue;
@@ -661,11 +662,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
         if (trkEff == 0 || trkPur == 0)
           continue;
-        const float trkWeight = event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
@@ -760,9 +761,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           iPtZ++;
       }
 
-      const float eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
-      const float eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
-      const float eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
+      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
+      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
       if (eff_z <= 0.)
         continue;
@@ -822,11 +824,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        const float trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
+        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
         if (trkEff == 0 || trkPur == 0)
           continue;
-        const float trkWeight = event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 

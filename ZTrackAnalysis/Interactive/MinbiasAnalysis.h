@@ -29,7 +29,7 @@ class MinbiasAnalysis : public FullAnalysis {
     useAltMarker = false;
     backgroundSubtracted = true;
 
-    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories (directory, "ZTrackAnalysis/");
     TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
     for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
       h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_minbias", iPtZ));
@@ -40,7 +40,6 @@ class MinbiasAnalysis : public FullAnalysis {
     }
     h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
 
-    SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;

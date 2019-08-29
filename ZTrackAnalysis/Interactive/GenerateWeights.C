@@ -52,21 +52,23 @@ TH1D* h_ppNch_weights = nullptr;
 void GenerateWeights (const TString name, const TString inFileName = "outFile.root", const TString outFileName = "eventWeightsFile.root") {
 
   if (name == "data")
-    SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories ("DataAnalysis/Nominal/", "ZTrackAnalysis/");
   else if (name == "mc")
-    SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories ("MCAnalysis/Nominal/", "ZTrackAnalysis/");
   else if (name == "minbias")
-    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
   else if (name == "hijing")
-    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
   else if (name == "truth")
-    SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+    SetupDirectories ("TruthAnalysis/Nominal/", "ZTrackAnalysis/");
+  else if (name == "minbias_runvar")
+    SetupDirectories ("MinbiasAnalysis/Variations/RunVariation/", "ZTrackAnalysis/");
   else {
     cout << "Unrecognized analysis name! Quitting." << endl;
     return;
   }
 
-  TFile* inFile = new TFile (Form ("%s/Nominal/%s", rootPath.Data (), inFileName.Data ()), "read");
+  TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName.Data ()), "read");
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
   TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
@@ -198,7 +200,7 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
     // Calculate reweighting factors otherwise (requires obtaining raw distributions in data)
     else {
       // get reference (data) distributions
-      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      SetupDirectories ("DataAnalysis/Nominal/", "ZTrackAnalysis/");
       TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
       TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_PbPbNchDist_data");
 
@@ -307,15 +309,17 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
       ztrackFile->Close ();
 
       if (name == "data")
-        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("DataAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "mc")
-        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MCAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "minbias")
-        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "hijing")
-        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "truth")
-        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("TruthAnalysis/Nominal/", "ZTrackAnalysis/");
+      else if (name == "minbias_runvar")
+        SetupDirectories ("MinbiasAnalysis/Variations/RunVariation/", "ZTrackAnalysis/");
     }
   }
 
@@ -356,15 +360,17 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
       ztrackFile->Close ();
 
       if (name == "data")
-        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("DataAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "mc")
-        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MCAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "minbias")
-        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "hijing")
-        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("MinbiasAnalysis/Nominal/", "ZTrackAnalysis/");
       else if (name == "truth")
-        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+        SetupDirectories ("TruthAnalysis/Nominal/", "ZTrackAnalysis/");
+      else if (name == "minbias_runvar")
+        SetupDirectories ("MinbiasAnalysis/Variations/RunVariation/", "ZTrackAnalysis/");
     }
   }
 
@@ -400,6 +406,10 @@ void GenerateDataWeights () {
 
 void GenerateMinbiasWeights () {
   GenerateWeights ("minbias", "eventWeightsTree.root");
+}
+
+void GenerateMinbiasRunVarWeights () {
+  GenerateWeights ("minbias_runvar", "eventWeightsTree.root");
 }
 
 void GenerateMCWeights () {

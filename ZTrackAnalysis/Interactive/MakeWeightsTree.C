@@ -87,6 +87,11 @@ void MakeMinbiasWeightsTree () {
 }
 
 
+void MakeMinbiasRunVarWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Variations/RunVariation", "3*.root");
+}
+
+
 void MakeMCWeightsTree () {
   MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal", "*Z*.root");
 }
