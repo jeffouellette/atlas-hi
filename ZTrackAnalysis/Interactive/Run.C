@@ -10,7 +10,7 @@
 
 #include "Systematic.h"
 
-const bool doSys = false;
+const bool doSys = true;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
@@ -30,8 +30,10 @@ Systematic* muonPtSys = nullptr;
 Systematic* electronLHMedSys = nullptr;
 Systematic* muonTightSys = nullptr;
 
+Systematic* bkgRunVarSys = nullptr;
+
 // variations for systematics
-PhysicsAnalysis* data_trigEff = nullptr;
+FullAnalysis* data_trigEff = nullptr;
 PhysicsAnalysis* data_trackHItight = nullptr;
 MinbiasAnalysis* bkg_trackHItight = nullptr;
 PhysicsAnalysis* data_trackPurity = nullptr;
@@ -42,6 +44,9 @@ PhysicsAnalysis* data_electronLHMedium = nullptr;
 PhysicsAnalysis* data_muonTight = nullptr;
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
+PhysicsAnalysis* data_runVar = nullptr;
+MinbiasAnalysis* bkg_runVar = nullptr;
+
 MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
 
@@ -51,12 +56,12 @@ void Run () {
   data15  = new FullAnalysis ("data15", "DataAnalysis/");
   data15->is2015Conds = true;
   data15->useHijingEffs = true;
-  //mc      = new MCAnalysis ("mc", "");
+  mc      = new MCAnalysis ("mc", "");
   bkg     = new MinbiasAnalysis ("minbias", "");
   //truth   = new TruthAnalysis ("truth", "");
 
   if (doSys) {
-    data_trigEff            = new PhysicsAnalysis ("data_trigEff", "");
+    data_trigEff            = new FullAnalysis ("data_trigEff", "DataAnalysis/");
 
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar", "");
     data_trackHItight->useHITight = true;
@@ -83,6 +88,9 @@ void Run () {
     data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar", "");
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar", "");
     bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar", "");
+
+    data_runVar            = new PhysicsAnalysis ("data_runVar", "");
+    bkg_runVar             = new MinbiasAnalysis ("minbias", "");
   }
 
   //data18->Execute ("Nominal/outFile.root", "Nominal/savedHists.root");
@@ -90,7 +98,7 @@ void Run () {
   //truth->Execute ("Nominal/outFile.root", "Nominal/savedHists.root");
 
   if (doSys) {
-    data_trigEff->Execute ("Nominal/outFile.root", "Variations/TriggerEfficiencyCorrected/savedHists.root");
+    //data_trigEff->Execute ("Nominal/outFile.root", "Variations/TriggerEfficiencyCorrected/savedHists.root");
     //data_trackHItight->Execute ("Variations/TrackHITightWPVariation/outFile.root", "Variations/TrackHITightWPVariation/savedHists.root");
     //data_trackPurity->Execute ("Nominal/outFile.root", "Variations/TrackPurityVariation/savedHists.root");
     //data_leptonRejVar->Execute ("Nominal/outFile.root", "Variations/LeptonRejVariation/savedHists.root");
@@ -123,6 +131,8 @@ void Run () {
     data_bkgStatUpVar->CalculateICP ();
     data_bkgStatDownVar->CalculateIAA ();
     data_bkgStatDownVar->CalculateICP ();
+
+    data_runVar->CopyAnalysis (data18);
   }
 
   data18->SubtractBackground (bkg);
@@ -144,6 +154,7 @@ void Run () {
   //truth->SubtractBackground ();
 
   if (doSys) {
+    data_trigEff->LoadHists ("Variations/TriggerEfficiencyCorrected/savedHists.root");
     data_trackHItight->LoadHists ("Variations/TrackHITightWPVariation/savedHists.root");
     bkg_trackHItight->LoadHists ("Variations/TrackHITightWPVariation/savedHists.root");
     data_trackPurity->LoadHists ("Variations/TrackPurityVariation/savedHists.root");
@@ -156,6 +167,9 @@ void Run () {
     data_electronLHMedium->LoadHists ("Variations/ElectronLHMediumWPVariation/savedHists.root");
     data_muonTight->LoadHists ("Variations/MuonTightWPVariation/savedHists.root");
 
+    bkg_runVar->LoadHists ("Variations/RunVariations/runVariation.root");
+
+    data_trigEff->SubtractBackground (bkg);
     data_trackHItight->SubtractBackground (bkg_trackHItight);
     data_trackPurity->SubtractBackground (bkg_trackPurity);
     data_leptonRejVar->SubtractBackground (bkg);
@@ -166,11 +180,21 @@ void Run () {
     data_electronLHMedium->SubtractBackground (bkg);
     data_muonTight->SubtractBackground (bkg);
 
+    data_trigEff->CalculateZYDistRatio ();
+
+    data_runVar->SubtractBackground (bkg_runVar);
+/*
     bkgSys = new Systematic (data18, "bkgSys", "Background");
     bkgSys->AddVariation (data_bkgStatUpVar, -1);
     bkgSys->AddVariation (data_bkgStatDownVar, 1);
     bkgSys->AddVariations ();
+*/
 
+    bkgRunVarSys = new Systematic (data18, "bkgRunVarSys", "Run Variations");
+    bkgRunVarSys->AddVariation (data_runVar);
+    bkgRunVarSys->AddVariations ();
+  
+/*
     trkSys = new Systematic (data18, "trkSys", "Track ID");
     trkSys->AddVariation (data_trackHItight);
     trkSys->AddVariations ();
@@ -211,6 +235,7 @@ void Run () {
     combSys->AddSystematic (electronPtSys);
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematics ();
+*/
   }
 
   SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");
@@ -288,7 +313,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[1]);
     g->SetFillColorAlpha (fillColors[1], 0.3);
 
-    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
+    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[nPtZBins-1]]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -320,7 +345,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[2]);
     g->SetFillColorAlpha (fillColors[2], 0.3);
 
-    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
+    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[nPtZBins-1]]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -358,7 +383,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[2]);
     g->SetFillColorAlpha (fillColors[2], 0.3);
 
-    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins]);
+    g->GetXaxis ()->SetLimits (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[nPtZBins-1]]);
     g->GetYaxis ()->SetRangeUser (0, 4);
 
     g->GetXaxis ()->SetMoreLogLabels ();

@@ -78,29 +78,63 @@ const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 
-const int nZHBins = 6;
-const double* zHBins = logspace (1./15., 1, nZHBins);
-
 const double trk_min_pt = 1;
 const double trk_max_pt = 60;
-const int nPtTrkBins = 7;
+
+
+const int maxNPtTrkBins = 7;
+int* nPtTrkBins = Get1DArray <int> (nPtZBins);
 
 double** init_ptTrkBins () {
+  double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
+
   double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
+  for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    nPtTrkBins[iPtZ] = 0;
+    while (nPtTrkBins[iPtZ] < 7 && allPtTrkBins[nPtTrkBins[iPtZ]] < zPtBins[iPtZ])
+      nPtTrkBins[iPtZ]++;
+  }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    if (trk_min_pt > zPtBins[iPtZ])
-      _ptTrkBins[iPtZ] = logspace (trk_min_pt, trk_max_pt, nPtTrkBins);
-    else
-      _ptTrkBins[iPtZ] = logspace (trk_min_pt, fmin (trk_max_pt, zPtBins[iPtZ]), nPtTrkBins);
+    _ptTrkBins[iPtZ] = Get1DArray<double> (nPtTrkBins[iPtZ]);
+    for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+      _ptTrkBins[iPtZ][iPtTrk] = allPtTrkBins[iPtTrk];
+    }
   }
+
   return _ptTrkBins;
 }
 double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
 
 
+const int maxNXHZBins = 7;
+int* nXHZBins = Get1DArray <int> (nPtZBins);
+
+double** init_xHZBins () {
+  double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
+
+  double** _xHZBins = Get1DArray <double*> (nPtZBins);
+
+  for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    nXHZBins[iPtZ] = 0;
+    while (nXHZBins[iPtZ] < 7 && zPtBins[iPtZ] > 0 && allXHZBins[nXHZBins[iPtZ]] > 1./zPtBins[iPtZ])
+      nXHZBins[iPtZ]++;
+  }
+
+  for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    _xHZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]);
+    for (int iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
+      _xHZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(7-nXHZBins[iPtZ])];
+    }
+  }
+
+  return _xHZBins;
+}
+double** xHZBins = init_xHZBins ();
+
+
 void PrintPtBins (const short iPtZ) {
-  for (int i = 0; i <= nPtTrkBins; i++) {
+  for (int i = 0; i <= nPtTrkBins[iPtZ]; i++) {
     cout << ptTrkBins[iPtZ][i] << endl;
   }
 }
@@ -124,13 +158,14 @@ void PrintXHZBins () {
       cout << "& ";
   }
   cout << "\\\\ \\hline" << endl;
-  for (int i = 0; i <= nZHBins; i++) {
+  for (int i = 0; i <= maxNXHZBins; i++) {
     for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      cout << zHBins[i] << " & " << zHBins[i] * zPtBins[iPtZ] << " ";
+      if (i < nXHZBins[iPtZ])
+        cout << xHZBins[iPtZ][i] << " & " << xHZBins[iPtZ][i] * zPtBins[iPtZ] << " ";
       if (iPtZ != nPtZBins-1)
         cout << "& ";
     }
-    //if (i != nZHBins)
+    //if (i != nXHZBins[iPtZ])
     cout << "\\\\ \\hline";
     cout << endl;
   }
@@ -202,10 +237,10 @@ short GetidPhi (const float dphi) {
 }
 
 
-short GetiZH (const float zH) {
+short GetiZH (const float zH, const int iPtZ) {
   short iZH = 0;
-  while (iZH < nZHBins) {
-    if (zHBins[iZH+1] < zH)
+  while (iZH < nXHZBins[iPtZ]) {
+    if (xHZBins[iPtZ][iZH+1] < zH)
       iZH++;
     else
       break;

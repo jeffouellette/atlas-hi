@@ -334,7 +334,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
@@ -351,19 +351,19 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+        const float xHZ = trkpt / z_pt;
+        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, event_weight);
         }
       } // end loop over tracks
 
@@ -499,7 +499,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins])
+        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         for (int iJet = 0; iJet < njet; iJet++) {
@@ -530,19 +530,19 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 
-        const float zH = trkpt / z_pt;
-        if (zH < zHBins[0] || zH > zHBins[nZHBins])
+        const float xHZ = trkpt / z_pt;
+        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, event_weight);
         }
       } // end loop over tracks
 

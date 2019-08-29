@@ -108,7 +108,7 @@ void Systematic :: CreateSysGraphs () {
           AddGraphPair (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over iPhi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           AddGraphPair (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
           AddGraphPair (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
         } // end loop over iPtTrk
@@ -156,7 +156,7 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
 //          h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
 //        }
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -194,7 +194,7 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //
 //      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
 //          SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
 //        }
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -310,7 +310,7 @@ void Systematic :: AddVariations () {
           } // end loop over cents
         } // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
             sys = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
             var = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
@@ -450,7 +450,7 @@ void Systematic :: AddSystematics () {
           } // end loop over cents
         } // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
             master = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
             sys = s->GetTGAE (s->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
