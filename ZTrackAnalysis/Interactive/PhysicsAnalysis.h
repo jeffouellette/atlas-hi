@@ -770,12 +770,12 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
-      if (eff_z <= 0.)
-        continue;
+      //if (eff_z <= 0.)
+      //  continue;
 
-      event_weight *= 1./eff_z;
+      //event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -785,7 +785,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
@@ -812,7 +812,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -880,12 +880,12 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
-      if (eff_z <= 0.)
-        continue;
+      //if (eff_z <= 0.)
+      //  continue;
 
-      event_weight *= 1./eff_z;
+      //event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -895,11 +895,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
-        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
+        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -922,7 +922,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);

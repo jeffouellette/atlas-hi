@@ -255,7 +255,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
@@ -283,7 +283,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h->Fill (dphi, trkWeight);
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];

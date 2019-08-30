@@ -592,12 +592,12 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
-      if (eff_z <= 0.)
-        continue;
+      //if (eff_z <= 0.)
+      //  continue;
 
-      event_weight *= 1./eff_z;
+      //event_weight *= 1./eff_z;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -643,7 +643,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         {
@@ -688,7 +688,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -764,12 +764,12 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
-      if (eff_z <= 0.)
-        continue;
+      //if (eff_z <= 0.)
+      //  continue;
 
-      event_weight *= 1./eff_z;
+      //event_weight *= 1./eff_z;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
@@ -805,7 +805,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         {
@@ -850,7 +850,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
