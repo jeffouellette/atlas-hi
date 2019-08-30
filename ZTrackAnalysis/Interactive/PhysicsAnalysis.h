@@ -381,7 +381,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         //for (short iZH = 0; iZH < nXHZBins[iPtZ]; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
@@ -396,6 +396,8 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
         }
+      } // end loop over iPtZ
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_counts[iSpc][iPtZ][iCent]->Clone (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       } // end loop over iPtZ
     } // end loop over iSpc
@@ -592,8 +594,8 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
-      for (short iSpc = 0; iSpc < 2; iSpc++) {
+    for (short iSpc = 0; iSpc < 2; iSpc++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
@@ -612,6 +614,9 @@ void PhysicsAnalysis :: CombineHists () {
 
           if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
+      } // end loop over pT^Z
+
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
       } // end loop over pT^Z
     } // end loop over species
@@ -1471,28 +1476,28 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
 
               TLine* line1 = new TLine (phiLowBins[1], min, phiLowBins[1], max);
               TLine* line2 = new TLine (2*pi - phiLowBins[1], min, 2*pi - phiLowBins[1], max);
-              TLine* line3 = new TLine (phiLowBins[2], min, phiLowBins[2], max);
-              TLine* line4 = new TLine (2*pi - phiLowBins[2], min, 2*pi - phiLowBins[2], max);
+              //TLine* line3 = new TLine (phiLowBins[2], min, phiLowBins[2], max);
+              //TLine* line4 = new TLine (2*pi - phiLowBins[2], min, 2*pi - phiLowBins[2], max);
 
               line1->SetLineStyle (2);
               line2->SetLineStyle (2);
-              line3->SetLineStyle (2);
-              line4->SetLineStyle (2);
+              //line3->SetLineStyle (2);
+              //line4->SetLineStyle (2);
 
               line1->SetLineWidth (2);
               line2->SetLineWidth (2);
-              line3->SetLineWidth (2);
-              line4->SetLineWidth (2);
+              //line3->SetLineWidth (2);
+              //line4->SetLineWidth (2);
 
               line1->SetLineColor (kBlack);
               line2->SetLineColor (kBlack);
-              line3->SetLineColor (kGray);
-              line4->SetLineColor (kGray);
+              //line3->SetLineColor (kGray);
+              //line4->SetLineColor (kGray);
 
               line1->Draw ("same");
               line2->Draw ("same");
-              line3->Draw ("same");
-              line4->Draw ("same");
+              //line3->Draw ("same");
+              //line4->Draw ("same");
             } // end loop over iPtTrk
           }
         }
@@ -1879,7 +1884,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
@@ -1962,10 +1967,11 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
 
           //******** Do subtraction of z_h ********//
-          h = new TH1D (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-          h->Sumw2 ();
+          //h = new TH1D (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h = (TH1D*) h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          //h->Sumw2 ();
 
-          h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          //h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           sub = nullptr;
           if (a == nullptr) {
             //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
@@ -1982,11 +1988,12 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
           h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
-          h = new TH1D (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-          h->Sumw2 ();
+          //h = new TH1D (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h = (TH1D*) h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          //h->Sumw2 ();
 
           if (sub != nullptr) {
-            h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            //h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
             h->Add (sub, -1);
             h->Divide (sub);
           }
@@ -2080,7 +2087,7 @@ void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nSigma) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
 
       // Hadron yield systematics, signal & signal+bkg levels
       for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {

@@ -310,8 +310,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+      for (short iSpc = 0; iSpc < 3; iSpc++) {
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (iSpc == 0 && iPhi == 0)
@@ -329,6 +329,11 @@ void MinbiasAnalysis :: CombineHists () {
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][iPtZ][iPtTrk][iCent]);
         }
+      } // end loop over species
+    } // end loop over pT^Z
+
+    for (short iSpc = 1; iSpc < 3; iSpc++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][iPtZ][iCent]);
       } // end loop over pT^Z
     } // end loop over species

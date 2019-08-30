@@ -254,7 +254,7 @@ void PlotTriggerEffs () {
   g_muonTrigEffEtapp->Draw ("AP");
   g_muonTrigEffEtaPbPb->Draw ("P");
 
-  myText (0.61, 0.89, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.042);
+  myText (0.61, 0.89, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.042);
   myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
@@ -289,7 +289,7 @@ void PlotTriggerEffs () {
   h2_muonTrigEff_eta_phi_cent->Draw ("colz");
   myText (0.55, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.55, 0.84, kBlack, "Pb+Pb 0-10%", 0.045);
-  myText (0.55, 0.78, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.045);
+  myText (0.55, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.55, 0.72, kBlack, "HLT_mu14", 0.045);
   c_2->SaveAs ("Plots/MuonTrigEffs/cent_eta_phi.pdf");
 
@@ -300,7 +300,7 @@ void PlotTriggerEffs () {
   h2_muonTrigEff_eta_phi_periph->Draw ("colz");
   myText (0.55, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.55, 0.84, kBlack, "Pb+Pb 60-80%", 0.045);
-  myText (0.55, 0.78, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.045);
+  myText (0.55, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.55, 0.72, kBlack, "HLT_mu14", 0.045);
   c_2->SaveAs ("Plots/MuonTrigEffs/periph_eta_phi.pdf");
 
@@ -311,7 +311,7 @@ void PlotTriggerEffs () {
   h2_muonTrigEff_eta_phi_pp->Draw ("colz");
   myText (0.55, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.55, 0.84, kBlack, "#it{pp}, 5.02 TeV", 0.045);
-  myText (0.55, 0.78, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.045);
+  myText (0.55, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.55, 0.72, kBlack, "HLT_mu14", 0.045);
   c_2->SaveAs ("Plots/MuonTrigEffs/pp_eta_phi.pdf");
 
@@ -322,7 +322,7 @@ void PlotTriggerEffs () {
   h2_muonTrigEff_eta_phi_PbPb->Draw ("colz");
   myText (0.55, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.55, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
-  myText (0.55, 0.78, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.045);
+  myText (0.55, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.55, 0.72, kBlack, "HLT_mu14", 0.045);
   c_2->SaveAs ("Plots/MuonTrigEffs/PbPb_eta_phi.pdf");
 
@@ -352,7 +352,7 @@ void PlotTriggerEffs () {
   myText (0.62, 0.4, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
   myText (0.62, 0.35, kBlack, "2018 Pb+Pb, 1.4 nb^{-1}", 0.04);
   myText (0.62, 0.3, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
-  myText (0.62, 0.25, kBlack, "20 < #it{p}_{T}^{#mu} < 80 GeV", 0.04);
+  myText (0.62, 0.25, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.04);
   myMarkerTextNoLine (0.65, 0.875, kBlack, kOpenCircle, "HLT_mu14", 1.25, 0.04);
   c_3->SaveAs ("Plots/MuonTrigEffs/PbPb_cent.pdf");
 
@@ -567,7 +567,7 @@ void PlotTriggerEffs () {
   h2_zmumuTrigEff_pt_y_pp->GetXaxis ()->SetLabelSize (0.04);
   h2_zmumuTrigEff_pt_y_pp->GetYaxis ()->SetLabelSize (0.04);
   h2_zmumuTrigEff_pt_y_pp->GetZaxis ()->SetLabelSize (0.04);
-  h2_zmumuTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.5, 1);
+  h2_zmumuTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zmumuTrigEff_pt_y_pp->Draw ("lego2");
   c_4->SaveAs ("Plots/ZmumuTrigEffs/pp_pt_y.pdf");
 
@@ -581,7 +581,7 @@ void PlotTriggerEffs () {
   h2_zmumuTrigEff_pt_y_PbPb->GetXaxis ()->SetLabelSize (0.04);
   h2_zmumuTrigEff_pt_y_PbPb->GetYaxis ()->SetLabelSize (0.04);
   h2_zmumuTrigEff_pt_y_PbPb->GetZaxis ()->SetLabelSize (0.04);
-  h2_zmumuTrigEff_pt_y_PbPb->GetZaxis ()->SetRangeUser (0.5, 1);
+  h2_zmumuTrigEff_pt_y_PbPb->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zmumuTrigEff_pt_y_PbPb->Draw ("lego2");
   c_4->SaveAs ("Plots/ZmumuTrigEffs/PbPb_pt_y.pdf");
 
@@ -595,7 +595,7 @@ void PlotTriggerEffs () {
   h2_zeeTrigEff_pt_y_pp->GetXaxis ()->SetLabelSize (0.04);
   h2_zeeTrigEff_pt_y_pp->GetYaxis ()->SetLabelSize (0.04);
   h2_zeeTrigEff_pt_y_pp->GetZaxis ()->SetLabelSize (0.04);
-  h2_zeeTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.5, 1);
+  h2_zeeTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zeeTrigEff_pt_y_pp->Draw ("lego2");
   c_4->SaveAs ("Plots/ZeeTrigEffs/pp_pt_y.pdf");
 
@@ -609,7 +609,7 @@ void PlotTriggerEffs () {
   h2_zeeTrigEff_pt_y_PbPb->GetXaxis ()->SetLabelSize (0.04);
   h2_zeeTrigEff_pt_y_PbPb->GetYaxis ()->SetLabelSize (0.04);
   h2_zeeTrigEff_pt_y_PbPb->GetZaxis ()->SetLabelSize (0.04);
-  h2_zeeTrigEff_pt_y_PbPb->GetZaxis ()->SetRangeUser (0.5, 1);
+  h2_zeeTrigEff_pt_y_PbPb->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zeeTrigEff_pt_y_PbPb->Draw ("lego2");
   c_4->SaveAs ("Plots/ZeeTrigEffs/PbPb_pt_y.pdf");
 
