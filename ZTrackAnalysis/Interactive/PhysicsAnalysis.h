@@ -775,7 +775,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
+      ////const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
       //if (eff_z <= 0.)
       //  continue;
@@ -885,7 +885,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
       //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
       //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
+      ////const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
       //if (eff_z <= 0.)
       //  continue;
@@ -1192,9 +1192,9 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   h2_muon_trig_effs_eta_phi[0] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_pp");
   h2_muon_trig_effs_eta_phi[0]->Divide (h2_den);
 
-  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb");
-  h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb18");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb18");
+  h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb18");
   h2_muon_trig_effs_eta_phi[1]->Divide (h2_den);
 
   h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_pp");
@@ -1202,9 +1202,9 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   h2_zmumu_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_pp");
   h2_zmumu_trig_effs_pt_y[0]->Divide (h2_den);
 
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_PbPb");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_PbPb");
-  h2_zmumu_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_PbPb");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_PbPb18");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_PbPb18");
+  h2_zmumu_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_PbPb18");
   h2_zmumu_trig_effs_pt_y[1]->Divide (h2_den);
 
   h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
@@ -1212,14 +1212,14 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   h2_electron_trig_effs_pt_eta[0] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_pp");
   h2_electron_trig_effs_pt_eta[0]->Divide (h2_den);
 
-  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb");
-  h2_electron_trig_effs_pt_eta[1] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_PbPb");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb18");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb18");
+  h2_electron_trig_effs_pt_eta[1] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_PbPb18");
   h2_electron_trig_effs_pt_eta[1]->Divide (h2_den);
 
-  h_num = (TH1D*) trigEffFile->Get ("h_electronTrigEffNum_fcal");
-  h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal");
-  h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal");
+  h_num = (TH1D*) trigEffFile->Get ("h_electronTrigEffNum_fcal_PbPb18");
+  h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal_PbPb18");
+  h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal_PbPb18");
   h_electron_trig_effs_fcal[0]->Divide (h_den);
 
   h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_pp");
@@ -1227,9 +1227,9 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   h2_zee_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_pp");
   h2_zee_trig_effs_pt_y[0]->Divide (h2_den);
 
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_PbPb");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_PbPb");
-  h2_zee_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_PbPb");
+  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_PbPb18");
+  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_PbPb18");
+  h2_zee_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_PbPb18");
   h2_zee_trig_effs_pt_y[1]->Divide (h2_den);
 
   trigEffsLoaded = true;

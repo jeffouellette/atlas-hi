@@ -232,27 +232,28 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",      &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",   &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",        &q2);
-    PbPbTree->SetBranchAddress ("psi2",      &psi2);
-    PbPbTree->SetBranchAddress ("vz",        &vz);
-    PbPbTree->SetBranchAddress ("z_pt",      &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",       &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",     &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",       &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",     &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",    &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",    &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge", &l1_charge);
-    PbPbTree->SetBranchAddress ("l2_pt",     &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",    &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",    &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge", &l2_charge);
-    PbPbTree->SetBranchAddress ("ntrk",      &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",    &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",   &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",   &trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
+    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("q2",           &q2);
+    PbPbTree->SetBranchAddress ("psi2",         &psi2);
+    PbPbTree->SetBranchAddress ("vz",           &vz);
+    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",          &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",          &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",        &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",       &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",       &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",    &l1_charge);
+    PbPbTree->SetBranchAddress ("l2_pt",        &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",       &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",       &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",    &l2_charge);
+    PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -294,7 +295,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
       //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
+      event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -306,12 +307,21 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
+      TLorentzVector zvec;
+      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
+      z_eta = zvec.Eta ();
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
+      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
+      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
       h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
       h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
       if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
@@ -325,7 +335,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
@@ -348,7 +358,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -368,6 +378,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
     ppTree->SetBranchAddress ("isEE",          &isEE);
+    ppTree->SetBranchAddress ("event_weight",  &event_weight);
     ppTree->SetBranchAddress ("vz",            &vz);
     ppTree->SetBranchAddress ("z_pt",          &z_pt);
     ppTree->SetBranchAddress ("z_y",           &z_y);
@@ -423,7 +434,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
-      event_weight = vz_weight * nch_weight;
+      event_weight = event_weight * vz_weight * nch_weight;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -431,13 +442,27 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
+      TLorentzVector zvec;
+      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
+      z_eta = zvec.Eta ();
+
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      if (z_pt > zPtBins[1]) {
-        int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-        h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-        h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-        h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
+      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
+      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
+      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
+
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
+      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
+
+      if (z_pt > 5) {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
       h_z_jet_counts[iPtZ][0]->Fill (0.5, event_weight);

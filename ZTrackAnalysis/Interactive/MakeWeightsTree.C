@@ -1,3 +1,7 @@
+#include <TChain.h>
+#include <TFile.h>
+#include <TTree.h>
+
 /**
  * Takes in a file path and file pattern, and "adds" all the TTrees together in a TChain and slims it down for generating event-level weights.
  */
@@ -38,6 +42,9 @@ void MakeWeightsTree (const char* path, const char* filePattern, const char* out
   outFile->cd ();
   TTree* outTree = inTree->CloneTree ();
 
+  outTree->SetDirectory (outFile);
+  outTree->Write ("", TObject :: kOverwrite);
+
 
   inTree = new TChain ("ppZTrackTree", "ppZTrackTree");
   inTree->Add (Form ("%s/%s", path, filePattern));
@@ -70,9 +77,12 @@ void MakeWeightsTree (const char* path, const char* filePattern, const char* out
   inTree->SetBranchStatus ("trk_phi", 0);
   inTree->SetBranchStatus ("trk_charge", 0);
 
+  outFile->cd ();
   outTree = inTree->CloneTree ();
 
   outTree->SetDirectory (outFile);
+  outTree->Write ("", TObject :: kOverwrite);
+
   outFile->Close ();
 }
 

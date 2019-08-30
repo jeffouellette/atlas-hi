@@ -137,7 +137,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
       //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight *= fcal_weight * q2_weight * psi2_weight * vz_weight;
+      event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -154,8 +154,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       z_eta = zvec.Eta ();
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
-      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
+      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
@@ -164,10 +165,12 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      if (z_pt > 5) {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
@@ -180,7 +183,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][nPtTrkBins[iPtZ]] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         {
@@ -225,7 +228,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
@@ -292,7 +295,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
-      event_weight *= vz_weight * nch_weight;
+      event_weight = event_weight * vz_weight * nch_weight;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -305,8 +308,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       z_eta = zvec.Eta ();
 
       h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      h_z_y_phi[iCent][iSpc]->Fill (z_y, InTwoPi (z_phi), event_weight);
-      h_z_eta[iCent][iSpc]->Fill (z_eta, event_weight);
+      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
+      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
+      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
@@ -315,10 +319,12 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
-      float dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      if (z_pt > 5) {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
+      }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
@@ -331,7 +337,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         {
@@ -376,7 +382,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
         
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);

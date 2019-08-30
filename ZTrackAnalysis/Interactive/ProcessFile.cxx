@@ -44,12 +44,14 @@ int main (int argc, char** argv) {
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
   }
+
   else if (algo == "truth") {
     TruthAnalysis* truth = nullptr;
-    truth = new TruthAnalysis ();
+    truth = new TruthAnalysis ("truth", subDir.c_str ());
     truth->Execute (inFileName.c_str (), outFileName.c_str ());
     delete truth;
   }
+
   else if (algo == "minbias") {
     MinbiasAnalysis* bkg = nullptr;
     if (doHITightVar) {

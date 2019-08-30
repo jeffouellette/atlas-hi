@@ -110,7 +110,7 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
     int ntrk = 0;
     float b_event_weight = 1, event_weight = 1, fcal_et = 0, q2 = 0, psi2 = 0, z_pt = 0;
 
-    if (name != "minbias")
+    if (name != "minbias" && name != "minbias_runvar")
       PbPbTree->SetBranchAddress ("event_weight", &b_event_weight);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
@@ -348,7 +348,7 @@ void GenerateWeights (const TString name, const TString inFileName = "outFile.ro
         h_ppNch_weights->SetBinContent (ix, 1);
       }
     } else {
-      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+      SetupDirectories ("DataAnalysis/Nominal/", "ZTrackAnalysis/");
       TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
       TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_ppNchDist_data");
 
