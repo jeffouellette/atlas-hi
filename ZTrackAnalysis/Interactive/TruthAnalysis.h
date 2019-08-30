@@ -28,22 +28,11 @@ class TruthAnalysis : public FullAnalysis {
 
   TruthAnalysis (const char* _name = "truth", const char* subDir = "") : FullAnalysis () {
     name = _name;
+    eventWeightsExt = _name;
     directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
     useAltMarker = false;
     hasBkg = false;
-
-    SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
-
-    TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    for (int iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
-      h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_truth", iPtZ));
-      for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-        h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_truth", iCent, iPtZ));
-        h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_truth", iCent, iPtZ));
-      }
-    }
-    h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_truth");
 
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
@@ -216,6 +205,8 @@ void TruthAnalysis :: SaveHists (const char* histFileName) {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) {
+
+  LoadEventWeights ();
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 

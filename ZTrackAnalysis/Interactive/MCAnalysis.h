@@ -18,20 +18,10 @@ class MCAnalysis : public FullAnalysis {
   public:
   MCAnalysis (const char* _name = "mc", const char* subDir = "") : FullAnalysis () {
     name = _name;
+    eventWeightsExt = _name;
     directory = Form ("MCAnalysis/%s/", subDir);
     plotFill = true;
     useAltMarker = false;
-
-    SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
-    TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
-      h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_mc", iPtZ));
-      for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-        h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_mc", iCent, iPtZ));
-        h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_mc", iCent, iPtZ));
-      }
-    }
-    h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_mc");
 
     SetupDirectories (directory, "ZTrackAnalysis/");
   }
@@ -44,6 +34,8 @@ class MCAnalysis : public FullAnalysis {
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
+
+  LoadEventWeights ();
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 

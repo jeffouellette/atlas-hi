@@ -41,6 +41,8 @@ class PhysicsAnalysis {
   bool iaaCalculated = false;
   bool icpCalculated = false;
 
+  TFile* eventWeightsFile = nullptr;
+  bool eventWeightsLoaded = false;
   TFile* trkEffFile = nullptr;
   bool effsLoaded   = false;
   TFile* trkPurFile = nullptr;
@@ -56,6 +58,7 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
+  string eventWeightsExt = "";
   bool is2015Conds    = false; // whether this analysis uses 2015 data (different conditions)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
@@ -211,6 +214,8 @@ class PhysicsAnalysis {
   virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1.); // adds or subtracts nSigma of statistical errors to analysis
+
+  virtual void LoadEventWeights ();
 
   virtual void LoadTrackingEfficiencies (); // defaults to HILoose
   virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
@@ -376,7 +381,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         //for (short iZH = 0; iZH < nXHZBins[iPtZ]; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
@@ -1874,7 +1879,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
@@ -2103,6 +2108,29 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
       } // end loop over phi
     } // end loop over pT^Z bins
   } // end loop over species
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load event weights
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: LoadEventWeights () {
+  if (eventWeightsLoaded)
+    return;
+  SetupDirectories (directory, "ZTrackAnalysis/");
+  eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+  for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
+    h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_%s", iPtZ, eventWeightsExt.c_str ()));
+    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+      h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
+      h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
+    }
+  }
+  h_ppNch_weights = (TH1D*) eventWeightsFile->Get (Form ("h_ppNch_weights_%s", eventWeightsExt.c_str ()));
+
+  eventWeightsLoaded = true;
 }
 
 
@@ -3293,7 +3321,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -3488,7 +3516,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -3693,7 +3721,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
       gPad->SetLogx ();
 
       if (plotFill) {
-        for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
           TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
           h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -3865,7 +3893,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     gPad->SetLogy ();
 
     if (plotFill) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -4057,7 +4085,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -4249,7 +4277,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 

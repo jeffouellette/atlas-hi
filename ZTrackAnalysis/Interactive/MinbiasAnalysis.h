@@ -23,22 +23,12 @@ class MinbiasAnalysis : public FullAnalysis {
   public:
   MinbiasAnalysis (const char* _name = "minbias", const char* subDir = "") : FullAnalysis () {
     name = _name;
+    eventWeightsExt = _name;
     directory = Form ("MinbiasAnalysis/%s/", subDir);
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
     backgroundSubtracted = true;
-
-    SetupDirectories (directory, "ZTrackAnalysis/");
-    TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
-      h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_minbias", iPtZ));
-      for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-        h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_minbias", iCent, iPtZ));
-        h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_minbias", iCent, iPtZ));
-      }
-    }
-    h_ppNch_weights = (TH1D*) eventWeightsFile->Get ("h_ppNch_weights_minbias");
 
   }
 
@@ -72,6 +62,8 @@ TTree* MinbiasAnalysis :: LoadEventMixingTree (const char* _treeName) {
 // Main macro. Loops over minbias trees and fills histograms appropriately. (NEW VERSION)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName) {
+
+  LoadEventWeights ();
 
   SetupDirectories (directory, "ZTrackAnalysis/");
 
@@ -175,7 +167,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
@@ -203,7 +195,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         h->Fill (dphi, trkWeight);
 
         const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
+        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
           continue;
 
         h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];

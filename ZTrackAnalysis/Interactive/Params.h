@@ -82,22 +82,24 @@ const double trk_min_pt = 1;
 const double trk_max_pt = 60;
 
 
-const int maxNPtTrkBins = 7;
+const int maxNPtTrkBins = 6;
+double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
 int* nPtTrkBins = Get1DArray <int> (nPtZBins);
 
 double** init_ptTrkBins () {
-  double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
-
   double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     nPtTrkBins[iPtZ] = 0;
-    while (nPtTrkBins[iPtZ] < 7 && allPtTrkBins[nPtTrkBins[iPtZ]] < zPtBins[iPtZ])
+    while (nPtTrkBins[iPtZ] < maxNPtTrkBins && allPtTrkBins[nPtTrkBins[iPtZ]] < zPtBins[iPtZ])
       nPtTrkBins[iPtZ]++;
+
+    if (nPtTrkBins[iPtZ] == 0)
+      nPtTrkBins[iPtZ] = 1;
   }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _ptTrkBins[iPtZ] = Get1DArray<double> (nPtTrkBins[iPtZ]);
-    for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+    _ptTrkBins[iPtZ] = Get1DArray<double> (nPtTrkBins[iPtZ]+1);
+    for (int iPtTrk = 0; iPtTrk <= nPtTrkBins[iPtZ]; iPtTrk++) {
       _ptTrkBins[iPtZ][iPtTrk] = allPtTrkBins[iPtTrk];
     }
   }
@@ -107,24 +109,26 @@ double** init_ptTrkBins () {
 double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
 
 
-const int maxNXHZBins = 7;
+const int maxNXHZBins = 6;
+double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
 int* nXHZBins = Get1DArray <int> (nPtZBins);
 
 double** init_xHZBins () {
-  double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
-
   double** _xHZBins = Get1DArray <double*> (nPtZBins);
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    nXHZBins[iPtZ] = 0;
-    while (nXHZBins[iPtZ] < 7 && zPtBins[iPtZ] > 0 && allXHZBins[nXHZBins[iPtZ]] > 1./zPtBins[iPtZ])
-      nXHZBins[iPtZ]++;
+    nXHZBins[iPtZ] = maxNXHZBins;
+    while (nXHZBins[iPtZ] > 0 && zPtBins[iPtZ] > 0 && allXHZBins[maxNXHZBins-nXHZBins[iPtZ]] < 1./zPtBins[iPtZ])
+      nXHZBins[iPtZ]--;
+
+    if (nXHZBins[iPtZ] == 0)
+      nXHZBins[iPtZ] = 1;
   }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _xHZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]);
-    for (int iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
-      _xHZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(7-nXHZBins[iPtZ])];
+    _xHZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]+1);
+    for (int iXHZ = 0; iXHZ <= nXHZBins[iPtZ]; iXHZ++) {
+      _xHZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(maxNXHZBins-nXHZBins[iPtZ])];
     }
   }
 
@@ -139,7 +143,13 @@ void PrintPtBins (const short iPtZ) {
   }
 }
 
-void PrintXHZBins () {
+void PrintXHZBins (const short iPtZ) {
+  for (int i = 0; i <= nXHZBins[iPtZ]; i++) {
+    cout << xHZBins[iPtZ][i] << endl;
+  }
+}
+
+void LatexXHZBins () {
   cout << "\\hline" << endl;
   for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
     cout << "\\multicolumn{2}{";

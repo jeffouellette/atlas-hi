@@ -18,12 +18,10 @@ int main (int argc, char** argv) {
 
   string subDir = "";
   if (!doHITightVar && !doTrkPurVar && !doRunVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Nominal/" + outFileName;
+    subDir = "Nominal";
   }
   else if (doHITightVar) {
-    inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
-    outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
+    subDir = "Variations/TrackHITightWPVariation";
   }
   else if (doTrkPurVar) {
     inFileName = "Nominal/" + inFileName;
@@ -54,14 +52,22 @@ int main (int argc, char** argv) {
   }
   else if (algo == "minbias") {
     MinbiasAnalysis* bkg = nullptr;
-    if (doHITightVar)
+    if (doHITightVar) {
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar", subDir.c_str ());
-    else if (doTrkPurVar)
+      bkg->eventWeightsExt = "minbias";
+    }
+    else if (doTrkPurVar) {
       bkg = new MinbiasAnalysis ("bkg_trackPurityVar", subDir.c_str ());
-    else if (doRunVar)
+      bkg->eventWeightsExt = "minbias";
+    }
+    else if (doRunVar) {
       bkg = new MinbiasAnalysis ("bkg_runVar", subDir.c_str ()); 
-    else
+      bkg->eventWeightsExt = "minbias_runvar";
+    }
+    else {
       bkg = new MinbiasAnalysis ("minbias", subDir.c_str ()); 
+      bkg->eventWeightsExt = "minbias";
+    }
     bkg->useHITight = doHITightVar;
     bkg->doTrackPurVar = doTrkPurVar;
     bkg->Execute (inFileName.c_str (), outFileName.c_str ());
