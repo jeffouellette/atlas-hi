@@ -33,7 +33,7 @@ bool isPbPb = true;
 
 void PlotTriggerEffs () {
 
-  SetupDirectories ("TriggerEffTagAndProbe/", "ZTrackAnalysis/");
+  SetupDirectories ("TagAndProbe/", "ZTrackAnalysis/");
   TFile* inFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
 
   TH1D* h_muonTrigEffNum_pt[4];

@@ -772,15 +772,15 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
-      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
-      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      ////const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
+      const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
+      const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
+      const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
 
-      //if (eff_z <= 0.)
-      //  continue;
+      if (eff_z <= 0.)
+        continue;
 
-      //event_weight *= 1./eff_z;
+      event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -882,15 +882,15 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
-      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
-      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      ////const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
+      const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
+      const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
+      const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
+      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
 
-      //if (eff_z <= 0.)
-      //  continue;
+      if (eff_z <= 0.)
+        continue;
 
-      //event_weight *= 1./eff_z;
+      event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -1173,7 +1173,7 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   if (trigEffsLoaded)
     return;
 
-  SetupDirectories ("TriggerEffTagAndProbe/", "ZTrackAnalysis/");
+  SetupDirectories ("TagAndProbe/", "ZTrackAnalysis/");
 
   TDirectory* _gDirectory = gDirectory;
 
