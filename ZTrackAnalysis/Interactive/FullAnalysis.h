@@ -118,7 +118,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotNchDists (const bool _treatAsData = true);
 
   void PlotLeptonPtSpectra ();
-  void PlotLeptonEtaSpcComp ();
+  void PlotLeptonEtaSpcComp (FullAnalysis* a = nullptr);
   void PlotLeptonTrackPtSpectra ();
   void PlotLeptonTrackDR ();
   void PlotLeptonTrackDRProjX ();
@@ -1425,7 +1425,7 @@ void FullAnalysis :: PlotLeptonPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot lepton eta spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotLeptonEtaSpcComp () {
+void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
   const char* canvasName = "c_lepton_eta_SpcComp";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1454,15 +1454,13 @@ void FullAnalysis :: PlotLeptonEtaSpcComp () {
   const short iCent = 0;
 
   for (short iSpc = 0; iSpc < 2; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-
     TH1D* h = (TH1D*) h_lepton_eta[iCent][iSpc]->Clone ();
     h->Rebin (2);
     h->Scale (0.5);
     if (isMC) {
       for (int _iCent = 0; _iCent < numCentBins; _iCent++) {
         if (iCent == _iCent) continue;
-        h->Add (h_z_y[_iCent][iSpc][iPtZ]);
+        h->Add (h_lepton_eta[_iCent][iSpc]);
       }
       h->Scale (1./h->Integral (), "width");
     }
@@ -1476,9 +1474,9 @@ void FullAnalysis :: PlotLeptonEtaSpcComp () {
       //h->GetYaxis ()->SetRangeUser (0, 1.3);
       h->GetYaxis ()->SetRangeUser (0, 0.4);
 
-      h->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
+      h->GetXaxis ()->SetTitle ("#eta");
       //h->GetYaxis ()->SetTitle ("Arb. Units");
-      h->GetYaxis ()->SetTitle ("Counts / Total");
+      h->GetYaxis ()->SetTitle ("1/N dN/d#eta");
       h->GetXaxis ()->SetTitleSize (0.04/0.6);
       h->GetYaxis ()->SetTitleSize (0.04/0.6);
       h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1516,9 +1514,13 @@ void FullAnalysis :: PlotLeptonEtaSpcComp () {
       g->Draw (iSpc == 0 && !canvasExists ? "AP" : "P");
     }
 
-    if (!plotFill) {
+    if (a) {
       dPad->cd ();
-      h = h_z_y_ratio[iCent][iSpc][iPtZ];
+      while (a->h_lepton_eta[iCent][iSpc]->GetNbinsX () > h->GetNbinsX ()) {
+        a->h_lepton_eta[iCent][iSpc]->Rebin (2);
+        a->h_lepton_eta[iCent][iSpc]->Scale (0.5);
+      }
+      h->Divide (a->h_lepton_eta[iCent][iSpc]);
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -1554,9 +1556,6 @@ void FullAnalysis :: PlotLeptonEtaSpcComp () {
         }
       }
     }
-    else {
-      cout << "Warning in FullAnalysis :: PlotZYMapSpcComp: Z y spectra ratio not stored, needs to be calculated!" << endl;
-    }
   }
     
   uPad->cd ();
@@ -1567,53 +1566,11 @@ void FullAnalysis :: PlotLeptonEtaSpcComp () {
     myText (0.22, 0.83-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
   for (int iSpc = 0; iSpc < 2; iSpc++) {
-    const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-} Events" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-} Events" : "Z #rightarrow l^{+}l^{-} Events");
+    const char* spcLabel = iSpc == 0 ? "Electros" : (iSpc == 1 ? "Muons" : "Combined");
     myText (0.66, 0.90-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
   }
-  if (iPtZ == nPtZBins-1)
-    myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
-  else
-    myText (0.66, 0.78, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
 
-  c->SaveAs (Form ("%s/ZYDists/z_y_iPtZ%i.pdf", plotPath.Data (), iPtZ));
-  
-  const char* canvasName = "c_lepton_eta";
-  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  TCanvas* c = nullptr;
-  if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  else {
-    c = new TCanvas (canvasName, "", 600, 600);
-    gDirectory->Add (c);
-    c->cd ();
-  }
-
-    const char* spc = iSpc == 0 ? "e" : "#mu";
-
-    c->cd (iSpc+1);
-    gPad->SetLogy ();
-
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      TH1D* h = (TH1D*)h_lepton_pt[iCent][iSpc]->Clone ();
-      //h->Rebin (5);
-      //h->Scale (1./h_z_counts[iCent][iSpc]->Integral (), "width");
-
-      h->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
-      h->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
-
-      h->SetLineColor (colors[iCent]);
-      h->SetMarkerColor (colors[iCent]);
-      h->SetMarkerStyle (kFullCircle);
-      h->SetMarkerSize (0.75);
-
-      h->Draw (iCent == 0 ? "e1" : "e1 same");
-    }
-    myText (0.76, 0.88, colors[0], "#it{pp}", 0.04);
-    for (short iCent = 1; iCent < numCentBins; iCent++) {
-      myText (0.76, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-    }
-    c->SaveAs (Form ("%s/LeptonPtSpectra/%sPtSpectra.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : "Muon"));
-  }
+  c->SaveAs (Form ("%s/LeptonEtaSpcComp.pdf", plotPath.Data ()));
 }
 
 
@@ -2355,7 +2312,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
     const short iCent = 0;
 
     for (short iSpc = 0; iSpc < 2; iSpc++) {
-      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+      //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       TH1D* h = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone ();
       h->Rebin (2);
