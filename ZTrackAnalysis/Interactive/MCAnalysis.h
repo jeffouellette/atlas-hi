@@ -22,6 +22,7 @@ class MCAnalysis : public FullAnalysis {
     directory = Form ("MCAnalysis/%s/", subDir);
     plotFill = true;
     useAltMarker = false;
+    isMC = true;
 
     SetupDirectories (directory, "ZTrackAnalysis/");
   }

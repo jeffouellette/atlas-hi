@@ -29,6 +29,8 @@ class MinbiasAnalysis : public FullAnalysis {
     plotSignal = false;
     useAltMarker = false;
     backgroundSubtracted = true;
+    iaaCalculated = true;
+    icpCalculated = true;
 
   }
 

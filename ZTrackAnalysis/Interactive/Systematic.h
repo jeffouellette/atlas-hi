@@ -68,6 +68,8 @@ class Systematic : public PhysicsAnalysis {
   void PlotIAASystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   void PlotIAASystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
+  virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2) override;
+
 };
 
 
@@ -583,8 +585,8 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("Y (#it{p}_{T}) Relative error");
+            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            highs->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -602,8 +604,8 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("Y (#it{p}_{T}) Relative error");
+            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            lows->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);
@@ -628,6 +630,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
+
           highs->SetLineColor (kBlack);
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
@@ -641,6 +646,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
 
           lows->SetLineColor (kBlack);
           lows->SetLineStyle (1);
@@ -658,9 +666,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           }
 
           if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
           else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
@@ -727,8 +735,8 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
+          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          highs->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (2);
@@ -746,8 +754,8 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
+          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          lows->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (2);
@@ -772,6 +780,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
+
         highs->SetLineColor (kBlack);
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
@@ -785,6 +796,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
         else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
 
         lows->SetLineColor (kBlack);
         lows->SetLineStyle (1);
@@ -802,9 +816,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         }
 
         if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
         else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
         const char* lo = GetPiString (phiLowBins[1]);
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
@@ -871,8 +885,8 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
+            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -890,8 +904,8 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}) Relative error");
+            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);
@@ -916,6 +930,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
+
           highs->SetLineColor (kBlack);
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
@@ -929,6 +946,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
 
           lows->SetLineColor (kBlack);
           lows->SetLineStyle (1);
@@ -946,9 +966,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           }
 
           if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
           else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
@@ -1014,8 +1034,8 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
+          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          highs->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (2);
@@ -1033,8 +1053,8 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
+          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          lows->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (2);
@@ -1059,6 +1079,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
+
         highs->SetLineColor (kBlack);
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
@@ -1072,6 +1095,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
         else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
 
         lows->SetLineColor (kBlack);
         lows->SetLineStyle (1);
@@ -1089,9 +1115,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         }
 
         if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
         else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
         const char* lo = GetPiString (phiLowBins[1]);
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
@@ -1156,8 +1182,8 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
+            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (2);
@@ -1175,8 +1201,8 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T} [GeV]");
-            lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}) Relative error");
+            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+            lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (2);
@@ -1200,6 +1226,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
+
           highs->SetLineColor (kBlack);
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
@@ -1213,6 +1242,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
 
           lows->SetLineColor (kBlack);
           lows->SetLineStyle (1);
@@ -1230,9 +1262,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           }
 
           if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
           else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
@@ -1296,8 +1328,8 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
+          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          highs->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (2);
@@ -1315,8 +1347,8 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
+          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+          lows->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (2);
@@ -1340,6 +1372,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
+
         highs->SetLineColor (kBlack);
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
@@ -1353,6 +1388,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
         else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
 
         lows->SetLineColor (kBlack);
         lows->SetLineStyle (1);
@@ -1370,9 +1408,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         }
 
         if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T} > %g GeV", zPtBins[iPtZ]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
         else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
 
         const char* lo = GetPiString (phiLowBins[1]);
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
@@ -1385,6 +1423,27 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
     } // end loop over PtZ
   } // end loop over species
   
+}  
+
+
+
+
+void Systematic :: PrintIAA (const bool printErrs, const bool useTrkPt, const short iCent, const short iPtZ, const short iSpc) {
+  TGAE* g = nullptr;
+  if (useTrkPt)
+    g = GetTGAE (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
+  else
+    g = GetTGAE (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
+  cout << name << "\t";
+  for (int ix = 0; ix < g->GetN (); ix++) {
+    double x, y;
+    g->GetPoint (ix, x, y);
+    cout << y << "\t";
+    if (printErrs)
+      cout << "+" << g->GetErrorYhigh (ix) << ",\t-" << g->GetErrorYlow (ix) << "\t";
+    cout << endl;
+  }
 }
 
+   
 #endif

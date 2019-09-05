@@ -33,6 +33,7 @@ class TruthAnalysis : public FullAnalysis {
     plotFill = false;
     useAltMarker = false;
     hasBkg = false;
+    isMC = true;
 
     SetupDirectories (directory, "ZTrackAnalysis/");
   }

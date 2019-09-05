@@ -24,6 +24,24 @@ TEfficiency* t_muonTrigEff_eta_pp;
 TEfficiency* t_muonTrigEff_eta_PbPb18;
 TEfficiency* t_muonTrigEff_eta_PbPb15;
 
+TEfficiency* t_muonMed_IDEff_pt_pp[3];
+TEfficiency* t_muonMed_IDEff_pt_PbPb18[3];
+TEfficiency* t_muonMed_IDEff_pt_PbPb15[3];
+TEfficiency* t_muonMed_IDEff_eta_pp[3];
+TEfficiency* t_muonMed_IDEff_eta_PbPb18[3];
+TEfficiency* t_muonMed_IDEff_eta_PbPb15[3];
+TEfficiency* t_muonMed_IDEff_fcal_PbPb18[3];
+TEfficiency* t_muonMed_IDEff_fcal_PbPb15[3];
+
+TEfficiency* t_muonID_MSEff_pt_pp[3];
+TEfficiency* t_muonID_MSEff_pt_PbPb18[3];
+TEfficiency* t_muonID_MSEff_pt_PbPb15[3];
+TEfficiency* t_muonID_MSEff_eta_pp[3];
+TEfficiency* t_muonID_MSEff_eta_PbPb18[3];
+TEfficiency* t_muonID_MSEff_eta_PbPb15[3];
+TEfficiency* t_muonID_MSEff_fcal_PbPb18[3];
+TEfficiency* t_muonID_MSEff_fcal_PbPb15[3];
+
 TEfficiency* t_electronTrigEff_pt_pp;
 TEfficiency* t_electronTrigEff_pt_PbPb18;
 TEfficiency* t_electronTrigEff_pt_PbPb15;
@@ -91,6 +109,176 @@ void PlotLeptonEffs () {
   h_muonTrigEffDen_fcal[1] = (TH1D*) inFile->Get ("h_muonTrigEffDen_fcal_PbPb15");
   t_muonTrigEff_fcal_PbPb18 = new TEfficiency (*(h_muonTrigEffNum_fcal[0]), *(h_muonTrigEffDen_fcal[0]));
   t_muonTrigEff_fcal_PbPb15 = new TEfficiency (*(h_muonTrigEffNum_fcal[1]), *(h_muonTrigEffDen_fcal[1]));
+
+  TH1D* h_muonMed_IDEffNum_pt[3][3];
+  TH1D* h_muonMed_IDEffDen_pt[3][3];
+  TH1D* h_muonMed_IDEffNum_eta[3][3];
+  TH1D* h_muonMed_IDEffDen_eta[3][3];
+  TH1D* h_muonMed_IDEffNum_fcal[2][3];
+  TH1D* h_muonMed_IDEffDen_fcal[2][3];
+
+  TH1D* h_muonID_MSEffNum_pt[3][3];
+  TH1D* h_muonID_MSEffDen_pt[3][3];
+  TH1D* h_muonID_MSEffNum_eta[3][3];
+  TH1D* h_muonID_MSEffDen_eta[3][3];
+  TH1D* h_muonID_MSEffNum_fcal[2][3];
+  TH1D* h_muonID_MSEffDen_fcal[2][3];
+
+  for (int iSign : {0, 1}) {
+    h_muonMed_IDEffNum_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_pt_pp_sign%i", iSign));
+    h_muonMed_IDEffDen_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_pp_sign%i", iSign));
+    h_muonMed_IDEffNum_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_pt_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffDen_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffNum_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_pt_PbPb15_sign%i", iSign));
+    h_muonMed_IDEffDen_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_PbPb15_sign%i", iSign));
+
+    t_muonMed_IDEff_pt_pp[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[0][iSign]), *(h_muonMed_IDEffDen_pt[0][iSign]));
+    t_muonMed_IDEff_pt_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[1][iSign]), *(h_muonMed_IDEffDen_pt[1][iSign]));
+    t_muonMed_IDEff_pt_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[2][iSign]), *(h_muonMed_IDEffDen_pt[2][iSign]));
+
+    h_muonMed_IDEffNum_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_pp_sign%i", iSign));
+    h_muonMed_IDEffDen_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_pp_sign%i", iSign));
+    h_muonMed_IDEffNum_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffDen_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffNum_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_PbPb15_sign%i", iSign));
+    h_muonMed_IDEffDen_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_PbPb15_sign%i", iSign));
+
+    t_muonMed_IDEff_eta_pp[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[0][iSign]), *(h_muonMed_IDEffDen_eta[0][iSign]));
+    t_muonMed_IDEff_eta_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[1][iSign]), *(h_muonMed_IDEffDen_eta[1][iSign]));
+    t_muonMed_IDEff_eta_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[2][iSign]), *(h_muonMed_IDEffDen_eta[2][iSign]));
+
+    h_muonMed_IDEffNum_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_fcal_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffDen_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_fcal_PbPb18_sign%i", iSign));
+    h_muonMed_IDEffNum_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_fcal_PbPb15_sign%i", iSign));
+    h_muonMed_IDEffDen_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_fcal_PbPb15_sign%i", iSign));
+    t_muonMed_IDEff_fcal_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[0][iSign]), *(h_muonMed_IDEffDen_fcal[0][iSign]));
+    t_muonMed_IDEff_fcal_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[1][iSign]), *(h_muonMed_IDEffDen_fcal[1][iSign]));
+
+
+    h_muonID_MSEffNum_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_pp_sign%i", iSign));
+    h_muonID_MSEffDen_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_pp_sign%i", iSign));
+    h_muonID_MSEffNum_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_PbPb18_sign%i", iSign));
+    h_muonID_MSEffDen_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_PbPb18_sign%i", iSign));
+    h_muonID_MSEffNum_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_PbPb15_sign%i", iSign));
+    h_muonID_MSEffDen_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_PbPb15_sign%i", iSign));
+
+    t_muonID_MSEff_pt_pp[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[0][iSign]), *(h_muonID_MSEffDen_pt[0][iSign]));
+    t_muonID_MSEff_pt_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[1][iSign]), *(h_muonID_MSEffDen_pt[1][iSign]));
+    t_muonID_MSEff_pt_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[2][iSign]), *(h_muonID_MSEffDen_pt[2][iSign]));
+
+    h_muonID_MSEffNum_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_pp_sign%i", iSign));
+    h_muonID_MSEffDen_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_pp_sign%i", iSign));
+    h_muonID_MSEffNum_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_PbPb18_sign%i", iSign));
+    h_muonID_MSEffDen_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_PbPb18_sign%i", iSign));
+    h_muonID_MSEffNum_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_PbPb15_sign%i", iSign));
+    h_muonID_MSEffDen_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_PbPb15_sign%i", iSign));
+
+    t_muonID_MSEff_eta_pp[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[0][iSign]), *(h_muonID_MSEffDen_eta[0][iSign]));
+    t_muonID_MSEff_eta_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[1][iSign]), *(h_muonID_MSEffDen_eta[1][iSign]));
+    t_muonID_MSEff_eta_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[2][iSign]), *(h_muonID_MSEffDen_eta[2][iSign]));
+
+    h_muonID_MSEffNum_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_fcal_PbPb18_sign%i", iSign));
+    h_muonID_MSEffDen_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_fcal_PbPb18_sign%i", iSign));
+    h_muonID_MSEffNum_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_fcal_PbPb15_sign%i", iSign));
+    h_muonID_MSEffDen_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_fcal_PbPb15_sign%i", iSign));
+    t_muonID_MSEff_fcal_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_fcal[0][iSign]), *(h_muonID_MSEffDen_fcal[0][iSign]));
+    t_muonID_MSEff_fcal_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_fcal[1][iSign]), *(h_muonID_MSEffDen_fcal[1][iSign]));
+  }
+
+  {
+    h_muonMed_IDEffNum_pt[0][2] = (TH1D*) h_muonMed_IDEffNum_pt[0][1]->Clone ("h_muonMed_IDEffNum_pt_pp_sign2");
+    h_muonMed_IDEffDen_pt[0][2] = (TH1D*) h_muonMed_IDEffDen_pt[0][1]->Clone ("h_muonMed_IDEffDen_pt_pp_sign2");
+    h_muonMed_IDEffNum_pt[1][2] = (TH1D*) h_muonMed_IDEffNum_pt[1][1]->Clone ("h_muonMed_IDEffNum_pt_PbPb18_sign2");
+    h_muonMed_IDEffDen_pt[1][2] = (TH1D*) h_muonMed_IDEffDen_pt[1][1]->Clone ("h_muonMed_IDEffDen_pt_PbPb18_sign2");
+    h_muonMed_IDEffNum_pt[2][2] = (TH1D*) h_muonMed_IDEffNum_pt[2][1]->Clone ("h_muonMed_IDEffNum_pt_PbPb15_sign2");
+    h_muonMed_IDEffDen_pt[2][2] = (TH1D*) h_muonMed_IDEffDen_pt[2][1]->Clone ("h_muonMed_IDEffDen_pt_PbPb15_sign2");
+    h_muonMed_IDEffNum_pt[0][2]->Add (h_muonMed_IDEffNum_pt[0][0], -1);
+    h_muonMed_IDEffDen_pt[0][2]->Add (h_muonMed_IDEffDen_pt[0][0], -1);
+    h_muonMed_IDEffNum_pt[1][2]->Add (h_muonMed_IDEffNum_pt[1][0], -1);
+    h_muonMed_IDEffDen_pt[1][2]->Add (h_muonMed_IDEffDen_pt[1][0], -1);
+    h_muonMed_IDEffNum_pt[2][2]->Add (h_muonMed_IDEffNum_pt[2][0], -1);
+    h_muonMed_IDEffDen_pt[2][2]->Add (h_muonMed_IDEffDen_pt[2][0], -1);
+
+    t_muonMed_IDEff_pt_pp[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[0][2]), *(h_muonMed_IDEffDen_pt[0][2]));
+    t_muonMed_IDEff_pt_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[1][2]), *(h_muonMed_IDEffDen_pt[1][2]));
+    t_muonMed_IDEff_pt_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[2][2]), *(h_muonMed_IDEffDen_pt[2][2]));
+
+    h_muonMed_IDEffNum_eta[0][2] = (TH1D*) h_muonMed_IDEffNum_eta[0][1]->Clone ("h_muonMed_IDEffNum_eta_pp_sign2");
+    h_muonMed_IDEffDen_eta[0][2] = (TH1D*) h_muonMed_IDEffDen_eta[0][1]->Clone ("h_muonMed_IDEffDen_eta_pp_sign2");
+    h_muonMed_IDEffNum_eta[1][2] = (TH1D*) h_muonMed_IDEffNum_eta[1][1]->Clone ("h_muonMed_IDEffNum_eta_PbPb18_sign2");
+    h_muonMed_IDEffDen_eta[1][2] = (TH1D*) h_muonMed_IDEffDen_eta[1][1]->Clone ("h_muonMed_IDEffDen_eta_PbPb18_sign2");
+    h_muonMed_IDEffNum_eta[2][2] = (TH1D*) h_muonMed_IDEffNum_eta[2][1]->Clone ("h_muonMed_IDEffNum_eta_PbPb15_sign2");
+    h_muonMed_IDEffDen_eta[2][2] = (TH1D*) h_muonMed_IDEffDen_eta[2][1]->Clone ("h_muonMed_IDEffDen_eta_PbPb15_sign2");
+    h_muonMed_IDEffNum_eta[0][2]->Add (h_muonMed_IDEffNum_eta[0][0], -1);
+    h_muonMed_IDEffDen_eta[0][2]->Add (h_muonMed_IDEffDen_eta[0][0], -1);
+    h_muonMed_IDEffNum_eta[1][2]->Add (h_muonMed_IDEffNum_eta[1][0], -1);
+    h_muonMed_IDEffDen_eta[1][2]->Add (h_muonMed_IDEffDen_eta[1][0], -1);
+    h_muonMed_IDEffNum_eta[2][2]->Add (h_muonMed_IDEffNum_eta[2][0], -1);
+    h_muonMed_IDEffDen_eta[2][2]->Add (h_muonMed_IDEffDen_eta[2][0], -1);
+
+    t_muonMed_IDEff_eta_pp[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[0][2]), *(h_muonMed_IDEffDen_eta[0][2]));
+    t_muonMed_IDEff_eta_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[1][2]), *(h_muonMed_IDEffDen_eta[1][2]));
+    t_muonMed_IDEff_eta_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[2][2]), *(h_muonMed_IDEffDen_eta[2][2]));
+
+    h_muonMed_IDEffNum_fcal[0][2] = (TH1D*) h_muonMed_IDEffNum_fcal[0][1]->Clone ("h_muonMed_IDEffNum_fcal_PbPb18_sign2");
+    h_muonMed_IDEffDen_fcal[0][2] = (TH1D*) h_muonMed_IDEffDen_fcal[0][1]->Clone ("h_muonMed_IDEffDen_fcal_PbPb18_sign2");
+    h_muonMed_IDEffNum_fcal[1][2] = (TH1D*) h_muonMed_IDEffNum_fcal[1][1]->Clone ("h_muonMed_IDEffNum_fcal_PbPb15_sign2");
+    h_muonMed_IDEffDen_fcal[1][2] = (TH1D*) h_muonMed_IDEffDen_fcal[1][1]->Clone ("h_muonMed_IDEffDen_fcal_PbPb15_sign2");
+    h_muonMed_IDEffNum_fcal[0][2]->Add (h_muonMed_IDEffNum_fcal[0][0], -1);
+    h_muonMed_IDEffDen_fcal[0][2]->Add (h_muonMed_IDEffDen_fcal[0][0], -1);
+    h_muonMed_IDEffNum_fcal[1][2]->Add (h_muonMed_IDEffNum_fcal[1][0], -1);
+    h_muonMed_IDEffDen_fcal[1][2]->Add (h_muonMed_IDEffDen_fcal[1][0], -1);
+
+    t_muonMed_IDEff_fcal_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[0][2]), *(h_muonMed_IDEffDen_fcal[0][2]));
+    t_muonMed_IDEff_fcal_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[1][2]), *(h_muonMed_IDEffDen_fcal[1][2]));
+
+
+    h_muonID_MSEffNum_pt[0][2] = (TH1D*) h_muonID_MSEffNum_pt[0][1]->Clone ("h_muonID_MSEffNum_pt_pp_sign2");
+    h_muonID_MSEffDen_pt[0][2] = (TH1D*) h_muonID_MSEffDen_pt[0][1]->Clone ("h_muonID_MSEffDen_pt_pp_sign2");
+    h_muonID_MSEffNum_pt[1][2] = (TH1D*) h_muonID_MSEffNum_pt[1][1]->Clone ("h_muonID_MSEffNum_pt_PbPb18_sign2");
+    h_muonID_MSEffDen_pt[1][2] = (TH1D*) h_muonID_MSEffDen_pt[1][1]->Clone ("h_muonID_MSEffDen_pt_PbPb18_sign2");
+    h_muonID_MSEffNum_pt[2][2] = (TH1D*) h_muonID_MSEffNum_pt[2][1]->Clone ("h_muonID_MSEffNum_pt_PbPb15_sign2");
+    h_muonID_MSEffDen_pt[2][2] = (TH1D*) h_muonID_MSEffDen_pt[2][1]->Clone ("h_muonID_MSEffDen_pt_PbPb15_sign2");
+    h_muonID_MSEffNum_pt[0][2]->Add (h_muonID_MSEffNum_pt[0][0], -1);
+    h_muonID_MSEffDen_pt[0][2]->Add (h_muonID_MSEffDen_pt[0][0], -1);
+    h_muonID_MSEffNum_pt[1][2]->Add (h_muonID_MSEffNum_pt[1][0], -1);
+    h_muonID_MSEffDen_pt[1][2]->Add (h_muonID_MSEffDen_pt[1][0], -1);
+    h_muonID_MSEffNum_pt[2][2]->Add (h_muonID_MSEffNum_pt[2][0], -1);
+    h_muonID_MSEffDen_pt[2][2]->Add (h_muonID_MSEffDen_pt[2][0], -1);
+
+    t_muonID_MSEff_pt_pp[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[0][2]), *(h_muonID_MSEffDen_pt[0][2]));
+    t_muonID_MSEff_pt_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[1][2]), *(h_muonID_MSEffDen_pt[1][2]));
+    t_muonID_MSEff_pt_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[2][2]), *(h_muonID_MSEffDen_pt[2][2]));
+
+    h_muonID_MSEffNum_eta[0][2] = (TH1D*) h_muonID_MSEffNum_eta[0][1]->Clone ("h_muonID_MSEffNum_eta_pp_sign2");
+    h_muonID_MSEffDen_eta[0][2] = (TH1D*) h_muonID_MSEffDen_eta[0][1]->Clone ("h_muonID_MSEffDen_eta_pp_sign2");
+    h_muonID_MSEffNum_eta[1][2] = (TH1D*) h_muonID_MSEffNum_eta[1][1]->Clone ("h_muonID_MSEffNum_eta_PbPb18_sign2");
+    h_muonID_MSEffDen_eta[1][2] = (TH1D*) h_muonID_MSEffDen_eta[1][1]->Clone ("h_muonID_MSEffDen_eta_PbPb18_sign2");
+    h_muonID_MSEffNum_eta[2][2] = (TH1D*) h_muonID_MSEffNum_eta[2][1]->Clone ("h_muonID_MSEffNum_eta_PbPb15_sign2");
+    h_muonID_MSEffDen_eta[2][2] = (TH1D*) h_muonID_MSEffDen_eta[2][1]->Clone ("h_muonID_MSEffDen_eta_PbPb15_sign2");
+    h_muonID_MSEffNum_eta[0][2]->Add (h_muonID_MSEffNum_eta[0][0], -1);
+    h_muonID_MSEffDen_eta[0][2]->Add (h_muonID_MSEffDen_eta[0][0], -1);
+    h_muonID_MSEffNum_eta[1][2]->Add (h_muonID_MSEffNum_eta[1][0], -1);
+    h_muonID_MSEffDen_eta[1][2]->Add (h_muonID_MSEffDen_eta[1][0], -1);
+    h_muonID_MSEffNum_eta[2][2]->Add (h_muonID_MSEffNum_eta[2][0], -1);
+    h_muonID_MSEffDen_eta[2][2]->Add (h_muonID_MSEffDen_eta[2][0], -1);
+
+    t_muonID_MSEff_eta_pp[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[0][2]), *(h_muonID_MSEffDen_eta[0][2]));
+    t_muonID_MSEff_eta_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[1][2]), *(h_muonID_MSEffDen_eta[1][2]));
+    t_muonID_MSEff_eta_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[2][2]), *(h_muonID_MSEffDen_eta[2][2]));
+
+    h_muonID_MSEffNum_fcal[0][2] = (TH1D*) h_muonID_MSEffNum_fcal[0][1]->Clone ("h_muonID_MSEffNum_fcal_PbPb18_sign2");
+    h_muonID_MSEffDen_fcal[0][2] = (TH1D*) h_muonID_MSEffDen_fcal[0][1]->Clone ("h_muonID_MSEffDen_fcal_PbPb18_sign2");
+    h_muonID_MSEffNum_fcal[1][2] = (TH1D*) h_muonID_MSEffNum_fcal[1][1]->Clone ("h_muonID_MSEffNum_fcal_PbPb15_sign2");
+    h_muonID_MSEffDen_fcal[1][2] = (TH1D*) h_muonID_MSEffDen_fcal[1][1]->Clone ("h_muonID_MSEffDen_fcal_PbPb15_sign2");
+    h_muonID_MSEffNum_fcal[0][2]->Add (h_muonID_MSEffNum_fcal[0][0], -1);
+    h_muonID_MSEffDen_fcal[0][2]->Add (h_muonID_MSEffDen_fcal[0][0], -1);
+    h_muonID_MSEffNum_fcal[1][2]->Add (h_muonID_MSEffNum_fcal[1][0], -1);
+    h_muonID_MSEffDen_fcal[1][2]->Add (h_muonID_MSEffDen_fcal[1][0], -1);
+
+    t_muonID_MSEff_fcal_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_fcal[0][2]), *(h_muonID_MSEffDen_fcal[0][2]));
+    t_muonID_MSEff_fcal_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_fcal[1][2]), *(h_muonID_MSEffDen_fcal[1][2]));
+  }
 
 
 
@@ -167,6 +355,69 @@ void PlotLeptonEffs () {
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
   c_1->SaveAs ("Plots/MuonTrigEffs/pp_PbPb_pt_eta.pdf");
+
+
+
+  TGAE* g_muonMed_IDEffPtpp = TEff2TGAE (t_muonMed_IDEff_pt_pp[1]);
+  TGAE* g_muonMed_IDEffPtPbPb18 = TEff2TGAE (t_muonMed_IDEff_pt_PbPb18[1]);
+
+  g_muonMed_IDEffPtpp->GetXaxis ()->SetTitle ("#it{p}_{T}^{#mu} [GeV]");
+  g_muonMed_IDEffPtPbPb18->GetXaxis ()->SetTitle ("#it{p}_{T}^{#mu} [GeV]");
+  g_muonMed_IDEffPtpp->GetYaxis ()->SetTitle ("#varepsilon (Medium | ID)");
+  g_muonMed_IDEffPtPbPb18->GetYaxis ()->SetTitle ("#varepsilon (Medium | ID)");
+
+  g_muonMed_IDEffPtpp->GetYaxis ()->SetRangeUser (0.3, 1.1);
+  g_muonMed_IDEffPtPbPb18->GetYaxis ()->SetRangeUser (0.3, 1.1);
+  g_muonMed_IDEffPtpp->GetXaxis ()->SetRangeUser (5, 80);
+  g_muonMed_IDEffPtPbPb18->GetXaxis ()->SetRangeUser (5, 80);
+
+  g_muonMed_IDEffPtpp->SetMarkerStyle (kOpenSquare);
+  g_muonMed_IDEffPtpp->SetMarkerColor (kAzure+2);
+  g_muonMed_IDEffPtpp->SetLineColor (kAzure+2);
+  g_muonMed_IDEffPtPbPb18->SetMarkerStyle (kOpenCircle);
+  g_muonMed_IDEffPtPbPb18->SetMarkerColor (kRed+1);
+  g_muonMed_IDEffPtPbPb18->SetLineColor (kRed+1);
+
+  p_1->cd ();
+  p_1->Clear ();
+  g_muonMed_IDEffPtpp->Draw ("AP");
+  g_muonMed_IDEffPtPbPb18->Draw ("P");
+
+  myText (0.22, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.22, 0.82, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+
+  TGAE* g_muonMed_IDEffEtapp = TEff2TGAE (t_muonMed_IDEff_eta_pp[1]);
+  TGAE* g_muonMed_IDEffEtaPbPb18 = TEff2TGAE (t_muonMed_IDEff_eta_PbPb18[1]);
+
+  g_muonMed_IDEffEtapp->GetXaxis ()->SetTitle ("#eta");
+  g_muonMed_IDEffEtaPbPb18->GetXaxis ()->SetTitle ("#eta");
+  g_muonMed_IDEffEtapp->GetYaxis ()->SetTitle ("#varepsilon (Medium | ID)");
+  g_muonMed_IDEffEtaPbPb18->GetYaxis ()->SetTitle ("#varepsilon (Medium | ID)");
+
+  g_muonMed_IDEffEtapp->GetYaxis ()->SetRangeUser (0.3, 1.1);
+  g_muonMed_IDEffEtaPbPb18->GetYaxis ()->SetRangeUser (0.3, 1.1);
+  g_muonMed_IDEffEtapp->GetXaxis ()->SetRangeUser (-2.5, 2.5);
+  g_muonMed_IDEffEtaPbPb18->GetXaxis ()->SetRangeUser (-2.5, 2.5);
+
+  g_muonMed_IDEffEtapp->SetMarkerStyle (kOpenSquare);
+  g_muonMed_IDEffEtapp->SetMarkerColor (kAzure+2);
+  g_muonMed_IDEffEtapp->SetLineColor (kAzure+2);
+  g_muonMed_IDEffEtaPbPb18->SetMarkerStyle (kOpenCircle);
+  g_muonMed_IDEffEtaPbPb18->SetMarkerColor (kRed+1);
+  g_muonMed_IDEffEtaPbPb18->SetLineColor (kRed+1);
+
+  p_2->cd ();
+  p_2->Clear ();
+  g_muonMed_IDEffEtapp->Draw ("AP");
+  g_muonMed_IDEffEtaPbPb18->Draw ("P");
+
+  myText (0.61, 0.89, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.042);
+  myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
+  myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
+
+  c_1->SaveAs ("Plots/MuonMed_IDEffs/pp_PbPb_pt_eta.pdf");
+
+
 
   TCanvas* c_2 = new TCanvas ("c_2", "", 800, 600);
   FormatTH2Canvas (c_2, true);
@@ -294,6 +545,7 @@ void PlotLeptonEffs () {
   g_electronTrigEffPtPbPb18->SetLineColor (kRed+1);
 
   p_1->cd ();
+  p_1->Clear ();
   g_electronTrigEffPtpp->Draw ("AP");
   g_electronTrigEffPtPbPb18->Draw ("P");
 
