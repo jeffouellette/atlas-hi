@@ -4,7 +4,7 @@
 
 int main (int argc, char** argv) {
 
-  if (argc < 7) {
+  if (argc < 6) {
     cout << "Insufficient arguments! Exiting." << endl;
     return 1;
   }
@@ -14,10 +14,10 @@ int main (int argc, char** argv) {
   string outFileName = argv[3];
   bool doHITightVar = (string (argv[4]) == "true");
   bool doTrkPurVar = (string (argv[5]) == "true");
-  bool doRunVar = (string (argv[6]) == "true");
+  //bool doRunVar = (string (argv[6]) == "true");
 
   string subDir = "";
-  if (!doHITightVar && !doTrkPurVar && !doRunVar) {
+  if (!doHITightVar && !doTrkPurVar/* && !doRunVar*/) {
     subDir = "Nominal";
   }
   else if (doHITightVar) {
@@ -27,9 +27,9 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Variations/TrackPurityVariation/" + outFileName;
   }
-  else if (doRunVar) {
-    subDir = "Variations/RunVariation";
-  }
+  //else if (doRunVar) {
+  //  subDir = "Variations/RunVariation";
+  //}
 
   if (algo == "mc") {
     MCAnalysis* mc = nullptr;
@@ -62,10 +62,10 @@ int main (int argc, char** argv) {
       bkg = new MinbiasAnalysis ("bkg_trackPurityVar", subDir.c_str ());
       bkg->eventWeightsExt = "minbias";
     }
-    else if (doRunVar) {
-      bkg = new MinbiasAnalysis ("bkg_runVar", subDir.c_str ()); 
-      bkg->eventWeightsExt = "minbias_runvar";
-    }
+    //else if (doRunVar) {
+    //  bkg = new MinbiasAnalysis ("bkg_runVar", subDir.c_str ()); 
+    //  bkg->eventWeightsExt = "minbias_runvar";
+    //}
     else {
       bkg = new MinbiasAnalysis ("minbias", subDir.c_str ()); 
       bkg->eventWeightsExt = "minbias";
