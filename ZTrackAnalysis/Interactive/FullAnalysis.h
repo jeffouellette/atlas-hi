@@ -54,6 +54,7 @@ class FullAnalysis : public PhysicsAnalysis {
   TH1D**** h_z_m_ratio    = Get3DArray <TH1D*> (numCentBins, 3, 3);          // iCent, iSpc, iReg
   TH1D*** h_z_lepton_dphi = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
   TH1D*** h_lepton_pt     = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_lepton_eta    = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
   TH1D*** h_lepton_trk_pt = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
   TH1D*** h_trk_pt        = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
   TH2D*** h_lepton_trk_dr = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
@@ -86,6 +87,7 @@ class FullAnalysis : public PhysicsAnalysis {
     Delete3DArray (h_z_m_ratio,     numCentBins, 3, 3);
     Delete2DArray (h_z_lepton_dphi, numCentBins, 3);
     Delete2DArray (h_lepton_pt,     numCentBins, 3);
+    Delete2DArray (h_lepton_eta,    numCentBins, 3);
     Delete2DArray (h_lepton_trk_pt, numCentBins, 3);
     Delete2DArray (h_trk_pt,        numCentBins, 3);
     Delete2DArray (h_lepton_trk_dr, numCentBins, 3);
@@ -116,6 +118,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotNchDists (const bool _treatAsData = true);
 
   void PlotLeptonPtSpectra ();
+  void PlotLeptonEta ();
   void PlotLeptonTrackPtSpectra ();
   void PlotLeptonTrackDR ();
   void PlotLeptonTrackDRProjX ();
@@ -180,6 +183,7 @@ void FullAnalysis :: CreateHists () {
       }
       h_z_lepton_dphi[iCent][iSpc]  = new TH1D (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 45, 0, pi);
       h_lepton_pt[iCent][iSpc]      = new TH1D (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
+      h_lepton_eta[iCent][iSpc]     = new TH1D (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 50, -2.5, 2.5);
       h_lepton_trk_pt[iCent][iSpc]  = new TH1D (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
       h_trk_pt[iCent][iSpc]         = new TH1D (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0, 100);
       h_lepton_trk_dr[iCent][iSpc]  = new TH2D (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0., 1., 40, 0, 2);
@@ -193,6 +197,7 @@ void FullAnalysis :: CreateHists () {
       }
       h_z_lepton_dphi[iCent][iSpc]->Sumw2 ();
       h_lepton_pt[iCent][iSpc]->Sumw2 ();
+      h_lepton_eta[iCent][iSpc]->Sumw2 ();
       h_lepton_trk_pt[iCent][iSpc]->Sumw2 ();
       h_trk_pt[iCent][iSpc]->Sumw2 ();
       h_lepton_trk_dr[iCent][iSpc]->Sumw2 ();
@@ -260,6 +265,7 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
 
       h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) a->h_z_lepton_dphi[iCent][iSpc]->Clone (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_pt[iCent][iSpc]      = (TH1D*) a->h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      h_lepton_eta[iCent][iSpc]     = (TH1D*) a->h_lepton_eta[iCent][iSpc]->Clone (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_trk_pt[iCent][iSpc]  = (TH1D*) a->h_lepton_trk_pt[iCent][iSpc]->Clone (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_trk_pt[iCent][iSpc]         = (TH1D*) a->h_trk_pt[iCent][iSpc]->Clone (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_trk_dr[iCent][iSpc]  = (TH2D*) a->h_lepton_trk_dr[iCent][iSpc]->Clone (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -312,6 +318,7 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
       }
       h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) histFile->Get (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_pt[iCent][iSpc]      = (TH1D*) histFile->Get (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      h_lepton_eta[iCent][iSpc]     = (TH1D*) histFile->Get (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_trk_pt[iCent][iSpc]  = (TH1D*) histFile->Get (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_trk_pt[iCent][iSpc]         = (TH1D*) histFile->Get (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_trk_dr[iCent][iSpc]  = (TH2D*) histFile->Get (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -381,6 +388,7 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
       }
       SafeWrite (h_z_lepton_dphi[iCent][iSpc]);
       SafeWrite (h_lepton_pt[iCent][iSpc]);
+      SafeWrite (h_lepton_eta[iCent][iSpc]);
       SafeWrite (h_lepton_trk_pt[iCent][iSpc]);
       SafeWrite (h_trk_pt[iCent][iSpc]);
       SafeWrite (h_lepton_trk_dr[iCent][iSpc]);
@@ -435,6 +443,7 @@ void FullAnalysis :: CombineHists () {
         h_z_m[iCent][2][2]->Add (h_z_m[iCent][iSpc][iReg]);
       }
       h_lepton_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
+      h_lepton_eta[iCent][2]->Add (h_lepton_eta[iCent][iSpc]);
       h_lepton_trk_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
       h_trk_pt[iCent][2]->Add (h_trk_pt[iCent][iSpc]);
       h_lepton_trk_dr[iCent][2]->Add (h_lepton_trk_dr[iCent][iSpc]);
@@ -466,6 +475,10 @@ void FullAnalysis :: ScaleHists () {
       h_lepton_pt[iCent][iSpc]->Rebin (5);
       if (normFactor > 0)
         h_lepton_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+
+      h_lepton_eta[iCent][iSpc]->Rebin (2);
+      if (normFactor > 0)
+        h_lepton_eta[iCent][iSpc]->Scale (1. / normFactor, "width");
 
       h_lepton_trk_pt[iCent][iSpc]->Rebin (5);
       if (normFactor > 0)
@@ -524,7 +537,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1;
+  float event_weight = 1, l1_weight = 1, l2_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -638,6 +651,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
       h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -730,6 +745,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     ppTree->SetBranchAddress ("z_y",          &z_y);
     ppTree->SetBranchAddress ("z_phi",        &z_phi);
     ppTree->SetBranchAddress ("z_m",          &z_m);
+    ppTree->SetBranchAddress ("l1_weight",    &l1_weight);
     ppTree->SetBranchAddress ("l1_pt",        &l1_pt);
     ppTree->SetBranchAddress ("l1_eta",       &l1_eta);
     ppTree->SetBranchAddress ("l1_phi",       &l1_phi);
@@ -737,6 +753,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     ppTree->SetBranchAddress ("l1_trk_pt",    &l1_trk_pt);
     ppTree->SetBranchAddress ("l1_trk_eta",   &l1_trk_eta);
     ppTree->SetBranchAddress ("l1_trk_phi",   &l1_trk_phi);
+    ppTree->SetBranchAddress ("l2_weight",    &l2_weight);
     ppTree->SetBranchAddress ("l2_pt",        &l2_pt);
     ppTree->SetBranchAddress ("l2_eta",       &l2_eta);
     ppTree->SetBranchAddress ("l2_phi",       &l2_phi);
@@ -798,8 +815,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, l1_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, l2_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, l1_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, l2_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -810,8 +829,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, l1_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, l2_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);

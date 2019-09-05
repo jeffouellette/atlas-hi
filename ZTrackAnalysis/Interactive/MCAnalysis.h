@@ -163,6 +163,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
       h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -317,6 +319,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
       h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
