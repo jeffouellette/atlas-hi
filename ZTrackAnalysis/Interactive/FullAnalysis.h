@@ -125,7 +125,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotZYPhiMap (const short pPtZ);
   void PlotZEtaMap (const short pPtZ);
   void PlotZYMap (const short pPtZ);
-  void PlotZYMapSpcComp (const short pPtZ);
+  void PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a = nullptr);
   void PlotZMassSpectra ();
   void PlotZPhiYield ();
   void PlotZLeptonDPhi ();
@@ -262,12 +262,12 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
           h_z_m_ratio[iCent][iSpc][iReg] = (TH1D*) a->h_z_m_ratio[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
       }
 
-      h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) a->h_z_lepton_dphi[iCent][iSpc]->Clone (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_lepton_pt[iCent][iSpc]      = (TH1D*) a->h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_lepton_eta[iCent][iSpc]     = (TH1D*) a->h_lepton_eta[iCent][iSpc]->Clone (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_lepton_trk_pt[iCent][iSpc]  = (TH1D*) a->h_lepton_trk_pt[iCent][iSpc]->Clone (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_trk_pt[iCent][iSpc]         = (TH1D*) a->h_trk_pt[iCent][iSpc]->Clone (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_lepton_trk_dr[iCent][iSpc]  = (TH2D*) a->h_lepton_trk_dr[iCent][iSpc]->Clone (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_z_lepton_dphi[iCent][iSpc])  h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) a->h_z_lepton_dphi[iCent][iSpc]->Clone (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_lepton_pt[iCent][iSpc])      h_lepton_pt[iCent][iSpc]      = (TH1D*) a->h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_lepton_eta[iCent][iSpc])     h_lepton_eta[iCent][iSpc]     = (TH1D*) a->h_lepton_eta[iCent][iSpc]->Clone (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_lepton_trk_pt[iCent][iSpc])  h_lepton_trk_pt[iCent][iSpc]  = (TH1D*) a->h_lepton_trk_pt[iCent][iSpc]->Clone (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_trk_pt[iCent][iSpc])         h_trk_pt[iCent][iSpc]         = (TH1D*) a->h_trk_pt[iCent][iSpc]->Clone (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      if (a->h_lepton_trk_dr[iCent][iSpc])  h_lepton_trk_dr[iCent][iSpc]  = (TH2D*) a->h_lepton_trk_dr[iCent][iSpc]->Clone (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
     } // end loop over iSpc
   } // end loop over iCent
@@ -284,7 +284,6 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
   if (histsLoaded)
     return;
@@ -359,7 +358,6 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: SaveHists (const char* histFileName) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
@@ -431,23 +429,23 @@ void FullAnalysis :: CombineHists () {
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
-      h_z_phi[iCent][2]->Add (h_z_phi[iCent][iSpc]);
-      h_z_pt[iCent][2]->Add (h_z_pt[iCent][iSpc]);
+      if (h_z_phi[iCent][iSpc]) h_z_phi[iCent][2]->Add (h_z_phi[iCent][iSpc]);
+      if (h_z_pt[iCent][iSpc]) h_z_pt[iCent][2]->Add (h_z_pt[iCent][iSpc]);
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_y_phi[iCent][2][iPtZ]->Add (h_z_y_phi[iCent][iSpc][iPtZ]);
-        h_z_eta[iCent][2][iPtZ]->Add (h_z_eta[iCent][iSpc][iPtZ]);
-        h_z_y[iCent][2][iPtZ]->Add (h_z_y[iCent][iSpc][iPtZ]);
+        if (h_z_y_phi[iCent][iSpc][iPtZ]) h_z_y_phi[iCent][2][iPtZ]->Add (h_z_y_phi[iCent][iSpc][iPtZ]);
+        if (h_z_eta[iCent][iSpc][iPtZ]) h_z_eta[iCent][2][iPtZ]->Add (h_z_eta[iCent][iSpc][iPtZ]);
+        if (h_z_y[iCent][iSpc][iPtZ]) h_z_y[iCent][2][iPtZ]->Add (h_z_y[iCent][iSpc][iPtZ]);
       }
       for (short iReg = 0; iReg < 2; iReg++) {
-        h_z_m[iCent][2][iReg]->Add (h_z_m[iCent][iSpc][iReg]);
-        h_z_m[iCent][iSpc][2]->Add (h_z_m[iCent][iSpc][iReg]);
-        h_z_m[iCent][2][2]->Add (h_z_m[iCent][iSpc][iReg]);
+        if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][2][iReg]->Add (h_z_m[iCent][iSpc][iReg]);
+        if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][iSpc][2]->Add (h_z_m[iCent][iSpc][iReg]);
+        if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][2][2]->Add (h_z_m[iCent][iSpc][iReg]);
       }
-      h_lepton_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
-      h_lepton_eta[iCent][2]->Add (h_lepton_eta[iCent][iSpc]);
-      h_lepton_trk_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
-      h_trk_pt[iCent][2]->Add (h_trk_pt[iCent][iSpc]);
-      h_lepton_trk_dr[iCent][2]->Add (h_lepton_trk_dr[iCent][iSpc]);
+      if (h_lepton_pt[iCent][iSpc]) h_lepton_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
+      if (h_lepton_eta[iCent][iSpc]) h_lepton_eta[iCent][2]->Add (h_lepton_eta[iCent][iSpc]);
+      if (h_lepton_pt[iCent][iSpc]) h_lepton_trk_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
+      if (h_trk_pt[iCent][iSpc]) h_trk_pt[iCent][2]->Add (h_trk_pt[iCent][iSpc]);
+      if (h_lepton_trk_dr[iCent][iSpc]) h_lepton_trk_dr[iCent][2]->Add (h_lepton_trk_dr[iCent][iSpc]);
 
     } // end loop over species
   } // end loop over centralities
@@ -470,48 +468,67 @@ void FullAnalysis :: ScaleHists () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
 
       double normFactor = 0;
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++)
-        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
+        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
 
-      h_lepton_pt[iCent][iSpc]->Rebin (5);
-      if (normFactor > 0)
-        h_lepton_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      if (h_lepton_pt[iCent][iSpc]) {
+        h_lepton_pt[iCent][iSpc]->Rebin (5);
+        if (normFactor > 0)
+          h_lepton_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      }
 
-      h_lepton_eta[iCent][iSpc]->Rebin (2);
-      if (normFactor > 0)
-        h_lepton_eta[iCent][iSpc]->Scale (1. / normFactor, "width");
+      if (h_lepton_eta[iCent][iSpc]) {
+        h_lepton_eta[iCent][iSpc]->Rebin (2);
+        if (normFactor > 0)
+          h_lepton_eta[iCent][iSpc]->Scale (1. / normFactor, "width");
+      }
 
-      h_lepton_trk_pt[iCent][iSpc]->Rebin (5);
-      if (normFactor > 0)
-        h_lepton_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      if (h_lepton_trk_pt[iCent][iSpc]) {
+        h_lepton_trk_pt[iCent][iSpc]->Rebin (5);
+        if (normFactor > 0)
+          h_lepton_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      }
 
-      h_trk_pt[iCent][iSpc]->Rebin (5);
-      if (normFactor > 0)
-        h_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      if (h_trk_pt[iCent][iSpc]) {
+        h_trk_pt[iCent][iSpc]->Rebin (5);
+        if (normFactor > 0)
+          h_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+      }
 
-      h_z_pt[iCent][iSpc]->Rebin (10);
-      h_z_pt[iCent][iSpc]->Scale (0.1);
-      if (h_z_pt[iCent][iSpc]->Integral () > 0)
-        h_z_pt[iCent][iSpc]->Scale (1. / h_z_pt[iCent][iSpc]->Integral (), "width");
+      if ( h_z_pt[iCent][iSpc]) {
+        h_z_pt[iCent][iSpc]->Rebin (10);
+        h_z_pt[iCent][iSpc]->Scale (0.1);
+        if (h_z_pt[iCent][iSpc]->Integral () > 0)
+          h_z_pt[iCent][iSpc]->Scale (1. / h_z_pt[iCent][iSpc]->Integral (), "width");
+      }
 
       for (short iReg = 0; iReg < 3; iReg++) {
         //if (h_z_m[iCent][iSpc]->GetMaximum () > 0)
         //  h_z_m[iCent][iSpc]->Scale (1. / (h_z_m[iCent][iSpc]->GetMaximum ()));
-        if (h_z_m[iCent][iSpc][iReg]->Integral () > 0)
-          h_z_m[iCent][iSpc][iReg]->Scale (1. / h_z_m[iCent][iSpc][iReg]->Integral ());
+        if (h_z_m[iCent][iSpc][iReg]) {
+          if (h_z_m[iCent][iSpc][iReg]->Integral () > 0)
+            h_z_m[iCent][iSpc][iReg]->Scale (1. / h_z_m[iCent][iSpc][iReg]->Integral ());
+        }
       }
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        if (h_z_eta[iCent][iSpc][iPtZ]->Integral () > 0)
-          h_z_eta[iCent][iSpc][iPtZ]->Scale (1. / h_z_eta[iCent][iSpc][iPtZ]->Integral (), "width");
+        if (h_z_eta[iCent][iSpc][iPtZ]) {
+          if (h_z_eta[iCent][iSpc][iPtZ]->Integral () > 0)
+            h_z_eta[iCent][iSpc][iPtZ]->Scale (1. / h_z_eta[iCent][iSpc][iPtZ]->Integral (), "width");
+        }
 
-        if (h_z_y[iCent][iSpc][iPtZ]->Integral () > 0)
-          h_z_y[iCent][iSpc][iPtZ]->Scale (1. / h_z_y[iCent][iSpc][iPtZ]->Integral (), "width");
+        if (h_z_y[iCent][iSpc][iPtZ]) {
+          h_z_y[iCent][iSpc][iPtZ]->Rebin (2);
+          if (h_z_y[iCent][iSpc][iPtZ]->Integral () > 0)
+            h_z_y[iCent][iSpc][iPtZ]->Scale (1. / h_z_y[iCent][iSpc][iPtZ]->Integral (), "width");
+        }
       }
 
-      h_z_phi[iCent][iSpc]->Rebin (8);
-      if (h_z_phi[iCent][iSpc]->Integral () > 0)
-        h_z_phi[iCent][iSpc]->Scale (1. / h_z_phi[iCent][iSpc]->Integral (), "width");
+      if (h_z_phi[iCent][iSpc]) {
+        h_z_phi[iCent][iSpc]->Rebin (8);
+        if (h_z_phi[iCent][iSpc]->Integral () > 0)
+          h_z_phi[iCent][iSpc]->Scale (1. / h_z_phi[iCent][iSpc]->Integral (), "width");
+      }
     } // end loop over centralities
   } // end loop over species
 
@@ -527,7 +544,7 @@ void FullAnalysis :: ScaleHists () {
 // Designed to be overloaded. The default here is for analyzing data.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
@@ -1019,48 +1036,48 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Plot Q2 weights
-////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotQ2Weights () {
-  const char* canvasName = "c_q2_weights";
-  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  TCanvas* c = nullptr;
-  if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  else {
-    c = new TCanvas (canvasName, "", 1200, 1200);
-    gDirectory->Add (c);
-    c->Divide (3,3);
-  }
-
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
-
-    TH1D* h = h_PbPbQ2_weights[iCent][5];
-    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
-
-    h->SetMarkerColor (colors[iCent]);
-    h->SetLineColor (colors[iCent]);
-
-    h->GetXaxis ()->SetTitle ("#left|#it{q}_{2}#right|");
-    h->GetYaxis ()->SetTitle ("Event Weight");
-
-    h->Draw (!canvasExists ? "e1" : "same e1");
-
-    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
-  }
-
-  c->cd (1);
-
-  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
-  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
-
-  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
-
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Plot Q2 weights
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void FullAnalysis :: PlotQ2Weights () {
+//  const char* canvasName = "c_q2_weights";
+//  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+//  TCanvas* c = nullptr;
+//  if (canvasExists)
+//    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+//  else {
+//    c = new TCanvas (canvasName, "", 1200, 1200);
+//    gDirectory->Add (c);
+//    c->Divide (3,3);
+//  }
+//
+//  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+//    c->cd (numFinerCentBins-iCent);
+//
+//    TH1D* h = h_PbPbQ2_weights[iCent][5];
+//    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+//
+//    h->SetMarkerColor (colors[iCent]);
+//    h->SetLineColor (colors[iCent]);
+//
+//    h->GetXaxis ()->SetTitle ("#left|#it{q}_{2}#right|");
+//    h->GetYaxis ()->SetTitle ("Event Weight");
+//
+//    h->Draw (!canvasExists ? "e1" : "same e1");
+//
+//    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+//  }
+//
+//  c->cd (1);
+//
+//  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+//  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+//  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+//  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+//
+//  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
+//
+//}
 
 
 
@@ -1158,48 +1175,48 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Plot Psi2 weights
-////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotPsi2Weights () {
-  const char* canvasName = "c_psi2_weights";
-  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  TCanvas* c = nullptr;
-  if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  else {
-    c = new TCanvas (canvasName, "", 1200, 1200);
-    gDirectory->Add (c);
-    c->Divide (3,3);
-  }
-
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
-
-    TH1D* h = h_PbPbPsi2_weights[iCent][5];
-    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
-
-    h->SetMarkerColor (colors[iCent]);
-    h->SetLineColor (colors[iCent]);
-
-    h->GetXaxis ()->SetTitle ("#Psi_{2}");
-    h->GetYaxis ()->SetTitle ("Event Weight");
-
-    h->Draw (!canvasExists ? "e1" : "same e1");
-
-    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
-  }
-
-  c->cd (1);
-
-  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
-  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
-
-  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
-
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Plot Psi2 weights
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void FullAnalysis :: PlotPsi2Weights () {
+//  const char* canvasName = "c_psi2_weights";
+//  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+//  TCanvas* c = nullptr;
+//  if (canvasExists)
+//    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+//  else {
+//    c = new TCanvas (canvasName, "", 1200, 1200);
+//    gDirectory->Add (c);
+//    c->Divide (3,3);
+//  }
+//
+//  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+//    c->cd (numFinerCentBins-iCent);
+//
+//    TH1D* h = h_PbPbPsi2_weights[iCent][5];
+//    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+//
+//    h->SetMarkerColor (colors[iCent]);
+//    h->SetLineColor (colors[iCent]);
+//
+//    h->GetXaxis ()->SetTitle ("#Psi_{2}");
+//    h->GetYaxis ()->SetTitle ("Event Weight");
+//
+//    h->Draw (!canvasExists ? "e1" : "same e1");
+//
+//    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+//  }
+//
+//  c->cd (1);
+//
+//  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+//  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+//  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+//  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+//
+//  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
+//
+//}
 
 
 
@@ -1409,15 +1426,6 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
 
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     TH1D* h = (TH1D*) h_lepton_eta[iCent][iSpc]->Clone ();
-    h->Rebin (2);
-    h->Scale (0.5);
-    if (isMC) {
-      for (int _iCent = 0; _iCent < numCentBins; _iCent++) {
-        if (iCent == _iCent) continue;
-        h->Add (h_lepton_eta[_iCent][iSpc]);
-      }
-      h->Scale (1./h->Integral (), "width");
-    }
 
     uPad->cd ();
     if (plotFill) {
@@ -1426,11 +1434,11 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
       h->SetMarkerSize (0);
       h->SetLineWidth (0);
       //h->GetYaxis ()->SetRangeUser (0, 1.3);
-      h->GetYaxis ()->SetRangeUser (0, 0.4);
+      h->GetYaxis ()->SetRangeUser (0, 1.0);
 
-      h->GetXaxis ()->SetTitle ("#eta");
+      h->GetXaxis ()->SetTitle ("Lepton #eta");
       //h->GetYaxis ()->SetTitle ("Arb. Units");
-      h->GetYaxis ()->SetTitle ("1/N dN/d#eta");
+      h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{l}/d#eta");
       h->GetXaxis ()->SetTitleSize (0.04/0.6);
       h->GetYaxis ()->SetTitleSize (0.04/0.6);
       h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1455,10 +1463,10 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
       g->SetLineWidth (1);
       g->SetLineColor (colors[iSpc+1]);
       g->SetMarkerColor (colors[iSpc+1]);
-      g->GetYaxis ()->SetRangeUser (0, 0.4);
+      g->GetYaxis ()->SetRangeUser (0, 1.0);
 
-      g->GetXaxis ()->SetTitle ("y");
-      g->GetYaxis ()->SetTitle ("1/N_{Z} dN/dy");
+      g->GetXaxis ()->SetTitle ("Lepton #eta");
+      g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{l}/d#eta");
       g->GetXaxis ()->SetTitleSize (0.04/0.6);
       g->GetYaxis ()->SetTitleSize (0.04/0.6);
       g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1470,10 +1478,10 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
 
     if (a) {
       dPad->cd ();
-      while (a->h_lepton_eta[iCent][iSpc]->GetNbinsX () > h->GetNbinsX ()) {
-        a->h_lepton_eta[iCent][iSpc]->Rebin (2);
-        a->h_lepton_eta[iCent][iSpc]->Scale (0.5);
-      }
+      //while (a->h_lepton_eta[iCent][iSpc]->GetNbinsX () >= 2*h->GetNbinsX ()) {
+      //  a->h_lepton_eta[iCent][iSpc]->Rebin (2);
+      //  a->h_lepton_eta[iCent][iSpc]->Scale (0.5);
+      //}
       h->Divide (a->h_lepton_eta[iCent][iSpc]);
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
@@ -1486,11 +1494,11 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
         g->SetLineWidth (1);
         g->SetLineColor (colors[iSpc+1]);
         g->SetMarkerColor (colors[iSpc+1]);
-        g->GetYaxis ()->SetRangeUser (0.76, 1.24);
-        //g->GetYaxis ()->SetRangeUser (0, 2);
+        //g->GetYaxis ()->SetRangeUser (0.76, 1.24);
+        g->GetYaxis ()->SetRangeUser (0.9, 1.1);
 
-        g->GetXaxis ()->SetTitle ("y");
-        g->GetYaxis ()->SetTitle ("Data / MC Truth");
+        g->GetXaxis ()->SetTitle ("Lepton #eta");
+        g->GetYaxis ()->SetTitle ("Data / MC Reco");
         g->GetXaxis ()->SetTitleSize (0.04/0.4);
         g->GetYaxis ()->SetTitleSize (0.04/0.4);
         g->GetXaxis ()->SetLabelSize (0.04/0.4);
@@ -1515,13 +1523,18 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
   uPad->cd ();
   myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
   if (iCent == 0)
-    myText (0.22, 0.83, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+    myText (0.22, 0.80, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
   else
     myText (0.22, 0.83-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
+  myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
+  myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
   for (int iSpc = 0; iSpc < 2; iSpc++) {
-    const char* spcLabel = iSpc == 0 ? "Electros" : (iSpc == 1 ? "Muons" : "Combined");
-    myText (0.66, 0.90-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
+    const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+    myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
+    //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
+    myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001);
+    myText (0.79, 0.82-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
   }
 
   c->SaveAs (Form ("%s/LeptonEtaSpcComp.pdf", plotPath.Data ()));
@@ -2096,10 +2109,7 @@ void FullAnalysis :: CalculateZYDistRatio (FullAnalysis* a) {
         h_z_y_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
         h_z_y_ratio[iCent][iSpc][iPtZ]->Rebin (2);
         h_z_y_ratio[iCent][iSpc][iPtZ]->Scale (0.5);
-        TH1D* temp = (TH1D*)a->h_z_y[0][iSpc][iPtZ]->Clone ("temp");
-        for (short _iCent = 1; _iCent < numCentBins; _iCent++) {
-          temp->Add (a->h_z_y[_iCent][iSpc][iPtZ]);
-        }
+        TH1D* temp = (TH1D*)a->h_z_y[iCent][iSpc][iPtZ]->Clone ("temp");
         temp->Rebin (2);
         temp->Scale (1./temp->Integral (), "width");
         h_z_y_ratio[iCent][iSpc][iPtZ]->Divide (temp);
@@ -2164,8 +2174,8 @@ void FullAnalysis :: PlotZYMap (const short pPtZ) {
         g->SetMarkerColor (colors[iCent]);
         g->GetYaxis ()->SetRangeUser (0, 0.4);
 
-        g->GetXaxis ()->SetTitle ("y");
-        g->GetYaxis ()->SetTitle ("1/N_{Z} dN/dy");
+        g->GetXaxis ()->SetTitle ("y_{Z}");
+        g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/dy_{Z}");
         g->GetXaxis ()->SetTitleSize (0.04/0.6);
         g->GetYaxis ()->SetTitleSize (0.04/0.6);
         g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -2205,7 +2215,7 @@ void FullAnalysis :: PlotZYMap (const short pPtZ) {
           g->GetYaxis ()->SetRangeUser (0.76, 1.24);
           //g->GetYaxis ()->SetRangeUser (0, 2);
 
-          g->GetXaxis ()->SetTitle ("y");
+          g->GetXaxis ()->SetTitle ("y_{Z}");
           g->GetYaxis ()->SetTitle ("Pb+Pb / #it{pp}");
           g->GetXaxis ()->SetTitleSize (0.04/0.4);
           g->GetYaxis ()->SetTitleSize (0.04/0.4);
@@ -2233,7 +2243,7 @@ void FullAnalysis :: PlotZYMap (const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots the rapidity distribution of reconstructed Z->ee vs Z->mumu bosons
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
+void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
   for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     if (pPtZ != -1 && pPtZ != iPtZ)
       continue;
@@ -2269,15 +2279,8 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
       //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       TH1D* h = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone ();
-      h->Rebin (2);
-      h->Scale (0.5);
-      if (isMC) {
-        for (int _iCent = 0; _iCent < numCentBins; _iCent++) {
-          if (iCent == _iCent) continue;
-          h->Add (h_z_y[_iCent][iSpc][iPtZ]);
-        }
-        h->Scale (1./h->Integral (), "width");
-      }
+      //h->Rebin (2);
+      //h->Scale (0.5);
 
       uPad->cd ();
       if (plotFill) {
@@ -2286,11 +2289,10 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
         h->SetMarkerSize (0);
         h->SetLineWidth (0);
         //h->GetYaxis ()->SetRangeUser (0, 1.3);
-        h->GetYaxis ()->SetRangeUser (0, 0.4);
+        h->GetYaxis ()->SetRangeUser (0, 0.5);
 
-        h->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
-        //h->GetYaxis ()->SetTitle ("Arb. Units");
-        h->GetYaxis ()->SetTitle ("Counts / Total");
+        h->GetXaxis ()->SetTitle ("y_{Z}");
+        h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/dy_{Z}");
         h->GetXaxis ()->SetTitleSize (0.04/0.6);
         h->GetYaxis ()->SetTitleSize (0.04/0.6);
         h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -2298,8 +2300,16 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
         h->GetXaxis ()->SetTitleOffset (1.5*0.6);
         h->GetYaxis ()->SetTitleOffset (1.5*0.6);
 
-        h->DrawCopy (iSpc == 0 && !canvasExists ? "bar" : "bar same");
-        h->SetLineWidth (1);
+        if (!useAltMarker) {
+          h->DrawCopy (iSpc == 0 && !canvasExists ? "bar" : "bar same");
+          h->SetLineWidth (1);
+        }
+        else {
+          h->SetLineStyle (2);
+          h->SetLineColor (colors[iSpc+1]);
+          h->SetFillColorAlpha (fillColors[iSpc+1], 0);
+          h->SetLineWidth (2);
+        }
         h->Draw ("hist same");
 
         gPad->RedrawAxis ();
@@ -2315,10 +2325,10 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
         g->SetLineWidth (1);
         g->SetLineColor (colors[iSpc+1]);
         g->SetMarkerColor (colors[iSpc+1]);
-        g->GetYaxis ()->SetRangeUser (0, 0.4);
+        g->GetYaxis ()->SetRangeUser (0, 0.5);
 
-        g->GetXaxis ()->SetTitle ("y");
-        g->GetYaxis ()->SetTitle ("1/N_{Z} dN/dy");
+        g->GetXaxis ()->SetTitle ("y_{Z}");
+        g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/dy_{Z}");
         g->GetXaxis ()->SetTitleSize (0.04/0.6);
         g->GetYaxis ()->SetTitleSize (0.04/0.6);
         g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -2328,9 +2338,15 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
         g->Draw (iSpc == 0 && !canvasExists ? "AP" : "P");
       }
 
-      if (!plotFill) {
+      if (a) {
         dPad->cd ();
-        h = h_z_y_ratio[iCent][iSpc][iPtZ];
+        //while (a->h_z_y[iCent][iSpc][iPtZ]->GetNbinsX () >= 2*h->GetNbinsX ()) {
+        //  a->h_z_y[iCent][iSpc][iPtZ]->Rebin (2);
+        //  a->h_z_y[iCent][iSpc][iPtZ]->Scale (0.5);
+        //}
+        h->Divide (a->h_z_y[iCent][iSpc][iPtZ]);
+
+        dPad->cd ();
         if (h) {
           TGraphAsymmErrors* g = GetTGAE (h);
           ResetXErrors (g);
@@ -2345,7 +2361,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
           g->GetYaxis ()->SetRangeUser (0.76, 1.24);
           //g->GetYaxis ()->SetRangeUser (0, 2);
 
-          g->GetXaxis ()->SetTitle ("y");
+          g->GetXaxis ()->SetTitle ("y_{Z}");
           g->GetYaxis ()->SetTitle ("Data / MC Truth");
           g->GetXaxis ()->SetTitleSize (0.04/0.4);
           g->GetYaxis ()->SetTitleSize (0.04/0.4);
@@ -2374,18 +2390,23 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ) {
     uPad->cd ();
     myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
     if (iCent == 0)
-      myText (0.22, 0.83, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+      myText (0.22, 0.82, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
     else
-      myText (0.22, 0.83-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-
-    for (int iSpc = 0; iSpc < 2; iSpc++) {
-      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-} Events" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-} Events" : "Z #rightarrow l^{+}l^{-} Events");
-      myText (0.66, 0.90-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
-    }
+      myText (0.22, 0.82, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
     if (iPtZ == nPtZBins-1)
-      myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
+      myText (0.22, 0.74, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
     else
-      myText (0.66, 0.78, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
+      myText (0.22, 0.74, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
+
+    myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
+    myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
+    for (int iSpc = 0; iSpc < 2; iSpc++) {
+      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
+      //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
+      myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001);
+      myText (0.79, 0.82-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
+    }
 
     c->SaveAs (Form ("%s/ZYDists/z_y_iPtZ%i.pdf", plotPath.Data (), iPtZ));
   }

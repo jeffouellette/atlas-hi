@@ -23,7 +23,7 @@ class MinbiasAnalysis : public FullAnalysis {
   TTree* LoadEventMixingTree (const char* _inFile, const char* _treeName);
 
   public:
-  MinbiasAnalysis (const char* _name = "minbias") : FullAnalysis () {
+  MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
     //eventWeightsExt = _name;
     plotFill = true;
@@ -39,7 +39,7 @@ class MinbiasAnalysis : public FullAnalysis {
   void CombineHists () override;
   void ScaleHists () override;
 
-  void GenerateWeights ();
+  //void GenerateWeights ();
 };
 
 
@@ -51,6 +51,8 @@ class MinbiasAnalysis : public FullAnalysis {
 TTree* MinbiasAnalysis :: LoadEventMixingTree (const char* _inFile, const char* _treeName) {
   if (zMixFile && zMixFile->IsOpen ())
     zMixFile->Close ();
+
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TString inFile = TString (_inFile);
   if (!inFile.Contains (".root"))
@@ -75,9 +77,6 @@ TTree* MinbiasAnalysis :: LoadEventMixingTree (const char* _inFile, const char* 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  //LoadEventWeights ();
-
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
@@ -457,190 +456,190 @@ void MinbiasAnalysis :: ScaleHists () {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Main macro. Loops over minbias trees and fills histograms appropriately. (OLD VERSION)
-////////////////////////////////////////////////////////////////////////////////////////////////
-void MinbiasAnalysis :: GenerateWeights () {
-  const int gw_nFCalBins = 100;
-  const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
-  const int gw_nQ2Bins = 20;
-  const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
-
-  const int gw_nNchBins = 160;
-  const double* gw_nchBins = linspace (-0.5, 160.5, gw_nNchBins);
-  
-  TH1D* _h_PbPbFCalDist = nullptr;
-  TH1D* _h_PbPbFCal_weights = nullptr;
-  TH1D* _h_PbPbQ2Dist[numFinerCentBins];
-  TH1D* _h_PbPbQ2_weights[numFinerCentBins];
-
-  TH1D* _h_ppNchDist = nullptr;
-  TH1D* _h_ppNch_weights = nullptr;
-  
-
-  SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
-  TFile* inFile = new TFile (Form ("%s/Nominal/eventWeightsTree.root", rootPath.Data ()), "read");
-
-  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
-  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
-
-  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
-
-  _h_PbPbFCalDist = new TH1D (Form ("h_PbPbFCalDist_%s", name.c_str ()), "", gw_nFCalBins, gw_fcalBins);
-  _h_PbPbFCal_weights = new TH1D (Form ("h_PbPbFCal_weights_%s", name.c_str ()), "", gw_nFCalBins, gw_fcalBins);
-  _h_PbPbFCalDist->Sumw2 ();
-  _h_PbPbFCal_weights->Sumw2 ();
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-    _h_PbPbQ2Dist[iCent] = new TH1D (Form ("h_PbPbQ2Dist_iCent%i_%s", iCent, name.c_str ()), "", gw_nQ2Bins, gw_q2Bins);
-    _h_PbPbQ2_weights[iCent] = new TH1D (Form ("h_PbPbQ2_weights_iCent%i_%s", iCent, name.c_str ()), "", gw_nQ2Bins, gw_q2Bins);
-    _h_PbPbQ2Dist[iCent]->Sumw2 ();
-    _h_PbPbQ2_weights[iCent]->Sumw2 ();
-  }
-  _h_ppNchDist = new TH1D (Form ("h_ppNchDist_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
-  _h_ppNchDist->Sumw2 ();
-  _h_ppNch_weights = new TH1D (Form ("h_ppNch_weights_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
-  _h_ppNch_weights->Sumw2 ();
-
-  //bool passes_toroid = true;
-  float fcal_et = 0, q2 = 0, event_weight = 1;
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  // Loop over PbPb tree
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchStatus ("vz",          0);
-    PbPbTree->SetBranchStatus ("psi2",        0);
-
-    const int nEvts = PbPbTree->GetEntries ();
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      PbPbTree->GetEntry (iEvt);
-      _h_PbPbFCalDist->Fill (fcal_et);
-    }
-    cout << "Done 1st Pb+Pb loop." << endl;
-
-    if (_h_PbPbFCalDist->Integral () > 0)
-      _h_PbPbFCalDist->Scale (1./_h_PbPbFCalDist->Integral ());
-
-    SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
-    TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-    TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get (Form ("h_PbPbFCalDist_iPtZ%i_data", nPtZBins));
-
-    TH1D* referenceQ2Dist[numFinerCentBins];
-    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-      referenceQ2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbQ2Dist_iCent%i_iPtZ%i_data", iCent, nPtZBins));
-    }
-
-    for (int ix = 1; ix <= _h_PbPbFCal_weights->GetNbinsX (); ix++) {
-      const double fcal_weight = (_h_PbPbFCalDist->GetBinContent (ix) != 0 ? referenceFCalDist->GetBinContent (ix) / _h_PbPbFCalDist->GetBinContent (ix) : 0);
-      _h_PbPbFCal_weights->SetBinContent (ix, fcal_weight);
-    }
-
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      PbPbTree->GetEntry (iEvt);
-
-      short iCent = 0;
-      while (iCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iCent])
-          break;
-        else
-          iCent++;
-      }
-      if (iCent < 1 || iCent > numFinerCentBins-1)
-        continue;
-
-      event_weight = _h_PbPbFCal_weights->GetBinContent (_h_PbPbFCal_weights->FindBin (fcal_et));
-
-      _h_PbPbQ2Dist[iCent]->Fill (q2, event_weight);
-    }
-    cout << "Done 2nd Pb+Pb loop." << endl;
-
-    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-      if (_h_PbPbQ2Dist[iCent]->Integral () > 0)
-        _h_PbPbQ2Dist[iCent]->Scale (1./_h_PbPbQ2Dist[iCent]->Integral ());
-    }
-
-    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-      for (int ix = 1; ix <= _h_PbPbQ2_weights[iCent]->GetNbinsX (); ix++) {
-        const double q2_weight = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? referenceQ2Dist[iCent]->GetBinContent (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix) : 0);
-        const double q2_weight_err = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? q2_weight * sqrt (pow (_h_PbPbQ2Dist[iCent]->GetBinError (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix), 2) + pow (referenceQ2Dist[iCent]->GetBinError (ix) / referenceQ2Dist[iCent]->GetBinContent (ix), 2)) : 0);
-        _h_PbPbQ2_weights[iCent]->SetBinContent (ix, q2_weight);
-        _h_PbPbQ2_weights[iCent]->SetBinError (ix, q2_weight_err);
-      }
-    }
-
-    ztrackFile->Close ();
-    SaferDelete (ztrackFile);
-
-    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
-  }
-
-  if (ppTree) {
-    int ntrk = 0;
-    //ppTree->SetBranchAddress ("ntrk", &ntrk);
-
-    const int nEvts = ppTree->GetEntries ();
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      ppTree->GetEntry (iEvt);
-
-      _h_ppNchDist->Fill (ntrk);//, event_weight);
-    }
-    cout << "Done pp loop." << endl;
-
-    if (_h_ppNchDist->Integral () > 0)
-      _h_ppNchDist->Scale (1./_h_ppNchDist->Integral ());
-
-    if (name == "data") {
-      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
-        _h_ppNch_weights->SetBinContent (ix, 1);
-      }
-    } else {
-      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
-      TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-      TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_ppNchDist_data");
-
-      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
-        const double nch_weight = (_h_ppNchDist->GetBinContent (ix) != 0 ? referenceNchDist->GetBinContent (ix) / _h_ppNchDist->GetBinContent (ix) : 0);
-        _h_ppNch_weights->SetBinContent (ix, nch_weight);
-      }
-
-      ztrackFile->Close ();
-
-      if (name == "data")
-        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
-      else if (name == "mc")
-        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
-      else if (name == "minbias")
-        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
-      else if (name == "truth")
-        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
-    }
-  }
-
-
-  inFile->Close ();
-  SaferDelete (inFile);
-
-  eventWeightsFile->cd ();
-
-  SafeWrite (_h_PbPbFCalDist);
-  SafeWrite (_h_PbPbFCal_weights);
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-    SafeWrite (_h_PbPbQ2Dist[iCent]);
-    SafeWrite (_h_PbPbQ2_weights[iCent]);
-  }
-  SafeWrite (_h_ppNchDist);
-  SafeWrite (_h_ppNch_weights);
-
-  eventWeightsFile->Close ();
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Main macro. Loops over minbias trees and fills histograms appropriately. (OLD VERSION)
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: GenerateWeights () {
+//  const int gw_nFCalBins = 100;
+//  const double* gw_fcalBins = linspace (0, 5200, gw_nFCalBins);
+//  const int gw_nQ2Bins = 20;
+//  const double* gw_q2Bins = linspace (0, 0.3, gw_nQ2Bins);
+//
+//  const int gw_nNchBins = 160;
+//  const double* gw_nchBins = linspace (-0.5, 160.5, gw_nNchBins);
+//  
+//  TH1D* _h_PbPbFCalDist = nullptr;
+//  TH1D* _h_PbPbFCal_weights = nullptr;
+//  TH1D* _h_PbPbQ2Dist[numFinerCentBins];
+//  TH1D* _h_PbPbQ2_weights[numFinerCentBins];
+//
+//  TH1D* _h_ppNchDist = nullptr;
+//  TH1D* _h_ppNch_weights = nullptr;
+//  
+//
+//  SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+//  TFile* inFile = new TFile (Form ("%s/Nominal/eventWeightsTree.root", rootPath.Data ()), "read");
+//
+//  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
+//  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
+//
+//  TFile* eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "recreate");
+//
+//  _h_PbPbFCalDist = new TH1D (Form ("h_PbPbFCalDist_%s", name.c_str ()), "", gw_nFCalBins, gw_fcalBins);
+//  _h_PbPbFCal_weights = new TH1D (Form ("h_PbPbFCal_weights_%s", name.c_str ()), "", gw_nFCalBins, gw_fcalBins);
+//  _h_PbPbFCalDist->Sumw2 ();
+//  _h_PbPbFCal_weights->Sumw2 ();
+//  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+//    _h_PbPbQ2Dist[iCent] = new TH1D (Form ("h_PbPbQ2Dist_iCent%i_%s", iCent, name.c_str ()), "", gw_nQ2Bins, gw_q2Bins);
+//    _h_PbPbQ2_weights[iCent] = new TH1D (Form ("h_PbPbQ2_weights_iCent%i_%s", iCent, name.c_str ()), "", gw_nQ2Bins, gw_q2Bins);
+//    _h_PbPbQ2Dist[iCent]->Sumw2 ();
+//    _h_PbPbQ2_weights[iCent]->Sumw2 ();
+//  }
+//  _h_ppNchDist = new TH1D (Form ("h_ppNchDist_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
+//  _h_ppNchDist->Sumw2 ();
+//  _h_ppNch_weights = new TH1D (Form ("h_ppNch_weights_%s", name.c_str ()), "", gw_nNchBins, gw_nchBins);
+//  _h_ppNch_weights->Sumw2 ();
+//
+//  //bool passes_toroid = true;
+//  float fcal_et = 0, q2 = 0, event_weight = 1;
+//
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  // Loop over PbPb tree
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  if (PbPbTree) {
+//    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
+//    PbPbTree->SetBranchAddress ("q2",         &q2);
+//    PbPbTree->SetBranchStatus ("vz",          0);
+//    PbPbTree->SetBranchStatus ("psi2",        0);
+//
+//    const int nEvts = PbPbTree->GetEntries ();
+//    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+//      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+//        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+//      PbPbTree->GetEntry (iEvt);
+//      _h_PbPbFCalDist->Fill (fcal_et);
+//    }
+//    cout << "Done 1st Pb+Pb loop." << endl;
+//
+//    if (_h_PbPbFCalDist->Integral () > 0)
+//      _h_PbPbFCalDist->Scale (1./_h_PbPbFCalDist->Integral ());
+//
+//    SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+//    TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+//    TH1D* referenceFCalDist = (TH1D*)ztrackFile->Get (Form ("h_PbPbFCalDist_iPtZ%i_data", nPtZBins));
+//
+//    TH1D* referenceQ2Dist[numFinerCentBins];
+//    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+//      referenceQ2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbQ2Dist_iCent%i_iPtZ%i_data", iCent, nPtZBins));
+//    }
+//
+//    for (int ix = 1; ix <= _h_PbPbFCal_weights->GetNbinsX (); ix++) {
+//      const double fcal_weight = (_h_PbPbFCalDist->GetBinContent (ix) != 0 ? referenceFCalDist->GetBinContent (ix) / _h_PbPbFCalDist->GetBinContent (ix) : 0);
+//      _h_PbPbFCal_weights->SetBinContent (ix, fcal_weight);
+//    }
+//
+//    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+//      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+//        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+//      PbPbTree->GetEntry (iEvt);
+//
+//      short iCent = 0;
+//      while (iCent < numFinerCentBins) {
+//        if (fcal_et < finerCentBins[iCent])
+//          break;
+//        else
+//          iCent++;
+//      }
+//      if (iCent < 1 || iCent > numFinerCentBins-1)
+//        continue;
+//
+//      event_weight = _h_PbPbFCal_weights->GetBinContent (_h_PbPbFCal_weights->FindBin (fcal_et));
+//
+//      _h_PbPbQ2Dist[iCent]->Fill (q2, event_weight);
+//    }
+//    cout << "Done 2nd Pb+Pb loop." << endl;
+//
+//    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+//      if (_h_PbPbQ2Dist[iCent]->Integral () > 0)
+//        _h_PbPbQ2Dist[iCent]->Scale (1./_h_PbPbQ2Dist[iCent]->Integral ());
+//    }
+//
+//    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+//      for (int ix = 1; ix <= _h_PbPbQ2_weights[iCent]->GetNbinsX (); ix++) {
+//        const double q2_weight = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? referenceQ2Dist[iCent]->GetBinContent (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix) : 0);
+//        const double q2_weight_err = (_h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? q2_weight * sqrt (pow (_h_PbPbQ2Dist[iCent]->GetBinError (ix) / _h_PbPbQ2Dist[iCent]->GetBinContent (ix), 2) + pow (referenceQ2Dist[iCent]->GetBinError (ix) / referenceQ2Dist[iCent]->GetBinContent (ix), 2)) : 0);
+//        _h_PbPbQ2_weights[iCent]->SetBinContent (ix, q2_weight);
+//        _h_PbPbQ2_weights[iCent]->SetBinError (ix, q2_weight_err);
+//      }
+//    }
+//
+//    ztrackFile->Close ();
+//    SaferDelete (ztrackFile);
+//
+//    SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+//  }
+//
+//  if (ppTree) {
+//    int ntrk = 0;
+//    //ppTree->SetBranchAddress ("ntrk", &ntrk);
+//
+//    const int nEvts = ppTree->GetEntries ();
+//    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+//      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+//        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+//      ppTree->GetEntry (iEvt);
+//
+//      _h_ppNchDist->Fill (ntrk);//, event_weight);
+//    }
+//    cout << "Done pp loop." << endl;
+//
+//    if (_h_ppNchDist->Integral () > 0)
+//      _h_ppNchDist->Scale (1./_h_ppNchDist->Integral ());
+//
+//    if (name == "data") {
+//      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
+//        _h_ppNch_weights->SetBinContent (ix, 1);
+//      }
+//    } else {
+//      SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+//      TFile* ztrackFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+//      TH1D* referenceNchDist = (TH1D*)ztrackFile->Get ("h_ppNchDist_data");
+//
+//      for (int ix = 1; ix <= _h_ppNch_weights->GetNbinsX (); ix++) {
+//        const double nch_weight = (_h_ppNchDist->GetBinContent (ix) != 0 ? referenceNchDist->GetBinContent (ix) / _h_ppNchDist->GetBinContent (ix) : 0);
+//        _h_ppNch_weights->SetBinContent (ix, nch_weight);
+//      }
+//
+//      ztrackFile->Close ();
+//
+//      if (name == "data")
+//        SetupDirectories ("DataAnalysis/", "ZTrackAnalysis/");
+//      else if (name == "mc")
+//        SetupDirectories ("MCAnalysis/", "ZTrackAnalysis/");
+//      else if (name == "minbias")
+//        SetupDirectories ("MinbiasAnalysis/", "ZTrackAnalysis/");
+//      else if (name == "truth")
+//        SetupDirectories ("TruthAnalysis/", "ZTrackAnalysis/");
+//    }
+//  }
+//
+//
+//  inFile->Close ();
+//  SaferDelete (inFile);
+//
+//  eventWeightsFile->cd ();
+//
+//  SafeWrite (_h_PbPbFCalDist);
+//  SafeWrite (_h_PbPbFCal_weights);
+//  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+//    SafeWrite (_h_PbPbQ2Dist[iCent]);
+//    SafeWrite (_h_PbPbQ2_weights[iCent]);
+//  }
+//  SafeWrite (_h_ppNchDist);
+//  SafeWrite (_h_ppNch_weights);
+//
+//  eventWeightsFile->Close ();
+//}
 
 
 #endif

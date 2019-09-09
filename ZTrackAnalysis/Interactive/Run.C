@@ -13,9 +13,11 @@ const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
+FullAnalysis* data18_1_0_0 = nullptr;
 FullAnalysis* data15 = nullptr;
 MCAnalysis* mc = nullptr;
 MinbiasAnalysis* bkg = nullptr;
+MinbiasAnalysis* bkg_1_0_0 = nullptr;
 TruthAnalysis* truth = nullptr;
 
 // master systematics objects
@@ -55,9 +57,9 @@ void Run () {
   data15  = new FullAnalysis ("data15");
   data15->is2015Conds = true;
   data15->useHijingEffs = true;
-  mc      = new MCAnalysis ("mc");
-  bkg     = new MinbiasAnalysis ("minbias");
-  //truth   = new TruthAnalysis ("truth");
+  mc      = new MCAnalysis ();
+  bkg     = new MinbiasAnalysis ();
+  //truth   = new TruthAnalysis ();
 
   if (doSys) {
     data_trigEff            = new FullAnalysis ("data_trigEff");
@@ -110,7 +112,7 @@ void Run () {
   }
 
 
-/*
+
   data18->LoadHists   ("DataAnalysis/Nominal/savedHists.root");
   data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
   mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
@@ -138,13 +140,17 @@ void Run () {
   data18->CalculateIAA ();
   data18->CalculateICP ();
 
-  data15->SubtractBackground (bkg);
-  data15->CalculateIAA ();
-  data15->CalculateICP ();
+  //data18_1_0_0->SubtractBackground (bkg_1_0_0);
+  //data18_1_0_0->CalculateIAA ();
+  //data18_1_0_0->CalculateICP ();
+
+  //data15->SubtractBackground (bkg);
+  //data15->CalculateIAA ();
+  //data15->CalculateICP ();
 
   data18->CalculateZPtDistRatio (mc);
   data18->CalculateZEtaDistRatio ();
-  data18->CalculateZYDistRatio ();
+  data18->CalculateZYDistRatio (truth);
   data18->CalculateZMassSpectraRatio (mc);
 
   mc->SubtractBackground (bkg);
@@ -179,7 +185,7 @@ void Run () {
     data_electronLHMedium->SubtractBackground (bkg);
     data_muonTight->SubtractBackground (bkg);
 
-    data_trigEff->CalculateZYDistRatio ();
+    data_trigEff->CalculateZYDistRatio (truth);
 
     data_runVar->SubtractBackground (bkg_runVar);
 
@@ -233,7 +239,7 @@ void Run () {
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematics ();
   }
-*/
+
 
   SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");
 

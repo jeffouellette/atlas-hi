@@ -68,11 +68,11 @@ class PhysicsAnalysis {
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
-  // Event info distributions (for reweighting)
-  TH1D** h_PbPbFCal_weights   = Get1DArray <TH1D*> (nPtZBins+1);
-  TH1D*** h_PbPbQ2_weights    = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
-  TH1D*** h_PbPbPsi2_weights  = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
-  TH1D* h_ppNch_weights       = nullptr;
+  //// Event info distributions (for reweighting)
+  //TH1D** h_PbPbFCal_weights   = Get1DArray <TH1D*> (nPtZBins+1);
+  //TH1D*** h_PbPbQ2_weights    = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
+  //TH1D*** h_PbPbPsi2_weights  = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
+  //TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
   TH1D*** h_trk_effs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
@@ -135,9 +135,9 @@ class PhysicsAnalysis {
   }
 
   virtual ~PhysicsAnalysis () {
-    Delete1DArray (h_PbPbFCal_weights,  nPtZBins+1);
-    Delete2DArray (h_PbPbQ2_weights,    numFinerCentBins, nPtZBins+1);
-    Delete2DArray (h_PbPbPsi2_weights,  numFinerCentBins, nPtZBins+1);
+    //Delete1DArray (h_PbPbFCal_weights,  nPtZBins+1);
+    //Delete2DArray (h_PbPbQ2_weights,    numFinerCentBins, nPtZBins+1);
+    //Delete2DArray (h_PbPbPsi2_weights,  numFinerCentBins, nPtZBins+1);
 
     Delete2DArray (h_trk_effs,      numCentBins, numEtaTrkBins);
     Delete1DArray (h2_trk_effs,     numCentBins);
@@ -504,7 +504,6 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
   if (histsLoaded)
     return;
@@ -553,7 +552,6 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: SaveHists (const char* histFileName) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
@@ -683,7 +681,8 @@ void PhysicsAnalysis :: ScaleHists () {
 // Designed to be overloaded. The default here is for analyzing data.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName) {
-  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
@@ -2081,25 +2080,25 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Load event weights
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadEventWeights () {
-  if (eventWeightsLoaded)
-    return;
-  //SetupDirectories (directory, "ZTrackAnalysis/");
-  eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-  for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
-    h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_%s", iPtZ, eventWeightsExt.c_str ()));
-    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-      h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
-      h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
-    }
-  }
-  h_ppNch_weights = (TH1D*) eventWeightsFile->Get (Form ("h_ppNch_weights_%s", eventWeightsExt.c_str ()));
-
-  eventWeightsLoaded = true;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Load event weights
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: LoadEventWeights () {
+//  if (eventWeightsLoaded)
+//    return;
+//  //SetupDirectories (directory, "ZTrackAnalysis/");
+//  eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
+//  for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
+//    h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_%s", iPtZ, eventWeightsExt.c_str ()));
+//    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+//      h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
+//      h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
+//    }
+//  }
+//  h_ppNch_weights = (TH1D*) eventWeightsFile->Get (Form ("h_ppNch_weights_%s", eventWeightsExt.c_str ()));
+//
+//  eventWeightsLoaded = true;
+//}
 
 
 

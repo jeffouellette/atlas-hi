@@ -33,9 +33,6 @@ class MCAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  //LoadEventWeights ();
-
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");

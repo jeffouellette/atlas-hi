@@ -26,16 +26,13 @@ class TruthAnalysis : public FullAnalysis {
   TH1D**  h_jet_trk_dphi      = Get1DArray <TH1D*> (nPtZBins); // iPtZ
   
 
-  TruthAnalysis (const char* _name = "truth"/*, const char* subDir = ""*/) : FullAnalysis () {
+  TruthAnalysis (const char* _name = "truth") : FullAnalysis () {
     name = _name;
     eventWeightsExt = _name;
-    //directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
     useAltMarker = false;
     hasBkg = false;
     isMC = true;
-
-    //SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
@@ -120,10 +117,10 @@ void TruthAnalysis :: LoadHists (const char* histFileName, const bool _finishHis
 
   FullAnalysis :: LoadHists (histFileName, false);
 
-  //if (!histFile) {
-  //  SetupDirectories (directory, "ZTrackAnalysis/");
-  //  histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
-  //}
+  if (!histFile) {
+    SetupDirectories ("", "ZTrackAnalysis/");
+    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
+  }
   TDirectory* _gDirectory = gDirectory;
   if (!histFile->IsOpen ()) {
     cout << "Error in TruthAnalysis :: LoadHists: histFile not open after calling parent function, exiting." << endl;
@@ -171,7 +168,6 @@ void TruthAnalysis :: SaveHists (const char* histFileName) {
   FullAnalysis :: SaveHists (histFileName);
 
   if (!histFile) {
-    //SetupDirectories (directory, "ZTrackAnalysis/");
     SetupDirectories ("", "ZTrackAnalysis/");
     histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
     histFile->cd ();
@@ -208,9 +204,6 @@ void TruthAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  //LoadEventWeights ();
-
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
@@ -569,7 +562,6 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 // Plots Z-Jet pT correlation.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::PlotZJetPt () {
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("ZJetPtCanvas", "", 800, 600);
@@ -588,7 +580,6 @@ void TruthAnalysis::PlotZJetPt () {
 
 
 void TruthAnalysis::PlotxZJet () {
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("xZJetCanvas", "", 800, 600);
@@ -685,7 +676,6 @@ void TruthAnalysis::PlotZJetCorrelations () {
 
 
 void TruthAnalysis::PlotJetTrkCorrelations () {
-  //SetupDirectories (directory, "ZTrackAnalysis/");
   SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("JetTrkCorrelationsCanvas", "", 800, 600);
