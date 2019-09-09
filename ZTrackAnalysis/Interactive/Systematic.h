@@ -40,9 +40,7 @@ class Systematic : public PhysicsAnalysis {
 
   Systematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : PhysicsAnalysis (){
     name = _name;
-    directory = "Systematics/";
     description = _desc;
-    SetupDirectories (directory, "ZTrackAnalysis/");
     CopyAnalysis (nom, true);
     CreateSysGraphs ();
     NullifyErrors ();
