@@ -215,7 +215,7 @@ class PhysicsAnalysis {
 
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1.); // adds or subtracts nSigma of statistical errors to analysis
 
-  virtual void LoadEventWeights ();
+  //virtual void LoadEventWeights ();
 
   virtual void LoadTrackingEfficiencies (); // defaults to HILoose
   virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);

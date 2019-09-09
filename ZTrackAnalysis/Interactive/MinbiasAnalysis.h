@@ -163,8 +163,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         PbPbTree->GetEntry (eventOrder[iMixEvt]);
         goodMixEvent = (iFCalEt == GetSuperFineCentBin (fcal_et) && !eventsMixed[iMixEvt]);
       } while (!goodMixEvent && iMixEvt != _iMixEvt);
-      if (_iMixEvt == iMixEvt)
+      if (_iMixEvt == iMixEvt) {
         cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+        continue;
+      }
       else
         eventsMixed[iMixEvt] = true;
 
@@ -268,7 +270,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     }
     std::random_shuffle (eventOrder.begin (), eventOrder.end ());
 
-    TTree* zTree = LoadEventMixingTree (Form ("%i", run_number), "ppZTrackTree");
+    TTree* zTree = LoadEventMixingTree (inFileName, "ppZTrackTree");
     if (!zTree)
       cout << "Got a null mixing tree!" << endl;
     const int nZEvts = zTree->GetEntries ();
@@ -297,8 +299,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         ppTree->GetEntry (eventOrder[iMixEvt]);
         goodMixEvent = (!eventsMixed[iMixEvt]);
       } while (!goodMixEvent && iMixEvt != _iMixEvt);
-      if (_iMixEvt == iMixEvt)
+      if (_iMixEvt == iMixEvt) {
         cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+        continue;
+      }
       else
         eventsMixed[iMixEvt] = true;
 
