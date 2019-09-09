@@ -30,7 +30,7 @@ class PhysicsAnalysis {
 
   protected:
   string name = "";
-  string directory = "";
+  //string directory = "";
   bool backgroundSubtracted = false;
   bool sameSignsSubtracted = false;
   bool hasBkg = true;
@@ -128,11 +128,10 @@ class PhysicsAnalysis {
 
   PhysicsAnalysis () { }
 
-  PhysicsAnalysis (const char* _name, const char* subDir) {
+  PhysicsAnalysis (const char* _name/*, const char* subDir*/) {
     name = _name;
-    directory = Form ("DataAnalysis/%s/", subDir);
+    //directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;
-    SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
   virtual ~PhysicsAnalysis () {
@@ -505,7 +504,8 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
 // Load pre-filled histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
-  SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
   if (histsLoaded)
     return;
 
@@ -553,7 +553,8 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
 // Save histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: SaveHists (const char* histFileName) {
-  SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
   if (!histsLoaded)
     return;
 
@@ -682,7 +683,7 @@ void PhysicsAnalysis :: ScaleHists () {
 // Designed to be overloaded. The default here is for analyzing data.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName) {
-  SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+  //SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
@@ -706,8 +707,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
@@ -746,43 +747,14 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
-      short iCent = 0;
-      while (iCent < numCentBins) {
-        if (fcal_et < centBins[iCent])
-          break;
-        else
-          iCent++;
-      }
+      const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      short iFinerCent = 0;
-      while (iFinerCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iFinerCent])
-          break;
-        else
-          iFinerCent++;
-      }
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
+
+      if (event_weight == 0)
         continue;
-
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
-
-      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, true) : GetMuonTriggerEfficiency (l1_eta, l1_phi, true));
-      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, true) : GetMuonTriggerEfficiency (l2_eta, l2_phi, true));
-      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      ////const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, true);
-
-      //if (eff_z <= 0.)
-      //  continue;
-
-      //event_weight *= 1./eff_z;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -838,8 +810,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",         &isEE);
     ppTree->SetBranchAddress ("event_weight", &event_weight);
+    ppTree->SetBranchAddress ("isEE",         &isEE);
     ppTree->SetBranchAddress ("vz",           &vz);
     ppTree->SetBranchAddress ("z_pt",         &z_pt);
     ppTree->SetBranchAddress ("z_y",          &z_y);
@@ -884,15 +856,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           iPtZ++;
       }
 
-      //const double eff_l1 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l1_pt, l1_eta, false) : GetMuonTriggerEfficiency (l1_eta, l1_phi, false));
-      //const double eff_l2 = (isEE ? GetElectronTriggerEfficiency (fcal_et, l2_pt, l2_eta, false) : GetMuonTriggerEfficiency (l2_eta, l2_phi, false));
-      //const double eff_z = 1.-(1.-eff_l1)*(1.-eff_l2);
-      //const double eff_z = GetZTriggerEfficiency (isEE, z_pt, z_y, false);
-
-      //if (eff_z <= 0.)
-      //  continue;
-
-      //event_weight *= 1./eff_z;
+      if (event_weight == 0)
+        continue;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -965,11 +930,9 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   if (effsLoaded)
     return;
 
-  SetupDirectories ("TrackingEfficiencies/", "ZTrackAnalysis/");
-
   TDirectory* _gDirectory = gDirectory;
 
-  trkEffFile = new TFile (Form ("%s/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
+  trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
@@ -1067,11 +1030,9 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
   if (pursLoaded)
     return;
 
-  SetupDirectories ("TrackingPurities/", "ZTrackAnalysis/");
-
   TDirectory* _gDirectory = gDirectory;
 
-  trkPurFile = new TFile (Form ("%s/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "Hijing_15" : "Hijing_18"), "read");
+  trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "Hijing_15" : "Hijing_18"), "read");
 
   if (!trkPurFile || !trkPurFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
@@ -1175,11 +1136,9 @@ void PhysicsAnalysis :: LoadTriggerEfficiencies () {
   if (trigEffsLoaded)
     return;
 
-  SetupDirectories ("TagAndProbe/", "ZTrackAnalysis/");
-
   TDirectory* _gDirectory = gDirectory;
 
-  trigEffFile = new TFile (Form ("%s/Nominal/outFile.root", rootPath.Data ()), "read");
+  trigEffFile = new TFile (Form ("%s/TagAndProbe/Nominal/outFile.root", rootPath.Data ()), "read");
 
   if (!trigEffFile || !trigEffFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTriggerEfficiencies can not find file for " << name << endl;
@@ -2128,7 +2087,7 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
 void PhysicsAnalysis :: LoadEventWeights () {
   if (eventWeightsLoaded)
     return;
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
   eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
   for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
     h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_%s", iPtZ, eventWeightsExt.c_str ()));

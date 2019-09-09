@@ -26,16 +26,16 @@ class TruthAnalysis : public FullAnalysis {
   TH1D**  h_jet_trk_dphi      = Get1DArray <TH1D*> (nPtZBins); // iPtZ
   
 
-  TruthAnalysis (const char* _name = "truth", const char* subDir = "") : FullAnalysis () {
+  TruthAnalysis (const char* _name = "truth"/*, const char* subDir = ""*/) : FullAnalysis () {
     name = _name;
     eventWeightsExt = _name;
-    directory = Form ("TruthAnalysis/%s/", subDir);
+    //directory = Form ("TruthAnalysis/%s/", subDir);
     plotFill = false;
     useAltMarker = false;
     hasBkg = false;
     isMC = true;
 
-    SetupDirectories (directory, "ZTrackAnalysis/");
+    //SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
@@ -171,7 +171,8 @@ void TruthAnalysis :: SaveHists (const char* histFileName) {
   FullAnalysis :: SaveHists (histFileName);
 
   if (!histFile) {
-    SetupDirectories (directory, "ZTrackAnalysis/");
+    //SetupDirectories (directory, "ZTrackAnalysis/");
+    SetupDirectories ("", "ZTrackAnalysis/");
     histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
     histFile->cd ();
   }
@@ -207,9 +208,10 @@ void TruthAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  LoadEventWeights ();
+  //LoadEventWeights ();
 
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
@@ -220,7 +222,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
+  float event_weight = 1;//, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_eta = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -233,8 +235,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
@@ -264,39 +266,23 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
-      short iCent = 0;
-      while (iCent < numCentBins) {
-        if (fcal_et < centBins[iCent])
-          break;
-        else
-          iCent++;
-      }
+      const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      short iFinerCent = 0;
-      while (iFinerCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iFinerCent])
-          break;
-        else
-          iFinerCent++;
-      }
+      const short iFinerCent = GetFinerCentBin (fcal_et);
       if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
         continue;
 
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
 
       //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
       //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
       //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
+      //event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
+      if (event_weight == 0)
+        continue;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -380,8 +366,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    ppTree->SetBranchAddress ("isEE",          &isEE);
     ppTree->SetBranchAddress ("event_weight",  &event_weight);
+    ppTree->SetBranchAddress ("isEE",          &isEE);
     ppTree->SetBranchAddress ("vz",            &vz);
     ppTree->SetBranchAddress ("z_pt",          &z_pt);
     ppTree->SetBranchAddress ("z_y",           &z_y);
@@ -414,13 +400,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
 
       bool triggerEvent = false;
       //float triggerPhi = 0;
@@ -437,7 +417,9 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
-      event_weight = event_weight * vz_weight * nch_weight;
+      //event_weight = event_weight * vz_weight * nch_weight;
+      if (event_weight == 0)
+        continue;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -587,7 +569,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 // Plots Z-Jet pT correlation.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis::PlotZJetPt () {
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("ZJetPtCanvas", "", 800, 600);
   c->SetRightMargin (0.14);
@@ -605,7 +588,8 @@ void TruthAnalysis::PlotZJetPt () {
 
 
 void TruthAnalysis::PlotxZJet () {
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("xZJetCanvas", "", 800, 600);
 
@@ -701,7 +685,8 @@ void TruthAnalysis::PlotZJetCorrelations () {
 
 
 void TruthAnalysis::PlotJetTrkCorrelations () {
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TCanvas* c = new TCanvas ("JetTrkCorrelationsCanvas", "", 800, 600);
 

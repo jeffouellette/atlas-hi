@@ -16,15 +16,12 @@ using namespace atlashi;
 class MCAnalysis : public FullAnalysis {
 
   public:
-  MCAnalysis (const char* _name = "mc", const char* subDir = "") : FullAnalysis () {
+  MCAnalysis (const char* _name = "mc") : FullAnalysis () {
     name = _name;
     eventWeightsExt = _name;
-    directory = Form ("MCAnalysis/%s/", subDir);
     plotFill = true;
     useAltMarker = false;
     isMC = true;
-
-    SetupDirectories (directory, "ZTrackAnalysis/");
   }
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
@@ -36,9 +33,10 @@ class MCAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  LoadEventWeights ();
+  //LoadEventWeights ();
 
-  SetupDirectories (directory, "ZTrackAnalysis/");
+  //SetupDirectories (directory, "ZTrackAnalysis/");
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   if (!inFile || !inFile->IsOpen ()) {
@@ -53,7 +51,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1, vz_weight = 1, q2_weight = 1, psi2_weight = 1, fcal_weight = 1, nch_weight = 1;
+  float event_weight = 1;//, vz_weight = 1, q2_weight = 1, psi2_weight = 1, fcal_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -106,39 +104,23 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
-      short iCent = 0;
-      while (iCent < numCentBins) {
-        if (fcal_et < centBins[iCent])
-          break;
-        else
-          iCent++;
-      }
+      const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      short iFinerCent = 0;
-      while (iFinerCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iFinerCent])
-          break;
-        else
-          iFinerCent++;
-      }
+      const short iFinerCent = GetFinerCentBin (fcal_et);
       if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
         continue;
 
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
 
-      fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
+      //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
       //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
       //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
 
-      event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
+      //event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
+      if (event_weight == 0)
+        continue;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -161,10 +143,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
-      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -175,8 +157,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -298,7 +280,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
-      event_weight = event_weight * vz_weight * nch_weight;
+      //event_weight = event_weight * vz_weight * nch_weight;
+      if (event_weight == 0)
+        continue;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -317,10 +301,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
-      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
-      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -331,8 +315,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);

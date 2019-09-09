@@ -19,6 +19,15 @@ const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange, kV
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
 
+//const int GroupA[8] = {365502, 365512, 365573, 365602, 365627, 365678, 365681, 365709};
+//const int GroupB[7] = {365752, 365834, 365914, 365932};
+//const int GroupC[3] = {366011, 366029, 366092};
+//const int GroupD[6] = {366142, 366268, 366337, 366383, 366413, 366476};
+//const int GroupE[9] = {366526, 366528, 366627, 366691, 366754, 366805};
+//const int GroupF[6] = {366860, 366878, 366919, 366931, 366994, 367023};
+//const int GroupG[6] = {367099, 367134, 367165, 367170, 367233, 367273};
+//const int GroupH[6] = {367318, 367321, 367363, 367364, 367365, 367384};
+
 //enum XAxisVar { trkPt = 0, xZh = 1}
 //enum BinVar { trkPt = 0, dphi = 1, xZh = 2, zPt = 3}
 
@@ -38,7 +47,7 @@ float max_iaa = 1.4;
 float max_icp = 1.4;
 float max_rel_sys = 0.4;
 
-int mixingFraction = 20;
+int mixingFraction = 80;
 
 const int nFCalBins = 250;
 const double* fcalBins = linspace (0, 5000, nFCalBins);
@@ -53,33 +62,56 @@ const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
 const int numFinerEtaTrkBins = 40;
 const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 
-// Centrality cuts in GeV:  80%  -  40%  -  15%  -   0%
-//const double centBins[4] = {63.719, 875.41, 2476.58, 5000};
-//const int centCuts[4] =    {80,     40,     15,      0};
-
-// Centrality cuts in GeV:    80%   -   70%   -   60%  -   50%  -   40%  -   30%  -   20%  -   10%  -   0%
-//const double centBins[9]   = {63.719,   144.14,   289.595, 525.092, 875.41,  1368.75, 2046.51, 2989.31, 5000};
-//const double centCuts[9]   = {80,       70,       60,      50,      40,      30,      20,      10,      0};
-//const double centThicks[8] = {0.223102, 0.564885, 1.2811,  2.63435, 4.94611, 8.63844, 14.3345, 23.3523};
 
 // Centrality cuts in GeV:  80%  -  30%  -  10%  -   0%
 //const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations
 const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations
 const int centCuts[4]    = {80,     30,     10,      0};
+const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
+
+short GetCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numCentBins) {
+    if (fcal_et < centBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
 
 const double finerCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
 const int finerCentCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
-
-const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 const int numFinerCentBins = sizeof (finerCentBins) / sizeof (finerCentBins[0]);
+short GetFinerCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numFinerCentBins) {
+    if (fcal_et < finerCentBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
+
 
 const double phiLowBins[3] = {0,      3*pi/4,     15*pi/16};
 const double phiHighBins[3] = {pi/2,  15*pi/16,   pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
+
 //const double zPtBins[5] = {0, 5, 20, 40, 10000};
 const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
+short GetPtZBin (const float zPt) {
+  short iPtZ = 0;
+  while (iPtZ < nPtZBins) {
+    if (zPt < zPtBins[iPtZ+1])
+      break;
+    else
+      iPtZ++;
+  }
+  return iPtZ;
+}
+
 
 const double trk_min_pt = 1;
 const double trk_max_pt = 60;
@@ -262,90 +294,110 @@ short GetiZH (const float zH, const int iPtZ) {
 }
 
 
-const float superFineCentBins[81] = {
-    66.402,
-    72.411,
-    78.834,
-    85.729,
-    93.071,
-   100.928,
-   109.333,
-   118.249,
-   127.745,
-   137.874,
-   148.625,
-   160.033,
-   172.097,
-   184.922,
-   198.428,
-   212.684,
-   227.751,
-   243.588,
-   260.219,
-   277.742,
-   296.17,
-   315.523,
-   335.738,
-   356.885,
-   378.968,
-   402.144,
-   426.354,
-   451.509,
-   477.734,
-   505.085,
-   533.608,
-   563.263,
-   594.07,
-   626.047,
-   659.269,
-   693.606,
-   729.251,
-   766.305,
-   804.607,
-   844.192,
-   885.172,
-   927.582,
-   971.487,
-  1016.86,
-  1063.71,
-  1112.2,
-  1162.33,
-  1213.91,
-  1267.07,
-  1322.12,
-  1378.92,
-  1437.29,
-  1497.54,
-  1560.05,
-  1624.34,
-  1690.47,
-  1759.06,
-  1829.74,
-  1902.73,
-  1978.02,
-  2055.77,
-  2136.17,
-  2218.88,
-  2304.47,
-  2393.11,
-  2484.75,
-  2579.56,
-  2677.6,
-  2779.68,
-  2885.71,
-  2995.94,
-  3110.27,
-  3229.67,
-  3354.66,
-  3485.57,
-  3622.6,
-  3767.,
-  3920.41,
-  4083.38,
-  4263.72,
-  5000
+const float superFineCentBins[66] = {
+    66.402, // 80%
+  //  72.411, // 79%
+    78.834, // 78%
+  //  85.729, // 77%
+    93.071, // 76%
+  // 100.928, // 75%
+   109.333, // 74%
+  // 118.249, // 73%
+   127.745, // 72%
+  // 137.874, // 71%
+   148.625, // 70%
+  // 160.033, // 69%
+   172.097, // 68%
+  // 184.922, // 67%
+   198.428, // 66%
+  // 212.684, // 65%
+   227.751, // 64%
+  // 243.588, // 63%
+   260.219, // 62%
+  // 277.742, // 61%
+   296.17,  // 60%
+  // 315.523, // 59%
+   335.738, // 58%
+  // 356.885, // 57%
+   378.968, // 56%
+  // 402.144, // 55%
+   426.354, // 54%
+  // 451.509, // 53%
+   477.734, // 52%
+  // 505.085, // 51%
+   533.608, // 50%
+  // 563.263, // 49%
+   594.07,  // 48%
+  // 626.047, // 47%
+   659.269, // 46%
+  // 693.606, // 45%
+   729.251, // 44%
+  // 766.305, // 43%
+   804.607, // 42%
+  // 844.192, // 41%
+   885.172, // 40%
+  // 927.582, // 39%
+   971.487, // 38%
+  //1016.86,  // 37%
+  1063.71,  // 36%
+  //1112.2,   // 35%
+  1162.33,  // 34%
+  //1213.91,  // 33%
+  1267.07,  // 32%
+  //1322.12,  // 31%
+  1378.92,  // 30%
+  1437.29,  // 29%
+  1497.54,  // 28%
+  1560.05,  // 27%
+  1624.34,  // 26%
+  1690.47,  // 25%
+  1759.06,  // 24%
+  1829.74,  // 23%
+  1902.73,  // 22%
+  1978.02,  // 21%
+  2055.77,  // 20%
+  2136.17,  // 19%
+  2218.88,  // 18%
+  2304.47,  // 17%
+  2393.11,  // 16%
+  2484.75,  // 15%
+  2579.56,  // 14%
+  2677.6,   // 13%
+  2779.68,  // 12%
+  2885.71,  // 11%
+  2995.94,  // 10%
+  0.5*(2995.94+3110.27), // middle bin
+  3110.27,  //  9%
+  0.5*(3110.27+3229.67), // middle bin
+  3229.67,  //  8%
+  0.5*(3229.67+3354.66), // middle bin
+  3354.66,  //  7%
+  0.5*(3354.66+3485.57), // middle bin
+  3485.57,  //  6%
+  0.5*(3485.57+3622.6),   // middle bin
+  3622.6,   //  5%
+  0.5*(3622.6+3767.),     // middle bin
+  3767.,    //  4%
+  0.5*(3767.+3920.41),    // middle bin
+  3920.41,  //  3%
+  0.5*(3920.41+4083.38),  // middle bin
+  4083.38,  //  2%
+  0.5*(4083.38+4263.72),  // middle bin
+  4263.72,  //  1%
+  0.5*(4263.72+5000),     // middle bin
+  5000      //  0%,   entry in array is numSuperFineCentBins-1
 };
 const short numSuperFineCentBins = sizeof (superFineCentBins) / sizeof (superFineCentBins[0]);
+
+short GetSuperFineCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numSuperFineCentBins) {
+    if (fcal_et < superFineCentBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
 
 
 #endif
