@@ -99,7 +99,7 @@ int main (int argc, char** argv) {
       bkg->eventWeightsExt = "minbias";
     }
     else {
-      bkg = new MinbiasAnalysis ("minbias");
+      bkg = new MinbiasAnalysis ("bkg");
       bkg->eventWeightsExt = "minbias";
     }
     bkg->useHITight = doHITightVar;

@@ -47,7 +47,7 @@ float max_iaa = 1.4;
 float max_icp = 1.4;
 float max_rel_sys = 0.4;
 
-int mixingFraction = 80;
+int mixingFraction = 40;
 
 const int nFCalBins = 250;
 const double* fcalBins = linspace (0, 5000, nFCalBins);

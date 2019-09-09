@@ -122,7 +122,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->GetEntry (iMixEvt);
 
     std::vector <int> eventOrder = {};
-    for (int i = 0; i < nMixEvts; i++) eventOrder.push_back (i);
+    std::vector <bool> eventsMixed = {};
+    for (int i = 0; i < nMixEvts; i++) {
+      eventOrder.push_back (i);
+      eventsMixed.push_back (false);
+    }
     std::random_shuffle (eventOrder.begin (), eventOrder.end ());
 
     TTree* zTree = LoadEventMixingTree (inFileName, "PbPbZTrackTree");
@@ -155,12 +159,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       bool goodMixEvent = false;
       int _iMixEvt = iMixEvt;
       do {
-        PbPbTree->GetEntry (eventOrder[iMixEvt]);
         iMixEvt = (iMixEvt+1) % nMixEvts;
-        goodMixEvent = (iFCalEt == GetSuperFineCentBin (fcal_et));
+        PbPbTree->GetEntry (eventOrder[iMixEvt]);
+        goodMixEvent = (iFCalEt == GetSuperFineCentBin (fcal_et) && !eventsMixed[iMixEvt]);
       } while (!goodMixEvent && iMixEvt != _iMixEvt);
       if (_iMixEvt == iMixEvt)
         cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+      else
+        eventsMixed[iMixEvt] = true;
 
       const short iSpc = 0;
       const short iPhi = 0;
@@ -255,7 +261,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->GetEntry (iMixEvt);
 
     std::vector <int> eventOrder = {};
-    for (int i = 0; i < nMixEvts; i++) eventOrder.push_back (i);
+    std::vector <bool> eventsMixed = {};
+    for (int i = 0; i < nMixEvts; i++) {
+      eventOrder.push_back (i);
+      eventsMixed.push_back (false);
+    }
     std::random_shuffle (eventOrder.begin (), eventOrder.end ());
 
     TTree* zTree = LoadEventMixingTree (Form ("%i", run_number), "ppZTrackTree");
@@ -283,12 +293,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       bool goodMixEvent = false;
       int _iMixEvt = iMixEvt;
       do {
-        ppTree->GetEntry (eventOrder[iMixEvt]);
         iMixEvt = (iMixEvt+1) % nMixEvts;
-        goodMixEvent = true;
+        ppTree->GetEntry (eventOrder[iMixEvt]);
+        goodMixEvent = (!eventsMixed[iMixEvt]);
       } while (!goodMixEvent && iMixEvt != _iMixEvt);
       if (_iMixEvt == iMixEvt)
         cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+      else
+        eventsMixed[iMixEvt] = true;
 
     //for (int iMixEvt = 0; iMixEvt < nMixEvts; iMixEvt++) {
     //  if (nMixEvts > 0 && iMixEvt % (nMixEvts / 100) == 0)
