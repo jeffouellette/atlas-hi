@@ -30,7 +30,6 @@ class PhysicsAnalysis {
 
   protected:
   string name = "";
-  //string directory = "";
   bool backgroundSubtracted = false;
   bool sameSignsSubtracted = false;
   bool hasBkg = true;
@@ -128,9 +127,8 @@ class PhysicsAnalysis {
 
   PhysicsAnalysis () { }
 
-  PhysicsAnalysis (const char* _name/*, const char* subDir*/) {
+  PhysicsAnalysis (const char* _name) {
     name = _name;
-    //directory = Form ("DataAnalysis/%s/", subDir);
     plotFill = false;
   }
 
@@ -1367,7 +1365,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
           SetMinAndMax (min, max);
 
           if (plotFill) {
-            for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+            for (short iPtTrk = 0; iPtTrk < std::min (4, nPtTrkBins[iPtZ]); iPtTrk++) {
               TH1D* h = (TH1D*) (!subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent])->Clone ();
 
               h->GetYaxis ()->SetRangeUser (min, max);
@@ -1398,7 +1396,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
             } // end loop over iPtTrk
             gPad->RedrawAxis ();
           } else {
-            for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+            for (short iPtTrk = 0; iPtTrk < std::min (4, nPtTrkBins[iPtZ]); iPtTrk++) {
               TGAE* g = GetTGAE (!subBkg ? h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] : h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
               ResetXErrors (g);
 
@@ -2040,8 +2038,8 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
 
       // Hadron yield systematics, signal & signal+bkg levels
-      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-        for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           AddStatVar (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
           AddStatVar (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
 
@@ -2050,19 +2048,34 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
 
           AddStatVar (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
           AddStatVar (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-        } // end loop over cents
-      } // end loop over phi
-      // IAA, ICP systematics
-      for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-        for (short iCent = 1; iCent < numCentBins; iCent++) {
-          AddStatVar (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-          AddStatVar (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-        } // end loop over cents
-        for (short iCent = 2; iCent < numCentBins; iCent++) {
-          AddStatVar (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-          AddStatVar (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-        } // end loop over cents
-      } // end loop over phi
+        } // end loop over phi
+
+        AddStatVar (h_z_trk_zpt[iSpc][iPtZ][iCent], upVar, nSigma);
+        AddStatVar (h_z_trk_zxzh[iSpc][iPtZ][iCent], upVar, nSigma);
+        AddStatVar (h_z_trk_zpt_sub[iSpc][iPtZ][iCent], upVar, nSigma);
+        AddStatVar (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], upVar, nSigma);
+        AddStatVar (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], upVar, nSigma);
+        AddStatVar (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], upVar, nSigma);
+      } // end loop over cents
+      //// IAA, ICP systematics
+      //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+      //  for (short iCent = 1; iCent < numCentBins; iCent++) {
+      //    AddStatVar (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
+      //    AddStatVar (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
+      //  } // end loop over cents
+      //  for (short iCent = 2; iCent < numCentBins; iCent++) {
+      //    AddStatVar (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
+      //    AddStatVar (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
+      //  } // end loop over cents
+      //} // end loop over phi
+      //for (short iCent = 1; iCent < numCentBins; iCent++) {
+      //  AddStatVar (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent], upVar, nSigma);
+      //  AddStatVar (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], upVar, nSigma);
+      //} // end loop over cents
+      //for (short iCent = 2; iCent < numCentBins; iCent++) {
+      //  AddStatVar (h_z_trk_zpt_icp[iSpc][iPtZ][iCent], upVar, nSigma);
+      //  AddStatVar (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent], upVar, nSigma);
+      //} // end loop over cents
     } // end loop over pT^Z bins
   } // end loop over species
 }
@@ -2851,7 +2864,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineColor (kBlack);
           h->SetLineWidth (0);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -2896,7 +2909,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -2965,7 +2978,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineWidth (0);
           h->SetMarkerStyle (kFullCircle);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -3012,7 +3025,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -3080,7 +3093,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->SetLineWidth (0);
           h->SetMarkerStyle (kFullCircle);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           h->GetYaxis ()->SetRangeUser (min, max);
 
           h->GetXaxis ()->SetMoreLogLabels ();
@@ -3127,7 +3140,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           g->GetYaxis ()->SetRangeUser (min, max);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -3188,7 +3201,7 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ) {
     myText (0.485, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.06);
   }
   else if (iCent == numCentBins-1) {
-    myMarkerTextNoLine (0.56, 0.912-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
+    myMarkerTextNoLine (0.56, 0.902-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting data vs bkg.
 
     //if (iPtZ == 2) {
     //  myText (0.34, 0.91, kBlack, "Reco.", 0.06);
@@ -3198,9 +3211,9 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ) {
     //myMarkerTextNoLine (0.52, 0.852-0.06*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 1.5, 0.054);
 
     if (iPtZ == nPtZBins-1)
-      myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
+      myText (0.56, 0.90-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
     else
-      myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
+      myText (0.56, 0.90-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
   }
 }
 
@@ -3543,7 +3556,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
 
             if (!plotAsSystematic) {
               ResetXErrors (g);
-              deltaize (g, 1+((numCentBins-1)*((int)useAltMarker)-iCent)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+              deltaize (g, 1+(iCent-2)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
               g->SetLineColor (colors[iCent]);
               g->SetMarkerColor (colors[iCent]);
               g->SetMarkerStyle (markerStyle);
@@ -3661,7 +3674,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s", useTrkPt ? "pttrk" : "xhz", spc);
+    const char* canvasName = Form ("c_z_trk_z%s_iaa_%s", useTrkPt ? "zpttrk" : "zxhz", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -3678,7 +3691,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
       gPad->SetLogx ();
 
       if (plotFill) {
-        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
           h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -3686,7 +3699,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
           h->SetLineColor (kBlack);
           h->SetLineWidth (0);
 
-          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           h->GetYaxis ()->SetRangeUser (0, max_iaa);
           xmin = h->GetXaxis ()->GetXmin ();
           xmax = h->GetXaxis ()->GetXmax ();
@@ -3723,7 +3736,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
 
           if (!plotAsSystematic) {
             ResetXErrors (g);
-            deltaize (g, 1+((nPtZBins-1)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+            deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
             g->SetLineColor (colors[iPtZ-1]);
             g->SetMarkerColor (colors[iPtZ-1]);
             g->SetMarkerStyle (markerStyle);
@@ -3736,7 +3749,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[nPtZBins-1]]);
+          useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
           g->GetYaxis ()->SetRangeUser (0, max_iaa);
 
           g->GetXaxis ()->SetMoreLogLabels ();
@@ -3896,7 +3909,8 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
 
         if (!plotAsSystematic) {
           ResetXErrors (g);
-          deltaize (g, 1+((nPtZBins-1)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+          deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+          //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iPtZ-1]);
           g->SetMarkerColor (colors[iPtZ-1]);
           g->SetMarkerStyle (markerStyle);
@@ -4110,7 +4124,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 
             if (!plotAsSystematic) {
               ResetXErrors (g);
-              deltaize (g, 1+((numPhiBins-1)*((int)useAltMarker)-iPhi)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+              deltaize (g, 1+(iPhi-1.5)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
               g->SetLineColor (colors[iPhi]);
               g->SetMarkerColor (colors[iPhi]);
               g->SetMarkerStyle (markerStyle);

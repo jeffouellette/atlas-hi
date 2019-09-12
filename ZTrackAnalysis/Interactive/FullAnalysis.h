@@ -110,9 +110,9 @@ class FullAnalysis : public PhysicsAnalysis {
 
   void PlotFCalDists (const bool _treatAsData = true);
   void PlotQ2Dists (const bool _treatAsData = true);
-  void PlotQ2Weights ();
+  void PlotQ2Weights (FullAnalysis* a);
   void PlotPsi2Dists (const bool _treatAsData = true);
-  void PlotPsi2Weights ();
+  void PlotPsi2Weights (FullAnalysis* a);
   void PlotVZDists (const bool _treatAsData = true);
   void PlotNchDists (const bool _treatAsData = true);
 
@@ -122,7 +122,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotLeptonTrackDR ();
   void PlotLeptonTrackDRProjX ();
   void PlotZPtSpectra ();
-  void PlotZYPhiMap (const short pPtZ);
+  void PlotZYPhiMap ();
   void PlotZEtaMap (const short pPtZ);
   void PlotZYMap (const short pPtZ);
   void PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a = nullptr);
@@ -888,41 +888,26 @@ void FullAnalysis :: PlotFCalDists (const bool _treatAsData) {
 
   c->SetLogy ();
 
+  h_fcal_et->Scale (1., "width");
   if (!_treatAsData) {
-    //h_fcal_et->Scale (1./h_fcal_et->Integral ());
-    h_fcal_et->SetLineColor (kGray+1);
-
-    h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-    h_fcal_et->GetYaxis ()->SetTitle ("Counts");
-
-    h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
-
-    h_fcal_et_reweighted->SetLineColor (kBlue);
-    //h_fcal_et_reweighted->Scale (1./h_fcal_et_reweighted->Integral ());
-
-    h_fcal_et_reweighted->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-    h_fcal_et_reweighted->GetYaxis ()->SetTitle ("Counts");
-
-    h_fcal_et_reweighted->Draw ("same hist");
-
-    myText (0.72, 0.81, kGray+1, "Unweighted", 0.04);
-    myText (0.72, 0.74, kBlue, "Reweighted", 0.04);
-
-    myText (0.22, 0.21, kBlack, "Minimum bias", 0.04);
+    h_fcal_et->SetLineColor (kBlue);
   }
   else {
     h_fcal_et->SetLineColor (kBlack);
-    //h_fcal_et->Scale (1./h_fcal_et->Integral ());
-
-    h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-    h_fcal_et->GetYaxis ()->SetTitle ("Counts");
-
-    h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
-
-    myText (0.72, 0.88, kBlack, "Z-tagged data", 0.04);
   }
 
-  myText (0.22, 0.28, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
+  h_fcal_et->GetYaxis ()->SetTitle ("dN_{evt} / d#Sigma#it{E}_{T} [GeV^{-1}]");
+
+  h_fcal_et->GetYaxis ()->SetRangeUser (5e-2, 2e3);
+
+  h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
+
+  myText (0.67, 0.88, kBlack, "Z-tagged data", 0.04);
+  myText (0.67, 0.81, kBlue, "Mixed minimum bias", 0.04);
+
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+  myText (0.22, 0.81, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV", 0.04);
 
   c->SaveAs (Form ("%s/FCalDist.pdf", plotPath.Data ()));
 }
@@ -956,57 +941,30 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
     GetMinAndMax (min, max, true);
     SetMinAndMax (min, max);
 
+    TH1D* h = h_q2[iCent];
+    if (h->GetMinimum (0) < min)
+      min = h->GetMinimum (0);
+    if (h->GetMaximum () > max)
+      max = h->GetMaximum ();
+
+    h->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
+
     if (!_treatAsData) {
-
-      float max = std::fmax (h_q2[iCent]->GetMaximum (), h_q2_reweighted[iCent]->GetMaximum ());
-      float min = std::fmin (h_q2[iCent]->GetMinimum (0), h_q2_reweighted[iCent]->GetMinimum (0));
-      TH1D* h = h_q2[iCent];
-
-      h->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
-
-      //h->SetLineColor (colors[iCent]);
-      h->SetLineColor (kGray+1);
-
-      h->GetXaxis ()->SetTitle ("#it{q}_{2}");
-      h->GetYaxis ()->SetTitle ("Counts");
-
-      h->Draw (!canvasExists ? "hist" : "same hist");
-
-      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
-
-      h = h_q2_reweighted[iCent];
-
-      h->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
-
       h->SetLineColor (colors[iCent]);
-      //h->SetLineStyle (2);
-
-      h->GetXaxis ()->SetTitle ("#it{q}_{2}");
-      h->GetYaxis ()->SetTitle ("Counts");
-
-      h->Draw ("same hist");
-
-      myText (0.61, 0.74, colors[iCent], "Reweighted", 0.05);
-      myText (0.61, 0.68, kGray+1, "Unweighted", 0.05);
     }
-
     else {
-      TH1D* h = h_q2[iCent];
-
-      if (h->GetMinimum (0) < min)
-        min = h->GetMinimum (0);
-      if (h->GetMaximum () > max)
-        max = h->GetMaximum ();
-
       h->SetLineColor (kBlack);
-
-      h->GetXaxis ()->SetTitle ("#it{q}_{2}");
-      h->GetYaxis ()->SetTitle ("Counts");
-
-      h->Draw (!canvasExists ? "hist" : "same hist");
-
-      myText (0.61, 0.80, kBlack, "Z-tagged Data", 0.05);
     }
+
+    h->GetXaxis ()->SetTitle ("#it{q}_{2}");
+    h->GetYaxis ()->SetTitle ("Counts");
+
+    h->Draw (!canvasExists ? "hist" : "same hist");
+
+    myText (0.51, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+
+    myText (0.51, 0.74, colors[iCent], "Mixed minimum bias", 0.05);
+    myText (0.51, 0.80, kBlack, "Z-tagged Data", 0.05);
 
     SetMinAndMax (0.5*min, 2*max);
 
@@ -1023,48 +981,56 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Plot Q2 weights
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: PlotQ2Weights () {
-//  const char* canvasName = "c_q2_weights";
-//  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-//  TCanvas* c = nullptr;
-//  if (canvasExists)
-//    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-//  else {
-//    c = new TCanvas (canvasName, "", 1200, 1200);
-//    gDirectory->Add (c);
-//    c->Divide (3,3);
-//  }
-//
-//  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-//    c->cd (numFinerCentBins-iCent);
-//
-//    TH1D* h = h_PbPbQ2_weights[iCent][5];
-//    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
-//
-//    h->SetMarkerColor (colors[iCent]);
-//    h->SetLineColor (colors[iCent]);
-//
-//    h->GetXaxis ()->SetTitle ("#left|#it{q}_{2}#right|");
-//    h->GetYaxis ()->SetTitle ("Event Weight");
-//
-//    h->Draw (!canvasExists ? "e1" : "same e1");
-//
-//    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
-//  }
-//
-//  c->cd (1);
-//
-//  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-//  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-//  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
-//  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
-//
-//  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
-//
-//}
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Q2 weights
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotQ2Weights (FullAnalysis* a) {
+  const char* canvasName = "c_q2_weights";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1200, 1200);
+    gDirectory->Add (c);
+    c->Divide (3,3);
+  }
+
+  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+    c->cd (numFinerCentBins-iCent);
+
+    TH1D* h = (TH1D*) h_q2[iCent]->Clone ();
+
+    const float hint = h->Integral ();
+    const float aint = a->h_q2[iCent]->Integral ();
+    h->Divide (a->h_q2[iCent]);
+
+    if (hint != 0)
+      h->Scale (aint / hint);
+
+    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+
+    h->SetMarkerColor (colors[iCent]);
+    h->SetLineColor (colors[iCent]);
+
+    h->GetXaxis ()->SetTitle ("#left|#it{q}_{2}#right|");
+    h->GetYaxis ()->SetTitle ("Event Weight");
+
+    h->Draw (!canvasExists ? "e1" : "same e1");
+
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+  }
+
+  c->cd (1);
+
+  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+
+  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
+
+}
 
 
 
@@ -1162,48 +1128,52 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Plot Psi2 weights
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: PlotPsi2Weights () {
-//  const char* canvasName = "c_psi2_weights";
-//  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-//  TCanvas* c = nullptr;
-//  if (canvasExists)
-//    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-//  else {
-//    c = new TCanvas (canvasName, "", 1200, 1200);
-//    gDirectory->Add (c);
-//    c->Divide (3,3);
-//  }
-//
-//  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-//    c->cd (numFinerCentBins-iCent);
-//
-//    TH1D* h = h_PbPbPsi2_weights[iCent][5];
-//    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
-//
-//    h->SetMarkerColor (colors[iCent]);
-//    h->SetLineColor (colors[iCent]);
-//
-//    h->GetXaxis ()->SetTitle ("#Psi_{2}");
-//    h->GetYaxis ()->SetTitle ("Event Weight");
-//
-//    h->Draw (!canvasExists ? "e1" : "same e1");
-//
-//    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
-//  }
-//
-//  c->cd (1);
-//
-//  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-//  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-//  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
-//  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
-//
-//  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
-//
-//}
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Psi2 weights
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
+  const char* canvasName = "c_psi2_weights";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1200, 1200);
+    gDirectory->Add (c);
+    c->Divide (3,3);
+  }
+
+  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
+    c->cd (numFinerCentBins-iCent);
+
+    TH1D* h = h_psi2[iCent];
+    const float hint = h->Integral ();
+    const float aint = a->h_psi2[iCent]->Integral ();
+    h->Divide (a->h_psi2[iCent]);
+
+    h->GetYaxis ()->SetRangeUser (0.5, 1.5);
+
+    h->SetMarkerColor (colors[iCent]);
+    h->SetLineColor (colors[iCent]);
+
+    h->GetXaxis ()->SetTitle ("#Psi_{2}");
+    h->GetYaxis ()->SetTitle ("Event Weight");
+
+    h->Draw (!canvasExists ? "e1" : "same e1");
+
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+  }
+
+  c->cd (1);
+
+  myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+  myText (0.22, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
+  //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
+
+  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
+
+}
 
 
 
@@ -1898,54 +1868,50 @@ void FullAnalysis :: PlotZPtSpectra () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots the RAPIDITY-phi distribution of reconstructed Z bosons
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZYPhiMap (const short pPtZ) {
-  for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    if (pPtZ != -1 && pPtZ != iPtZ)
-      continue;
+void FullAnalysis :: PlotZYPhiMap () {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iSpc = 0; iSpc < 3; iSpc++) {
-        const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-
-        const char* canvasName = Form ("c_z_y_phi_%s_iCent%i_iPtZ%i", spc, iCent, iPtZ);
-        const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-        TCanvas* c = nullptr;
-        if (canvasExists)
-          c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-        else {
-          c = new TCanvas (canvasName, "", 800, 600);
-          FormatTH2Canvas (c, true);
-          gDirectory->Add (c);
-        }
-        c->cd ();
-
-        TH2D* h = h_z_y_phi[iCent][iSpc][iPtZ];
-
-        h->GetXaxis ()->SetTitle ("y");
-        h->GetYaxis ()->SetTitle ("#phi");
-        h->GetZaxis ()->SetTitle ("Counts");
-
-        h->GetXaxis ()->SetTitleOffset (1.4);
-        h->GetYaxis ()->SetTitleOffset (1.1);
-
-        h->Draw ("colz");
-
-        myText (0.18, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-
-        const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-} Events" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-} Events" : "Z #rightarrow l^{+}l^{-} Events");
-        myText (0.62, 0.90, kBlack, spcLabel, 0.04);
-        myText (0.62, 0.84, kBlack, "#it{p}_{T}^{Z} > 25 GeV", 0.04);
-        if (iCent == 0) {
-          myText (0.18, 0.84, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
-        }
-        else
-          myText (0.18, 0.84, kBlack, Form ("Pb+Pb %i-%i%%, 5.02 TeV", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-
-        c->SaveAs (Form ("%s/ZYPhiDists/z%s_y_phi_iCent%i_iPtZ%i.pdf", plotPath.Data (), spc, iCent, iPtZ));
+      const char* canvasName = Form ("c_z_y_phi_%s_iCent%i", spc, iCent);
+      const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+      TCanvas* c = nullptr;
+      if (canvasExists)
+        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+      else {
+        c = new TCanvas (canvasName, "", 800, 600);
+        FormatTH2Canvas (c, true);
+        gDirectory->Add (c);
       }
+      c->cd ();
+
+      TH2D* h = (TH2D*) h_z_y_phi[iCent][iSpc][2]->Clone ();
+      h->Add (h_z_y_phi[iCent][iSpc][3]);
+      h->Add (h_z_y_phi[iCent][iSpc][4]);
+
+      h->GetXaxis ()->SetTitle ("y");
+      h->GetYaxis ()->SetTitle ("#phi");
+      h->GetZaxis ()->SetTitle ("Counts");
+
+      h->GetXaxis ()->SetTitleOffset (1.4);
+      h->GetYaxis ()->SetTitleOffset (1.1);
+
+      h->Draw ("colz");
+
+      myText (0.18, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+
+      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-} Events" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-} Events" : "Z #rightarrow l^{+}l^{-} Events");
+      myText (0.62, 0.90, kBlack, spcLabel, 0.04);
+      myText (0.62, 0.84, kBlack, "#it{p}_{T}^{Z} > 15 GeV", 0.04);
+      if (iCent == 0) {
+        myText (0.18, 0.84, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
+      }
+      else
+        myText (0.18, 0.84, kBlack, Form ("Pb+Pb %i-%i%%, 5.02 TeV", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+
+      c->SaveAs (Form ("%s/ZYPhiDists/z%s_y_phi_iCent%i.pdf", plotPath.Data (), spc, iCent));
     }
   }
-
 }
 
 

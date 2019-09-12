@@ -19,7 +19,7 @@ class Systematic : public PhysicsAnalysis {
 
   protected:
   vector<PhysicsAnalysis*> variations;
-  map <PhysicsAnalysis*, short> variationDirs; // variation direction values are -1 for down, 0 for both, 1 for up
+  map <PhysicsAnalysis*, bool> variationDirs; // variation direction values are -1 for down, 0 for both, 1 for up
   vector<Systematic*> systematics;
 
   // map taking TH1Ds to TGAEs for systematics
@@ -53,7 +53,7 @@ class Systematic : public PhysicsAnalysis {
 
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
 
-  void AddVariation (PhysicsAnalysis* a, const short dir = 0);
+  void AddVariation (PhysicsAnalysis* a, const bool applyBothWays = true);
   void AddSystematic (Systematic* a);
 
   void AddVariations (); // variations add linearly
@@ -236,10 +236,10 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Adds a variation to consider
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: AddVariation (PhysicsAnalysis* a, const short dir) {
+void Systematic :: AddVariation (PhysicsAnalysis* a, const bool applyBothWays) {
   if (find (variations.begin (), variations.end (), a) == variations.end ()) {
     variations.push_back (a);
-    variationDirs.insert (pair <PhysicsAnalysis*, short> (a, dir));
+    variationDirs.insert (pair <PhysicsAnalysis*, bool> (a, applyBothWays));
   }
 }
 
