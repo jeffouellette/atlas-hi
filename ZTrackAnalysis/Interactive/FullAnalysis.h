@@ -604,6 +604,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
+      if (event_weight == 0)
+        continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       const short iCent = GetCentBin (fcal_et);
@@ -615,9 +618,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-
-      if (event_weight == 0)
-        continue;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -662,10 +662,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
         {
@@ -692,15 +692,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -709,14 +702,15 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
         }
       } // end loop over tracks
 
@@ -761,19 +755,18 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
+      if (event_weight == 0)
+        continue;
+
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
-
-      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-
-      if (event_weight == 0)
-        continue;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
@@ -808,10 +801,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
         {
@@ -838,15 +831,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -855,14 +841,15 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
         }
       } // end loop over tracks
 

@@ -162,10 +162,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
-        if (trkpt < ptTrkBins[iPtZ][nPtTrkBins[iPtZ]] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
         {
@@ -192,15 +192,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -209,14 +202,15 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
         }
       } // end loop over tracks
 
@@ -320,10 +314,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
         {
@@ -350,15 +344,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -367,14 +354,15 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-        
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
         }
       } // end loop over tracks
 

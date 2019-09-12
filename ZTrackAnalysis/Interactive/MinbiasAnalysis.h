@@ -37,7 +37,7 @@ class MinbiasAnalysis : public FullAnalysis {
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 
   void CombineHists () override;
-  void ScaleHists () override;
+  //void ScaleHists () override;
 
   //void GenerateWeights ();
 };
@@ -152,27 +152,26 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       const short iPtZ = GetPtZBin (z_pt);
 
-      const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
-      if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
-        continue;
-      
-      bool goodMixEvent = false;
-      int _iMixEvt = iMixEvt;
-      do {
-        iMixEvt = (iMixEvt+1) % nMixEvts;
-        PbPbTree->GetEntry (eventOrder[iMixEvt]);
-        goodMixEvent = (iFCalEt == GetSuperFineCentBin (fcal_et) && !eventsMixed[iMixEvt]);
-      } while (!goodMixEvent && iMixEvt != _iMixEvt);
-      if (_iMixEvt == iMixEvt) {
-        cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
-        continue;
-      }
-      else
+      {
+        const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
+        if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
+          continue;
+        
+        bool goodMixEvent = false;
+        const int _iMixEvt = iMixEvt;
+        do {
+          iMixEvt = (iMixEvt+1) % nMixEvts;
+          PbPbTree->GetEntry (eventOrder[iMixEvt]);
+          goodMixEvent = (iFCalEt == GetSuperFineCentBin (fcal_et) && !eventsMixed[iMixEvt]);
+        } while (!goodMixEvent && iMixEvt != _iMixEvt);
+        if (_iMixEvt == iMixEvt) {
+          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+          continue;
+        }
         eventsMixed[iMixEvt] = true;
+      }
 
       const short iSpc = 0;
-      const short iPhi = 0;
-
       const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
@@ -208,7 +207,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
@@ -217,30 +216,26 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
 
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, trkWeight);
-
-        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, trkWeight);
-
-        short iPtTrk = 0;
-        while (iPtTrk < nPtTrkBins[iPtZ]) {
-          if (trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            break;
-          iPtTrk++;
-        }
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
-        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        h->Fill (dphi, trkWeight);
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+        }
 
-        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (xHZ, trkWeight);
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+        }
       }
 
     } // end loop over Pb+Pb tree
@@ -292,29 +287,22 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       const short iPtZ = GetPtZBin (z_pt);
 
-      bool goodMixEvent = false;
-      int _iMixEvt = iMixEvt;
-      do {
-        iMixEvt = (iMixEvt+1) % nMixEvts;
-        ppTree->GetEntry (eventOrder[iMixEvt]);
-        goodMixEvent = (!eventsMixed[iMixEvt]);
-      } while (!goodMixEvent && iMixEvt != _iMixEvt);
-      if (_iMixEvt == iMixEvt) {
-        cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
-        continue;
-      }
-      else
+      {
+        bool goodMixEvent = false;
+        const int _iMixEvt = iMixEvt;
+        do {
+          iMixEvt = (iMixEvt+1) % nMixEvts;
+          ppTree->GetEntry (eventOrder[iMixEvt]);
+          goodMixEvent = (!eventsMixed[iMixEvt]);
+        } while (!goodMixEvent && iMixEvt != _iMixEvt);
+        if (_iMixEvt == iMixEvt) {
+          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+          continue;
+        }
         eventsMixed[iMixEvt] = true;
-
-    //for (int iMixEvt = 0; iMixEvt < nMixEvts; iMixEvt++) {
-    //  if (nMixEvts > 0 && iMixEvt % (nMixEvts / 100) == 0)
-    //    cout << iMixEvt / (nMixEvts / 100) << "\% done...\r" << flush;
-    //  ppTree->GetEntry (iMixEvt);
-
-    //  zTree->GetEntry (iZEvt % nZEvts);
+      }
 
       const short iSpc = 0;
-      const short iPhi = 0;
       const short iCent = 0; // iCent = 0 for pp
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
@@ -336,7 +324,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt >= ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
@@ -345,30 +333,26 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
 
-        TH1D* h = h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, trkWeight);
-
-        h = h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (trkpt, trkWeight);
-
-        short iPtTrk = 0;
-        while (iPtTrk < nPtTrkBins[iPtZ]) {
-          if (trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            break;
-          iPtTrk++;
-        }
+        // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
-        h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-        h->Fill (dphi, trkWeight);
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+        }
 
-        h = h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-        h->Fill (xHZ, trkWeight);
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+        }
       }
     } // end loop over pp tree
     cout << "Done minbias pp loop." << endl;
@@ -425,49 +409,49 @@ void MinbiasAnalysis :: CombineHists () {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Scale histograms for plotting, calculating signals, etc.
-////////////////////////////////////////////////////////////////////////////////////////////////
-void MinbiasAnalysis :: ScaleHists () {
-  if (histsScaled || !histsLoaded)
-    return;
-
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
-        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        const float counts = countsHist->GetBinContent (1);
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          const double countsdPhi = counts * (pi);
-          if (countsdPhi > 0) {
-            h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
-            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
-            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
-          }
-        } // end loop over phi
-
-        if (counts > 0) {
-          h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
-          h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
-        }
-
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-          h->Rebin (2);
-          if (iPtTrk > 3)
-            h->Rebin (2);
-          if (iCent != 0)
-            h->Rebin (2);
-          if (counts > 0)
-            h->Scale (1. / counts);
-        }
-      } // end loop over pT^Z
-    } // end loop over centralities
-  } // end loop over species
-
-  histsScaled = true;
-  return;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Scale histograms for plotting, calculating signals, etc.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: ScaleHists () {
+//  if (histsScaled || !histsLoaded)
+//    return;
+//
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+//        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+//        const float counts = countsHist->GetBinContent (1);
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          const double countsdPhi = counts * (pi);
+//          if (countsdPhi > 0) {
+//            h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
+//            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//            h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//          }
+//        } // end loop over phi
+//
+//        if (counts > 0) {
+//          h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
+//          h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (counts * (pi)), "width");
+//        }
+//
+//        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+//          TH1D* h = h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+//          h->Rebin (2);
+//          if (iPtTrk > 3)
+//            h->Rebin (2);
+//          if (iCent != 0)
+//            h->Rebin (2);
+//          if (counts > 0)
+//            h->Scale (1. / counts);
+//        }
+//      } // end loop over pT^Z
+//    } // end loop over centralities
+//  } // end loop over species
+//
+//  histsScaled = true;
+//  return;
+//}
 
 
 

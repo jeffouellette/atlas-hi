@@ -317,36 +317,30 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < ptTrkBins[iPtZ][0] || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ >= xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, event_weight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt);
         }
       } // end loop over tracks
 
@@ -495,7 +489,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trkpt > ptTrkBins[iPtZ][nPtTrkBins[iPtZ]])
+        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
           continue;
 
         for (int iJet = 0; iJet < njet; iJet++) {
@@ -514,31 +508,25 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
 
-        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
-        }
-
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi);
         }
 
-        const float xHZ = trkpt / z_pt;
-        if (xHZ < xHZBins[iPtZ][0] || xHZ > xHZBins[iPtZ][nXHZBins[iPtZ]])
-          continue;
-
+        // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (xHZ, event_weight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+        }
+        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt);
         }
       } // end loop over tracks
 
