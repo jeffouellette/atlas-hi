@@ -3848,7 +3848,8 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s_iCent%i", useTrkPt ? "pttrk" : "xhz", spc, iCent);
+    //const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s_iCent%i", useTrkPt ? "pttrk" : "xhz", spc, iCent);
+    const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_iCent%i", useTrkPt ? "pttrk" : "xhz", iCent);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -3958,14 +3959,17 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
       } // end loop over pT^Z bins
     }
 
-    myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-    myText (0.22, 0.80, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
+    myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+    myText (0.20, 0.83, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
     const char* lo = GetPiString (phiLowBins[1]);
     const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
     myText (0.22, 0.24, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
-    myText (0.65, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
+    myText (0.65, 0.90, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      myText (0.565, 0.854, kBlack, "#mu#mu", 0.04);
+      myText (0.615, 0.86, kBlack, "ee", 0.04);
       myMarkerTextNoLine (0.65, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 2.4, 0.04);
+      myMarkerTextNoLine (0.60, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 2.4, 0.04);
       if (iPtZ == nPtZBins-1)
         myText (0.665, 0.80-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
       else
@@ -3978,7 +3982,8 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     l->SetLineColor (kPink-8);
     l->Draw ("same");
 
-    c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iCent, spc));
+    //c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iCent, spc));
+    c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iCent));
   } // end loop over species
 }
 
