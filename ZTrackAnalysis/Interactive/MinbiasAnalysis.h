@@ -36,7 +36,7 @@ class MinbiasAnalysis : public FullAnalysis {
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 
-  void CombineHists () override;
+  //void CombineHists () override;
   //void ScaleHists () override;
 
   //void GenerateWeights ();
@@ -88,6 +88,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
   CreateHists ();
 
   int run_number = 0, ntrk = 0;
+  bool isEE = false;
   unsigned int event_number = 0;
   float event_weight = 1;//, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_fcal_et = 0;
@@ -133,6 +134,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     if (!zTree)
       cout << "Got a null mixing tree!" << endl;
     const int nZEvts = zTree->GetEntries ();
+    zTree->SetBranchAddress ("isEE",          &isEE);
     zTree->SetBranchAddress ("z_pt",          &z_pt);
     zTree->SetBranchAddress ("z_phi",         &z_phi);
     zTree->SetBranchAddress ("fcal_et",       &z_fcal_et);
@@ -171,7 +173,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         eventsMixed[iMixEvt] = true;
       }
 
-      const short iSpc = 0;
+      const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
@@ -269,9 +271,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     if (!zTree)
       cout << "Got a null mixing tree!" << endl;
     const int nZEvts = zTree->GetEntries ();
-    zTree->SetBranchAddress ("z_pt",   &z_pt);
-    zTree->SetBranchAddress ("z_phi",  &z_phi);
-    zTree->SetBranchAddress ("event_weight", &event_weight);
+    zTree->SetBranchAddress ("isEE",          &isEE);
+    zTree->SetBranchAddress ("z_pt",          &z_pt);
+    zTree->SetBranchAddress ("z_phi",         &z_phi);
+    zTree->SetBranchAddress ("event_weight",  &event_weight);
 
     if (nZEvts == 0)
       cout << "Warning! No Z's to mix with in this run!" << endl;
@@ -302,7 +305,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         eventsMixed[iMixEvt] = true;
       }
 
-      const short iSpc = 0;
+      const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
@@ -370,41 +373,41 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Fill combined species histograms
-////////////////////////////////////////////////////////////////////////////////////////////////
-void MinbiasAnalysis :: CombineHists () {
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
-      for (short iSpc = 0; iSpc < 3; iSpc++) {
-
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (iSpc == 0 && iPhi == 0)
-            continue;
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][0][iCent]);
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][0][iCent]);
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][0][iCent]);
-        } // end loop over phi
-        h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][0][iCent]);
-        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][0][iCent]);
-
-        if (iSpc == 0)
-          continue;
-
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][iPtZ][iPtTrk][iCent]);
-        }
-      } // end loop over species
-    } // end loop over pT^Z
-
-    for (short iSpc = 1; iSpc < 3; iSpc++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][iPtZ][iCent]);
-      } // end loop over pT^Z
-    } // end loop over species
-  } // end loop over centralities
-  return;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Fill combined species histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: CombineHists () {
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iSpc = 0; iSpc < 3; iSpc++) {
+//
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          if (iSpc == 0 && iPhi == 0)
+//            continue;
+//          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[0][iPtZ][iPhi][iCent]);
+//          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_pt[0][iPtZ][iPhi][iCent]);
+//          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[0][iPtZ][iPhi][iCent]);
+//        } // end loop over phi
+//        h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][0][iCent]);
+//        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][0][iCent]);
+//
+//        if (iSpc == 0)
+//          continue;
+//
+//        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+//          h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[0][iPtZ][iPtTrk][iCent]);
+//        }
+//      } // end loop over species
+//    } // end loop over pT^Z
+//
+//    for (short iSpc = 1; iSpc < 3; iSpc++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        h_z_counts[iSpc][iPtZ][iCent]->Add (h_z_counts[0][iPtZ][iCent]);
+//      } // end loop over pT^Z
+//    } // end loop over species
+//  } // end loop over centralities
+//  return;
+//}
 
 
 

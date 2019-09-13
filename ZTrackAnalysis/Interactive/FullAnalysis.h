@@ -1146,10 +1146,14 @@ void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
   for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
     c->cd (numFinerCentBins-iCent);
 
-    TH1D* h = h_psi2[iCent];
+    TH1D* h = (TH1D*) h_psi2[iCent]->Clone ();
+
     const float hint = h->Integral ();
     const float aint = a->h_psi2[iCent]->Integral ();
     h->Divide (a->h_psi2[iCent]);
+
+    if (hint != 0)
+      h->Scale (aint / hint);
 
     h->GetYaxis ()->SetRangeUser (0.5, 1.5);
 
