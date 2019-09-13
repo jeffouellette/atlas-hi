@@ -88,11 +88,11 @@ class PhysicsAnalysis {
   TH2D* h2_zee_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
 
   // Tracking purities
-  //TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D**  h2_trk_purs         = Get1DArray <TH2D*> (numFinerCentBins); // iCent
-  TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numFinerCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numFinerCentBins); // iCent
-  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numFinerCentBins);
+  TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_purs         = Get1DArray <TH2D*> (numCentBins); // iCent
+  //TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numCentBins); // iCent
+  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numCentBins);
 
   // Physics plots
   TH1D*****   h_z_trk_phi         = Get4DArray <TH1D*> (3, nPtZBins, maxNPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
@@ -915,6 +915,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   if (effsLoaded)
     return;
 
+  SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
   trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
@@ -1016,6 +1017,7 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
   if (pursLoaded)
     return;
 
+  SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
   trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "15" : "18"), "read");
@@ -1026,9 +1028,9 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
   }
 
   //for (int iCent = 0; iCent < numCentBins; iCent++) {
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
-    h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i", iCent));
-    h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i", iCent));
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_primary_reco_tracks_iCent%i", iCent));
+    h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_reco_tracks_iCent%i", iCent));
 
     if (iCent > 0) {
       h2_num_trk_purs[iCent]->RebinX (2);
@@ -1045,18 +1047,17 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
       //TH1D* num = (TH1D*) ((TEfficiency*) trkPurFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyPassedHisto ();
       //TH1D* den = (TH1D*) ((TEfficiency*) trkPurFile->Get (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta)))->GetCopyTotalHisto ();
 
-      TH1D* num = (TH1D*) trkPurFile->Get (Form ("h_trk_pur_num_iCent%i_iEta%i", iCent, iEta));
-      TH1D* den = (TH1D*) trkPurFile->Get (Form ("h_trk_pur_den_iCent%i_iEta%i", iCent, iEta));
+      TH1D* num = (TH1D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i_iEta%i", iCent, iEta));
+      TH1D* den = (TH1D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i_iEta%i", iCent, iEta));
 
       if (iCent > 0) {
         num->Rebin (2);
         den->Rebin (2);
       }
 
-      h_trk_purs[iCent][iEta] =  new TEfficiency (*num, *den);
-      h_trk_purs[iCent][iEta]->SetName (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
-      //h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
-      //h_trk_purs[iCent][iEta]->Divide (den);
+      //h_trk_purs[iCent][iEta]->SetName (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
+      h_trk_purs[iCent][iEta]->Divide (den);
       //h_trk_purs[iCent][iEta]->SetDirectory (_gDirectory);
 
       //delete num;
@@ -1703,10 +1704,10 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1000, 800);
+    c = new TCanvas (canvasName, "", 1800, 450);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (2, 2);
+    c->Divide (4, 1);
     c->Draw ();
   }
   c->cd ();
@@ -1716,7 +1717,7 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
     gPad->SetLogx ();
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
-      TGAE* pur = TEff2TGAE (h_trk_purs[iCent][iEta]);
+      TGAE* pur = GetTGAE (h_trk_purs[iCent][iEta]);
 
       pur->SetLineColor (colors[iEta]);
       pur->SetMarkerColor (colors[iEta]);
@@ -1731,12 +1732,13 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
       pur->Draw (iEta == 0 ? "AP" : "P");
 
       //TH1D* confInts = (TH1D*) h_trk_purs[iCent][iEta]->Clone ("confInts");
-      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
-      ////TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3 + [4]*(log(x))^4", 1, 65);
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
       //fit->SetParameter (0, 1);
       //fit->SetParameter (1, 0);
       //fit->SetParameter (2, 0);
-      ////fit->SetParameter (3, 0);
+      //fit->SetParameter (3, 0);
+      //fit->FixParameter (4, 0);
       //h_trk_purs[iCent][iEta]->Fit (fit, "RN0Q");
       //fit->SetLineColor (colors[iEta]);
       //fit->SetFillColor (colors[iEta]);
