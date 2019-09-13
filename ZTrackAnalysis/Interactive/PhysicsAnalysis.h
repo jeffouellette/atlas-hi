@@ -1018,7 +1018,7 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 
   TDirectory* _gDirectory = gDirectory;
 
-  trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "Hijing_15" : "Hijing_18"), "read");
+  trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "15" : "18"), "read");
 
   if (!trkPurFile || !trkPurFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
