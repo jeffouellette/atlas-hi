@@ -765,7 +765,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -862,7 +862,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
+        const double trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -1086,13 +1086,13 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float tr
 
   short iCent = 0;
   if (isPbPb) {
-    while (iCent < numFinerCentBins) {
-      if (fcal_et < finerCentBins[iCent])
+    while (iCent < numCentBins) {
+      if (fcal_et < centBins[iCent])
         break;
       else
         iCent++;
     }
-    if (iCent < 1 || iCent > numFinerCentBins-1)
+    if (iCent < 1 || iCent > numCentBins-1)
       return 0;
   }
 

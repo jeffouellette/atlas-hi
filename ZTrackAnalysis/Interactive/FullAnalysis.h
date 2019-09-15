@@ -685,7 +685,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true) : 1.;
+        const double trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -824,7 +824,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        const double trkPur = doTrackPurVar ? GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false) : 1.;
+        const double trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
