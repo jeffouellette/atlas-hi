@@ -58,12 +58,12 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
-  string eventWeightsExt = "";
   bool is2015Conds    = false; // whether this analysis uses 2015 data (different conditions)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
   bool doLeptonRejVar = false; // whether to impose an additional dR cut on tracks away from the leptons
   bool doTrackPurVar  = false; // whether to impose an additional correction based on tracking purity
+  bool doTrackEffVar  = false; // whether to use pions-only tracking efficiency variation
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
@@ -783,12 +783,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       } // end loop over tracks
 
@@ -880,12 +878,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       } // end loop over tracks
 
@@ -918,7 +914,13 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
   SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
-  trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
+  TString _effDir = "Nominal";
+  if (useHITight)
+    _effDir = "Variations/TrackHITightWPVariation";
+  else if (doTrackEffVar)
+    _effDir = "Variations/TrackEffPionsVariation";
+
+  trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {

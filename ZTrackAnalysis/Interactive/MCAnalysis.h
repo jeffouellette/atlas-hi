@@ -18,7 +18,6 @@ class MCAnalysis : public FullAnalysis {
   public:
   MCAnalysis (const char* _name = "mc") : FullAnalysis () {
     name = _name;
-    eventWeightsExt = _name;
     plotFill = true;
     useAltMarker = false;
     isMC = true;
@@ -205,12 +204,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       } // end loop over tracks
 
@@ -357,21 +354,12 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       } // end loop over tracks
-
-      //for (short iPhi = 0; iPhi < numPhiTrkBins; iPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-      //    h_z_missing_pt[iSpc][iPtZ][iPhi][iCent]->Fill (trkPtProj[iPhi][iPtTrk], 0.5*(ptTrkBins[iPtTrk]+ptTrkBins[iPtTrk+1]), event_weight);
-      //    trkPtProj[iPhi][iPtTrk] = 0;
-      //  }
-      //}
     } // end loop over pp tree
     cout << "Done MC pp loop." << endl;
   }

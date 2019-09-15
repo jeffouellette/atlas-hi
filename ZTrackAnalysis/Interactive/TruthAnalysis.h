@@ -28,7 +28,6 @@ class TruthAnalysis : public FullAnalysis {
 
   TruthAnalysis (const char* _name = "truth") : FullAnalysis () {
     name = _name;
-    eventWeightsExt = _name;
     plotFill = false;
     useAltMarker = false;
     hasBkg = false;

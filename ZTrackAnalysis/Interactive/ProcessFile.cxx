@@ -20,10 +20,11 @@ int main (int argc, char** argv) {
   bool doElectronLHMediumVar = (string (argv[8]) == "true");
   bool doMuonTightVar = (string (argv[9]) == "true");
   bool doHITightVar = (string (argv[10]) == "true");
+  bool doTrkEffVar = (string (argv[12]) == "true");
   bool doTrkPurVar = (string (argv[11]) == "true");
 
 
-  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doElectronLHMediumVar && !doMuonTightVar && !doHITightVar && !doTrkPurVar) {
+  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doElectronLHMediumVar && !doMuonTightVar && !doHITightVar && !doTrkPurVar && !doTrkEffVar) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Nominal/" + outFileName;
   }
@@ -45,15 +46,19 @@ int main (int argc, char** argv) {
   }
   else if (doElectronLHMediumVar) {
     inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/ElectronLHMediumVariation/" + outFileName;
+    outFileName = "Variations/ElectronLHMediumWPVariation/" + outFileName;
   }
   else if (doMuonTightVar) {
     inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/MuonTightVariation/" + outFileName;
+    outFileName = "Variations/MuonTightWPVariation/" + outFileName;
   }
   else if (doHITightVar) {
     inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
+  }
+  else if (doTrkEffVar) {
+    inFileName = "Nominal/" + inFileName;
+    outFileName = "Variations/TrackEffPionsVariation/" + outFileName;
   }
   else if (doTrkPurVar) {
     inFileName = "Nominal/" + inFileName;
@@ -67,11 +72,14 @@ int main (int argc, char** argv) {
     outFileName = "MCAnalysis/" + outFileName;
     if (doHITightVar)
       mc = new MCAnalysis ("mc_trackHITightVar");
+    else if (doTrkEffVar)
+      mc = new MCAnalysis ("mc_trackEffVar");
     else if (doTrkPurVar)
       mc = new MCAnalysis ("mc_trackPurityVar");
     else
       mc = new MCAnalysis ("mc");
     mc->useHITight = doHITightVar;
+    mc->doTrackEffVar = doTrkEffVar;
     mc->doTrackPurVar = doTrkPurVar;
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
@@ -92,17 +100,18 @@ int main (int argc, char** argv) {
     outFileName = "MinbiasAnalysis/" + outFileName;
     if (doHITightVar) {
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-      bkg->eventWeightsExt = "minbias";
+    }
+    else if (doTrkEffVar) {
+      bkg = new MinbiasAnalysis ("bkg_trackEffVar");
     }
     else if (doTrkPurVar) {
       bkg = new MinbiasAnalysis ("bkg_trackPurityVar");
-      bkg->eventWeightsExt = "minbias";
     }
     else {
       bkg = new MinbiasAnalysis ("bkg");
-      bkg->eventWeightsExt = "minbias";
     }
     bkg->useHITight = doHITightVar;
+    bkg->doTrackEffVar = doTrkEffVar;
     bkg->doTrackPurVar = doTrkPurVar;
     bkg->Execute (inFileName.c_str (), outFileName.c_str ());
     delete bkg;

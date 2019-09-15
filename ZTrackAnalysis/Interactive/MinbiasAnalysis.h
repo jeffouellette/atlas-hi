@@ -25,7 +25,6 @@ class MinbiasAnalysis : public FullAnalysis {
   public:
   MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
-    //eventWeightsExt = _name;
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
@@ -231,12 +230,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       }
 
@@ -349,12 +346,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-        }
-        for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi])
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
         }
       }
     } // end loop over pp tree

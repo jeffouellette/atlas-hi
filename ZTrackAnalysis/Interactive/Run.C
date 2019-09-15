@@ -24,6 +24,7 @@ TruthAnalysis* truth = nullptr;
 Systematic* combSys = nullptr;
 Systematic* bkgSys = nullptr;
 Systematic* trkSys = nullptr;
+Systematic* trkEffSys = nullptr;
 Systematic* trkPurSys = nullptr;
 Systematic* leptonRejSys = nullptr;
 Systematic* electronPtSys = nullptr;
@@ -31,12 +32,12 @@ Systematic* muonPtSys = nullptr;
 Systematic* electronLHMedSys = nullptr;
 Systematic* muonTightSys = nullptr;
 
-Systematic* bkgRunVarSys = nullptr;
-
 // variations for systematics
 FullAnalysis* data_trigEff = nullptr;
 PhysicsAnalysis* data_trackHItight = nullptr;
 MinbiasAnalysis* bkg_trackHItight = nullptr;
+PhysicsAnalysis* data_trackEff = nullptr;
+MinbiasAnalysis* bkg_trackEff = nullptr;
 PhysicsAnalysis* data_trackPurity = nullptr;
 MinbiasAnalysis* bkg_trackPurity = nullptr;
 PhysicsAnalysis* data_electronPtUp = nullptr, *data_electronPtDown = nullptr;
@@ -44,9 +45,6 @@ PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 PhysicsAnalysis* data_electronLHMedium = nullptr;
 PhysicsAnalysis* data_muonTight = nullptr;
 PhysicsAnalysis* data_leptonRejVar = nullptr;
-
-PhysicsAnalysis* data_runVar = nullptr;
-MinbiasAnalysis* bkg_runVar = nullptr;
 
 MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
@@ -69,6 +67,11 @@ void Run () {
     bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar");
     bkg_trackHItight->useHITight = true;
 
+    data_trackEff        = new PhysicsAnalysis ("data_trackEffVar");
+    data_trackEff->doTrackEffVar = true;
+    bkg_trackEff         = new MinbiasAnalysis ("bkg_trackEffVar");
+    bkg_trackEff->doTrackEffVar = true;
+
     data_trackPurity        = new PhysicsAnalysis ("data_trackPurityVar");
     data_trackPurity->doTrackPurVar = true;
     bkg_trackPurity         = new MinbiasAnalysis ("bkg_trackPurityVar");
@@ -82,25 +85,21 @@ void Run () {
     data_muonPtUp           = new PhysicsAnalysis ("data_muonPtUpVar");
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
 
-    //data_electronLHMedium   = new PhysicsAnalysis ("data_electronLHMediumVar");
-    //data_muonTight          = new PhysicsAnalysis ("data_muonTightVar");
+    data_electronLHMedium   = new PhysicsAnalysis ("data_electronLHMediumVar");
+    data_muonTight          = new PhysicsAnalysis ("data_muonTightVar");
 
     data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar");
     data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar");
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
     bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
-
-    //data_runVar            = new PhysicsAnalysis ("data_runVar");
-    //bkg_runVar             = new MinbiasAnalysis ("minbias");
   }
 
   data18->Execute   ("DataAnalysis/Nominal/outFile.root",   "DataAnalysis/Nominal/savedHists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
-  //truth->Execute  ("TruthAnalysis/Nominal/outFile.root",  "TruthAnalysis/Nominal/savedHists.root");
 
   if (doSys) {
-    //data_trigEff->Execute           ("DataAnalysis/Nominal/outFile.root",                                 "DataAnalysis/Variations/TriggerEfficiencyCorrected/savedHists.root");
     //data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/outFile.root",      "DataAnalysis/Variations/TrackHITightWPVariation/savedHists.root");
+    //data_trackEff->Execute          ("DataAnalysis/Nominal/outFile.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/savedHists.root");
     //data_trackPurity->Execute       ("DataAnalysis/Nominal/outFile.root",                                 "DataAnalysis/Variations/TrackPurityVariation/savedHists.root");
     //data_leptonRejVar->Execute      ("DataAnalysis/Nominal/outFile.root",                                 "DataAnalysis/Variations/LeptonRejVariation/savedHists.root");
     //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/outFile.root",        "DataAnalysis/Variations/ElectronPtUpVariation/savedHists.root");
@@ -112,7 +111,7 @@ void Run () {
   }
 
 
-
+/*
   data18->LoadHists   ("DataAnalysis/Nominal/savedHists.root");
   data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
   mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
@@ -132,8 +131,6 @@ void Run () {
     data_bkgStatUpVar->CalculateICP ();
     data_bkgStatDownVar->CalculateIAA ();
     data_bkgStatDownVar->CalculateICP ();
-
-    data_runVar->CopyAnalysis (data18);
   }
 
   data18->SubtractBackground (bkg);
@@ -162,6 +159,8 @@ void Run () {
     data_trigEff->LoadHists           ("DataAnalysis/Variations/TriggerEfficiencyCorrected/savedHists.root");
     data_trackHItight->LoadHists      ("DataAnalysis/Variations/TrackHITightWPVariation/savedHists.root");
     bkg_trackHItight->LoadHists       ("MinbiasAnalysis/Variations/TrackHITightWPVariation/savedHists.root");
+    data_trackEff->LoadHists          ("DataAnalysis/Variations/TrackEffPionsVariation/savedHists.root");
+    bkg_trackEff->LoadHists           ("MinbiasAnalysis/Variations/TrackEffPionsVariation/savedHists.root");
     data_trackPurity->LoadHists       ("DataAnalysis/Variations/TrackPurityVariation/savedHists.root");
     bkg_trackPurity->LoadHists        ("MinbiasAnalysis/Variations/TrackPurityVariation/savedHists.root");
     data_leptonRejVar->LoadHists      ("DataAnalysis/Variations/LeptonRejVariation/savedHists.root");
@@ -172,10 +171,9 @@ void Run () {
     data_electronLHMedium->LoadHists  ("DataAnalysis/Variations/ElectronLHMediumWPVariation/savedHists.root");
     data_muonTight->LoadHists         ("DataAnalysis/Variations/MuonTightWPVariation/savedHists.root");
 
-    bkg_runVar->LoadHists             ("MinbiasAnalysis/Variations/RunVariations/runVariation.root");
-
     data_trigEff->SubtractBackground (bkg);
     data_trackHItight->SubtractBackground (bkg_trackHItight);
+    data_trackEff->SubtractBackground (bkg_trackEff);
     data_trackPurity->SubtractBackground (bkg_trackPurity);
     data_leptonRejVar->SubtractBackground (bkg);
     data_electronPtUp->SubtractBackground (bkg);
@@ -187,22 +185,20 @@ void Run () {
 
     data_trigEff->CalculateZYDistRatio (truth);
 
-    data_runVar->SubtractBackground (bkg_runVar);
-
     bkgSys = new Systematic (data18, "bkgSys", "Background");
     bkgSys->AddVariation (data_bkgStatUpVar, -1);
     bkgSys->AddVariation (data_bkgStatDownVar, 1);
     bkgSys->AddVariations ();
-
-    bkgRunVarSys = new Systematic (data18, "bkgRunVarSys", "Run Variations");
-    bkgRunVarSys->AddVariation (data_runVar);
-    bkgRunVarSys->AddVariations ();
   
     trkSys = new Systematic (data18, "trkSys", "Track ID");
     trkSys->AddVariation (data_trackHItight);
     trkSys->AddVariations ();
 
-    trkPurSys = new Systematic (data18, "trkPurSys", "Track Purity");
+    trkEffSys = new Systematic (data18, "trkEffSys", "Tracking Efficiency");
+    trkEffSys->AddVariation (data_trackEff);
+    trkEffSys->AddVariations ();
+
+    trkPurSys = new Systematic (data18, "trkPurSys", "Tracking Purity");
     trkPurSys->AddVariation (data_trackPurity);
     trkPurSys->AddVariations ();
 
@@ -230,6 +226,7 @@ void Run () {
 
     combSys = new Systematic (data18, "combSys", "Total");
     combSys->AddSystematic (trkSys);
+    combSys->AddSystematic (trkEffSys);
     combSys->AddSystematic (trkPurSys);
     combSys->AddSystematic (bkgSys);
     combSys->AddSystematic (leptonRejSys);
@@ -239,6 +236,7 @@ void Run () {
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematics ();
   }
+*/
 
 
   SetupDirectories ("ZTrackAnalysis/", "ZTrackAnalysis/");

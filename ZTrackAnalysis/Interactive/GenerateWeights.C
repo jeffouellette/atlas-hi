@@ -307,7 +307,7 @@ void GenerateDataWeights () {
 }
 
 void GeneratePbPbMCWeights () {
-  GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_036/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_036/PbPbEventWeightsFile.root");
+  GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_032/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_032/PbPbEventWeightsFile.root");
 }
 
 void GenerateppMCWeights () {
@@ -315,11 +315,11 @@ void GenerateppMCWeights () {
 }
 
 void Generate2015HijingWeights () {
-  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_032/hijing2015_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_032/hijing2015_eventWeightsFile.root");
+  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037/hijing2015_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037/hijing2015_eventWeightsFile.root");
 }
 
 void Generate2018HijingWeights () {
-  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_032/hijing2018_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_032/hijing2018_eventWeightsFile.root");
+  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037/hijing2018_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037/hijing2018_eventWeightsFile.root");
 }
 
 #endif
