@@ -13,15 +13,16 @@ int main (int argc, char** argv) {
   string inFileName = argv[2];
   string outFileName = argv[3];
 
-  bool doElectronPtUpVar = (string (argv[4]) == "true");
-  bool doElectronPtDownVar = (string (argv[5]) == "true");
-  bool doMuonPtUpVar = (string (argv[6]) == "true");
-  bool doMuonPtDownVar = (string (argv[7]) == "true");
-  bool doElectronLHMediumVar = (string (argv[8]) == "true");
-  bool doMuonTightVar = (string (argv[9]) == "true");
-  bool doHITightVar = (string (argv[10]) == "true");
+  bool use2015conds = (string(argv[4]) == "true");
+  bool doElectronPtUpVar = (string (argv[5]) == "true");
+  bool doElectronPtDownVar = (string (argv[6]) == "true");
+  bool doMuonPtUpVar = (string (argv[7]) == "true");
+  bool doMuonPtDownVar = (string (argv[8]) == "true");
+  bool doElectronLHMediumVar = (string (argv[9]) == "true");
+  bool doMuonTightVar = (string (argv[10]) == "true");
+  bool doHITightVar = (string (argv[11]) == "true");
   bool doTrkEffVar = (string (argv[12]) == "true");
-  bool doTrkPurVar = (string (argv[11]) == "true");
+  bool doTrkPurVar = (string (argv[13]) == "true");
 
 
   if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doElectronLHMediumVar && !doMuonTightVar && !doHITightVar && !doTrkPurVar && !doTrkEffVar) {
@@ -110,6 +111,8 @@ int main (int argc, char** argv) {
     else {
       bkg = new MinbiasAnalysis ("bkg");
     }
+    bkg->is2015Conds = use2015conds;
+    bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
     bkg->doTrackEffVar = doTrkEffVar;
     bkg->doTrackPurVar = doTrkPurVar;
