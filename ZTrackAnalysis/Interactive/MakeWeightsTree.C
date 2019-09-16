@@ -179,7 +179,7 @@ void MakeppMCWeightsTree () {
 }
 
 void MakePbPbMCWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_032", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
 }
 
 void Make2015HijingWeightsTree () {

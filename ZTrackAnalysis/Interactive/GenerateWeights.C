@@ -307,7 +307,7 @@ void GenerateDataWeights () {
 }
 
 void GeneratePbPbMCWeights () {
-  GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_032/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_032/PbPbEventWeightsFile.root");
+  GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000/PbPbEventWeightsFile.root");
 }
 
 void GenerateppMCWeights () {

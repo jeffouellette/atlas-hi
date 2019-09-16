@@ -18,14 +18,12 @@ int main (int argc, char** argv) {
   bool doElectronPtDownVar = (string (argv[6]) == "true");
   bool doMuonPtUpVar = (string (argv[7]) == "true");
   bool doMuonPtDownVar = (string (argv[8]) == "true");
-  bool doElectronLHMediumVar = (string (argv[9]) == "true");
-  bool doMuonTightVar = (string (argv[10]) == "true");
-  bool doHITightVar = (string (argv[11]) == "true");
-  bool doTrkEffVar = (string (argv[12]) == "true");
-  bool doTrkPurVar = (string (argv[13]) == "true");
+  bool doHITightVar = (string (argv[9]) == "true");
+  bool doTrkEffVar = (string (argv[10]) == "true");
+  bool doTrkPurVar = (string (argv[11]) == "true");
 
 
-  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doElectronLHMediumVar && !doMuonTightVar && !doHITightVar && !doTrkPurVar && !doTrkEffVar) {
+  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doHITightVar && !doTrkPurVar && !doTrkEffVar) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Nominal/" + outFileName;
   }
@@ -44,14 +42,6 @@ int main (int argc, char** argv) {
   else if (doMuonPtDownVar) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Variations/MuonPtDownVariation/" + outFileName;
-  }
-  else if (doElectronLHMediumVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/ElectronLHMediumWPVariation/" + outFileName;
-  }
-  else if (doMuonTightVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/MuonTightWPVariation/" + outFileName;
   }
   else if (doHITightVar) {
     inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
