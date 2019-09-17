@@ -316,7 +316,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight);
@@ -488,7 +488,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         for (int iJet = 0; iJet < njet; iJet++) {
