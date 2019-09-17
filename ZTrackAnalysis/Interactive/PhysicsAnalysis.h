@@ -602,12 +602,11 @@ void PhysicsAnalysis :: CombineHists () {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
 
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
 
           if (iPhi != 0) {
-            if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[2][iPtZ][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[2][iPtZ][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
             if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
             if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[2][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           }
@@ -785,7 +784,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
@@ -880,7 +880,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
