@@ -23,6 +23,12 @@ class MinbiasAnalysis : public FullAnalysis {
   TTree* LoadEventMixingTree (const char* _inFile, const char* _treeName);
 
   public:
+
+  //TH1D*****   h_z_trk_pt_corr      = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
+  //TH1D*****   h_z_trk_xzh_corr     = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
+  //TH1D****    h_z_trk_zpt_corr     = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
+  //TH1D****    h_z_trk_zxzh_corr    = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
+
   MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
     plotFill = true;
@@ -33,13 +39,174 @@ class MinbiasAnalysis : public FullAnalysis {
     icpCalculated = true;
   }
 
+  //void CreateHists () override;
+  //void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false) override;
+  //void CombineHists ();
+  //void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true);
+  //void SaveHists (const char* histFileName = "savedHists.root");
+  //void ScaleHists ();
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
-
-  //void CombineHists () override;
-  //void ScaleHists () override;
-
-  //void GenerateWeights ();
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Create new histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: CreateHists () {
+//
+//  FullAnalysis :: CreateHists ();
+//
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iSpc = 0; iSpc < 3; iSpc++) {
+//      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_pt_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+//        }
+//      }
+//    }
+//  }
+//
+//  histsLoaded = true;
+//  return;
+//}
+//
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Fill combined species histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: CombineHists () {
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iSpc = 0; iSpc < 2; iSpc++) {
+//      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]);
+//          if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//
+//          if (iPhi != 0) {
+//            if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt_corr[iSpc][iPtZ][iCent]->Add (h_z_trk_zpt_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt_corr[2][iPtZ][iCent]->Add (h_z_trk_zpt_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh_corr[iSpc][iPtZ][iCent]->Add (h_z_trk_zxzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh_corr[2][iPtZ][iCent]->Add (h_z_trk_zxzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//          }
+//        } // end loop over phi
+//      } // end loop over pT^Z
+//    } // end loop over species
+//  } // end loop over centralities
+//  return;
+//}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Scale histograms for plotting, calculating signals, etc.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: ScaleHists () {
+//  if (histsScaled || !histsLoaded)
+//    return;
+//
+//  FullAnalysis :: ScaleHists ();
+//
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iSpc = 0; iSpc < 3; iSpc++) {
+//      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+//        const float counts = countsHist->GetBinContent (1);
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          const double countsdPhi = counts * (phiHighBins[iPhi]-phiLowBins[iPhi]);
+//
+//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//        }
+//      }
+//    }
+//  }
+//}
+//
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Load pre-filled histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
+//  if (histsLoaded)
+//    return;
+//
+//  FullAnalysis :: LoadHists (histFileName, false);
+//
+//  if (!histFile) {
+//    SetupDirectories ("", "ZTrackAnalysis/");
+//    histFile = new TFile (Form ("%s/savedHists.root", rootPath.Data ()), "read");
+//  }
+//  TDirectory* _gDirectory = gDirectory;
+//  if (!histFile->IsOpen ()) {
+//    cout << "Error in MinbiasAnalysis :: LoadHists: histFile not open after calling parent function, exiting." << endl;
+//    return;
+//  }
+//
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iSpc = 0; iSpc < 3; iSpc++) {
+//      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//        }
+//      }
+//    }
+//  }
+//
+//  _gDirectory->cd ();
+//
+//  histsLoaded = true;
+//
+//  if (_finishHists) {
+//    MinbiasAnalysis :: CombineHists ();
+//    MinbiasAnalysis :: ScaleHists ();
+//  }
+//
+//  return;
+//}
+//
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Save histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MinbiasAnalysis :: SaveHists (const char* histFileName) {
+//  FullAnalysis :: SaveHists (histFileName);
+//
+//  if (!histFile) {
+//    SetupDirectories ("", "ZTrackAnalysis/");
+//    histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "update");
+//    histFile->cd ();
+//  }
+//
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iSpc = 0; iSpc < 3; iSpc++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          SafeWrite (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]);
+//          SafeWrite (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//        }
+//      }
+//    }
+//  }
+//
+//  histFile->Close ();
+//  histFile = nullptr;
+//  histsLoaded = false;
+//  return;
+//}
 
 
 
@@ -86,13 +253,15 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   CreateHists ();
 
-  int run_number = 0, ntrk = 0;
+  int run_number = 0, ntrk = 0, z_ntrk = 0;
   bool isEE = false;
   unsigned int event_number = 0;
   float event_weight = 1;//, fcal_weight = 1, q2_weight = 1, psi2_weight = 1, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, z_fcal_et = 0;
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
-
+  //float z_trk_pt[10000], z_trk_eta[10000], z_trk_phi[10000];
+  //float*** yield_pt = Get3DArray <float> (2, maxNXHZBins, numPhiBins);
+  //float*** yield_xhz =  Get3DArray <float> (2, maxNXHZBins, numPhiBins);
   float z_pt = 0, z_phi = 0;
 
   
@@ -136,6 +305,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     zTree->SetBranchAddress ("isEE",          &isEE);
     zTree->SetBranchAddress ("z_pt",          &z_pt);
     zTree->SetBranchAddress ("z_phi",         &z_phi);
+    zTree->SetBranchAddress ("ntrk",          &z_ntrk);
+    //zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    //zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    //zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
     zTree->SetBranchAddress ("fcal_et",       &z_fcal_et);
     zTree->SetBranchAddress ("event_weight",  &event_weight);
 
@@ -205,10 +378,19 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
+      //for (short iData : {0, 1}) {
+      //  for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //    for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++)
+      //      yield_pt[iData][iPtTrk][idPhi] = 0;
+      //    for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++)
+      //      yield_xhz[iData][iXHZ][idPhi] = 0;
+      //  }
+      //}
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
@@ -235,7 +417,54 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
+
+        //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+        //  if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+        //    for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        //      if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        //        yield_pt[0][iPtTrk][idPhi] += trkWeight;
+        //    }
+        //    for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
+        //      if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
+        //        yield_xhz[0][iXHZ][idPhi] += trkWeight;
+        //    }
+        //  }
+        //}
       }
+
+      //for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
+      //  const float trkpt = z_trk_pt[iTrk];
+
+      //  if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
+      //    continue;
+
+      //  const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, z_trk_eta[iTrk], true);
+      //  const float trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, z_trk_eta[iTrk], true);
+      //  if (trkEff == 0 || trkPur == 0)
+      //    continue;
+      //  const float trkWeight = event_weight * trkPur / trkEff;
+
+      //  float dphi = DeltaPhi (z_phi, z_trk_phi[iTrk], false);
+      //  for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //    if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+      //      for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+      //        if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+      //          yield_pt[1][iPtTrk][idPhi] += trkWeight;
+      //      }
+      //      for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
+      //        if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
+      //          yield_xhz[1][iXHZ][idPhi] += trkWeight;
+      //      }
+      //    }
+      //  }
+      //}
+
+      //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++)
+      //    h_z_trk_raw_pt_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtTrk, h_z_trk_raw_pt_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtTrk) + yield_pt[0][iPtTrk][idPhi]*yield_pt[1][iPtTrk][idPhi]);
+      //  for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++)
+      //    h_z_trk_xzh_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXHZ, h_z_trk_xzh_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXHZ) + yield_xhz[0][iXHZ][idPhi]*yield_xhz[1][iXHZ][idPhi]);
+      //}
 
     } // end loop over Pb+Pb tree
     cout << "Done minbias Pb+Pb loop." << endl;
@@ -271,6 +500,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     zTree->SetBranchAddress ("isEE",          &isEE);
     zTree->SetBranchAddress ("z_pt",          &z_pt);
     zTree->SetBranchAddress ("z_phi",         &z_phi);
+    zTree->SetBranchAddress ("ntrk",          &z_ntrk);
+    //zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    //zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    //zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
     zTree->SetBranchAddress ("event_weight",  &event_weight);
 
     if (nZEvts == 0)
@@ -321,10 +554,19 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
+      //for (short iData : {0, 1}) {
+      //  for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //    for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++)
+      //      yield_pt[iData][iPtTrk][idPhi] = 0;
+      //    for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++)
+      //      yield_xhz[iData][iXHZ][idPhi] = 0;
+      //  }
+      //}
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
@@ -351,13 +593,61 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
+
+        //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+        //  if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+        //    for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        //      if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        //        yield_pt[0][iPtTrk][idPhi] += trkWeight;
+        //    }
+        //    for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
+        //      if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
+        //        yield_xhz[0][iXHZ][idPhi] += trkWeight;
+        //    }
+        //  }
+        //}
       }
+
+      //for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
+      //  const float trkpt = z_trk_pt[iTrk];
+
+      //  if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
+      //    continue;
+
+      //  const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, z_trk_eta[iTrk], true);
+      //  const float trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, z_trk_eta[iTrk], true);
+      //  if (trkEff == 0 || trkPur == 0)
+      //    continue;
+      //  const float trkWeight = event_weight * trkPur / trkEff;
+
+      //  float dphi = DeltaPhi (z_phi, z_trk_phi[iTrk], false);
+      //  for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //    if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+      //      for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+      //        if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+      //          yield_pt[1][iPtTrk][idPhi] += trkWeight;
+      //      }
+      //      for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
+      //        if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
+      //          yield_xhz[1][iXHZ][idPhi] += trkWeight;
+      //      }
+      //    }
+      //  }
+      //}
+
+      //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
+      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++)
+      //    h_z_trk_raw_pt_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtTrk, h_z_trk_pt_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtTrk) + yield_pt[0][iPtTrk][idPhi]*yield_pt[1][iPtTrk][idPhi]);
+      //  for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++)
+      //    h_z_trk_xzh_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXHZ, h_z_xzh_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXHZ) + yield_xhz[0][iXHZ][idPhi]*yield_xhz[1][iXHZ][idPhi]);
+      //}
+
     } // end loop over pp tree
     cout << "Done minbias pp loop." << endl;
-  }
 
-  //CombineHists ();
-  //ScaleHists ();
+    //Delete3DArray (yield_pt, 2, maxNPtTrkBins, numPhiBins);
+    //Delete3DArray (yield_xhz, 2, maxNXHZBins, numPhiBins);
+  }
 
   SaveHists (outFileName);
 

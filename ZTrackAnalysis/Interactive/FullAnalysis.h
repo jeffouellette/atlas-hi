@@ -662,7 +662,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
@@ -799,7 +799,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
@@ -853,13 +853,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     cout << "Done primary pp loop." << endl;
   }
 
-  //CombineHists ();
-  //ScaleHists ();
-  
   SaveHists (outFileName);
 
   inFile->Close ();
-  if (inFile) { delete inFile; inFile = nullptr; }
+  SaferDelete (inFile);
 }
 
 

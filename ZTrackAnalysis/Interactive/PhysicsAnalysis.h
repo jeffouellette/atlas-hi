@@ -216,10 +216,10 @@ class PhysicsAnalysis {
   //virtual void LoadEventWeights ();
 
   virtual void LoadTrackingEfficiencies (); // defaults to HILoose
-  virtual double GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
+  virtual double GetTrackingEfficiency (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
   virtual void LoadTrackingPurities (); // defaults to HILoose
-  virtual double GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb = true);
+  virtual double GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
   virtual void LoadTriggerEfficiencies ();
   virtual double GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb = true);
@@ -759,7 +759,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
@@ -854,7 +854,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
 
-        if (trkpt < trk_min_pt || trk_max_pt < trkpt)
+        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
@@ -890,16 +890,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
     cout << "Done primary pp loop." << endl;
   }
 
-  //CombineHists ();
-  //ScaleHists ();
-  
   SaveHists (outFileName);
-  //LoadHists ();
 
   inFile->Close ();
-  if (inFile) { delete inFile; inFile = nullptr; }
-
-  //Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins[iPtZ]);
+  SaferDelete (inFile);
 }
 
 
@@ -928,12 +922,12 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
     h2_num_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_matched_reco_tracks_iCent%i", iCent));
     h2_den_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_tracks_iCent%i", iCent));
 
-    if (iCent > 0) {
-      h2_num_trk_effs[iCent]->RebinX (2);
-      h2_num_trk_effs[iCent]->RebinY (2);
-      h2_den_trk_effs[iCent]->RebinX (2);
-      h2_den_trk_effs[iCent]->RebinY (2);
-    }
+    //if (iCent > 0) {
+    //  h2_num_trk_effs[iCent]->RebinX (2);
+    //  h2_num_trk_effs[iCent]->RebinY (2);
+    //  h2_den_trk_effs[iCent]->RebinX (2);
+    //  h2_den_trk_effs[iCent]->RebinY (2);
+    //}
 
     //h2_trk_effs[iCent] = new TEfficiency (*(h2_num_trk_effs[iCent]), *(h2_den_trk_effs[iCent]));
     h2_trk_effs[iCent] = (TH2D*) h2_num_trk_effs[iCent]->Clone (Form ("h2_trk_eff_iCent%i", iCent));
@@ -946,10 +940,10 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
       TH1D* num = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_num_iCent%i_iEta%i", iCent, iEta));
       TH1D* den = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_den_iCent%i_iEta%i", iCent, iEta));
 
-      if (iCent > 0) {
-        num->Rebin (2);
-        den->Rebin (2);
-      }
+      //if (iCent > 0) {
+      //  num->Rebin (2);
+      //  den->Rebin (2);
+      //}
 
       //h_trk_effs[iCent][iEta] =  new TEfficiency (*num, *den);
       h_trk_effs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_eff_iCent%i_iEta%i", iCent, iEta));
@@ -976,7 +970,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns the appropriate tracking efficiency for this track and centrality.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb) {
   if (!effsLoaded)
     LoadTrackingEfficiencies ();
 
@@ -1002,8 +996,10 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, const floa
   const int ybin = t->GetYaxis ()->FindFixBin (trk_pt);
   if (xbin < 1 || t->GetXaxis ()->GetNbins () < xbin)
     return 0;
-  if (ybin < 1 || t->GetYaxis ()->GetNbins () < ybin)
+  if (ybin < 1)
     return 0;
+  else if (t->GetYaxis ()->GetNbins () < ybin)
+    trk_pt = t->GetYaxis ()->GetBinCenter (t->GetYaxis ()->GetNbins ());
 
   const double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkEffNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 
@@ -1023,7 +1019,11 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
   SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
-  trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), useHITight ? "Variations/TrackHITightWPVariation" : "Nominal", is2015Conds ? "15" : "18"), "read");
+  TString _purDir = "Nominal";
+  if (useHITight)
+    _purDir = "Variations/TrackHITightWPVariation";
+
+  trkPurFile = new TFile (Form ("%s/TrackingPurities/%s/trackingPurities_%s.root", rootPath.Data (), _purDir.Data (), is2015Conds ? "15" : "18"), "read");
 
   if (!trkPurFile || !trkPurFile->IsOpen ()) {
     cout << "Error in PhysicsAnalysis.h:: LoadTrackingPurities can not find file for " << name << endl;
@@ -1035,12 +1035,12 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
     h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_primary_reco_tracks_iCent%i", iCent));
     h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_reco_tracks_iCent%i", iCent));
 
-    if (iCent > 0) {
-      h2_num_trk_purs[iCent]->RebinX (2);
-      h2_num_trk_purs[iCent]->RebinY (2);
-      h2_den_trk_purs[iCent]->RebinX (2);
-      h2_den_trk_purs[iCent]->RebinY (2);
-    }
+    //if (iCent > 0) {
+    //  h2_num_trk_purs[iCent]->RebinX (2);
+    //  h2_num_trk_purs[iCent]->RebinY (2);
+    //  h2_den_trk_purs[iCent]->RebinX (2);
+    //  h2_den_trk_purs[iCent]->RebinY (2);
+    //}
 
     //h2_trk_purs[iCent] = new TEfficiency (*(h2_num_trk_purs[iCent]), *(h2_den_trk_purs[iCent]));
     h2_trk_purs[iCent] = (TH2D*) h2_num_trk_purs[iCent]->Clone (Form ("h2_trk_pur_iCent%i", iCent));
@@ -1053,10 +1053,10 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
       TH1D* num = (TH1D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i_iEta%i", iCent, iEta));
       TH1D* den = (TH1D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i_iEta%i", iCent, iEta));
 
-      if (iCent > 0) {
-        num->Rebin (2);
-        den->Rebin (2);
-      }
+      //if (iCent > 0) {
+      //  num->Rebin (2);
+      //  den->Rebin (2);
+      //}
 
       //h_trk_purs[iCent][iEta]->SetName (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
       h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
@@ -1083,7 +1083,7 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Returns the appropriate tracking purity factor for this track and centrality.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float trk_pt, const float trk_eta, const bool isPbPb) {
+double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb) {
   if (!pursLoaded)
     LoadTrackingPurities ();
 
@@ -1109,8 +1109,10 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, const float tr
   const int ybin = t->GetYaxis ()->FindFixBin (trk_pt);
   if (xbin < 1 || t->GetXaxis ()->GetNbins () < xbin)
     return 0;
-  if (ybin < 1 || t->GetYaxis ()->GetNbins () < ybin)
+  if (ybin < 1)
     return 0;
+  else if (t->GetYaxis ()->GetNbins () < ybin)
+    trk_pt = t->GetYaxis ()->GetBinCenter (t->GetYaxis ()->GetNbins ());
 
   const double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkPurNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 
