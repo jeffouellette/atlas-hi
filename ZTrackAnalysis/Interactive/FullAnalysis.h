@@ -1797,7 +1797,7 @@ void FullAnalysis :: PlotZPtSpectra () {
       }
 
       dPad->cd ();
-      h = h_z_pt_ratio[iCent][2];
+      h = h_z_pt_ratio[iCent][iSpc];
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);

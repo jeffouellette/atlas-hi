@@ -578,9 +578,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -597,9 +597,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             drawn = true;
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -623,9 +623,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -635,14 +635,17 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
 
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
-          
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          if (systematics.size () == 0)
+            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
           else
+            myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -656,7 +659,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
 
           delete highs, lows;
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
             myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
           else {
@@ -728,9 +731,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -747,9 +750,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           drawn = true;
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -773,9 +776,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
         highs->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        else
+        //if (iCent == 0)
+        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -785,14 +788,17 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
 
-        myText (0.65, 0.92, kBlack, "Total", 0.026);
-        
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        if (systematics.size () == 0)
+          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
         else
+          myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        //if (iCent == 0)
+        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -806,7 +812,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
 
         delete highs, lows;
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
           myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
         else {
@@ -878,9 +884,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -897,9 +903,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             drawn = true;
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -923,9 +929,9 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -935,14 +941,17 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
 
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
-          
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          if (systematics.size () == 0)
+            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
           else
+            myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -956,7 +965,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
 
           delete highs, lows;
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
             myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
           else {
@@ -1027,9 +1036,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1046,9 +1055,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           drawn = true;
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1072,9 +1081,9 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
         highs->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        else
+        //if (iCent == 0)
+        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1084,14 +1093,17 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
 
-        myText (0.65, 0.92, kBlack, "Total", 0.026);
-        
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        if (systematics.size () == 0)
+          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
         else
+          myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        //if (iCent == 0)
+        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1105,7 +1117,7 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
 
         delete highs, lows;
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
           myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
         else {
@@ -1175,9 +1187,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1194,9 +1206,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             drawn = true;
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            if (iCent == 0)
-              lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            else
+            //if (iCent == 0)
+            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+            //else
               lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1219,9 +1231,9 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1231,14 +1243,17 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           highs->SetLineStyle (1);
           highs->SetLineWidth (3);
 
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
-          
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          if (systematics.size () == 0)
+            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
           else
+            myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1252,7 +1267,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
 
           delete highs, lows;
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
             myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
           else {
@@ -1321,9 +1336,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1340,9 +1355,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           drawn = true;
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          if (iCent == 0)
-            lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          else
+          //if (iCent == 0)
+          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+          //else
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1365,9 +1380,9 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
         highs->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        else
+        //if (iCent == 0)
+        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1377,14 +1392,17 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         highs->SetLineStyle (1);
         highs->SetLineWidth (3);
 
-        myText (0.65, 0.92, kBlack, "Total", 0.026);
-        
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        if (iCent == 0)
-          lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        if (systematics.size () == 0)
+          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
         else
+          myText (0.65, 0.92, kBlack, "Total", 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        //if (iCent == 0)
+        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
+        //else
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1398,7 +1416,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
 
         delete highs, lows;
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
+        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
           myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
         else {

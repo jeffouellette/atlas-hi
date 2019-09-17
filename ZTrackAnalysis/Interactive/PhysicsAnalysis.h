@@ -231,9 +231,9 @@ class PhysicsAnalysis {
   //void Plot3DDist ();
   void PlotCorrelations (const short pSpc = 2, const short pPtZ = nPtZBins-1, const bool _subBkg = false);
   //void PlotZMissingPt ();
-  void PlotTrackingEfficiencies ();
+  void PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr);
   void PlotTrackingEfficiencies2D ();
-  void PlotTrackingPurities ();
+  void PlotTrackingPurities (PhysicsAnalysis* a = nullptr);
   void PlotTrackingPurities2D ();
 
   void CalculateIAA ();
@@ -1515,7 +1515,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking efficiencies
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackingEfficiencies () {
+void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr) {
   if (!effsLoaded)
     LoadTrackingEfficiencies ();
 
@@ -1525,27 +1525,27 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1000, 800);
+    c = new TCanvas (canvasName, "", 1800, 800);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (2, 2);
+    c->Divide (4, 2);
   }
   c->cd ();
 
-  TGraphErrors* g0[numCentBins];
-  TGraphErrors* g1[numCentBins];
-  TGraphErrors* g2[numCentBins];
-  TGraphErrors* g3[numCentBins];
+  //TGraphErrors* g0[numCentBins];
+  //TGraphErrors* g1[numCentBins];
+  //TGraphErrors* g2[numCentBins];
+  //TGraphErrors* g3[numCentBins];
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
 //    if (iCent > 0) continue;
     gPad->SetLogx ();
 
-    g0[iCent] = new TGraphErrors (numEtaTrkBins);
-    g1[iCent] = new TGraphErrors (numEtaTrkBins);
-    g2[iCent] = new TGraphErrors (numEtaTrkBins);
-    g3[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g0[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g1[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g2[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g3[iCent] = new TGraphErrors (numEtaTrkBins);
 
     for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
       //TEfficiency* eff = h_trk_effs[iCent][iEta];
@@ -1553,15 +1553,16 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 
       eff->SetLineColor (colors[iEta]);
       eff->SetMarkerColor (colors[iEta]);
+      eff->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
       eff->SetMarkerSize (0.5);
 
       eff->SetTitle (";#it{p}_{T} [GeV];Weighted Reco. Eff.");
-      eff->GetXaxis ()->SetRangeUser (0.5, 65);
+      eff->GetXaxis ()->SetRangeUser (0.5, 60);
       eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
       eff->GetXaxis ()->SetMoreLogLabels ();
 
-      eff->Draw (iEta == 0 ? "AP" : "P");
+      eff->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
       //eff->Draw (iEta == 0 ? "APL" : "LP same");
 
       //gPad->Update ();
@@ -1569,24 +1570,24 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
       //eff->GetPaintedGraph ()->GetXaxis ()->SetRangeUser (0.5, 65);
       //eff->GetPaintedGraph ()->GetYaxis ()->SetRangeUser (0.3, 1.08);
 
-      //TH1D* confInts = (TH1D*) h_trk_effs[iCent][iEta]->Clone ("confInts");
-      TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
-      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
-      fit->SetParameter (0, 1);
-      fit->SetParameter (1, 0);
-      fit->SetParameter (2, 0);
-      //fit->SetParameter (3, 0);
-      h_trk_effs[iCent][iEta]->Fit (fit, "RN0Q");
+      ////TH1D* confInts = (TH1D*) h_trk_effs[iCent][iEta]->Clone ("confInts");
+      //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3", 1, 65);
+      ////TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2", 2, 65);
+      //fit->SetParameter (0, 1);
+      //fit->SetParameter (1, 0);
+      //fit->SetParameter (2, 0);
+      ////fit->SetParameter (3, 0);
+      //h_trk_effs[iCent][iEta]->Fit (fit, "RN0Q");
 
-      g0[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (0));
-      g1[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (1));
-      g2[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (2));
-      g3[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (3));
+      //g0[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (0));
+      //g1[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (1));
+      //g2[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (2));
+      //g3[iCent]->SetPoint (iEta, 0.5*(etaTrkBins[iEta]+etaTrkBins[iEta+1]), fit->GetParameter (3));
 
-      g0[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (0));
-      g1[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (1));
-      g2[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (2));
-      g3[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (3));
+      //g0[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (0));
+      //g1[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (1));
+      //g2[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (2));
+      //g3[iCent]->SetPointError (iEta, 0.5*(etaTrkBins[iEta+1]-etaTrkBins[iEta]), fit->GetParError (3));
 
       //fit->SetLineColor (colors[iEta]);
       //fit->SetFillColor (colors[iEta]);
@@ -1601,9 +1602,52 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies () {
 
       LabelTrackingEfficiencies (iCent, iEta);
     }
+
+    if (!a)
+      continue;
+    else
+      a->LoadTrackingEfficiencies ();
+
+    gPad->SetBottomMargin (0);
+    c->cd (iCent+5);
+    gPad->SetLogx ();
+    gPad->SetTopMargin (0);
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      TH1D* h = (TH1D*) a->h_trk_effs[iCent][iEta]->Clone ("temp");
+      h->Divide (h_trk_effs[iCent][iEta]);
+
+      TGAE* eff = GetTGAE (h);
+      delete h;
+
+      eff->SetLineColor (colors[iEta]);
+      eff->SetMarkerColor (colors[iEta]);
+      eff->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
+      eff->SetMarkerSize (0.5);
+
+      eff->SetTitle (";#it{p}_{T} [GeV];HITight / HILoose");
+      eff->GetXaxis ()->SetRangeUser (0.5, 60);
+      eff->GetYaxis ()->SetRangeUser (0.6, 1.05);
+
+      eff->GetXaxis ()->SetMoreLogLabels ();
+
+      eff->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
+    }
+
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
   }
 
-  c->SaveAs (Form ("%s/TrackingEfficiencies.pdf", plotPath.Data ()));
+  if (a) {
+    bool temp = a->useAltMarker;
+    a->useAltMarker = true;
+    a->PlotTrackingEfficiencies ();
+    a->useAltMarker = temp;
+  }
+  else
+    c->SaveAs (Form ("%s/TrackingEfficiencies.pdf", plotPath.Data ()));
 
   //for (int iCent = 0; iCent < numCentBins; iCent++) {
   //  g0[iCent]->SetLineColor (colors[iCent]);
@@ -1690,7 +1734,7 @@ void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const shor
 
   if (iCent == 0) {
   //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerTextNoLine (0.5, 0.5-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+    myMarkerTextNoLine (0.5, 0.36-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
   }
 }
 
@@ -1700,7 +1744,7 @@ void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const shor
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking purities
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackingPurities () {
+void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
   if (!pursLoaded)
     LoadTrackingPurities ();
 
@@ -1710,10 +1754,10 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1800, 450);
+    c = new TCanvas (canvasName, "", 1800, 800);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (4, 1);
+    c->Divide (4, 2);
     c->Draw ();
   }
   c->cd ();
@@ -1727,15 +1771,16 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
 
       pur->SetLineColor (colors[iEta]);
       pur->SetMarkerColor (colors[iEta]);
+      pur->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
       pur->SetMarkerSize (0.5);
 
       pur->SetTitle (";#it{p}_{T} [GeV];Primary Track Fraction");
-      pur->GetXaxis ()->SetRangeUser (0.5, 65);
+      pur->GetXaxis ()->SetRangeUser (0.5, 60);
       pur->GetYaxis ()->SetRangeUser (0.94, 1.010);
 
       pur->GetXaxis ()->SetMoreLogLabels ();
 
-      pur->Draw (iEta == 0 ? "AP" : "P");
+      pur->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
 
       //TH1D* confInts = (TH1D*) h_trk_purs[iCent][iEta]->Clone ("confInts");
       //TF1* fit = new TF1 ("fit", "[0] + [1]*log(x) + [2]*(log(x))^2 + [3]*(log(x))^3 + [4]*(log(x))^4", 1, 65);
@@ -1759,9 +1804,52 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
 
       LabelTrackingPurities (iCent, iEta);
     }
+
+    if (!a)
+      continue;
+    else
+      a->LoadTrackingPurities ();
+
+    gPad->SetBottomMargin (0);
+    c->cd (iCent+5);
+    gPad->SetLogx ();
+    gPad->SetTopMargin (0);
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      TH1D* h = (TH1D*) a->h_trk_purs[iCent][iEta]->Clone ("temp");
+      h->Divide (h_trk_purs[iCent][iEta]);
+
+      TGAE* pur = GetTGAE (h);
+      delete h;
+
+      pur->SetLineColor (colors[iEta]);
+      pur->SetMarkerColor (colors[iEta]);
+      pur->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
+      pur->SetMarkerSize (0.5);
+
+      pur->SetTitle (";#it{p}_{T} [GeV];HITight / HILoose");
+      pur->GetXaxis ()->SetRangeUser (0.5, 60);
+      pur->GetYaxis ()->SetRangeUser (0.9, 1.1);
+
+      pur->GetXaxis ()->SetMoreLogLabels ();
+
+      pur->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
+    }
+
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
   }
 
-  c->SaveAs (Form ("%s/TrackingPurities.pdf", plotPath.Data ()));
+  if (a) {
+    bool temp = a->useAltMarker;
+    a->useAltMarker = true;
+    a->PlotTrackingPurities ();
+    a->useAltMarker = temp;
+  }
+  else
+    c->SaveAs (Form ("%s/TrackingPurities.pdf", plotPath.Data ()));
 }
 
 
@@ -3022,6 +3110,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           const Style_t markerStyle = (useAltMarker ? (iPtZ-2 == 0 ? kOpenSquare : kOpenCircle) : (iPtZ-2 == 0 ? kFullSquare : kFullCircle));
 
           TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_sub[iSpc][iPtZ][iCent] : h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
+          if (iCent == 3)
+            g->Print ("ALL");
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
@@ -3315,7 +3405,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 
         TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_sub[iSpc][iPtZ][iCent] : h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
         if (iCent == 3)
-          g->Print("ALL");
+          g->Print ("ALL");
         RecenterGraph (g);
 
         if (!plotAsSystematic) {
@@ -4104,7 +4194,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
 
     if (plotFill) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      //for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
+      //for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
         TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -4136,15 +4226,15 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         h->GetXaxis ()->SetTitleOffset (0.9 * h->GetXaxis ()->GetTitleOffset ());
         //h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
 
+        //h->DrawCopy (!canvasExists && iPtZ-3 == 0 ? "bar" : "bar same");
         h->DrawCopy (!canvasExists && iPtZ-2 == 0 ? "bar" : "bar same");
-        //h->DrawCopy (!canvasExists && iPtZ-4 == 0 ? "bar" : "bar same");
         h->SetLineWidth (1);
         h->Draw ("hist same");
       } // end loop over pT^Z bins
       gPad->RedrawAxis ();
     } else {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      //for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
+      //for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
         const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
         TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
@@ -4191,12 +4281,12 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
         if (!plotAsSystematic) {
-          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
           //string drawString = string (!canvasExists && iPtZ-4 == 0 ? "AP" : "P");
+          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
-          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
           //string drawString = string (!canvasExists && iPtZ-4 == 0 ? "A5P" : "5P");
+          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
           ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
           g->Draw ("2P");
         }
@@ -4210,19 +4300,19 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     myText (0.22, 0.24, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
     myText (0.65, 0.90, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-    //for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
-      myText (0.565, 0.854, kBlack, "#mu#mu", 0.04);
-      myText (0.615, 0.86, kBlack, "ee", 0.04);
+    //for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
+      //myText (0.565, 0.854, kBlack, "#mu#mu", 0.04);
+      //myText (0.615, 0.86, kBlack, "ee", 0.04);
+      //myMarkerTextNoLine (0.65, 0.804-0.06*(iPtZ-4), colors[iPtZ-1], kFullCircle, "", 2.4, 0.04);
       myMarkerTextNoLine (0.65, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 2.4, 0.04);
-      //myMarkerTextNoLine (0.65, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 2.4, 0.04);
-      myMarkerTextNoLine (0.60, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 2.4, 0.04);
+      //myMarkerTextNoLine (0.60, 0.804-0.06*(iPtZ-4), colors[iPtZ-1], kOpenCircle, "", 2.4, 0.04);
       //myMarkerTextNoLine (0.60, 0.804-0.06*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 2.4, 0.04);
       if (iPtZ == nPtZBins-1)
+        //myText (0.665, 0.80-0.06*(iPtZ-4), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
         myText (0.665, 0.80-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-        //myText (0.665, 0.80-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
       else
+        //myText (0.665, 0.80-0.06*(iPtZ-4), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
         myText (0.665, 0.80-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
-        //myText (0.665, 0.80-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
     }
 
     TLine* l = new TLine (xmin, 1, xmax, 1);
