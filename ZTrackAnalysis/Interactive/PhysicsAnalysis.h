@@ -211,14 +211,13 @@ class PhysicsAnalysis {
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
+  virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1.); // adds or subtracts nSigma of statistical errors to analysis
 
-  //virtual void LoadEventWeights ();
-
-  virtual void LoadTrackingEfficiencies (); // defaults to HILoose
+  virtual void LoadTrackingEfficiencies (const bool doRebin = false); // defaults to HILoose
   virtual double GetTrackingEfficiency (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
-  virtual void LoadTrackingPurities (); // defaults to HILoose
+  virtual void LoadTrackingPurities (const bool doRebin = false); // defaults to HILoose
   virtual double GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
   virtual void LoadTriggerEfficiencies ();
@@ -642,7 +641,7 @@ void PhysicsAnalysis :: ScaleHists () {
           const double countsdPhi = counts * (phiHighBins[iPhi]-phiLowBins[iPhi]);
 
           if (countsdPhi > 0) {
-            h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
+            //h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
             h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
             h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
           }
@@ -903,7 +902,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load the tracking efficiencies into memory
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadTrackingEfficiencies () {
+void PhysicsAnalysis :: LoadTrackingEfficiencies (const bool doRebin) {
   if (effsLoaded)
     return;
 
@@ -940,6 +939,11 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies () {
 
       TH1D* num = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_num_iCent%i_iEta%i", iCent, iEta));
       TH1D* den = (TH1D*) trkEffFile->Get (Form ("h_trk_eff_den_iCent%i_iEta%i", iCent, iEta));
+
+      if (doRebin) {
+        RebinSomeBins (num, maxNPtTrkBins, allPtTrkBins);
+        RebinSomeBins (den, maxNPtTrkBins, allPtTrkBins);
+      }
 
       //if (iCent > 0) {
       //  num->Rebin (2);
@@ -1013,7 +1017,7 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Load the tracking purities into memory
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadTrackingPurities () {
+void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
   if (pursLoaded)
     return;
 
@@ -1053,6 +1057,11 @@ void PhysicsAnalysis :: LoadTrackingPurities () {
 
       TH1D* num = (TH1D*) trkPurFile->Get (Form ("h_primary_reco_tracks_iCent%i_iEta%i", iCent, iEta));
       TH1D* den = (TH1D*) trkPurFile->Get (Form ("h_reco_tracks_iCent%i_iEta%i", iCent, iEta));
+
+      if (doRebin) {
+        RebinSomeBins (num, maxNPtTrkBins, allPtTrkBins);
+        RebinSomeBins (den, maxNPtTrkBins, allPtTrkBins);
+      }
 
       //if (iCent > 0) {
       //  num->Rebin (2);
@@ -1515,7 +1524,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking efficiencies
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr) {
+void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
   if (!effsLoaded)
     LoadTrackingEfficiencies ();
 
@@ -1558,7 +1567,12 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr) 
 
       eff->SetTitle (";#it{p}_{T} [GeV];Weighted Reco. Eff.");
       eff->GetXaxis ()->SetRangeUser (0.5, 60);
-      eff->GetYaxis ()->SetRangeUser (0.3, 1.08);
+      eff->GetYaxis ()->SetRangeUser (0.3, 1.12);
+
+      eff->GetXaxis ()->SetTitleSize (0.07);
+      eff->GetYaxis ()->SetTitleSize (0.07);
+      eff->GetXaxis ()->SetTitleOffset (0.7 * eff->GetXaxis ()->GetTitleOffset ());
+      eff->GetYaxis ()->SetTitleOffset (0.7 * eff->GetYaxis ()->GetTitleOffset ());
 
       eff->GetXaxis ()->SetMoreLogLabels ();
 
@@ -1602,6 +1616,11 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr) 
 
       LabelTrackingEfficiencies (iCent, iEta);
     }
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
 
     if (!a)
       continue;
@@ -1624,19 +1643,33 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr) 
       eff->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
       eff->SetMarkerSize (0.5);
 
-      eff->SetTitle (";#it{p}_{T} [GeV];HITight / HILoose");
+      eff->SetTitle (";#it{p}_{T} [GeV];Pions / Inclusive hadrons");
       eff->GetXaxis ()->SetRangeUser (0.5, 60);
-      eff->GetYaxis ()->SetRangeUser (0.6, 1.05);
+      eff->GetYaxis ()->SetRangeUser (0.89, 1.11);
+
+      eff->GetXaxis ()->SetTitleSize (0.07);
+      eff->GetYaxis ()->SetTitleSize (0.07);
+      eff->GetXaxis ()->SetTitleOffset (0.7 * eff->GetXaxis ()->GetTitleOffset ());
+      eff->GetYaxis ()->SetTitleOffset (0.7 * eff->GetYaxis ()->GetTitleOffset ());
+
+      eff->GetYaxis ()->CenterTitle ();
 
       eff->GetXaxis ()->SetMoreLogLabels ();
 
       eff->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
+
+      //TF1* fit = new TF1 ("fit", "[0]+[1]*log(x)+[2]*(log(x))^2", 0.7, 15);//+[3]*(log(x))^3+[4]*(log(x))^4", 0.7, 15);
+      //fit->SetParameter (0, 1);
+      //fit->SetParameter (1, 0);
+      //fit->SetParameter (2, 0);
+      ////fit->SetParameter (3, 0);
+      ////fit->SetParameter (4, 0);
+      //eff->Fit (fit, "RN0Q");
+      //fit->SetLineColor (colors[iEta]);
+      //fit->SetLineStyle (2);
+      //fit->Draw ("same");
     }
 
-    TLine* l = new TLine (0.5, 1, 60, 1);
-    l->SetLineStyle (2);
-    l->SetLineWidth (2);
-    l->SetLineColor (kPink-8);
     l->Draw ("same");
   }
 
@@ -1727,14 +1760,20 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
 // Auxiliary (non-virtual) plot labelling for track efficiency plots
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const short iEta) {
-  if (iCent == 0)
-    myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-  else
-    myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+  if (iEta == 0) {
+    if (iCent == 0)
+      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
+    else
+      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+  }
 
   if (iCent == 0) {
   //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerTextNoLine (0.5, 0.36-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+    myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
+  }
+  else if (iCent == 1 && iEta == 0) {
+    myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "Inclusive hadrons", 1.2, 0.06);
+    myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "Pions only", 1.2, 0.06);
   }
 }
 
@@ -1778,6 +1817,11 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
       pur->GetXaxis ()->SetRangeUser (0.5, 60);
       pur->GetYaxis ()->SetRangeUser (0.94, 1.010);
 
+      pur->GetXaxis ()->SetTitleSize (0.07);
+      pur->GetYaxis ()->SetTitleSize (0.07);
+      pur->GetXaxis ()->SetTitleOffset (0.7 * pur->GetXaxis ()->GetTitleOffset ());
+      pur->GetYaxis ()->SetTitleOffset (0.7 * pur->GetYaxis ()->GetTitleOffset ());
+
       pur->GetXaxis ()->SetMoreLogLabels ();
 
       pur->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
@@ -1804,6 +1848,11 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
 
       LabelTrackingPurities (iCent, iEta);
     }
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
 
     if (!a)
       continue;
@@ -1830,15 +1879,18 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
       pur->GetXaxis ()->SetRangeUser (0.5, 60);
       pur->GetYaxis ()->SetRangeUser (0.9, 1.1);
 
+      pur->GetXaxis ()->SetTitleSize (0.07);
+      pur->GetYaxis ()->SetTitleSize (0.07);
+      pur->GetXaxis ()->SetTitleOffset (0.7 * pur->GetXaxis ()->GetTitleOffset ());
+      pur->GetYaxis ()->SetTitleOffset (0.7 * pur->GetYaxis ()->GetTitleOffset ());
+
+      pur->GetYaxis ()->CenterTitle ();
+
       pur->GetXaxis ()->SetMoreLogLabels ();
 
       pur->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
     }
 
-    TLine* l = new TLine (0.5, 1, 60, 1);
-    l->SetLineStyle (2);
-    l->SetLineWidth (2);
-    l->SetLineColor (kPink-8);
     l->Draw ("same");
   }
 
@@ -1904,14 +1956,20 @@ void PhysicsAnalysis :: PlotTrackingPurities2D () {
 // Auxiliary (non-virtual) plot labelling for track purity plots
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelTrackingPurities (const short iCent, const short iEta) {
-  if (iCent == 0)
-    myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-  else
-    myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+  if (iEta == 0) {
+    if (iCent == 0)
+      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
+    else
+      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+  }
 
   if (iCent == 0) {
   //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerTextNoLine (0.5, 0.5-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.08);
+    myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
+  }
+  else if (iCent == 1 && iEta == 0) {
+    myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "HILoose tracks", 1.2, 0.06);
+    myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "HITight tracks", 1.2, 0.06);
   }
 }
 
@@ -2125,6 +2183,33 @@ void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
 }
 
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Applies a constant (x-axis independent) systematic to the analysis, e.g. a luminosity unc.
+// Only applies to pT dependent histograms, i.e. will need to subtract background still.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: ApplyRelativeVariation (float**** relVar, const bool upVar) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+
+      // Hadron yield systematics, signal & signal+bkg levels
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
+        } // end loop over phi
+
+        h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][numPhiBins][iCent] : 1./relVar[iSpc][iPtZ][numPhiBins][iCent]);
+        h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][numPhiBins][iCent] : 1./relVar[iSpc][iPtZ][numPhiBins][iCent]);
+      } // end loop over cents
+    } // end loop over pT^Z bins
+  } // end loop over species
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Converts analysis to a systematic variation by adding or subtracting statistical errors
 // Only converts relevant histograms, e.g. for minbias will only do this to track yields
@@ -2153,51 +2238,9 @@ void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nS
         AddStatVar (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], upVar, nSigma);
         AddStatVar (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], upVar, nSigma);
       } // end loop over cents
-      //// IAA, ICP systematics
-      //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-      //  for (short iCent = 1; iCent < numCentBins; iCent++) {
-      //    AddStatVar (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-      //    AddStatVar (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-      //  } // end loop over cents
-      //  for (short iCent = 2; iCent < numCentBins; iCent++) {
-      //    AddStatVar (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-      //    AddStatVar (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent], upVar, nSigma);
-      //  } // end loop over cents
-      //} // end loop over phi
-      //for (short iCent = 1; iCent < numCentBins; iCent++) {
-      //  AddStatVar (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent], upVar, nSigma);
-      //  AddStatVar (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], upVar, nSigma);
-      //} // end loop over cents
-      //for (short iCent = 2; iCent < numCentBins; iCent++) {
-      //  AddStatVar (h_z_trk_zpt_icp[iSpc][iPtZ][iCent], upVar, nSigma);
-      //  AddStatVar (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent], upVar, nSigma);
-      //} // end loop over cents
     } // end loop over pT^Z bins
   } // end loop over species
 }
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Load event weights
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//void PhysicsAnalysis :: LoadEventWeights () {
-//  if (eventWeightsLoaded)
-//    return;
-//  //SetupDirectories (directory, "ZTrackAnalysis/");
-//  eventWeightsFile = new TFile (Form ("%s/eventWeightsFile.root", rootPath.Data ()), "read");
-//  for (short iPtZ = 0; iPtZ < nPtZBins+1; iPtZ++) {
-//    h_PbPbFCal_weights[iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_iPtZ%i_%s", iPtZ, eventWeightsExt.c_str ()));
-//    for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
-//      h_PbPbQ2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
-//      h_PbPbPsi2_weights[iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_iPtZ%i_%s", iCent, iPtZ, eventWeightsExt.c_str ()));
-//    }
-//  }
-//  h_ppNch_weights = (TH1D*) eventWeightsFile->Get (Form ("h_ppNch_weights_%s", eventWeightsExt.c_str ()));
-//
-//  eventWeightsLoaded = true;
-//}
 
 
 

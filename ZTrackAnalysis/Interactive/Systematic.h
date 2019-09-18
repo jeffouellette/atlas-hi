@@ -19,7 +19,7 @@ class Systematic : public PhysicsAnalysis {
 
   protected:
   vector<PhysicsAnalysis*> variations;
-  map <PhysicsAnalysis*, bool> variationDirs; // variation direction values are -1 for down, 0 for both, 1 for up
+  map <PhysicsAnalysis*, bool> variationDirs; // variation direction values are true for both, false for asymmetric
   vector<Systematic*> systematics;
 
   // map taking TH1Ds to TGAEs for systematics
@@ -53,11 +53,11 @@ class Systematic : public PhysicsAnalysis {
 
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
 
-  void AddVariation (PhysicsAnalysis* a, const bool applyBothWays = true);
-  void AddSystematic (Systematic* a);
+  virtual void AddVariation (PhysicsAnalysis* a, const bool applyBothWays = true);
+  virtual void AddSystematic (Systematic* a);
 
-  void AddVariations (); // variations add linearly
-  void AddSystematics (); // systematics add in quadrature
+  virtual void AddVariations (); // variations add linearly
+  virtual void AddSystematics (); // systematics add in quadrature
 
   void PlotTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   void PlotTrkYieldSystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
@@ -587,8 +587,8 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             highs->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (2);
-            highs->SetLineWidth (5);
+            highs->SetLineStyle (iSys+1);
+            //highs->SetLineWidth (5);
 
             if (!drawn)
               highs->DrawCopy ("][ hist");
@@ -606,12 +606,12 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             lows->GetYaxis ()->SetTitle ("Y (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (2);
-            lows->SetLineWidth (5);
+            lows->SetLineStyle (iSys+1);
+            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
-            myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
             //delete errs;
             delete highs, lows;
@@ -638,9 +638,9 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
           if (systematics.size () == 0)
-            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+            myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
           else
-            myText (0.65, 0.92, kBlack, "Total", 0.026);
+            myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
           lows->GetXaxis ()->SetMoreLogLabels ();
           //if (iCent == 0)
@@ -740,8 +740,8 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           highs->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (2);
-          highs->SetLineWidth (5);
+          highs->SetLineStyle (iSys+1);
+          //highs->SetLineWidth (5);
 
           if (!drawn)
             highs->DrawCopy ("][ hist");
@@ -759,12 +759,12 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           lows->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ch}) Relative error" : "Y (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (2);
-          lows->SetLineWidth (5);
+          lows->SetLineStyle (iSys+1);
+          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
-          myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
           //delete errs;
           delete highs, lows;
@@ -791,9 +791,9 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
         if (systematics.size () == 0)
-          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+          myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
         else
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
+          myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
         lows->GetXaxis ()->SetMoreLogLabels ();
         //if (iCent == 0)
@@ -884,17 +884,14 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (2);
-            highs->SetLineWidth (5);
+            highs->SetLineStyle (iSys+1);
+            //highs->SetLineWidth (5);
 
             if (!drawn)
               highs->DrawCopy ("][ hist");
@@ -903,21 +900,18 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             drawn = true;
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (2);
-            lows->SetLineWidth (5);
+            lows->SetLineStyle (iSys+1);
+            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
-            myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
             delete highs, lows;
             iSys++;
@@ -929,10 +923,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
           highs->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
@@ -944,15 +935,12 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
           if (systematics.size () == 0)
-            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+            myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
           else
-            myText (0.65, 0.92, kBlack, "Total", 0.026);
+            myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
           lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
@@ -1036,17 +1024,14 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           highs->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (2);
-          highs->SetLineWidth (5);
+          highs->SetLineStyle (iSys+1);
+          //highs->SetLineWidth (5);
 
           if (!drawn)
             highs->DrawCopy ("][ hist");
@@ -1055,21 +1040,18 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           drawn = true;
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           lows->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (2);
-          lows->SetLineWidth (5);
+          lows->SetLineStyle (iSys+1);
+          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
-          myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
           delete highs, lows;
           iSys++;
@@ -1081,10 +1063,7 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
         highs->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
         highs->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
@@ -1096,15 +1075,12 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
         if (systematics.size () == 0)
-          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+          myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
         else
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
+          myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
         lows->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
         lows->GetYaxis ()->SetTitle (useTrkPt ? "Y_{sub} (#it{p}_{T}^{ch}) Relative error" : "Y_{sub} (#it{x}_{hZ}) Relative error");
@@ -1187,17 +1163,14 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
 
             highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (2);
-            highs->SetLineWidth (5);
+            highs->SetLineStyle (iSys+1);
+            //highs->SetLineWidth (5);
 
             if (!drawn)
               highs->DrawCopy ("][ hist");
@@ -1206,21 +1179,18 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             drawn = true;
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
 
             lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (2);
-            lows->SetLineWidth (5);
+            lows->SetLineStyle (iSys+1);
+            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
-            myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
             delete highs, lows;
             iSys++;
@@ -1231,10 +1201,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
           highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
@@ -1246,15 +1213,12 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
           highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
           if (systematics.size () == 0)
-            myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+            myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
           else
-            myText (0.65, 0.92, kBlack, "Total", 0.026);
+            myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
           lows->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
@@ -1336,17 +1300,14 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           SaveRelativeErrors (sys->GetTGAE (h), GetTGAE (centralVals), highs, lows);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           highs->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
 
           highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (2);
-          highs->SetLineWidth (5);
+          highs->SetLineStyle (iSys+1);
+          //highs->SetLineWidth (5);
 
           if (!drawn)
             highs->DrawCopy ("][ hist");
@@ -1355,21 +1316,18 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           drawn = true;
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           lows->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
 
           lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (2);
-          lows->SetLineWidth (5);
+          lows->SetLineStyle (iSys+1);
+          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
-          myText (0.65, 0.89-0.026*iSys, colors[iSys+1], sys->description.c_str (), 0.026);
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+1, sys->description.c_str (), 1, 0.026);
 
           delete highs, lows;
           iSys++;
@@ -1380,10 +1338,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
 
         highs->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
         highs->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
@@ -1395,15 +1350,12 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
 
         if (systematics.size () == 0)
-          myText (0.65, 0.88, kBlack, description.c_str (), 0.04);
+          myLineText (0.65, 0.88, kBlack, iSys+1, description.c_str (), 1, 0.04);
         else
-          myText (0.65, 0.92, kBlack, "Total", 0.026);
+          myLineText (0.65, 0.92, kBlack, iSys+1, "Total", 1, 0.026);
 
         lows->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
         lows->GetYaxis ()->SetTitle (useTrkPt ? "I_{AA} (#it{p}_{T}^{ch}) Relative error" : "I_{AA} (#it{x}_{hZ}) Relative error");
