@@ -136,7 +136,7 @@ void CalcSystematics (TH1D* sys, TH1D* var);
  * Calculates simple systematics as maximum variations on the nominal.
  * Intended for combining up/down variations in an expandable way.
  */
-void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const short dir = 0);
+void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const bool applyBothWays = true);
 
 
 /**
@@ -234,6 +234,12 @@ TH1D* TProfile2TH1D (const char* name, TProfile* p, const int nx, const double* 
  * Reflects the contents of h around the n-th bin in x.
  */
 void GetReflectionX (TH1D* h, const int n);
+
+
+/**
+ * New binning
+ */ 
+void RebinSomeBins (TH1D* &h, int nbins, double* bins);
 
 } // end namespace
 

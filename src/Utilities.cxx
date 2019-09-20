@@ -124,7 +124,7 @@ void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
     externalWorkPath = drivePath + thisWorkPath;
   }
 
-  rootPath = externalWorkPath + "rootFiles/" + dataSubDir;
+  rootPath = workPath + "rootFiles/" + dataSubDir;
   dataPath = externalWorkPath + "data/" + dataSubDir;
   plotPath = workPath + "Plots/" + dataSubDir;
   ptPath = rootPath + "ptData/";
@@ -352,16 +352,18 @@ void CalcSystematics (TH1D* sys, TH1D* var) {
  * Intended for combining up/down variations in an expandable way.
  * dir represents the variation direction, -1 = down, 0 = either, 1 = up
  */
-void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const short dir) {
+void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const bool applyBothWays) {
   for (int ix = 0; ix < sys->GetN (); ix++) {
     double x, y;
     sys->GetPoint (ix, x, y);
-    const float newErr = fabs (var->GetBinContent (ix+1) - y);
+    const float newErr = var->GetBinContent (ix+1) - y;
 
-    if (dir != -1) // if not a "down" variation set the "up" variation
-      sys->SetPointEYhigh (ix, fmax (newErr, sys->GetErrorYhigh (ix)));
-    if (dir != 1)  // if not a "up" variation set the "down" variation
-      sys->SetPointEYlow (ix, fmax (newErr, sys->GetErrorYlow (ix)));
+    if (applyBothWays || newErr > 0) {
+      sys->SetPointEYhigh (ix, fmax (fabs (newErr), sys->GetErrorYhigh (ix)));
+    }
+    if (applyBothWays || newErr < 0) {
+      sys->SetPointEYlow (ix, fmax (fabs (newErr), sys->GetErrorYlow (ix)));
+    }
   }
 }
 
@@ -948,6 +950,43 @@ void GetReflectionX (TH1D* h, const int n) {
   } 
 
   return;
+}
+
+
+/**
+ * New binning
+ */ 
+void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
+  if (nbins >= h->GetNbinsX ()) {
+    cout << "More new bins than old bins, returning." << endl;
+    return;
+  }
+
+  const TString name = h->GetName ();
+  h->SetName ("temp");
+
+  int noldbins = h->GetNbinsX ();
+  double* oldbins = new double[noldbins+1];
+  for (int ix = 1; ix <= noldbins; ix++) {
+    oldbins[ix-1] = h->GetBinLowEdge (ix);
+  }
+  oldbins[noldbins] = h->GetBinLowEdge (noldbins) + h->GetBinWidth (noldbins);
+
+  TH1D* hnew = new TH1D (name, "", nbins, bins);
+  hnew->Sumw2 ();
+  for (int ix = 0; ix < nbins; ix++) {
+    for (int ixprime = 0; ixprime < noldbins; ixprime++) {
+      if (bins[ix] <= oldbins[ixprime] && oldbins[ixprime+1] <= bins[ix+1]) {
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + pow (h->GetBinError (ixprime+1), 2));
+      }
+    }
+    hnew->SetBinError (ix+1, sqrt (hnew->GetBinError (ix+1)));
+  }
+  delete[] oldbins;
+
+  delete h;
+  h = hnew;
 }
 
 
