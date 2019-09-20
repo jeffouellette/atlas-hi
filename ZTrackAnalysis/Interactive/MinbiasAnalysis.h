@@ -24,11 +24,6 @@ class MinbiasAnalysis : public FullAnalysis {
 
   public:
 
-  //TH1D*****   h_z_trk_pt_corr      = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
-  //TH1D*****   h_z_trk_xzh_corr     = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins);   // iSpc, iPtZ, iPhi, iCent
-  //TH1D****    h_z_trk_zpt_corr     = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
-  //TH1D****    h_z_trk_zxzh_corr    = Get3DArray <TH1D*> (3, nPtZBins, numCentBins);               // iSpc, iPtZ, iCent
-
   MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
     plotFill = true;
@@ -394,7 +389,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
-        const float trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
+        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
@@ -418,54 +413,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
             h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
-
-        //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        //  if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-        //    for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-        //      if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-        //        yield_pt[0][iPtTrk][idPhi] += trkWeight;
-        //    }
-        //    for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
-        //      if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
-        //        yield_xhz[0][iXHZ][idPhi] += trkWeight;
-        //    }
-        //  }
-        //}
       }
-
-      //for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
-      //  const float trkpt = z_trk_pt[iTrk];
-
-      //  if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-      //    continue;
-
-      //  const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, z_trk_eta[iTrk], true);
-      //  const float trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, z_trk_eta[iTrk], true);
-      //  if (trkEff == 0 || trkPur == 0)
-      //    continue;
-      //  const float trkWeight = event_weight * trkPur / trkEff;
-
-      //  float dphi = DeltaPhi (z_phi, z_trk_phi[iTrk], false);
-      //  for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-      //    if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-      //      for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-      //        if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-      //          yield_pt[1][iPtTrk][idPhi] += trkWeight;
-      //      }
-      //      for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++) {
-      //        if (xHZBins[iPtZ][iXHZ] <= trkpt / z_pt && trkpt / z_pt < ptTrkBins[iPtZ][iXHZ+1])
-      //          yield_xhz[1][iXHZ][idPhi] += trkWeight;
-      //      }
-      //    }
-      //  }
-      //}
-
-      //for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-      //  for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++)
-      //    h_z_trk_raw_pt_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtTrk, h_z_trk_raw_pt_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtTrk) + yield_pt[0][iPtTrk][idPhi]*yield_pt[1][iPtTrk][idPhi]);
-      //  for (short iXHZ = 0; iXHZ < nXHZBins[iPtZ]; iXHZ++)
-      //    h_z_trk_xzh_corr[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXHZ, h_z_trk_xzh_corr[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXHZ) + yield_xhz[0][iXHZ][idPhi]*yield_xhz[1][iXHZ][idPhi]);
-      //}
 
     } // end loop over Pb+Pb tree
     cout << "Done minbias Pb+Pb loop." << endl;
@@ -571,7 +519,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           continue;
 
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
-        const float trkPur = doTrackPurVar ? 1. : GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
+        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;

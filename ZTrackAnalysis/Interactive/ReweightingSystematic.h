@@ -41,7 +41,7 @@ class ReweightingSystematic : public Systematic {
 void ReweightingSystematic :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsAnalysis* var) {
   TH1D* h = nullptr, *eff1 = nullptr, *eff2 = nullptr, *effrat = nullptr;
 
-  cout << "Calculating particle composition variation on total yields." << endl;
+  cout << "Calculating reweighting variation on total yields." << endl;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -49,22 +49,22 @@ void ReweightingSystematic :: GetRelativeVariations (PhysicsAnalysis* nominal, P
 
       for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
-          h = (TH1D*) nominal->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_partcomp_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h = (TH1D*) nominal->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           relVarPt[iSpc][iPtZ][iPhi][iCent] = h;
           h->Divide (var->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
 
-          h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_partcomp_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           relVarX[iSpc][iPtZ][iPhi][iCent] = h;
           h->Divide (var->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over iCent
       } // end loop over iPhi
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        h = (TH1D*) nominal->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_partcomp_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
+        h = (TH1D*) nominal->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
         relVarPt[iSpc][iPtZ][numPhiBins][iCent] = h;
         h->Divide (var->h_z_trk_zpt[iSpc][iPtZ][iCent]);
 
-        h = (TH1D*) nominal->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zxzh_partcomp_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
+        h = (TH1D*) nominal->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
         relVarX[iSpc][iPtZ][numPhiBins][iCent] = h;
         h->Divide (var->h_z_trk_zxzh[iSpc][iPtZ][iCent]);
       } // end loop over iCent
@@ -94,7 +94,7 @@ void ReweightingSystematic :: ApplyRelativeVariations (PhysicsAnalysis* a, const
             a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Divide (relVarPt[iSpc][iPtZ][iPhi][iCent]);
             a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Divide (relVarX[iSpc][iPtZ][iPhi][iCent]);
           }
-        }
+        } // end loop over iPhi
         if (upVar) {
           a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Multiply (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
           a->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Multiply (relVarX[iSpc][iPtZ][numPhiBins][iCent]);
