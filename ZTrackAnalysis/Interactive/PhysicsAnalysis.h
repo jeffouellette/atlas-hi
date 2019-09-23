@@ -522,8 +522,6 @@ void PhysicsAnalysis :: ClearHists () {
   // Should clone these histograms
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
-      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         //for (short iZH = 0; iZH < nXHZBins[iPtZ]; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
@@ -546,7 +544,6 @@ void PhysicsAnalysis :: ClearHists () {
   } // end loop over iCent
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
 
@@ -570,7 +567,6 @@ void PhysicsAnalysis :: ClearHists () {
   backgroundSubtracted = false;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
         if (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
@@ -587,7 +583,6 @@ void PhysicsAnalysis :: ClearHists () {
   
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 2; iCent < numCentBins; iCent++) {
         if (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
@@ -1155,15 +1150,18 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
     h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_primary_reco_tracks_iCent%i", iCent));
     h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_reco_tracks_iCent%i", iCent));
 
+    h2_num_trk_purs[iCent]->RebinX (4);
+    h2_den_trk_purs[iCent]->RebinX (4);
+
     h2_trk_purs[iCent] = (TH2D*) h2_num_trk_purs[iCent]->Clone (Form ("h2_trk_pur_iCent%i", iCent));
     h2_trk_purs[iCent]->Divide (h2_den_trk_purs[iCent]);
 
     if (doTrackPurVar) {
-      for (int ix = 1; ix <= h_trk_purs[iCent][iEta]->GetNbinsX (); ix++) {
-        for (int iy = 1; iy <= h_trk_purs[iCent][iEta]->GetNbinsY (); iy++) {
-          const float fakeRate = 1. - h2_trk_purs[iCent][iEta]->GetBinContent (ix, iy);
+      for (int ix = 1; ix <= h2_trk_purs[iCent]->GetNbinsX (); ix++) {
+        for (int iy = 1; iy <= h2_trk_purs[iCent]->GetNbinsY (); iy++) {
+          float fakeRate = 1. - h2_trk_purs[iCent]->GetBinContent (ix, iy);
           fakeRate = fakeRate + trkPurNSigma * 0.25 * fakeRate;
-          h2_trk_purs[iCent][iEta]->SetBinContent (ix, iy, fakeRate);
+          h2_trk_purs[iCent]->SetBinContent (ix, iy, 1.-fakeRate);
         }
       }
     }
@@ -1182,9 +1180,9 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
 
       if (doTrackPurVar) {
         for (int ix = 1; ix <= h_trk_purs[iCent][iEta]->GetNbinsX (); ix++) {
-          const float fakeRate = 1. - h_trk_purs[iCent][iEta]->GetBinContent (ix);
+          float fakeRate = 1. - h_trk_purs[iCent][iEta]->GetBinContent (ix);
           fakeRate = fakeRate + trkPurNSigma * 0.25 * fakeRate;
-          h_trk_purs[iCent][iEta]->SetBinContent (ix, fakeRate);
+          h_trk_purs[iCent][iEta]->SetBinContent (ix, 1.-fakeRate);
         }
       }
     }
@@ -4353,7 +4351,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
     //const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_%s_iCent%i", useTrkPt ? "pttrk" : "xhz", spc, iCent);
     const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_iCent%i", useTrkPt ? "pttrk" : "xhz", iCent);

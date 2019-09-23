@@ -4,7 +4,7 @@
 
 int main (int argc, char** argv) {
 
-  if (argc < 12) {
+  if (argc < 13) {
     cout << "Insufficient arguments! Exiting." << endl;
     return 1;
   }
@@ -20,10 +20,11 @@ int main (int argc, char** argv) {
   bool doMuonPtDownVar = (string (argv[8]) == "true");
   bool doHITightVar = (string (argv[9]) == "true");
   bool doTrkEffVar = (string (argv[10]) == "true");
-  bool doTrkPurVar = (string (argv[11]) == "true");
+  bool doTrkPurUpVar = (string (argv[11]) == "true");
+  bool doTrkPurDownVar = (string (argv[12]) == "true");
 
 
-  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doHITightVar && !doTrkPurVar && !doTrkEffVar) {
+  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doHITightVar && !doTrkEffVar && !doTrkPurUpVar && !doTrkPurDownVar) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Nominal/" + outFileName;
   }
@@ -51,9 +52,13 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     outFileName = "Variations/TrackEffPionsVariation/" + outFileName;
   }
-  else if (doTrkPurVar) {
+  else if (doTrkPurUpVar) {
     inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/TrackPurityVariation/" + outFileName;
+    outFileName = "Variations/TrackPurityUpVariation/" + outFileName;
+  }
+  else if (doTrkPurDownVar) {
+    inFileName = "Nominal/" + inFileName;
+    outFileName = "Variations/TrackPurityDownVariation/" + outFileName;
   }
 
 
@@ -65,13 +70,16 @@ int main (int argc, char** argv) {
       mc = new MCAnalysis ("mc_trackHITightVar");
     else if (doTrkEffVar)
       mc = new MCAnalysis ("mc_trackEffVar");
-    else if (doTrkPurVar)
-      mc = new MCAnalysis ("mc_trackPurityVar");
+    else if (doTrkPurUpVar)
+      mc = new MCAnalysis ("mc_trkPurUpVar");
+    else if (doTrkPurDownVar)
+      mc = new MCAnalysis ("mc_trkPurDownVar");
     else
       mc = new MCAnalysis ("mc");
     mc->useHITight = doHITightVar;
     mc->doTrackEffVar = doTrkEffVar;
-    mc->doTrackPurVar = doTrkPurVar;
+    mc->doTrackPurVar = (doTrkPurUpVar || doTrkPurDownVar);
+    mc->trkPurNSigma = (doTrkPurUpVar ? 1. : (doTrkPurDownVar ? -1 : 0));
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
   }
@@ -89,23 +97,22 @@ int main (int argc, char** argv) {
     MinbiasAnalysis* bkg = nullptr;
     inFileName = "MinbiasAnalysis/" + inFileName;
     outFileName = "MinbiasAnalysis/" + outFileName;
-    if (doHITightVar) {
+    if (doHITightVar)
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-    }
-    else if (doTrkEffVar) {
+    else if (doTrkEffVar)
       bkg = new MinbiasAnalysis ("bkg_trackEffVar");
-    }
-    else if (doTrkPurVar) {
-      bkg = new MinbiasAnalysis ("bkg_trackPurityVar");
-    }
-    else {
+    else if (doTrkPurUpVar)
+      bkg = new MinbiasAnalysis ("bkg_trkPurUpVar");
+    else if (doTrkPurDownVar)
+      bkg = new MinbiasAnalysis ("bkg_trkPurDownVar");
+    else
       bkg = new MinbiasAnalysis ("bkg");
-    }
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
     bkg->doTrackEffVar = doTrkEffVar;
-    bkg->doTrackPurVar = doTrkPurVar;
+    bkg->doTrackPurVar = (doTrkPurUpVar || doTrkPurDownVar);
+    bkg->trkPurNSigma = (doTrkPurUpVar ? 1. : (doTrkPurDownVar ? -1 : 0));
     bkg->Execute (inFileName.c_str (), outFileName.c_str ());
     delete bkg;
   }
