@@ -1510,7 +1510,7 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
     const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
     myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
     //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
-    myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001);
+    myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1.);
     myText (0.79, 0.82-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
   }
 
@@ -1885,8 +1885,8 @@ void FullAnalysis :: PlotZPtSpectra () {
       myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
       myText (0.26, 0.85, kBlack, Form ("Z #rightarrow %s Events", iSpc == 0 ? "e^{+}e^{-}" : (iSpc == 1 ? "#mu^{+}#mu^{-}" : "l^{+}l^{-}")), 0.04/0.6);
       myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
-      //myOnlyBoxText (0.76, 0.55, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001);
-      myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001);
+      //myOnlyBoxText (0.76, 0.55, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
       if (iCent == 0)
         myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
@@ -2086,7 +2086,7 @@ void FullAnalysis :: PlotZEtaMap () {
       else
         //myText (0.28, 0.26-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.03/0.6);
         myText (0.22, 0.78, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001);
+      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
       myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
 
       dPad->cd ();
@@ -2253,7 +2253,7 @@ void FullAnalysis :: PlotZYMap () {
       else
         //myText (0.28, 0.26-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.03/0.6);
         myText (0.22, 0.78, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001);
+      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
       myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
       
 
@@ -2469,7 +2469,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
       const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
       myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
       //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
-      myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001);
+      myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1);
       myText (0.79, 0.82-iSpc*0.06, colors[iSpc+1], spcLabel, 0.04/0.6);
     }
 
@@ -2653,8 +2653,8 @@ void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, con
   else
     myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
-  //myOnlyBoxText (0.76, 0.67, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001);
-  myOnlyBoxText (0.76, 0.67, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001);
+  //myOnlyBoxText (0.76, 0.67, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+  myOnlyBoxText (0.76, 0.67, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
   //TVirtualPad* cPad = gPad; // store current pad
   //TBox* b = TBoxNDC (0.4+0.6*(0.598-0.025), 0.67-0.06*numPhiBins-0.018, 0.4+0.6*(0.598+0.025), 0.67-0.06*numPhiBins+0.018);

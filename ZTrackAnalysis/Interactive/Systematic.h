@@ -1320,7 +1320,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
       for (short iCent = 1; iCent < numCentBins; iCent++) {
 
         TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
-        centralVals = h_z_trk_zpt_iaa[iSpc][iPtZ][iCent];
+        centralVals = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         if (!centralVals) continue;
 
@@ -1328,7 +1328,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
-          TH1D* h = sys->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent];
+          TH1D* h = (useTrkPt ? sys->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : sys->h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
           highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
           lows = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysLow").c_str ());
           

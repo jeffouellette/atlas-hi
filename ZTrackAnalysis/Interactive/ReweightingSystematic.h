@@ -15,21 +15,70 @@
 using namespace std;
 using namespace atlashi;
 
-class ReweightingSystematic : public Systematic {
+class ReweightingSystematic {
+
+  protected:
+  string name;
 
   TH1D***** relVarPt = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins+1, numCentBins); // iSpc, iPtZ, iPhi (or integrated at numPhiBins), iCent
   TH1D***** relVarX  = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins+1, numCentBins); // iSpc, iPtZ, iPhi (or integrated at numPhiBins), iCent
 
   public:
 
-  ReweightingSystematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : Systematic (nom, _name, _desc) { }
+  //ReweightingSystematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : Systematic (nom, _name, _desc) { }
+  ReweightingSystematic (const char* _name = "systematics") {
+    name = _name;
+  }
 
+  ~ReweightingSystematic () {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+        for (int iPhi = 0; iPhi <= numPhiBins; iPhi++) {
+          for (short iCent = 0; iCent < numCentBins; iCent++) {
+            SaferDelete (relVarPt[iSpc][iPtZ][iPhi][iCent]);
+            SaferDelete (relVarX[iSpc][iPtZ][iPhi][iCent]);
+          }
+        }
+      }
+    }
+    Delete4DArray (relVarPt, 3, nPtZBins, numPhiBins+1, numCentBins);
+    Delete4DArray (relVarX, 3, nPtZBins, numPhiBins+1, numCentBins);
+  }
+
+  string Name ()              { return name; }
+  void SetName (string _name) { name = _name; }
+
+  void ScaleRelativeVariations (const float scaleFactor = 1.);
 
   void GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsAnalysis* var);
   void ApplyRelativeVariations (PhysicsAnalysis* a, const bool upVar = true);
-
-  //virtual void AddVariations (); // variations add linearly
 };
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Rescales the relative variation weights by some constant factor
+////////////////////////////////////////////////////////////////////////////////////////////////
+void ReweightingSystematic :: ScaleRelativeVariations (const float scaleFactor) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+      for (int iPhi = 0; iPhi <= numPhiBins; iPhi++) {
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          for (TH1D* h : {relVarPt[iSpc][iPtZ][iPhi][iCent], relVarX[iSpc][iPtZ][iPhi][iCent]}) {
+            if (!h)
+              continue;
+            for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+              float relVar = h->GetBinContent (ix);
+              relVar = (relVar-1.)*scaleFactor + 1.;
+              h->SetBinContent (ix, relVar);
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
 
 
