@@ -567,7 +567,44 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
 
           if (!centralVals) continue;
 
-          bool drawn = false;
+          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+          highs->Scale (100.);
+          lows->Scale (100.);
+
+          highs->GetXaxis ()->SetMoreLogLabels ();
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
+
+          highs->SetLineColor (kGray+1);
+          highs->SetLineStyle (1);
+          highs->SetLineWidth (3);
+
+          highs->DrawCopy ("][ hist");
+
+          if (systematics.size () == 0)
+            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else
+            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
+
+          lows->SetLineColor (kGray+1);
+          lows->SetLineStyle (1);
+          lows->SetLineWidth (3);
+
+          lows->DrawCopy ("][ same hist");
+
+          delete highs, lows;
+
           short iSys = 0;
           for (Systematic* sys : systematics) {
 
@@ -584,89 +621,32 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
             lows->Scale (100.);
 
             highs->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (iSys+2);
-            //highs->SetLineWidth (5);
 
-            if (!drawn)
-              highs->DrawCopy ("][ hist");
-            else
-              highs->DrawCopy ("][ hist same");
-            drawn = true;
+            highs->DrawCopy ("][ hist same");
 
             lows->GetXaxis ()->SetMoreLogLabels ();
-            //if (iCent == 0)
-            //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-            //else
-              lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
             lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
             lows->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (iSys+2);
-            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
             myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
 
-            //delete errs;
             delete highs, lows;
             iSys++;
           }
-
-          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-          highs->Scale (100.);
-          lows->Scale (100.);
-
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kBlack);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kBlack);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
-          delete highs, lows;
 
           myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
@@ -726,7 +706,44 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
 
         if (!centralVals) continue;
 
-        bool drawn = false;
+        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+        highs->Scale (100.);
+        lows->Scale (100.);
+
+        highs->GetXaxis ()->SetMoreLogLabels ();
+        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
+
+        highs->SetLineColor (kGray+1);
+        highs->SetLineStyle (1);
+        highs->SetLineWidth (3);
+
+        highs->DrawCopy ("][ hist");
+
+        if (systematics.size () == 0)
+          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else
+          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
+
+        lows->SetLineColor (kGray+1);
+        lows->SetLineStyle (1);
+        lows->SetLineWidth (3);
+
+        lows->DrawCopy ("][ same hist");
+
+        delete highs, lows;
+
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
@@ -743,89 +760,32 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
           lows->Scale (100.);
 
           highs->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (iSys+2);
-          //highs->SetLineWidth (5);
 
-          if (!drawn)
-            highs->DrawCopy ("][ hist");
-          else
-            highs->DrawCopy ("][ hist same");
-          drawn = true;
+          highs->DrawCopy ("][ hist same");
 
           lows->GetXaxis ()->SetMoreLogLabels ();
-          //if (iCent == 0)
-          //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-          //else
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
           lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
           lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (iSys+2);
-          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
           myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
 
-          //delete errs;
           delete highs, lows;
           iSys++;
         }
-
-        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-        highs->Scale (100.);
-        lows->Scale (100.);
-
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  highs->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kBlack);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        //if (iCent == 0)
-        //  lows->GetYaxis ()->SetRangeUser (-0.1, 0.1);
-        //else
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kBlack);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
-
-        delete highs, lows;
 
         myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
@@ -888,7 +848,45 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
 
           if (!centralVals) continue;
 
-          bool drawn = false;
+          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+          highs->Scale (100.);
+          lows->Scale (100.);
+
+          highs->GetXaxis ()->SetMoreLogLabels ();
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
+
+          highs->SetLineColor (kGray+1);
+          highs->SetLineStyle (1);
+          highs->SetLineWidth (3);
+
+          highs->DrawCopy ("][ hist");
+
+          if (systematics.size () == 0)
+            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else
+            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
+          lows->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
+
+          lows->SetLineColor (kGray+1);
+          lows->SetLineStyle (1);
+          lows->SetLineWidth (3);
+
+          lows->DrawCopy ("][ same hist");
+
+          delete highs, lows;
+
           short iSys = 0;
           for (Systematic* sys : systematics) {
 
@@ -909,13 +907,8 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (iSys+2);
-            //highs->SetLineWidth (5);
 
-            if (!drawn)
-              highs->DrawCopy ("][ hist");
-            else
-              highs->DrawCopy ("][ hist same");
-            drawn = true;
+            highs->DrawCopy ("][ hist same");
 
             lows->GetXaxis ()->SetMoreLogLabels ();
             lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -925,7 +918,6 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (iSys+2);
-            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
@@ -934,46 +926,6 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
             delete highs, lows;
             iSys++;
           }
-
-
-          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-          highs->Scale (100.);
-          lows->Scale (100.);
-
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kBlack);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
-          lows->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kBlack);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
-          delete highs, lows;
 
           myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
@@ -1035,7 +987,44 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
 
         if (!centralVals) continue;
 
-        bool drawn = false;
+        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+        highs->Scale (100.);
+        lows->Scale (100.);
+
+        highs->GetXaxis ()->SetMoreLogLabels ();
+        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
+
+        highs->SetLineColor (kGray+1);
+        highs->SetLineStyle (1);
+        highs->SetLineWidth (3);
+
+        highs->DrawCopy ("][ hist");
+
+        if (systematics.size () == 0)
+          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else
+          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
+
+        lows->SetLineColor (kGray+1);
+        lows->SetLineStyle (1);
+        lows->SetLineWidth (3);
+
+        lows->DrawCopy ("][ same hist");
+
+        delete highs, lows;
+
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
@@ -1056,13 +1045,8 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (iSys+2);
-          //highs->SetLineWidth (5);
 
-          if (!drawn)
-            highs->DrawCopy ("][ hist");
-          else
-            highs->DrawCopy ("][ hist same");
-          drawn = true;
+          highs->DrawCopy ("][ hist same");
 
           lows->GetXaxis ()->SetMoreLogLabels ();
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1072,7 +1056,6 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (iSys+2);
-          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
@@ -1081,45 +1064,6 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
           delete highs, lows;
           iSys++;
         }
-
-
-        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-        highs->Scale (100.);
-        lows->Scale (100.);
-
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kBlack);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kBlack);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
-
-        delete highs, lows;
 
         myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
@@ -1180,6 +1124,44 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
 
           if (!centralVals) continue;
 
+          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+          highs->Scale (100.);
+          lows->Scale (100.);
+
+          highs->GetXaxis ()->SetMoreLogLabels ();
+          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          highs->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
+
+          highs->SetLineColor (kGray+1);
+          highs->SetLineStyle (1);
+          highs->SetLineWidth (3);
+
+          highs->DrawCopy ("][ hist");
+
+          if (systematics.size () == 0)
+            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else
+            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+          lows->GetXaxis ()->SetMoreLogLabels ();
+          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          lows->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
+
+          lows->SetLineColor (kGray+1);
+          lows->SetLineStyle (1);
+          lows->SetLineWidth (3);
+
+          lows->DrawCopy ("][ same hist");
+
+          delete highs, lows;
+
           bool drawn = false;
           short iSys = 0;
           for (Systematic* sys : systematics) {
@@ -1202,7 +1184,6 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
 
             highs->SetLineColor (colors[iSys+1]);
             highs->SetLineStyle (iSys+2);
-            //highs->SetLineWidth (5);
 
             if (!drawn)
               highs->DrawCopy ("][ hist");
@@ -1218,7 +1199,6 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
 
             lows->SetLineColor (colors[iSys+1]);
             lows->SetLineStyle (iSys+2);
-            //lows->SetLineWidth (5);
 
             lows->DrawCopy ("][ same hist");
 
@@ -1227,44 +1207,6 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
             delete highs, lows;
             iSys++;
           }
-
-          highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-          lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-          SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-          highs->Scale (100.);
-          lows->Scale (100.);
-
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kBlack);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kBlack);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
-          delete highs, lows;
 
           myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
           if (iCent == 0)
@@ -1324,7 +1266,44 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
 
         if (!centralVals) continue;
 
-        bool drawn = false;
+        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
+        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
+        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
+
+        highs->Scale (100.);
+        lows->Scale (100.);
+
+        highs->GetXaxis ()->SetMoreLogLabels ();
+        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
+
+        highs->SetLineColor (kGray+1);
+        highs->SetLineStyle (1);
+        highs->SetLineWidth (3);
+
+        highs->DrawCopy ("][ hist");
+
+        if (systematics.size () == 0)
+          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else
+          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
+        lows->GetXaxis ()->SetMoreLogLabels ();
+        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
+
+        lows->SetLineColor (kGray+1);
+        lows->SetLineStyle (1);
+        lows->SetLineWidth (3);
+
+        lows->DrawCopy ("][ same hist");
+
+        delete highs, lows;
+
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
@@ -1345,13 +1324,8 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
 
           highs->SetLineColor (colors[iSys+1]);
           highs->SetLineStyle (iSys+2);
-          //highs->SetLineWidth (5);
 
-          if (!drawn)
-            highs->DrawCopy ("][ hist");
-          else
-            highs->DrawCopy ("][ hist same");
-          drawn = true;
+          highs->DrawCopy ("][ hist same");
 
           lows->GetXaxis ()->SetMoreLogLabels ();
           lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1361,7 +1335,6 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
 
           lows->SetLineColor (colors[iSys+1]);
           lows->SetLineStyle (iSys+2);
-          //lows->SetLineWidth (5);
 
           lows->DrawCopy ("][ same hist");
 
@@ -1370,44 +1343,6 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
           delete highs, lows;
           iSys++;
         }
-
-        highs = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysHigh").c_str ());
-        lows = (TH1D*) centralVals->Clone ((string (centralVals->GetName ()) + "_relSysLow").c_str ());
-        SaveRelativeErrors (GetTGAE (centralVals), GetTGAE (centralVals), highs, lows);
-
-        highs->Scale (100.);
-        lows->Scale (100.);
-
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kBlack);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy (systematics.size () == 0 ? "][ hist" : "][ same hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kBlack, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kBlack, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kBlack);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
-
-        delete highs, lows;
 
         myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
         if (iCent == 0)
