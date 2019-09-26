@@ -39,7 +39,7 @@ class PhysicsAnalysis {
   vector<TGAE*> drawnGraphs;
 
   bool iaaCalculated = false;
-  bool icpCalculated = false;
+  //bool icpCalculated = false;
 
   TFile* eventWeightsFile = nullptr;
   bool eventWeightsLoaded = false;
@@ -69,8 +69,8 @@ class PhysicsAnalysis {
 
   //// Event info distributions (for reweighting)
   //TH1D** h_PbPbFCal_weights   = Get1DArray <TH1D*> (nPtZBins+1);
-  //TH1D*** h_PbPbQ2_weights    = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
-  //TH1D*** h_PbPbPsi2_weights  = Get2DArray <TH1D*> (numFinerCentBins, nPtZBins+1);
+  TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numCentBins, nPtZBins+1);
+  TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numCentBins, nPtZBins+1);
   //TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
@@ -105,25 +105,25 @@ class PhysicsAnalysis {
   TH1D*****  h_z_trk_pt_sub         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D*****  h_z_trk_pt_sig_to_bkg  = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D*****  h_z_trk_pt_iaa         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-  TH1D*****  h_z_trk_pt_icp         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
+  //TH1D*****  h_z_trk_pt_icp         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
 
   TH1D****   h_z_trk_zpt            = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zpt_sub        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zpt_sig_to_bkg = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zpt_iaa        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
-  TH1D****   h_z_trk_zpt_icp        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  //TH1D****   h_z_trk_zpt_icp        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
 
   TH1D***** h_z_trk_xzh             = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D***** h_z_trk_xzh_sub         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D***** h_z_trk_xzh_sig_to_bkg  = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH1D***** h_z_trk_xzh_iaa         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
-  TH1D***** h_z_trk_xzh_icp         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
+  //TH1D***** h_z_trk_xzh_icp         = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
 
   TH1D****   h_z_trk_zxzh             = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zxzh_sub         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zxzh_sig_to_bkg  = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_z_trk_zxzh_iaa         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
-  TH1D****   h_z_trk_zxzh_icp         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  //TH1D****   h_z_trk_zxzh_icp         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
 
   PhysicsAnalysis () { }
 
@@ -134,8 +134,9 @@ class PhysicsAnalysis {
 
   virtual ~PhysicsAnalysis () {
     //Delete1DArray (h_PbPbFCal_weights,  nPtZBins+1);
-    //Delete2DArray (h_PbPbQ2_weights,    numFinerCentBins, nPtZBins+1);
+    Delete2DArray (h_PbPbQ2_weights,    numCentBins, nPtZBins+1);
     //Delete2DArray (h_PbPbPsi2_weights,  numFinerCentBins, nPtZBins+1);
+
     ClearHists ();
 
     Delete2DArray (h_trk_effs,      numCentBins, numEtaTrkBins);
@@ -158,25 +159,25 @@ class PhysicsAnalysis {
     Delete4DArray (h_z_trk_pt_sub,          3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_pt_sig_to_bkg,   3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_pt_iaa,          3, nPtZBins, numPhiBins, numCentBins);
-    Delete4DArray (h_z_trk_pt_icp,          3, nPtZBins, numPhiBins, numCentBins);
+    //Delete4DArray (h_z_trk_pt_icp,          3, nPtZBins, numPhiBins, numCentBins);
 
     Delete3DArray (h_z_trk_zpt,             3, nPtZBins, numCentBins);
     Delete4DArray (h_z_trk_zpt_sub,         3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_zpt_sig_to_bkg,  3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_zpt_iaa,         3, nPtZBins, numPhiBins, numCentBins);
-    Delete4DArray (h_z_trk_zpt_icp,         3, nPtZBins, numPhiBins, numCentBins);
+    //Delete4DArray (h_z_trk_zpt_icp,         3, nPtZBins, numPhiBins, numCentBins);
 
     Delete4DArray (h_z_trk_xzh,             3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_xzh_sub,         3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_xzh_sig_to_bkg,  3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_xzh_iaa,         3, nPtZBins, numPhiBins, numCentBins);
-    Delete4DArray (h_z_trk_xzh_icp,         3, nPtZBins, numPhiBins, numCentBins);
-
+    //Delete4DArray (h_z_trk_xzh_icp,         3, nPtZBins, numPhiBins, numCentBins);
+//
     Delete4DArray (h_z_trk_zxzh,            3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_zxzh_sub,        3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_zxzh_sig_to_bkg, 3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_z_trk_zxzh_iaa,        3, nPtZBins, numPhiBins, numCentBins);
-    Delete4DArray (h_z_trk_zxzh_icp,        3, nPtZBins, numPhiBins, numCentBins);
+    //Delete4DArray (h_z_trk_zxzh_icp,        3, nPtZBins, numPhiBins, numCentBins);
   }
 
   protected:
@@ -188,9 +189,9 @@ class PhysicsAnalysis {
   void LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ);
   void LabelIAAdCent (const short iCent, const short iPhi, const short iPtZ);
   void LabelIAAdPtZ (const short iCent, const short iPtZ);
-  void LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ);
-  void LabelICPdCent (const short iCent, const short iPhi, const short iPtZ);
-  void LabelICPdPtZ (const short iCent, const short iPtZ);
+  //void LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ);
+  //void LabelICPdCent (const short iCent, const short iPhi, const short iPtZ);
+  //void LabelICPdPtZ (const short iCent, const short iPtZ);
 
   void GetDrawnObjects ();
   void GetMinAndMax (double &min, double &max, const bool log = false);
@@ -238,7 +239,7 @@ class PhysicsAnalysis {
   void PlotTrackingPurities2D ();
 
   void CalculateIAA ();
-  void CalculateICP ();
+  //void CalculateICP ();
 
   virtual void PlotRawTrkYield (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotTrkYield (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
@@ -248,9 +249,9 @@ class PhysicsAnalysis {
   virtual void PlotIAAdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
   virtual void PlotSingleIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short iCent = numCentBins-1, const short pSpc = 2);
-  virtual void PlotICPdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotICPdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotICPdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
+  //virtual void PlotICPdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  //virtual void PlotICPdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  //virtual void PlotICPdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
 
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
 };
@@ -460,6 +461,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
       iaaCalculated = true;
     }
 
+    /*
     if (a->icpCalculated) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -490,6 +492,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
       } // end loop over species
       icpCalculated = true;
     }
+    */
   }
 
   histsLoaded = true;
@@ -567,6 +570,7 @@ void PhysicsAnalysis :: ClearHists () {
   iaaCalculated = false;
   
 
+  /*
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 2; iCent < numCentBins; iCent++) {
@@ -581,6 +585,7 @@ void PhysicsAnalysis :: ClearHists () {
     } // end loop over pT^Z bins
   } // end loop over species
   icpCalculated = false;
+  */
 
   histsLoaded = false;
   histsScaled = false;
@@ -834,8 +839,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      //if (z_m < 86 || z_m > 96)
-      //  continue;
+      if (fabs (vz) > 150)
+        continue;
+
+      if (event_weight == 0)
+        continue;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
@@ -844,8 +852,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-
-      if (event_weight == 0)
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
@@ -927,21 +934,17 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      //if (z_m < 86 || z_m > 96)
-      //  continue;
+      if (fabs (vz) > 150)
+        continue;
+
+      if (event_weight == 0)
+        continue;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
-
-      if (event_weight == 0)
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
@@ -1102,9 +1105,7 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
   else if (t->GetYaxis ()->GetNbins () < ybin)
     trk_pt = t->GetYaxis ()->GetBinCenter (t->GetYaxis ()->GetNbins ());
 
-  const double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkEffNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
-
-  return eff;
+  return t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkEffNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 }
 
 
@@ -1216,9 +1217,9 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
   else if (t->GetYaxis ()->GetNbins () < ybin)
     trk_pt = t->GetYaxis ()->GetBinCenter (t->GetYaxis ()->GetNbins ());
 
-  const double eff = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkPurNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
+  const double pur = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkPurNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
 
-  return eff;
+  return pur;
 }
 
 
@@ -3500,7 +3501,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
     const char* topPadName = Form ("p_TrkYield_pt_top_iCent%i", iCent);
     const char* bottomPadName = Form ("p_TrkYield_pt_bottom_iCent%i", iCent);
 
-    TPad* topPad = nullptr, *middlePad = nullptr, *bottomPad = nullptr;
+    TPad* topPad = nullptr, *bottomPad = nullptr;
     if (!canvasExists) {
       topPad = new TPad (topPadName, "", 0+(1./numCentBins)*iCent, dPadY, (1./numCentBins)+(1./numCentBins)*iCent, 1);
       bottomPad = new TPad (bottomPadName, "", 0+(1./numCentBins)*iCent, 0, (1./numCentBins)+(1./numCentBins)*iCent, dPadY);
@@ -3526,7 +3527,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 
     topPad->cd ();
     GetDrawnObjects ();
-    bool plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
+    //bool plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
     gPad->SetLogx ();
     gPad->SetLogy ();
 
@@ -3601,7 +3602,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 
     bottomPad->cd ();
     GetDrawnObjects ();
-    plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
+    //plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
     gPad->SetLogx ();
 
     for (int iPtZ = 2; iPtZ < 3; iPtZ++) {
@@ -4476,6 +4477,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: CalculateICP () {
   if (!backgroundSubtracted)
     SubtractBackground ();
@@ -4526,6 +4528,7 @@ void PhysicsAnalysis :: CalculateICP () {
   icpCalculated = true;
   return;
 }
+*/
 
 
 
@@ -4533,6 +4536,7 @@ void PhysicsAnalysis :: CalculateICP () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
@@ -4679,6 +4683,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
     } // end loop over pT^Z bins
   } // end loop over species
 }
+*/
 
 
 
@@ -4686,6 +4691,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ) {
   if (iCent == 2) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.06);
@@ -4718,6 +4724,7 @@ void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi, const
     myText (0.65, 0.91-0.06*iPhi, kBlack, Form ("(%s, %s)", lo, hi), 0.05);
   }
 }
+*/
 
 
 
@@ -4725,6 +4732,7 @@ void PhysicsAnalysis :: LabelICPdPhi (const short iCent, const short iPhi, const
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
@@ -4872,6 +4880,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
     } // end loop over pT^Z bins
   } // end loop over species
 }
+*/
 
 
 
@@ -4879,6 +4888,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi, const short iPtZ) {
   if (iPhi == 1) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.06);
@@ -4900,6 +4910,7 @@ void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi, cons
     myText (0.6, 0.91-0.06*(iCent-1), kBlack, Form ("%i-%i%% / %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1], (int)centCuts[1], (int)centCuts[0]), 0.05);
   }
 }
+*/
 
 
 
@@ -4907,6 +4918,7 @@ void PhysicsAnalysis :: LabelICPdCent (const short iCent, const short iPhi, cons
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between central and peripheral Pb+Pb
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
@@ -5048,6 +5060,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
     c->SaveAs (Form ("%s/ICP/icp_%s_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc));
   } // end loop over species
 }
+*/
 
 
 
@@ -5055,6 +5068,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary (non-virtual) plot labelling for I_AA measurements
 ////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void PhysicsAnalysis :: LabelICPdPtZ (const short iCent, const short iPtZ) {
   if (iCent == 2) {
     myText (0.50, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.06);
@@ -5071,6 +5085,7 @@ void PhysicsAnalysis :: LabelICPdPtZ (const short iCent, const short iPtZ) {
       myText (0.60, 0.89-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
   }
 }
+*/
 
 
 

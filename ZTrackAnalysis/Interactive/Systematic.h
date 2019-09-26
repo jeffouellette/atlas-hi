@@ -99,13 +99,13 @@ void Systematic :: CreateSysGraphs () {
           
           AddGraphPair (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
           AddGraphPair (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]);
-          AddGraphPair (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          //AddGraphPair (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
 
           AddGraphPair (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           AddGraphPair (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
           AddGraphPair (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
           AddGraphPair (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]);
-          AddGraphPair (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
+          //AddGraphPair (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over iPhi
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
@@ -117,13 +117,13 @@ void Systematic :: CreateSysGraphs () {
         AddGraphPair (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
         AddGraphPair (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
         AddGraphPair (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
-        AddGraphPair (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+        //AddGraphPair (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
 
         AddGraphPair (h_z_trk_zxzh[iSpc][iPtZ][iCent]);
         AddGraphPair (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
         AddGraphPair (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
         AddGraphPair (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
-        AddGraphPair (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+        //AddGraphPair (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
         
       } // end loop over iPtZ
     } // end loop over iSpc
@@ -273,7 +273,7 @@ void Systematic :: AddVariations () {
 
     a->SubtractBackground ();
     a->CalculateIAA ();
-    a->CalculateICP ();
+    //a->CalculateICP ();
 
     TGAE* sys = nullptr;
     TH1D* var = nullptr;
@@ -355,14 +355,14 @@ void Systematic :: AddVariations () {
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
 
-          for (short iCent = 2; iCent < numCentBins; iCent++) {
-            sys = GetTGAE (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
-            var = a->h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent];
-            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            sys = GetTGAE (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
-            var = a->h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent];
-            if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-          } // end loop over cents
+          //for (short iCent = 2; iCent < numCentBins; iCent++) {
+          //  sys = GetTGAE (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  var = a->h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent];
+          //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          //  sys = GetTGAE (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  var = a->h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent];
+          //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+          //} // end loop over cents
         } // end loop over phi
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -375,15 +375,15 @@ void Systematic :: AddVariations () {
           if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
         }
 
-        for (short iCent = 1; iCent < numCentBins; iCent++) {
-          sys = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
-          var = a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent];
-          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+        //for (short iCent = 1; iCent < numCentBins; iCent++) {
+        //  sys = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+        //  var = a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent];
+        //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
 
-          sys = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
-          var = a->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent];
-          if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        } // end loop over cents
+        //  sys = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+        //  var = a->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent];
+        //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
+        //} // end loop over cents
 
       } // end loop over pT^Z bins
     } // end loop over species
@@ -498,14 +498,14 @@ void Systematic :: AddSystematics () {
             sys = s->GetTGAE (s->h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
           } // end loop over cents
-          for (short iCent = 2; iCent < numCentBins; iCent++) {
-            master = GetTGAE (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
-            if (master && sys) AddErrorsInQuadrature (master, sys);
-            master = GetTGAE (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
-            if (master && sys) AddErrorsInQuadrature (master, sys);
-          } // end loop over cents
+          //for (short iCent = 2; iCent < numCentBins; iCent++) {
+          //  master = GetTGAE (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  sys = s->GetTGAE (s->h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  if (master && sys) AddErrorsInQuadrature (master, sys);
+          //  master = GetTGAE (h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  sys = s->GetTGAE (s->h_z_trk_xzh_icp[iSpc][iPtZ][iPhi][iCent]);
+          //  if (master && sys) AddErrorsInQuadrature (master, sys);
+          //} // end loop over cents
         } // end loop over phi
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -518,15 +518,15 @@ void Systematic :: AddSystematics () {
           if (master && sys) AddErrorsInQuadrature (master, sys);
         }
 
-        for (short iCent = 1; iCent < numCentBins; iCent++) {
-          master = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
-          sys = s->GetTGAE (s->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
-          if (master && sys) AddErrorsInQuadrature (master, sys);
+        //for (short iCent = 1; iCent < numCentBins; iCent++) {
+        //  master = GetTGAE (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+        //  sys = s->GetTGAE (s->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+        //  if (master && sys) AddErrorsInQuadrature (master, sys);
 
-          master = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
-          sys = s->GetTGAE (s->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
-          if (master && sys) AddErrorsInQuadrature (master, sys);
-        } // end loop over cents
+        //  master = GetTGAE (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+        //  sys = s->GetTGAE (s->h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+        //  if (master && sys) AddErrorsInQuadrature (master, sys);
+        //} // end loop over cents
       } // end loop over pT^Z bins
     } // end loop over species
 

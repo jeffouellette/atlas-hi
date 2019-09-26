@@ -54,8 +54,8 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
 
   TFile* inFile = new TFile (inFileName, "read");
 
-  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
-  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
+  TTree* PbPbTree = (TTree*)inFile->Get (strcmp (name, "minbias") != 0 ? "PbPbZTrackTree" : "PbPbMixedTree");
+  TTree* ppTree = (TTree*)inFile->Get (strcmp (name, "minbias") != 0 ? "ppZTrackTree" : "ppMixedTree");
 
   h_PbPbFCalDist = new TH1D (Form ("h_PbPbFCalDist_%s", name), "", numSuperFineCentBins-1, superFineCentBins);
   h_PbPbFCal_weights = new TH1D (Form ("h_PbPbFCal_weights_%s", name), "", numSuperFineCentBins-1, superFineCentBins);
@@ -207,7 +207,8 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
         if (iCent < 1 || iCent > numFinerCentBins-1)
           continue;
 
-        event_weight = b_event_weight * h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
+        //event_weight = b_event_weight * h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
+        event_weight = b_event_weight;
         h_PbPbQ2Dist[iCent]->Fill (q2, event_weight);
         h_PbPbPsi2Dist[iCent]->Fill (psi2, event_weight);
       }
@@ -304,6 +305,10 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
 
 void GenerateDataWeights () {
   GenerateWeights ("data", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/outFile.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/eventWeightsFile.root");
+}
+
+void GenerateMinbiasWeights () {
+  GenerateWeights ("minbias", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi_mixed.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal/eventWeightsFile.root");
 }
 
 void GeneratePbPbMCWeights () {

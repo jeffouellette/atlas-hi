@@ -60,10 +60,9 @@ class FullAnalysis : public PhysicsAnalysis {
   TH2D*** h_lepton_trk_dr = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
 
 
-  FullAnalysis () : PhysicsAnalysis () { }
+  FullAnalysis () { }
 
   FullAnalysis (const char* _name) {//, const char* subDir) {
-    FullAnalysis ();
     name = _name;
     //directory = Form ("%s/", subDir);
     plotFill = false;
@@ -625,6 +624,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
+      if (fabs (vz) > 150)
+        continue;
+
+      //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, true);
+
       if (event_weight == 0)
         continue;
 
@@ -639,16 +643,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-
-      h_fcal_et->Fill (fcal_et);
-      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
-
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
-      h_PbPb_vz->Fill (vz);
-      h_PbPb_vz_reweighted->Fill (vz, event_weight);
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
+        continue;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
@@ -678,6 +674,19 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
+      //if (iPtZ < 2)
+      //  continue;
+
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+
+      h_q2[iFinerCent]->Fill (q2);
+      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
+      h_psi2[iFinerCent]->Fill (psi2);
+      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
+      h_PbPb_vz->Fill (vz);
+      h_PbPb_vz_reweighted->Fill (vz, event_weight);
+
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -685,6 +694,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
+        //if (trk_eta->at (iTrk) < 0)
+        //  continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
@@ -775,12 +786,19 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
+      if (fabs (vz) > 150)
+        continue;
+
+      //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, false);
+
       if (event_weight == 0)
         continue;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
+        continue;
 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
@@ -816,6 +834,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
 
+      //if (iPtZ < 2)
+      //  continue;
+
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -823,6 +844,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
+        //if (trk_eta->at (iTrk) < 0)
+        //  continue;
 
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
