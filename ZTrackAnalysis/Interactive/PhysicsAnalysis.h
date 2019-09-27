@@ -71,8 +71,8 @@ class PhysicsAnalysis {
 
   //// Event info distributions (for reweighting)
   TH1D*** h_PbPbFCal_weights   = Get2DArray <TH1D*> (3, nPtZBins+1);
-  TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numCentBins, nPtZBins+1);
-  TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numCentBins, nPtZBins+1);
+  TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numFinerCentBins, nPtZBins+1);
+  TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numFinerCentBins, nPtZBins+1);
   //TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
@@ -136,8 +136,8 @@ class PhysicsAnalysis {
 
   virtual ~PhysicsAnalysis () {
     Delete2DArray (h_PbPbFCal_weights,  3, nPtZBins+1);
-    Delete3DArray (h_PbPbQ2_weights,    3, numCentBins, nPtZBins+1);
-    Delete3DArray (h_PbPbPsi2_weights,  3, numCentBins, nPtZBins+1);
+    Delete3DArray (h_PbPbQ2_weights,    3, numFinerCentBins, nPtZBins+1);
+    Delete3DArray (h_PbPbPsi2_weights,  3, numFinerCentBins, nPtZBins+1);
 
     ClearHists ();
 
@@ -1011,8 +1011,8 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
   const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
 
   TH1D* h_fcal_et_dist[2][3][nPtZBins];
-  TH1D* h_q2_dist[2][3][numCentBins][nPtZBins];
-  TH1D* h_psi2_dist[2][3][numCentBins][nPtZBins];
+  TH1D* h_q2_dist[2][3][numFinerCentBins][nPtZBins];
+  TH1D* h_psi2_dist[2][3][numFinerCentBins][nPtZBins];
 
   for (int iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -1022,16 +1022,16 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
       h_fcal_et_dist[1][iSpc][iPtZ] = new TH1D (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
       h_fcal_et_dist[1][iSpc][iPtZ]->Sumw2 ();
 
-      for (int iCent = 0; iCent < numCentBins; iCent++) {
-        h_q2_dist[0][iSpc][iCent][iPtZ] = new TH1D (Form ("h_weighted_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_q2_dist[0][iSpc][iCent][iPtZ]->Sumw2 ();
-        h_q2_dist[1][iSpc][iCent][iPtZ] = new TH1D (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_q2_dist[1][iSpc][iCent][iPtZ]->Sumw2 ();
+      for (int iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+        h_q2_dist[0][iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_weighted_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_q2_dist[0][iSpc][iFinerCent][iPtZ]->Sumw2 ();
+        h_q2_dist[1][iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_q2_dist[1][iSpc][iFinerCent][iPtZ]->Sumw2 ();
 
-        h_psi2_dist[0][iSpc][iCent][iPtZ] = new TH1D (Form ("h_weighted_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_psi2_dist[0][iSpc][iCent][iPtZ]->Sumw2 ();
-        h_psi2_dist[1][iSpc][iCent][iPtZ] = new TH1D (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_psi2_dist[1][iSpc][iCent][iPtZ]->Sumw2 ();
+        h_psi2_dist[0][iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_weighted_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_psi2_dist[0][iSpc][iFinerCent][iPtZ]->Sumw2 ();
+        h_psi2_dist[1][iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_psi2_dist[1][iSpc][iFinerCent][iPtZ]->Sumw2 ();
       }
     }
   }
@@ -1138,18 +1138,18 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
     const short iPtZ = GetPtZBin (z_pt);
     if (iPtZ < 0 || iPtZ > nPtZBins-1)
       continue;
-    const short iCent = GetCentBin (fcal_et);
-    if (iCent < 1 || iCent > numCentBins-1)
+    const short iFinerCent = GetFinerCentBin (fcal_et);
+    if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
       continue;
 
     event_weight = h_fcal_et_dist[1][iSpc][iPtZ]->GetBinContent (h_fcal_et_dist[1][iSpc][iPtZ]->FindFixBin (fcal_et));
 
-    h_q2_dist[0][iSpc][iCent][iPtZ]->Fill (q2, event_weight);
+    h_q2_dist[0][iSpc][iFinerCent][iPtZ]->Fill (q2, event_weight);
 
     float dphi = DeltaPhi (z_phi, psi2, false);
     if (dphi > pi/2)
       dphi = pi - dphi;
-    h_psi2_dist[0][iSpc][iCent][iPtZ]->Fill (dphi);
+    h_psi2_dist[0][iSpc][iFinerCent][iPtZ]->Fill (dphi);
   }
   cout << "Done 2nd Pb+Pb loop over weighted sample." << endl;
 
@@ -1174,16 +1174,16 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
     const short iPtZ = GetPtZBin (z_pt);
     if (iPtZ < 0 || iPtZ > nPtZBins-1)
       continue;
-    const short iCent = GetCentBin (fcal_et);
-    if (iCent < 1 || iCent > numCentBins-1)
+    const short iFinerCent = GetFinerCentBin (fcal_et);
+    if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
       continue;
 
-    h_q2_dist[1][iSpc][iCent][iPtZ]->Fill (q2);
+    h_q2_dist[1][iSpc][iFinerCent][iPtZ]->Fill (q2);
 
     float dphi = DeltaPhi (z_phi, psi2, false);
     if (dphi > pi/2)
       dphi = pi - dphi;
-    h_psi2_dist[1][iSpc][iCent][iPtZ]->Fill (dphi);
+    h_psi2_dist[1][iSpc][iFinerCent][iPtZ]->Fill (dphi);
   }
   cout << "Done 2nd Pb+Pb loop over matched events." << endl;
 
@@ -1197,9 +1197,9 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
   for (short iSample : {0, 1}) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (short iCent = 0; iCent < numCentBins; iCent++) {
-          h_q2_dist[iSample][2][iCent][iPtZ]->Add (h_q2_dist[iSample][iSpc][iCent][iPtZ]);
-          h_psi2_dist[iSample][2][iCent][iPtZ]->Add (h_psi2_dist[iSample][iSpc][iCent][iPtZ]);
+        for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+          h_q2_dist[iSample][2][iFinerCent][iPtZ]->Add (h_q2_dist[iSample][iSpc][iFinerCent][iPtZ]);
+          h_psi2_dist[iSample][2][iFinerCent][iPtZ]->Add (h_psi2_dist[iSample][iSpc][iFinerCent][iPtZ]);
         }
       }
     }
@@ -1208,9 +1208,9 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
   for (short iSample : {0, 1}) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (short iCent = 0; iCent < numCentBins; iCent++) {
-          h_q2_dist[iSample][iSpc][iCent][iPtZ]->Scale (1./h_q2_dist[iSample][iSpc][iCent][iPtZ]->Integral ());
-          h_psi2_dist[iSample][iSpc][iCent][iPtZ]->Scale (1./h_psi2_dist[iSample][iSpc][iCent][iPtZ]->Integral ());
+        for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+          h_q2_dist[iSample][iSpc][iFinerCent][iPtZ]->Scale (1./h_q2_dist[iSample][iSpc][iFinerCent][iPtZ]->Integral ());
+          h_psi2_dist[iSample][iSpc][iFinerCent][iPtZ]->Scale (1./h_psi2_dist[iSample][iSpc][iFinerCent][iPtZ]->Integral ());
         }
       }
     }
@@ -1218,9 +1218,9 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (short iCent = 0; iCent < numCentBins; iCent++) {
-        h_q2_dist[1][iSpc][iCent][iPtZ]->Divide (h_q2_dist[0][iSpc][iCent][iPtZ]);
-        h_psi2_dist[1][iSpc][iCent][iPtZ]->Divide (h_psi2_dist[0][iSpc][iCent][iPtZ]);
+      for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+        h_q2_dist[1][iSpc][iFinerCent][iPtZ]->Divide (h_q2_dist[0][iSpc][iFinerCent][iPtZ]);
+        h_psi2_dist[1][iSpc][iFinerCent][iPtZ]->Divide (h_psi2_dist[0][iSpc][iFinerCent][iPtZ]);
       }
     }
   }
@@ -1235,9 +1235,9 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       SafeWrite (h_fcal_et_dist[1][iSpc][iPtZ]);
-      for (short iCent = 0; iCent < numCentBins; iCent++) {
-        SafeWrite (h_q2_dist[1][iSpc][iCent][iPtZ]);
-        SafeWrite (h_psi2_dist[1][iSpc][iCent][iPtZ]);
+      for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+        SafeWrite (h_q2_dist[1][iSpc][iFinerCent][iPtZ]);
+        SafeWrite (h_psi2_dist[1][iSpc][iFinerCent][iPtZ]);
       }
     }
   }
@@ -1263,9 +1263,9 @@ void PhysicsAnalysis :: LoadEventWeights () {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       h_PbPbFCal_weights[iSpc][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()));
-      for (short iCent = 0; iCent < numCentBins; iCent++) {
-        h_PbPbQ2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        h_PbPbPsi2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
+      for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+        h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()));
+        h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()));
       }
     }
   }

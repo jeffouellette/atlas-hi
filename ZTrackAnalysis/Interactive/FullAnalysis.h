@@ -31,10 +31,10 @@ class FullAnalysis : public PhysicsAnalysis {
   TH1D*   h_fcal_et               = nullptr;
   TH1D*   h_fcal_et_reweighted    = nullptr;
 
-  TH1D**  h_q2                  = Get1DArray <TH1D*> (numCentBins);
-  TH1D**  h_q2_reweighted       = Get1DArray <TH1D*> (numCentBins);
-  TH1D**  h_psi2                = Get1DArray <TH1D*> (numCentBins);
-  TH1D**  h_psi2_reweighted     = Get1DArray <TH1D*> (numCentBins);
+  TH1D**  h_q2                  = Get1DArray <TH1D*> (numFinerCentBins);
+  TH1D**  h_q2_reweighted       = Get1DArray <TH1D*> (numFinerCentBins);
+  TH1D**  h_psi2                = Get1DArray <TH1D*> (numFinerCentBins);
+  TH1D**  h_psi2_reweighted     = Get1DArray <TH1D*> (numFinerCentBins);
   TH1D*   h_PbPb_vz             = nullptr;
   TH1D*   h_PbPb_vz_reweighted  = nullptr;
   TH1D*   h_pp_vz               = nullptr;
@@ -70,8 +70,10 @@ class FullAnalysis : public PhysicsAnalysis {
 
   virtual ~FullAnalysis () {
 
-    Delete1DArray (h_q2,            numCentBins);
-    Delete1DArray (h_q2_reweighted, numCentBins);
+    Delete1DArray (h_q2,              numFinerCentBins);
+    Delete1DArray (h_q2_reweighted,   numFinerCentBins);
+    Delete1DArray (h_psi2,            numFinerCentBins);
+    Delete1DArray (h_psi2_reweighted, numFinerCentBins);
 
     Delete2DArray (h_z_phi,         numCentBins, 3);
     Delete2DArray (h_z_pt,          numCentBins, 3);
@@ -148,15 +150,15 @@ void FullAnalysis :: CreateHists () {
   h_fcal_et_reweighted = new TH1D (Form ("h_fcal_et_reweighted_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
   h_fcal_et_reweighted->Sumw2 ();
 
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    h_q2[iCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()), "", 20, 0, 0.3);
-    h_q2[iCent]->Sumw2 ();
-    h_q2_reweighted[iCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 20, 0, 0.3);
-    h_q2_reweighted[iCent]->Sumw2 ();
-    h_psi2[iCent]             = new TH1D (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()), "", 8, 0, pi/2);
-    h_psi2[iCent]->Sumw2 ();
-    h_psi2_reweighted[iCent]  = new TH1D (Form ("h_psi2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 8, 0, pi/2);
-    h_psi2_reweighted[iCent]->Sumw2 ();
+  for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    h_q2[iFinerCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iFinerCent, name.c_str ()), "", 20, 0, 0.3);
+    h_q2[iFinerCent]->Sumw2 ();
+    h_q2_reweighted[iFinerCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iFinerCent, name.c_str ()), "", 20, 0, 0.3);
+    h_q2_reweighted[iFinerCent]->Sumw2 ();
+    h_psi2[iFinerCent]             = new TH1D (Form ("h_psi2_iCent%i_%s", iFinerCent, name.c_str ()), "", 8, 0, pi/2);
+    h_psi2[iFinerCent]->Sumw2 ();
+    h_psi2_reweighted[iFinerCent]  = new TH1D (Form ("h_psi2_reweighted_iCent%i_%s", iFinerCent, name.c_str ()), "", 8, 0, pi/2);
+    h_psi2_reweighted[iFinerCent]->Sumw2 ();
   }
   h_PbPb_vz = new TH1D (Form ("h_PbPb_vz_%s", name.c_str ()), "", 50, -200, 200);
   h_PbPb_vz_reweighted = new TH1D (Form ("h_PbPb_vz_reweighted_%s", name.c_str ()), "", 50, -200, 200);
@@ -329,11 +331,11 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   h_fcal_et               = (TH1D*) histFile->Get (Form ("h_fcal_et_%s", name.c_str ()));
   h_fcal_et_reweighted    = (TH1D*) histFile->Get (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
 
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    h_q2[iCent]               = (TH1D*) histFile->Get (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()));
-    h_q2_reweighted[iCent]    = (TH1D*) histFile->Get (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()));
-    h_psi2[iCent]             = (TH1D*) histFile->Get (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()));
-    h_psi2_reweighted[iCent]  = (TH1D*) histFile->Get (Form ("h_psi2_reweighted_iCent%i_%s", iCent, name.c_str ()));
+  for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    h_q2[iFinerCent]               = (TH1D*) histFile->Get (Form ("h_q2_iCent%i_%s", iFinerCent, name.c_str ()));
+    h_q2_reweighted[iFinerCent]    = (TH1D*) histFile->Get (Form ("h_q2_reweighted_iCent%i_%s", iFinerCent, name.c_str ()));
+    h_psi2[iFinerCent]             = (TH1D*) histFile->Get (Form ("h_psi2_iCent%i_%s", iFinerCent, name.c_str ()));
+    h_psi2_reweighted[iFinerCent]  = (TH1D*) histFile->Get (Form ("h_psi2_reweighted_iCent%i_%s", iFinerCent, name.c_str ()));
   }
   h_PbPb_vz             = (TH1D*) histFile->Get (Form ("h_PbPb_vz_%s", name.c_str ()));
   h_PbPb_vz_reweighted  = (TH1D*) histFile->Get (Form ("h_PbPb_vz_reweighted_%s", name.c_str ()));
@@ -398,11 +400,11 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
   SafeWrite (h_fcal_et);
   SafeWrite (h_fcal_et_reweighted);
 
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    SafeWrite (h_q2[iCent]);
-    SafeWrite (h_q2_reweighted[iCent]);
-    SafeWrite (h_psi2[iCent]);
-    SafeWrite (h_psi2_reweighted[iCent]);
+  for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    SafeWrite (h_q2[iFinerCent]);
+    SafeWrite (h_q2_reweighted[iFinerCent]);
+    SafeWrite (h_psi2[iFinerCent]);
+    SafeWrite (h_psi2_reweighted[iFinerCent]);
   }
   SafeWrite (h_PbPb_vz);
   SafeWrite (h_PbPb_vz_reweighted);
@@ -638,9 +640,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      //const short iFinerCent = GetFinerCentBin (fcal_et);
-      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
-      //  continue;
+      const short iFinerCent = GetFinerCentBin (fcal_et);
+      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+        continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
@@ -680,10 +682,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
-      h_q2[iCent]->Fill (q2);
-      h_q2_reweighted[iCent]->Fill (q2, event_weight);
-      h_psi2[iCent]->Fill (psi2);
-      h_psi2_reweighted[iCent]->Fill (psi2, event_weight);
+      h_q2[iFinerCent]->Fill (q2);
+      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
+      h_psi2[iFinerCent]->Fill (psi2);
+      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
