@@ -126,7 +126,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotZYMap ();
   void PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a = nullptr);
   void PlotZMassSpectra ();
-  void PlotZPhiYield ();
+  void PlotZPhiYield (const short pSpc = 2);
   void PlotZLeptonDPhi ();
 
   void CalculateZPtDistRatio (FullAnalysis* a);
@@ -927,20 +927,20 @@ void FullAnalysis :: PlotFCalDists (const bool _treatAsData) {
 
   c->SetLogy ();
 
-  h_fcal_et->Scale (1., "width");
+  h_fcal_et_reweighted->Scale (1., "width");
   if (!_treatAsData) {
-    h_fcal_et->SetLineColor (kBlue);
+    h_fcal_et_reweighted->SetLineColor (kBlue);
   }
   else {
-    h_fcal_et->SetLineColor (kBlack);
+    h_fcal_et_reweighted->SetLineColor (kBlack);
   }
 
-  h_fcal_et->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-  h_fcal_et->GetYaxis ()->SetTitle ("dN_{evt} / d#Sigma#it{E}_{T} [GeV^{-1}]");
+  h_fcal_et_reweighted->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
+  h_fcal_et_reweighted->GetYaxis ()->SetTitle ("dN_{evt} / d#Sigma#it{E}_{T} [GeV^{-1}]");
 
-  h_fcal_et->GetYaxis ()->SetRangeUser (5e-2, 2e3);
+  h_fcal_et_reweighted->GetYaxis ()->SetRangeUser (5e-2, 2e3);
 
-  h_fcal_et->Draw (canvasExists ? "same hist" : "hist");
+  h_fcal_et_reweighted->Draw (canvasExists ? "same hist" : "hist");
 
   myText (0.67, 0.88, kBlack, "Z-tagged data", 0.04);
   myText (0.67, 0.81, kBlue, "Mixed minimum bias", 0.04);
@@ -1000,7 +1000,7 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
 
     h->Draw (!canvasExists ? "hist" : "same hist");
 
-    myText (0.51, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+    myText (0.51, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
     myText (0.51, 0.74, colors[iCent], "Mixed minimum bias", 0.05);
     myText (0.51, 0.80, kBlack, "Z-tagged Data", 0.05);
@@ -1038,11 +1038,11 @@ void FullAnalysis :: PlotQ2Weights (FullAnalysis* a) {
   for (short iCent = 1; iCent < numCentBins; iCent++) {
     c->cd (numCentBins-iCent);
 
-    TH1D* h = (TH1D*) h_q2[iCent]->Clone ();
+    TH1D* h = (TH1D*) h_q2_reweighted[iCent]->Clone ();
 
     const float hint = h->Integral ();
-    const float aint = a->h_q2[iCent]->Integral ();
-    h->Divide (a->h_q2[iCent]);
+    const float aint = a->h_q2_reweighted[iCent]->Integral ();
+    h->Divide (a->h_q2_reweighted[iCent]);
 
     if (hint != 0)
       h->Scale (aint / hint);
@@ -1057,7 +1057,7 @@ void FullAnalysis :: PlotQ2Weights (FullAnalysis* a) {
 
     h->Draw (!canvasExists ? "e1" : "same e1");
 
-    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
   }
 
   c->cd (1);
@@ -1116,7 +1116,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
       h->Draw (!canvasExists ? "hist" : "same hist");
 
-      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
       h = h_psi2_reweighted[iCent];
 
@@ -1125,7 +1125,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
       h->SetLineColor (colors[iCent]);
       //h->SetLineStyle (2);
 
-      h->GetXaxis ()->SetTitle ("#Psi_{2}");
+      h->GetXaxis ()->SetTitle ("#phi_{Z} - #Psi_{2}");
       h->GetYaxis ()->SetTitle ("Counts");
 
       h->Draw ("same hist");
@@ -1144,7 +1144,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
       h->SetLineColor (kBlack);
 
-      h->GetXaxis ()->SetTitle ("#Psi_{2}");
+      h->GetXaxis ()->SetTitle ("#phi_{Z} - #Psi_{2}");
       h->GetYaxis ()->SetTitle ("Counts");
 
       h->Draw (!canvasExists ? "hist" : "same hist");
@@ -1185,11 +1185,11 @@ void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
   for (short iCent = 1; iCent < numCentBins; iCent++) {
     c->cd (numCentBins-iCent);
 
-    TH1D* h = (TH1D*) h_psi2[iCent]->Clone ();
+    TH1D* h = (TH1D*) h_psi2_reweighted[iCent]->Clone ();
 
     const float hint = h->Integral ();
-    const float aint = a->h_psi2[iCent]->Integral ();
-    h->Divide (a->h_psi2[iCent]);
+    const float aint = a->h_psi2_reweighted[iCent]->Integral ();
+    h->Divide (a->h_psi2_reweighted[iCent]);
 
     if (hint != 0)
       h->Scale (aint / hint);
@@ -1199,12 +1199,12 @@ void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
     h->SetMarkerColor (colors[iCent]);
     h->SetLineColor (colors[iCent]);
 
-    h->GetXaxis ()->SetTitle ("#Psi_{2}");
+    h->GetXaxis ()->SetTitle ("#phi_{Z} - #Psi_{2}");
     h->GetYaxis ()->SetTitle ("Event Weight");
 
     h->Draw (!canvasExists ? "e1" : "same e1");
 
-    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)finerCentCuts[iCent], (int)finerCentCuts[iCent-1]), 0.06);
+    myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
   }
 
   c->cd (1);
@@ -2564,6 +2564,17 @@ void FullAnalysis :: PlotZMassSpectra () {
 
         uPad->cd ();
         TH1D* h = h_z_m[iCent][iSpc][iReg];
+
+        //TF1* fit = new TF1 (Form ("f_z_m_%s_iCent%i_iReg%i", spc, iCent, iReg), "gaus(0)", 76, 106);
+        //h->Fit (fit, "RN0Q");
+        //{
+        //  float mu = fit->GetParameter (1);
+        //  float sigma = fit->GetParameter (2);
+        //  delete fit;
+        //  fit = new TF1 (Form ("f_z_m_%s_iCent%i_iReg%i", spc, iCent, iReg), "gaus(0)", mu-1.0*sigma, mu+1.2*sigma);
+        //  h->Fit (fit, "RN0Q");
+        //}
+
         if (plotFill) {
           //h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
           h->SetFillColorAlpha (kYellow-4, fillAlpha);
@@ -2588,6 +2599,9 @@ void FullAnalysis :: PlotZMassSpectra () {
           h->Draw ("hist same");
 
           gPad->RedrawAxis ();
+
+          //fit->SetLineColor (kRed+1);
+          //fit->Draw ("same");
         }
         else {
           TGraphAsymmErrors* g = GetTGAE (h);
@@ -2613,6 +2627,9 @@ void FullAnalysis :: PlotZMassSpectra () {
           g->GetXaxis ()->SetTitleOffset (1.5*0.6);
           g->GetYaxis ()->SetTitleOffset (1.5*0.6);
           g->Draw (!canvasExists ? "AP" : "P");
+
+          //fit->SetLineColor (kBlack);
+          //fit->Draw ("same");
         }
         LabelZMassSpectra (iSpc, iCent, iReg);
         
@@ -2699,8 +2716,8 @@ void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, con
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z yield with respect to the event plane angle
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZPhiYield () {
-  const char* canvasName = "c_z_phi";
+void FullAnalysis :: PlotZPhiYield (const short pSpc) {
+  const char* canvasName = Form ("c_z_phi_%s", pSpc == 0 ? "ee" : (pSpc == 1 ? "#mu#mu" : "comb"));
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
@@ -2712,7 +2729,7 @@ void FullAnalysis :: PlotZPhiYield () {
   c->cd ();
 
   for (short iCent = 1; iCent < numCentBins; iCent++) {
-    TH1D* h = h_z_phi[iCent][2];
+    TH1D* h = h_z_phi[iCent][pSpc];
     //h->Rebin (8);
     //h->Scale (1. / h->Integral (), "width");
     float v2 = 0, v2err = 0;
@@ -2763,8 +2780,10 @@ void FullAnalysis :: PlotZPhiYield () {
 
   //myText (0.66, 0.88, colors[0], "#it{pp}", 0.04);
   myText (0.25, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.05);
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
+  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.05);
+  if (pSpc != 2)
+    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.05);
 
   c->SaveAs (Form ("%s/ZPhiYields.pdf", plotPath.Data ()));
 }

@@ -701,21 +701,19 @@ void PhysicsAnalysis :: CombineHists () {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])   h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add  (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-
-          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])      h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add     (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])     h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add    (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
 
           if (iPhi != 0) {
-            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[iSpc][iPtZ][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt[2][iPtZ][iCent]->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[2][iPtZ][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[iSpc][iPtZ][iCent]->Add   (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[2][iPtZ][iCent]->Add      (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add  (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[2][iPtZ][iCent]->Add     (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           }
-
-          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
       } // end loop over pT^Z
 
@@ -1445,7 +1443,15 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
       }
 
       h_trk_purs[iCent][iEta] = (TH1D*) num->Clone (Form ("h_trk_pur_iCent%i_iEta%i", iCent, iEta));
-      h_trk_purs[iCent][iEta]->Divide (den);
+      //h_trk_purs[iCent][iEta]->Divide (den);
+
+      for (int ix = 1; ix <= h_trk_purs[iCent][iEta]->GetNbinsX (); ix++) {
+        const float passes = num->GetBinContent (ix);
+        const float trials = den->GetBinContent (ix);
+        h_trk_purs[iCent][iEta]->SetBinContent (ix, passes/trials);
+        h_trk_purs[iCent][iEta]->SetBinError (ix, sqrt ((passes/trials)*(1.-(passes/trials)) * (*den->GetSumw2 ())[ix] / pow (trials, 2)));
+        //h_trk_purs[iCent][iEta]->SetBinError (ix, sqrt ((passes+1)*(passes+2) / ((trials+2)*(trials+3)) - pow (passes+1, 2) / pow (trials+2, 2)));
+      }
 
       if (doTrackPurVar) {
         for (int ix = 1; ix <= h_trk_purs[iCent][iEta]->GetNbinsX (); ix++) {
@@ -2380,117 +2386,73 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
       for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-
         TH1D* sub = nullptr;
         if (a != nullptr) {
           sub = a->h_z_trk_zpt[iSpc][iPtZ][iCent];
           h->Add (sub, -1);
         }
-        //else
-        //  cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
-
         h_z_trk_zpt_sub[iSpc][iPtZ][iCent] = h;
 
         h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        //h->Sumw2 ();
-
-        if (sub != nullptr) {
+        if (a != nullptr && sub != nullptr) {
           h->Add (sub, -1);
           h->Divide (sub);
         }
-        else {
+        else
           h->Divide (h);
-        }
-
         h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent] = h;
 
-
         h = (TH1D*) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zxzh_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-
         if (a != nullptr) {
           sub = a->h_z_trk_zxzh[iSpc][iPtZ][iCent];
           h->Add (sub, -1);
         }
-        //else
-        //  cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
-
         h_z_trk_zxzh_sub[iSpc][iPtZ][iCent] = h;
 
         h = (TH1D*) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zxzh_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        //h->Sumw2 ();
-
-        if (sub != nullptr) {
+        if (a != nullptr && sub != nullptr) {
           h->Add (sub, -1);
           h->Divide (sub);
         }
-
+        else
+          h->Divide (h);
         h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent] = h;
 
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           //******** Do subtraction of pT ********//
           h = (TH1D*) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-
-          sub = nullptr;
           if (a != nullptr) {
-            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
             sub = a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
-          }
-          else {
-            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
-            sub = h_z_trk_pt[iSpc][iPtZ][0][iCent];
-          }
-          if (sub != nullptr)
             h->Add (sub, -1);
-          else
-            cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
-
+          }
           h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
           h = (TH1D*) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          //h->Sumw2 ();
-
-          if (sub != nullptr) {
-            //h->Add (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (a != nullptr && sub != nullptr) {
             h->Add (sub, -1);
             h->Divide (sub);
           }
-
           h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
 
 
           //******** Do subtraction of z_h ********//
           h = new TH1D (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-          //h = (TH1D*) h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h->Sumw2 ();
-
           h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-          sub = nullptr;
-          if (a == nullptr) {
-            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
-            sub = h_z_trk_xzh[iSpc][iPtZ][0][iCent];
-          }
-          else {
-            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
+          if (a != nullptr) {
             sub = a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent];
-          }
-          if (sub != nullptr)
             h->Add (sub, -1);
-          else
-            cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
-
+          }
           h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
           h = new TH1D (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-          //h = (TH1D*) h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h->Sumw2 ();
-
-          if (sub != nullptr) {
-            h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          h->Add (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          if (a != nullptr && sub != nullptr) {
             h->Add (sub, -1);
             h->Divide (sub);
           }
-
           h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
         } // end loop over phi
 
@@ -2499,28 +2461,12 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
           //******** Do background subtraction of phi distributions ********//
 
           TH1D* h = (TH1D*) h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
-          TH1D* sub = nullptr;
-          if (a == nullptr) {
-            //cout << "Info in SubtractBackground: Using HM background subtraction method." << endl;
-            sub = h_z_trk_phi[iSpc][iPtZ][0][iCent];
-          }
-          else {
-            //cout << "Info in SubtractBackground: Using MBM background subtraction method." << endl;
-            sub = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
-            //for (int ix = 1; ix <= sub->GetNbinsX (); ix++) {
-            //  sub->SetBinContent (ix, sub->GetBinContent (ix));
-            //  sub->SetBinError (ix, sub->GetBinError (ix));
-            //}
-          }
-          if (sub != nullptr) {
-            while (sub->GetNbinsX () > h->GetNbinsX ()) {
+          if (a != nullptr) {
+            TH1D* sub = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+            while (sub->GetNbinsX () > h->GetNbinsX ())
               sub->Rebin (2);
-            }
             h->Add (sub, -1);
           }
-          else
-            cout << "Error in SubtractBackground: Trying to subtract a null histogram!" << endl;
-
           h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = h;
 
         } // end loop over pT^trk
@@ -4619,11 +4565,11 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
 
     double xmin = 0, xmax = 0;
     gPad->SetLogx ();
-    gPad->SetLogy ();
+    //gPad->SetLogy ();
 
     if (plotFill) {
       //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
+      for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
         TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -4632,7 +4578,8 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         h->SetLineWidth (0);
 
         useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-        h->GetYaxis ()->SetRangeUser (0.1, max_iaa);
+        //h->GetYaxis ()->SetRangeUser (0.1, max_iaa);
+        h->GetYaxis ()->SetRangeUser (0, max_iaa);
         xmin = h->GetXaxis ()->GetXmin ();
         xmax = h->GetXaxis ()->GetXmax ();
 
@@ -4655,7 +4602,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         h->GetXaxis ()->SetTitleOffset (0.9 * h->GetXaxis ()->GetTitleOffset ());
         //h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
 
-        h->DrawCopy (!canvasExists && iPtZ-2 == 0 ? "bar" : "bar same");
+        h->DrawCopy (!canvasExists && iPtZ-4 == 0 ? "bar" : "bar same");
         //h->DrawCopy (!canvasExists && iPtZ-2 == 0 ? "bar" : "bar same");
         h->SetLineWidth (1);
         h->Draw ("hist same");
@@ -4663,7 +4610,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
       gPad->RedrawAxis ();
     } else {
       //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
+      for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
         const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
         TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
@@ -4686,7 +4633,8 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         }
 
         useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-        g->GetYaxis ()->SetRangeUser (0.1, max_iaa);
+        //g->GetYaxis ()->SetRangeUser (0.1, max_iaa);
+        g->GetYaxis ()->SetRangeUser (0, max_iaa);
 
         g->GetXaxis ()->SetMoreLogLabels ();
         g->GetYaxis ()->SetMoreLogLabels ();
@@ -4710,11 +4658,11 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
         if (!plotAsSystematic) {
-          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
+          string drawString = string (!canvasExists && iPtZ-4 == 0 ? "AP" : "P");
           //string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
-          string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
+          string drawString = string (!canvasExists && iPtZ-4 == 0 ? "A5P" : "5P");
           //string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
           ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
           g->Draw ("2P");
@@ -4728,19 +4676,19 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
     myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
     myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
-    myText (0.61, 0.905, kBlack, "#mu#mu", 0.032);
+    myText (0.59, 0.905, kBlack, "#mu#mu", 0.032);
     myText (0.66, 0.905, kBlack, "ee", 0.032);
     //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-    for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
-      myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
+    for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
+      myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-4), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
       //myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
-      myMarkerTextNoLine (0.644, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
+      myMarkerTextNoLine (0.624, 0.868-0.05*(iPtZ-4), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
       //myMarkerTextNoLine (0.644, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
       if (iPtZ == nPtZBins-1)
-        myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
+        myText (0.700, 0.86-0.05*(iPtZ-4), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
         //myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
       else
-        myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
+        myText (0.700, 0.86-0.05*(iPtZ-4), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
         //myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
     }
 
