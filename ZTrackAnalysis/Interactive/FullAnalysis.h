@@ -31,10 +31,10 @@ class FullAnalysis : public PhysicsAnalysis {
   TH1D*   h_fcal_et               = nullptr;
   TH1D*   h_fcal_et_reweighted    = nullptr;
 
-  TH1D**  h_q2                  = Get1DArray <TH1D*> (numFinerCentBins);
-  TH1D**  h_q2_reweighted       = Get1DArray <TH1D*> (numFinerCentBins);
-  TH1D**  h_psi2                = Get1DArray <TH1D*> (numFinerCentBins);
-  TH1D**  h_psi2_reweighted     = Get1DArray <TH1D*> (numFinerCentBins);
+  TH1D**  h_q2                  = Get1DArray <TH1D*> (numCentBins);
+  TH1D**  h_q2_reweighted       = Get1DArray <TH1D*> (numCentBins);
+  TH1D**  h_psi2                = Get1DArray <TH1D*> (numCentBins);
+  TH1D**  h_psi2_reweighted     = Get1DArray <TH1D*> (numCentBins);
   TH1D*   h_PbPb_vz             = nullptr;
   TH1D*   h_PbPb_vz_reweighted  = nullptr;
   TH1D*   h_pp_vz               = nullptr;
@@ -70,8 +70,8 @@ class FullAnalysis : public PhysicsAnalysis {
 
   virtual ~FullAnalysis () {
 
-    Delete1DArray (h_q2,            numFinerCentBins);
-    Delete1DArray (h_q2_reweighted, numFinerCentBins);
+    Delete1DArray (h_q2,            numCentBins);
+    Delete1DArray (h_q2_reweighted, numCentBins);
 
     Delete2DArray (h_z_phi,         numCentBins, 3);
     Delete2DArray (h_z_pt,          numCentBins, 3);
@@ -148,7 +148,7 @@ void FullAnalysis :: CreateHists () {
   h_fcal_et_reweighted = new TH1D (Form ("h_fcal_et_reweighted_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
   h_fcal_et_reweighted->Sumw2 ();
 
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
     h_q2[iCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()), "", 50, 0, 0.3);
     h_q2[iCent]->Sumw2 ();
     h_q2_reweighted[iCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 50, 0, 0.3);
@@ -225,7 +225,7 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
   h_fcal_et               = (TH1D*) a->h_fcal_et->Clone (Form ("h_fcal_et_%s", name.c_str ()));
   h_fcal_et_reweighted    = (TH1D*) a->h_fcal_et_reweighted->Clone (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
 
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
     h_q2[iCent]               = (TH1D*) a->h_q2[iCent]->Clone (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()));
     h_q2_reweighted[iCent]    = (TH1D*) a->h_q2_reweighted[iCent]->Clone (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()));
     h_psi2[iCent]             = (TH1D*) a->h_psi2[iCent]->Clone (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()));
@@ -329,7 +329,7 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   h_fcal_et               = (TH1D*) histFile->Get (Form ("h_fcal_et_%s", name.c_str ()));
   h_fcal_et_reweighted    = (TH1D*) histFile->Get (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
 
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
     h_q2[iCent]               = (TH1D*) histFile->Get (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()));
     h_q2_reweighted[iCent]    = (TH1D*) histFile->Get (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()));
     h_psi2[iCent]             = (TH1D*) histFile->Get (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()));
@@ -398,7 +398,7 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
   SafeWrite (h_fcal_et);
   SafeWrite (h_fcal_et_reweighted);
 
-  for (short iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
     SafeWrite (h_q2[iCent]);
     SafeWrite (h_q2_reweighted[iCent]);
     SafeWrite (h_psi2[iCent]);
@@ -624,8 +624,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
+      //if (fabs (vz) > 150)
+      //  continue;
 
       //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, true);
 
@@ -638,9 +638,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
-        continue;
+      //const short iFinerCent = GetFinerCentBin (fcal_et);
+      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      //  continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
@@ -680,10 +680,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
+      h_q2[iCent]->Fill (q2);
+      h_q2_reweighted[iCent]->Fill (q2, event_weight);
+      h_psi2[iCent]->Fill (psi2);
+      h_psi2_reweighted[iCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
@@ -786,8 +786,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
+      //if (fabs (vz) > 150)
+      //  continue;
 
       //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, false);
 
@@ -971,8 +971,8 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
 
   c->cd ();
 
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
+  for (short iCent = 1; iCent < numCentBins; iCent++) {
+    c->cd (numCentBins-iCent);
     gPad->SetLogy ();
 
     double min = 1e30, max = 0;
@@ -1032,11 +1032,11 @@ void FullAnalysis :: PlotQ2Weights (FullAnalysis* a) {
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
-    c->Divide (3,3);
+    c->Divide (2,2);
   }
 
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
+  for (short iCent = 1; iCent < numCentBins; iCent++) {
+    c->cd (numCentBins-iCent);
 
     TH1D* h = (TH1D*) h_q2[iCent]->Clone ();
 
@@ -1086,13 +1086,13 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
-    c->Divide (3, 3);
+    c->Divide (2, 2);
   }
 
   c->cd ();
 
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
+  for (short iCent = 1; iCent < numCentBins; iCent++) {
+    c->cd (numCentBins-iCent);
     gPad->SetLogy ();
 
     double min = 1e30, max = 0;
@@ -1179,11 +1179,11 @@ void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
-    c->Divide (3,3);
+    c->Divide (2, 2);
   }
 
-  for (short iCent = 1; iCent < numFinerCentBins; iCent++) {
-    c->cd (numFinerCentBins-iCent);
+  for (short iCent = 1; iCent < numCentBins; iCent++) {
+    c->cd (numCentBins-iCent);
 
     TH1D* h = (TH1D*) h_psi2[iCent]->Clone ();
 

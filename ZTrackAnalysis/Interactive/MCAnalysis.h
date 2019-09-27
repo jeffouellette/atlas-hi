@@ -21,16 +21,21 @@ class MCAnalysis : public FullAnalysis {
     plotFill = true;
     useAltMarker = false;
     isMC = true;
+    eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";
   }
 
   void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
 };
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
+
+  LoadEventWeights ();
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
@@ -47,7 +52,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1;//, vz_weight = 1, q2_weight = 1, psi2_weight = 1, fcal_weight = 1, nch_weight = 1;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -95,7 +100,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 1.5)
+      //if (fabs (vz) > 150)
       //  continue; // vertex cut
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
@@ -109,12 +114,20 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
+        continue;
 
-      //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
-      //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
-      //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
+      {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)
+          dphi = pi - dphi;
+        fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
+        q2_weight = h_PbPbQ2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iCent][iPtZ]->FindBin (q2));
+        psi2_weight = h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->FindBin (dphi));
 
-      //event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
+        event_weight *= fcal_weight * q2_weight * psi2_weight;
+      }
+
       if (event_weight == 0)
         continue;
 
@@ -253,19 +266,15 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 1.5)
+      //if (fabs (vz) > 150)
       //  continue; // vertex cut
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
-      short iPtZ = 0; // find z-pt bin
-      while (iPtZ < nPtZBins) {
-        if (z_pt < zPtBins[iPtZ+1])
-          break;
-        else
-          iPtZ++;
-      }
+      const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
+      if (iPtZ < 0 || iPtZ > nPtZBins-1)
+        continue;
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
@@ -376,5 +385,6 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   //Delete2DArray (trkPtProj, numPhiBins, nPtTrkBins[iPtZ]);
 }
+
 
 #endif

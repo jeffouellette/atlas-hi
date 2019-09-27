@@ -36,7 +36,7 @@ class MinbiasAnalysis : public FullAnalysis {
     //icpCalculated = true;
   }
 
-  void LoadEventWeights ();
+  void LoadEventWeights () override;
   void GenerateWeights (const char* inFileName = "outFile.root", const char* outFileName = "eventWeightsFile.root");
 
   //void CreateHists () override;
@@ -67,8 +67,8 @@ void MinbiasAnalysis :: LoadEventWeights () {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_PbPbQ2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        h_PbPbPsi2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
+        h_PbPbQ2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
+        h_PbPbPsi2_weights[iSpc][iCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
       }
     }
   }
@@ -430,8 +430,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       zTree->GetEntry (iZEvt % nZEvts);
 
-      if (fabs (z_vz) > 150)
-        continue;
+      //if (fabs (z_vz) > 150)
+      //  continue;
 
       if (z_event_weight == 0)
         continue;
@@ -449,16 +449,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
         //const short iPsi2 = GetPsi2Bin (z_psi2);
         //if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
         //  continue;
-        const short iVZ = GetVZBin (z_vz);
-        if (iVZ < 0 || iVZ > numVZBins)
-          continue;
+        //const short iVZ = GetVZBin (z_vz);
+        //if (iVZ < 0 || iVZ > numVZBins)
+        //  continue;
         
         bool goodMixEvent = false;
         const int _iMixEvt = iMixEvt;
         do {
           iMixEvt = (iMixEvt+1) % nMixEvts;
           PbPbTree->GetEntry (eventOrder[iMixEvt]);
-          goodMixEvent = (!eventsMixed[iMixEvt] && iFCalEt == GetSuperFineCentBin (fcal_et) && fabs (vz) <= 150);// && iVZ == GetVZBin (vz));
+          goodMixEvent = (!eventsMixed[iMixEvt] && iFCalEt == GetSuperFineCentBin (fcal_et));// && fabs (vz) <= 150);// && iVZ == GetVZBin (vz));
         } while (!goodMixEvent && iMixEvt != _iMixEvt);
         if (_iMixEvt == iMixEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -475,28 +475,27 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
-        continue;
+      //const short iFinerCent = GetFinerCentBin (fcal_et);
+      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      //  continue;
 
       {
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)
           dphi = pi - dphi;
-        //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
-        q2_weight = h_PbPbQ2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iCent][iPtZ]->FindBin (q2));
+        //q2_weight = h_PbPbQ2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iCent][iPtZ]->FindBin (q2));
         psi2_weight = h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->FindBin (dphi));
 
         //z_event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
-        z_event_weight *= q2_weight * psi2_weight;
+        z_event_weight *= psi2_weight;
       }
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, z_event_weight);
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, z_event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, z_event_weight);
+      h_q2[iCent]->Fill (q2);
+      h_q2_reweighted[iCent]->Fill (q2, z_event_weight);
+      h_psi2[iCent]->Fill (psi2);
+      h_psi2_reweighted[iCent]->Fill (psi2, z_event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, z_event_weight);
 
@@ -658,8 +657,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       zTree->GetEntry (iZEvt % nZEvts);
 
-      if (fabs (z_vz) > 150)
-        continue;
+      //if (fabs (z_vz) > 150)
+      //  continue;
 
       if (z_event_weight == 0)
         continue;
@@ -677,7 +676,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
           iMixEvt = (iMixEvt+1) % nMixEvts;
           ppTree->GetEntry (eventOrder[iMixEvt]);
           goodMixEvent = (!eventsMixed[iMixEvt]);
-        } while (!goodMixEvent && iMixEvt != _iMixEvt && fabs (vz) <= 150);
+        } while (!goodMixEvent && iMixEvt != _iMixEvt);
         if (_iMixEvt == iMixEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
           continue;
@@ -861,10 +860,21 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_mixed_q2_dist[iSpc][iCent][iPtZ]->Divide (h_z_q2_dist[iSpc][iCent][iPtZ]);
-        h_z_q2_dist[iSpc][iCent][iPtZ]->Divide (h_z_q2_dist[iSpc][iCent][iPtZ]);
-        h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Divide (h_z_psi2_dist[iSpc][iCent][iPtZ]);
-        h_z_psi2_dist[iSpc][iCent][iPtZ]->Divide (h_z_psi2_dist[iSpc][iCent][iPtZ]);
+        h_z_q2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iCent][iPtZ]->Integral ());
+        h_mixed_q2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iCent][iPtZ]->Integral ());
+        h_z_psi2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Integral ());
+        h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Integral ());
+      }
+    }
+  }
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        h_z_q2_dist[iSpc][iCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iCent][iPtZ]);
+        h_mixed_q2_dist[iSpc][iCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iCent][iPtZ]);
+        h_z_psi2_dist[iSpc][iCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iCent][iPtZ]);
+        h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iCent][iPtZ]);
       }
     }
   }
