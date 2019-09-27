@@ -137,7 +137,7 @@ class PhysicsAnalysis {
   virtual ~PhysicsAnalysis () {
     Delete2DArray (h_PbPbFCal_weights,  3, nPtZBins+1);
     Delete3DArray (h_PbPbQ2_weights,    3, numCentBins, nPtZBins+1);
-    //Delete2DArray (h_PbPbPsi2_weights,  numFinerCentBins, nPtZBins+1);
+    Delete3DArray (h_PbPbPsi2_weights,  3, numCentBins, nPtZBins+1);
 
     ClearHists ();
 
@@ -1009,7 +1009,7 @@ void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern
 
   const int nQ2Bins = 20;
   const double* q2Bins = linspace (0, 0.3, nQ2Bins);
-  const int nPsi2Bins = 20;
+  const int nPsi2Bins = 8;
   const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
 
   TH1D* h_fcal_et_dist[2][3][nPtZBins];

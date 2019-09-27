@@ -307,10 +307,6 @@ void GenerateDataWeights () {
   GenerateWeights ("data", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/outFile.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/eventWeightsFile.root");
 }
 
-void GenerateMinbiasWeights () {
-  GenerateWeights ("minbias", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi_mixed.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal/eventWeightsFile.root");
-}
-
 void GeneratePbPbMCWeights () {
   GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000/PbPbEventWeightsFile.root");
 }

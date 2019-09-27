@@ -20,18 +20,6 @@ const Color_t modelFillColors[8] = {kGray, kRed+2, kBlue-3, kGreen+3, kViolet-6,
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
 
-//const int GroupA[8] = {365502, 365512, 365573, 365602, 365627, 365678, 365681, 365709};
-//const int GroupB[7] = {365752, 365834, 365914, 365932};
-//const int GroupC[3] = {366011, 366029, 366092};
-//const int GroupD[6] = {366142, 366268, 366337, 366383, 366413, 366476};
-//const int GroupE[9] = {366526, 366528, 366627, 366691, 366754, 366805};
-//const int GroupF[6] = {366860, 366878, 366919, 366931, 366994, 367023};
-//const int GroupG[6] = {367099, 367134, 367165, 367170, 367233, 367273};
-//const int GroupH[6] = {367318, 367321, 367363, 367364, 367365, 367384};
-
-//enum XAxisVar { trkPt = 0, xZh = 1}
-//enum BinVar { trkPt = 0, dphi = 1, xZh = 2, zPt = 3}
-
 double* doubleLogSpace (const double lo, const double hi, const int num) {
   double* arr = Get1DArray <double> (2*num+1);
   double* logarr = logspace (lo, hi, num-1);
@@ -53,8 +41,8 @@ int mixingFraction = 40;
 const int nFCalBins = 250;
 const double* fcalBins = linspace (0, 5000, nFCalBins);
 
-const int numZMissingPtBins = 16;
-const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
+//const int numZMissingPtBins = 16;
+//const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
 //const double* zMissingPtBins = linspace (-150, 150, numZMissingPtBins);
 const double phiTrkBins[3] = {0, pi/8, pi/2};
 const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
@@ -65,8 +53,8 @@ const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 
 
 // Centrality cuts in GeV:  80%  -  30%  -  10%  -   0%
-//const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations
-const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations
+//const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations, old Glauber MC
+const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 const int centCuts[4]    = {80,     30,     10,      0};
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 
@@ -219,17 +207,16 @@ void LatexXHZBins () {
 }
 
 
-long gcd(long a, long b)
-{
-    if (a == 0)
-        return b;
-    else if (b == 0)
-        return a;
+long gcd (long a, long b) {
+  if (a == 0)
+    return b;
+  else if (b == 0)
+    return a;
 
-    if (a < b)
-        return gcd(a, b % a);
-    else
-        return gcd(b, a % b);
+  if (a < b)
+    return gcd (a, b % a);
+  else
+    return gcd (b, a % b);
 }
 
 
@@ -254,10 +241,10 @@ const char* GetPiString (double phi) {
   }
   else {
     const long precision = 1000000000;
-    long gcd_ = gcd (round (fracPart * precision), precision);
+    long _gcd = gcd (round (fracPart * precision), precision);
 
-    denom = (int)(precision / gcd_);
-    numer = (int)(round (fracPart * precision) / gcd_);
+    denom = (int)(precision / _gcd);
+    numer = (int)(round (fracPart * precision) / _gcd);
   }
 
   if (numer == 1 && denom == 1)

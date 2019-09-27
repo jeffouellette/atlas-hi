@@ -760,7 +760,7 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
 
   const int nQ2Bins = 20;
   const double* q2Bins = linspace (0, 0.3, nQ2Bins);
-  const int nPsi2Bins = 20;
+  const int nPsi2Bins = 8;
   const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
   
   //const int nNchBins = 160;
@@ -860,9 +860,9 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_q2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iCent][iPtZ]->Integral ());
+        h_z_q2_dist[iSpc][iCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iCent][iPtZ]->Integral ());
         h_mixed_q2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iCent][iPtZ]->Integral ());
-        h_z_psi2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Integral ());
+        h_z_psi2_dist[iSpc][iCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iCent][iPtZ]->Integral ());
         h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iCent][iPtZ]->Integral ());
       }
     }

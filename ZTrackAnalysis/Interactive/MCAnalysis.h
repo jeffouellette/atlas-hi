@@ -109,9 +109,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
-        continue;
+      //const short iFinerCent = GetFinerCentBin (fcal_et);
+      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      //  continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
@@ -122,10 +122,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (dphi > pi/2)
           dphi = pi - dphi;
         fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
-        q2_weight = h_PbPbQ2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iCent][iPtZ]->FindBin (q2));
+        //q2_weight = h_PbPbQ2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iCent][iPtZ]->FindBin (q2));
         psi2_weight = h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iCent][iPtZ]->FindBin (dphi));
 
-        event_weight *= fcal_weight * q2_weight * psi2_weight;
+        event_weight *= fcal_weight * psi2_weight;
       }
 
       if (event_weight == 0)
@@ -134,10 +134,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
+      h_q2[iCent]->Fill (q2);
+      h_q2_reweighted[iCent]->Fill (q2, event_weight);
+      h_psi2[iCent]->Fill (psi2);
+      h_psi2_reweighted[iCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 

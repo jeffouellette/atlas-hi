@@ -262,15 +262,15 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
-        continue;
+      //const short iFinerCent = GetFinerCentBin (fcal_et);
+      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      //  continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
 
       //fcal_weight = h_PbPbFCal_weights[iPtZ]->GetBinContent (h_PbPbFCal_weights[iPtZ]->FindBin (fcal_et));
-      //q2_weight = h_PbPbQ2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iFinerCent][iPtZ]->FindBin (q2));
-      //psi2_weight = h_PbPbPsi2_weights[iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iFinerCent][iPtZ]->FindBin (psi2));
+      //q2_weight = h_PbPbQ2_weights[iCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iCent][iPtZ]->FindBin (q2));
+      //psi2_weight = h_PbPbPsi2_weights[iCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iCent][iPtZ]->FindBin (psi2));
 
       //event_weight = event_weight * fcal_weight * q2_weight * psi2_weight * vz_weight;
       if (event_weight == 0)
@@ -279,10 +279,10 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
+      h_q2[iCent]->Fill (q2);
+      h_q2_reweighted[iCent]->Fill (q2, event_weight);
+      h_psi2[iCent]->Fill (psi2);
+      h_psi2_reweighted[iCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
@@ -328,7 +328,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
@@ -336,8 +336,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt);
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight);
           }
         }
       } // end loop over tracks
@@ -513,7 +513,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi);
+            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
@@ -521,8 +521,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt);
+            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight);
+            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight);
           }
         }
       } // end loop over tracks

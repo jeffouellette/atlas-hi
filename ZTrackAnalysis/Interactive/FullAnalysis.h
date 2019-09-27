@@ -149,13 +149,13 @@ void FullAnalysis :: CreateHists () {
   h_fcal_et_reweighted->Sumw2 ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    h_q2[iCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()), "", 50, 0, 0.3);
+    h_q2[iCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()), "", 20, 0, 0.3);
     h_q2[iCent]->Sumw2 ();
-    h_q2_reweighted[iCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 50, 0, 0.3);
+    h_q2_reweighted[iCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 20, 0, 0.3);
     h_q2_reweighted[iCent]->Sumw2 ();
-    h_psi2[iCent]             = new TH1D (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()), "", 50, -pi/2, pi/2);
+    h_psi2[iCent]             = new TH1D (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()), "", 8, 0, pi/2);
     h_psi2[iCent]->Sumw2 ();
-    h_psi2_reweighted[iCent]  = new TH1D (Form ("h_psi2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 50, -pi/2, pi/2);
+    h_psi2_reweighted[iCent]  = new TH1D (Form ("h_psi2_reweighted_iCent%i_%s", iCent, name.c_str ()), "", 8, 0, pi/2);
     h_psi2_reweighted[iCent]->Sumw2 ();
   }
   h_PbPb_vz = new TH1D (Form ("h_PbPb_vz_%s", name.c_str ()), "", 50, -200, 200);
