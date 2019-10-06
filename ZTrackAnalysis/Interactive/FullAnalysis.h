@@ -630,6 +630,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //  continue;
 
       //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, true);
+      //event_weight = 1;
 
       if (event_weight == 0)
         continue;
@@ -792,6 +793,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //  continue;
 
       //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, false);
+      //event_weight = 1;
 
       if (event_weight == 0)
         continue;

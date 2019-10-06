@@ -7,13 +7,17 @@
 void QuickZMassPlot () {
 
   TFile* dataFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/savedHists.root", "read");
-  TH1D**** h_z_m = Get3DArray <TH1D*> (numCentBins, 2, 3);          // iCent, iSpc, iReg
+  TFile* mcFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/savedHists.root", "read");
+  TH1D**** h_z_m = Get3DArray <TH1D*> (2, numCentBins, 2, 3);          // iCent, iSpc, iReg
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : "mumu");
       for (short iReg = 0; iReg < 3; iReg++) {
-        h_z_m[iCent][iSpc][iReg] = (TH1D*) dataFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_data", spc, iCent, iReg));
-        h_z_m[iCent][iSpc][iReg]->Scale (1./ h_z_m[iCent][iSpc][iReg]->Integral ());
+        h_z_m[0][iCent][iSpc][iReg] = (TH1D*) dataFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_data", spc, iCent, iReg));
+        h_z_m[0][iCent][iSpc][iReg]->Scale (1./ h_z_m[0][iCent][iSpc][iReg]->Integral ());
+
+        h_z_m[1][iCent][iSpc][iReg] = (TH1D*) mcFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_mc", spc, iCent, iReg));
+        h_z_m[1][iCent][iSpc][iReg]->Scale (1./ h_z_m[1][iCent][iSpc][iReg]->Integral ());
       }
     }
   }
@@ -42,7 +46,7 @@ void QuickZMassPlot () {
 
         uPad->cd ();
 
-        TH1D* h = h_z_m[0][iSpc][iReg];
+        TH1D* h = h_z_m[0][0][iSpc][iReg];
 
         h->SetFillColorAlpha (kAzure+10, fillAlpha);
         h->SetLineColor (kBlack);
@@ -67,7 +71,7 @@ void QuickZMassPlot () {
 
         gPad->RedrawAxis ();
 
-        TGraphAsymmErrors* g = make_graph (h_z_m[iCent][iSpc][iReg]);
+        TGraphAsymmErrors* g = make_graph (h_z_m[0][iCent][iSpc][iReg]);
         ResetXErrors (g);
         //deltaize (g, 0.1*(-1.5+iCent));
 
@@ -113,8 +117,8 @@ void QuickZMassPlot () {
 
         dPad->cd ();
 
-        h = (TH1D*) h_z_m[iCent][iSpc][iReg]->Clone (TString (h_z_m[iCent][iSpc][iReg]->GetName ()) + "_ratio");
-        h->Divide (h_z_m[0][iSpc][iReg]);
+        h = (TH1D*) h_z_m[0][iCent][iSpc][iReg]->Clone (TString (h_z_m[0][iCent][iSpc][iReg]->GetName ()) + "_ratio");
+        h->Divide (h_z_m[0][0][iSpc][iReg]);
         if (h) {
           TGraphAsymmErrors* g = make_graph (h);
           ResetXErrors (g);

@@ -518,19 +518,19 @@ void PhysicsAnalysis :: ClearHists () {
         //for (short iZH = 0; iZH < nXHZBins[iPtZ]; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
-        if (h_z_trk_zpt[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt[iSpc][iPtZ][iCent]);
-        if (h_z_trk_zxzh[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zxzh[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zpt[iSpc][iPtZ][iCent])   SaferDelete (h_z_trk_zpt[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zxzh[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zxzh[iSpc][iPtZ][iCent]);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])      SaferDelete (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])     SaferDelete (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over iPhi
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]) SaferDelete (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
         }
       } // end loop over iPtZ
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        if (h_z_counts[iSpc][iPtZ][iCent]) SaferDelete (h_z_counts[iSpc][iPtZ][iCent]);
+        if (h_z_counts[iSpc][iPtZ][iCent])  SaferDelete (h_z_counts[iSpc][iPtZ][iCent]);
       } // end loop over iPtZ
     } // end loop over iSpc
   } // end loop over iCent
@@ -539,16 +539,16 @@ void PhysicsAnalysis :: ClearHists () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
 
-        if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
-        if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
-        if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])         SaferDelete (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])        SaferDelete (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]);
         if (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])          SaferDelete (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])   SaferDelete (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])         SaferDelete (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) SaferDelete (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
@@ -561,11 +561,11 @@ void PhysicsAnalysis :: ClearHists () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
-        if (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
-        if (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent])   SaferDelete (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]);
           if (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
       } // end loop over cents
@@ -578,12 +578,12 @@ void PhysicsAnalysis :: ClearHists () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 2; iCent < numCentBins; iCent++) {
-        if (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
-        if (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]) SaferDelete (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zpt_icp[iSpc][iPtZ][iCent])   SaferDelete (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
+        if (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
+          if (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_pt_icp[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
       } // end loop over cents
     } // end loop over pT^Z bins
@@ -623,10 +623,10 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
         }
-        h_z_trk_zpt[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zpt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+        h_z_trk_zpt[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_z_trk_zpt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Sumw2 ();
         h_z_trk_zxzh[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zxzh_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
         h_z_trk_zxzh[iSpc][iPtZ][iCent]->Sumw2 ();
@@ -745,14 +745,14 @@ void PhysicsAnalysis :: ScaleHists () {
 
           if (countsdPhi > 0) {
             //h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1./ counts);
-            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+            h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale  (1. / countsdPhi, "width");
             h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
           }
         } // end loop over phi
 
         if (counts > 0) {
-          h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
-          h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {

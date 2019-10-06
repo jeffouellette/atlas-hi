@@ -470,7 +470,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       // at this point we have a Z boson and a new (unique & random) event to mix with
       mixedEventsTree->Fill ();
 
-      const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
+      const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
@@ -479,16 +479,17 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
       if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
         continue;
 
-      {
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
-        //q2_weight = h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->FindBin (q2));
-        psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
+      //{
+      //  float dphi = DeltaPhi (z_phi, psi2, false);
+      //  if (dphi > pi/2)
+      //    dphi = pi - dphi;
+      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->FindBin (q2));
+      //  psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
 
-        //z_event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
-        z_event_weight *= psi2_weight;
-      }
+      //  //z_event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
+      //  z_event_weight *= psi2_weight;
+      //}
+      //z_event_weight = 1;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, z_event_weight);
@@ -622,24 +623,25 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
 
-    mixedEventsTree->Branch ("z_pt",          &z_pt,        "z_pt/F");
-    mixedEventsTree->Branch ("z_y",           &z_y,         "z_y/F");
-    mixedEventsTree->Branch ("z_phi",         &z_phi,       "z_phi/F");
-    mixedEventsTree->Branch ("z_m",           &z_m,         "z_m/F");
-    mixedEventsTree->Branch ("l1_pt",         &l1_pt,       "l1_pt/F");
-    mixedEventsTree->Branch ("l1_eta",        &l1_eta,      "l1_eta/F");
-    mixedEventsTree->Branch ("l1_phi",        &l1_phi,      "l1_phi/F");
-    mixedEventsTree->Branch ("l1_trk_pt",     &l1_trk_pt,   "l1_trk_pt/F");
-    mixedEventsTree->Branch ("l1_trk_eta",    &l1_trk_eta,  "l1_trk_eta/F");
-    mixedEventsTree->Branch ("l1_trk_phi",    &l1_trk_phi,  "l1_trk_phi/F");
-    mixedEventsTree->Branch ("l1_charge",     &l1_charge,   "l1_charge/I");
-    mixedEventsTree->Branch ("l2_pt",         &l2_pt,       "l2_pt/F");
-    mixedEventsTree->Branch ("l2_eta",        &l2_eta,      "l2_eta/F");
-    mixedEventsTree->Branch ("l2_phi",        &l2_phi,      "l2_phi/F");
-    mixedEventsTree->Branch ("l2_trk_pt",     &l2_trk_pt,   "l2_trk_pt/F");
-    mixedEventsTree->Branch ("l2_trk_eta",    &l2_trk_eta,  "l2_trk_eta/F");
-    mixedEventsTree->Branch ("l2_trk_phi",    &l2_trk_phi,  "l2_trk_phi/F");
-    mixedEventsTree->Branch ("l2_charge",     &l2_charge,   "l2_charge/I");
+    mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
+    mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
+    mixedEventsTree->Branch ("z_y",             &z_y,             "z_y/F");
+    mixedEventsTree->Branch ("z_phi",           &z_phi,           "z_phi/F");
+    mixedEventsTree->Branch ("z_m",             &z_m,             "z_m/F");
+    mixedEventsTree->Branch ("l1_pt",           &l1_pt,           "l1_pt/F");
+    mixedEventsTree->Branch ("l1_eta",          &l1_eta,          "l1_eta/F");
+    mixedEventsTree->Branch ("l1_phi",          &l1_phi,          "l1_phi/F");
+    mixedEventsTree->Branch ("l1_trk_pt",       &l1_trk_pt,       "l1_trk_pt/F");
+    mixedEventsTree->Branch ("l1_trk_eta",      &l1_trk_eta,      "l1_trk_eta/F");
+    mixedEventsTree->Branch ("l1_trk_phi",      &l1_trk_phi,      "l1_trk_phi/F");
+    mixedEventsTree->Branch ("l1_charge",       &l1_charge,       "l1_charge/I");
+    mixedEventsTree->Branch ("l2_pt",           &l2_pt,           "l2_pt/F");
+    mixedEventsTree->Branch ("l2_eta",          &l2_eta,          "l2_eta/F");
+    mixedEventsTree->Branch ("l2_phi",          &l2_phi,          "l2_phi/F");
+    mixedEventsTree->Branch ("l2_trk_pt",       &l2_trk_pt,       "l2_trk_pt/F");
+    mixedEventsTree->Branch ("l2_trk_eta",      &l2_trk_eta,      "l2_trk_eta/F");
+    mixedEventsTree->Branch ("l2_trk_phi",      &l2_trk_phi,      "l2_trk_phi/F");
+    mixedEventsTree->Branch ("l2_charge",       &l2_charge,       "l2_charge/I");
 
     mixedEventsTree->Branch ("trk_pt",        &trk_pt,        "trk_pt[ntrk]/F");
     mixedEventsTree->Branch ("trk_eta",       &trk_eta,       "trk_eta[ntrk]/F");
@@ -689,6 +691,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
+
+      //z_event_weight = 1;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, z_event_weight);
@@ -815,7 +819,7 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      const short iFinerCent = GetCentBin (fcal_et);
+      const short iFinerCent = GetFinerCentBin (fcal_et);
       if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
         continue;
 
