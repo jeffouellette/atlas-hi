@@ -641,7 +641,7 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
           h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          if (iPhi != 0) {
+          if (iSpc != 2 && iPhi != 0) {
             if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[iSpc][iPtZ][iCent]->Add   (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
             if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add  (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
           }
@@ -655,8 +655,16 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
 
   histsLoaded = true;
 
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
+      } // end loop over centralities
+    } // end loop over pT^Z
+  } // end loop over species
+
   if (_finishHists) {
-    PhysicsAnalysis :: CombineHists ();
+    //PhysicsAnalysis :: CombineHists (); // deprecated function call
     PhysicsAnalysis :: ScaleHists ();
   }
 
@@ -713,14 +721,6 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CombineHists () {
-  for (short iSpc = 0; iSpc < 2; iSpc++) {
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (short iCent = 0; iCent < numCentBins; iCent++) {
-        h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
-      } // end loop over centralities
-    } // end loop over pT^Z
-  } // end loop over species
-
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iSpc = 0; iSpc < 2; iSpc++) {
@@ -2549,7 +2549,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
   UnfoldSubtractedYield ();
 
-  CombineHists ();
+  PhysicsAnalysis :: CombineHists ();
 
   backgroundSubtracted = true;
   return;
@@ -2566,12 +2566,14 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
   if (histsUnfolded)
     return;
 
-  TFile* f_binMigrationFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/BinMigrationFactors/binmigration_corrfactors_master.root", "read");
+  SetupDirectories ("", "ZTrackAnalysis/");
+  TFile* f_binMigrationFile = new TFile (Form ("%s/BinMigrationFactors/binmigration_corrfactors_master.root", rootPath.Data ()), "read");
+
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : "mumu");
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        const char* cent = (iCent == 0 ? "pp" : Form ("CENT%i", numCentBins-iCent));
+        const char* cent = (iCent == 0 ? "pp" : Form ("CENT%i", numCentBins-iCent-1));
 
         TF1* f = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_pt_ZPT%i_%s", spc, iPtZ-2, cent));
         TH1D* h = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
@@ -2580,8 +2582,8 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
           const float x = h->GetBinCenter (ix);
           float y = h->GetBinContent (ix);
           float yerr = h->GetBinError (ix);
-          y *= f->Eval (x);
-          yerr *= f->Eval (x);
+          y = y / f->Eval (x);
+          yerr = yerr / f->Eval (x);
           h->SetBinContent (ix, y);
           h->SetBinError (ix, yerr);
         }
@@ -2592,8 +2594,8 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
           const float x = h->GetBinCenter (ix);
           float y = h->GetBinContent (ix);
           float yerr = h->GetBinError (ix);
-          y *= f->Eval (x);
-          yerr *= f->Eval (x);
+          y = y / f->Eval (x);
+          yerr = yerr / f->Eval (x);
           h->SetBinContent (ix, y);
           h->SetBinError (ix, yerr);
         }
@@ -4063,7 +4065,7 @@ void PhysicsAnalysis :: CalculateIAA () {
     return;
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       TH1D* ppHist = nullptr, *PbPbHist = nullptr;
 
       ppHist = h_z_trk_zpt_sub[iSpc][iPtZ][0];

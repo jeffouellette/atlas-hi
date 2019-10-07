@@ -347,7 +347,7 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   histsLoaded = true;
 
   if (_finishHists) {
-    CombineHists ();
+    FullAnalysis :: CombineHists ();
     ScaleHists ();
   }
 
@@ -429,7 +429,7 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: CombineHists () {
 
-  PhysicsAnalysis :: CombineHists ();
+  //PhysicsAnalysis :: CombineHists ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
