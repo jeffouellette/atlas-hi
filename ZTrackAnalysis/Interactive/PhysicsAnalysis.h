@@ -54,6 +54,7 @@ class PhysicsAnalysis {
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
+  bool histsUnfolded = false;
 
   public:
   bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
@@ -83,11 +84,15 @@ class PhysicsAnalysis {
   TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
   TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
 
-  TH2D* h2_muon_trig_effs_eta_phi[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  TH2D* h2_electron_trig_effs_pt_eta[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  TH1D* h_electron_trig_effs_fcal[2]; // 2018 Pb+Pb, 2015 Pb+Pb
-  TH2D* h2_zmumu_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  TH2D* h2_zee_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  // Bin migration factors
+  TF1**** f_z_trk_zpt_binMigration  = Get3DArray <TF1*> (2, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  TF1**** f_z_trk_zxzh_binMigration = Get3DArray <TF1*> (2, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+
+  //TH2D* h2_muon_trig_effs_eta_phi[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  //TH2D* h2_electron_trig_effs_pt_eta[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  //TH1D* h_electron_trig_effs_fcal[2]; // 2018 Pb+Pb, 2015 Pb+Pb
+  //TH2D* h2_zmumu_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  //TH2D* h2_zee_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
 
   // Tracking purities
   TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
@@ -151,8 +156,11 @@ class PhysicsAnalysis {
     Delete1DArray (h2_num_trk_purs, numCentBins);
     Delete1DArray (h2_den_trk_purs, numCentBins);
 
+    Delete3DArray (f_z_trk_zpt_binMigration,  3, nPtZBins, numCentBins);
+    Delete3DArray (f_z_trk_zxzh_binMigration, 3, nPtZBins, numCentBins);
+
     Delete4DArray (h_z_trk_phi,     3, nPtZBins, maxNPtTrkBins, numCentBins);
-    Delete4DArray (h_z_trk_phi_sub,         3, nPtZBins, maxNPtTrkBins, numCentBins);
+    Delete4DArray (h_z_trk_phi_sub, 3, nPtZBins, maxNPtTrkBins, numCentBins);
 
     Delete4DArray (h_z_trk_raw_pt,  3, nPtZBins, numPhiBins, numCentBins);
     Delete3DArray (h_z_counts,      3, nPtZBins, numCentBins);
@@ -216,6 +224,7 @@ class PhysicsAnalysis {
   virtual void GenerateWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName);
   virtual void LoadEventWeights ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
+  virtual void UnfoldSubtractedYield ();
   virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
   virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
@@ -227,10 +236,10 @@ class PhysicsAnalysis {
   virtual void LoadTrackingPurities (const bool doRebin = false); // defaults to HILoose
   virtual double GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
-  virtual void LoadTriggerEfficiencies ();
-  virtual double GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb = true);
-  virtual double GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb = true);
-  virtual double GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb = true);
+  //virtual void LoadTriggerEfficiencies ();
+  //virtual double GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb = true);
+  //virtual double GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb = true);
+  //virtual double GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb = true);
 
   void PrintZYields (const int iPtZ = 2);
 
@@ -621,15 +630,21 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
         }
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-        }
+
         h_z_trk_zpt[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_z_trk_zpt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Sumw2 ();
         h_z_trk_zxzh[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zxzh_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
         h_z_trk_zxzh[iSpc][iPtZ][iCent]->Sumw2 ();
+
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_raw_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_z_trk_pt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          if (iPhi != 0) {
+            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[iSpc][iPtZ][iCent]->Add   (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add  (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          }
+        }
       }  
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_counts[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
@@ -697,30 +712,59 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CombineHists () {
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
+      } // end loop over centralities
+    } // end loop over pT^Z
+  } // end loop over species
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iSpc = 0; iSpc < 2; iSpc++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iSpc = 0; iSpc < 2; iSpc++) {
+
+        // Gets the weighting factor needed for this species.
+        // E.g. if there are 2 muon events and 1 electron event,
+        // the per-Z yield should be weighted by 2/3 in the muon
+        // channel and 1/3 in the electron channel.
+        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+        float spcWeight = countsHist->GetBinContent (1);
+        countsHist = h_z_counts[2][iPtZ][iCent];
+        if (countsHist->GetBinContent (1) > 0)
+          spcWeight = spcWeight / countsHist->GetBinContent (1);
+        else {
+          cout << "Warning: In PhysicsAnalysis :: CombineHists: Found 0 total Z bosons in this bin, weight is set to 0!" << endl;
+          spcWeight = 0;
+        }
+
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])   h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add  (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+          while (h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->GetNbinsX () > h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->GetNbinsX ())
+            h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Rebin (2);
+          if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])     h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add      (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent], spcWeight);
+
+          while (h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->GetNbinsX () > h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]->GetNbinsX ())
+            h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Rebin (2);
+          if (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Add  (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent], spcWeight);
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])      h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add     (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])     h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add    (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-
-          if (iPhi != 0) {
-            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[iSpc][iPtZ][iCent]->Add   (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])  h_z_trk_zpt[2][iPtZ][iCent]->Add      (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[iSpc][iPtZ][iCent]->Add  (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-            if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh[2][iPtZ][iCent]->Add     (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-          }
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])          h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add         (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])              h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add             (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])          h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Add         (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])   h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])             h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add            (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])         h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Add        (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])  h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
         } // end loop over phi
-      } // end loop over pT^Z
 
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
-      } // end loop over pT^Z
-    } // end loop over species
+        if (h_z_trk_zpt[iSpc][iPtZ][iCent])             h_z_trk_zpt[2][iPtZ][iCent]->Add              (h_z_trk_zpt[iSpc][iPtZ][iCent], spcWeight);
+        if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])         h_z_trk_zpt_sub[2][iPtZ][iCent]->Add          (h_z_trk_zpt_sub[iSpc][iPtZ][iCent], spcWeight);
+        if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])  h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Add   (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+        if (h_z_trk_zxzh[iSpc][iPtZ][iCent])            h_z_trk_zxzh[2][iPtZ][iCent]->Add             (h_z_trk_zxzh[iSpc][iPtZ][iCent], spcWeight);
+        if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])        h_z_trk_zxzh_sub[2][iPtZ][iCent]->Add         (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], spcWeight);
+        if (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]) h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Add  (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+      } // end loop over species
+    } // end loop over pT^Z
   } // end loop over centralities
   return;
 }
@@ -735,9 +779,9 @@ void PhysicsAnalysis :: ScaleHists () {
   if (histsScaled || !histsLoaded)
     return;
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
         const float counts = countsHist->GetBinContent (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -1514,145 +1558,145 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Load the tracking purities into memory
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LoadTriggerEfficiencies () {
-  if (trigEffsLoaded)
-    return;
-
-  TDirectory* _gDirectory = gDirectory;
-
-  trigEffFile = new TFile (Form ("%s/TagAndProbe/Nominal/outFile.root", rootPath.Data ()), "read");
-
-  if (!trigEffFile || !trigEffFile->IsOpen ()) {
-    cout << "Error in PhysicsAnalysis.h:: LoadTriggerEfficiencies can not find file for " << name << endl;
-    return;
-  }
-
-  TH1D* h_num, *h_den;
-  TH2D* h2_num, *h2_den;
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_pp");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_pp");
-  h2_muon_trig_effs_eta_phi[0] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_pp");
-  h2_muon_trig_effs_eta_phi[0]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb18");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb18");
-  h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb18");
-  h2_muon_trig_effs_eta_phi[1]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_pp");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_pp");
-  h2_zmumu_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_pp");
-  h2_zmumu_trig_effs_pt_y[0]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_PbPb18");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_PbPb18");
-  h2_zmumu_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_PbPb18");
-  h2_zmumu_trig_effs_pt_y[1]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_pp");
-  h2_electron_trig_effs_pt_eta[0] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_pp");
-  h2_electron_trig_effs_pt_eta[0]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb18");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb18");
-  h2_electron_trig_effs_pt_eta[1] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_PbPb18");
-  h2_electron_trig_effs_pt_eta[1]->Divide (h2_den);
-
-  h_num = (TH1D*) trigEffFile->Get ("h_electronTrigEffNum_fcal_PbPb18");
-  h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal_PbPb18");
-  h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal_PbPb18");
-  h_electron_trig_effs_fcal[0]->Divide (h_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_pp");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_pp");
-  h2_zee_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_pp");
-  h2_zee_trig_effs_pt_y[0]->Divide (h2_den);
-
-  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_PbPb18");
-  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_PbPb18");
-  h2_zee_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_PbPb18");
-  h2_zee_trig_effs_pt_y[1]->Divide (h2_den);
-
-  trigEffsLoaded = true;
-
-  _gDirectory->cd ();
-  return;
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the appropriate trigger efficiency factor for this electron
-////////////////////////////////////////////////////////////////////////////////////////////////
-double PhysicsAnalysis :: GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb) {
-  if (!trigEffsLoaded)
-    LoadTriggerEfficiencies ();
-
-  double trigEff = 1;
-  if (!isPbPb)
-    trigEff = h2_electron_trig_effs_pt_eta[0]->GetBinContent (h2_electron_trig_effs_pt_eta[0]->FindFixBin (electron_eta, electron_pt));
-  else if (isPbPb && !is2015Conds) {
-    trigEff = h2_electron_trig_effs_pt_eta[1]->GetBinContent (h2_electron_trig_effs_pt_eta[1]->FindFixBin (electron_eta, electron_pt));
-    trigEff *= h_electron_trig_effs_fcal[0]->GetBinContent (h_electron_trig_effs_fcal[0]->FindFixBin (fcal_et * 1e-3));
-  }
-  else if (isPbPb && is2015Conds) {
-    trigEff = h2_electron_trig_effs_pt_eta[2]->GetBinContent (h2_electron_trig_effs_pt_eta[2]->FindFixBin (electron_eta, electron_pt));
-    trigEff *= h_electron_trig_effs_fcal[1]->GetBinContent (h_electron_trig_effs_fcal[1]->FindFixBin (fcal_et * 1e-3));
-  }
-  return trigEff;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Load the tracking purities into memory
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: LoadTriggerEfficiencies () {
+//  if (trigEffsLoaded)
+//    return;
+//
+//  TDirectory* _gDirectory = gDirectory;
+//
+//  trigEffFile = new TFile (Form ("%s/TagAndProbe/Nominal/outFile.root", rootPath.Data ()), "read");
+//
+//  if (!trigEffFile || !trigEffFile->IsOpen ()) {
+//    cout << "Error in PhysicsAnalysis.h:: LoadTriggerEfficiencies can not find file for " << name << endl;
+//    return;
+//  }
+//
+//  TH1D* h_num, *h_den;
+//  TH2D* h2_num, *h2_den;
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_pp");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_pp");
+//  h2_muon_trig_effs_eta_phi[0] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_pp");
+//  h2_muon_trig_effs_eta_phi[0]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb18");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb18");
+//  h2_muon_trig_effs_eta_phi[1] = (TH2D*) h2_num->Clone ("h2_muonTrigEff_eta_phi_PbPb18");
+//  h2_muon_trig_effs_eta_phi[1]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_pp");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_pp");
+//  h2_zmumu_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_pp");
+//  h2_zmumu_trig_effs_pt_y[0]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffNum_pt_y_PbPb18");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_zmumuTrigEffDen_pt_y_PbPb18");
+//  h2_zmumu_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zmumuTrigEff_pt_y_PbPb18");
+//  h2_zmumu_trig_effs_pt_y[1]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_pp");
+//  h2_electron_trig_effs_pt_eta[0] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_pp");
+//  h2_electron_trig_effs_pt_eta[0]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb18");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb18");
+//  h2_electron_trig_effs_pt_eta[1] = (TH2D*) h2_num->Clone ("h2_electronTrigEff_pt_eta_PbPb18");
+//  h2_electron_trig_effs_pt_eta[1]->Divide (h2_den);
+//
+//  h_num = (TH1D*) trigEffFile->Get ("h_electronTrigEffNum_fcal_PbPb18");
+//  h_den = (TH1D*) trigEffFile->Get ("h_electronTrigEffDen_fcal_PbPb18");
+//  h_electron_trig_effs_fcal[0] = (TH1D*) h_num->Clone ("h_electronTrigEff_fcal_PbPb18");
+//  h_electron_trig_effs_fcal[0]->Divide (h_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_pp");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_pp");
+//  h2_zee_trig_effs_pt_y[0] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_pp");
+//  h2_zee_trig_effs_pt_y[0]->Divide (h2_den);
+//
+//  h2_num = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffNum_pt_y_PbPb18");
+//  h2_den = (TH2D*) trigEffFile->Get ("h2_zeeTrigEffDen_pt_y_PbPb18");
+//  h2_zee_trig_effs_pt_y[1] = (TH2D*) h2_num->Clone ("h2_zeeTrigEff_pt_y_PbPb18");
+//  h2_zee_trig_effs_pt_y[1]->Divide (h2_den);
+//
+//  trigEffsLoaded = true;
+//
+//  _gDirectory->cd ();
+//  return;
+//}
 
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the appropriate trigger efficiency factor for this muon
-////////////////////////////////////////////////////////////////////////////////////////////////
-double PhysicsAnalysis :: GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb) {
-  if (!trigEffsLoaded)
-    LoadTriggerEfficiencies ();
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Returns the appropriate trigger efficiency factor for this electron
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//double PhysicsAnalysis :: GetElectronTriggerEfficiency (const float fcal_et, const float electron_pt, const float electron_eta, const bool isPbPb) {
+//  if (!trigEffsLoaded)
+//    LoadTriggerEfficiencies ();
+//
+//  double trigEff = 1;
+//  if (!isPbPb)
+//    trigEff = h2_electron_trig_effs_pt_eta[0]->GetBinContent (h2_electron_trig_effs_pt_eta[0]->FindFixBin (electron_eta, electron_pt));
+//  else if (isPbPb && !is2015Conds) {
+//    trigEff = h2_electron_trig_effs_pt_eta[1]->GetBinContent (h2_electron_trig_effs_pt_eta[1]->FindFixBin (electron_eta, electron_pt));
+//    trigEff *= h_electron_trig_effs_fcal[0]->GetBinContent (h_electron_trig_effs_fcal[0]->FindFixBin (fcal_et * 1e-3));
+//  }
+//  else if (isPbPb && is2015Conds) {
+//    trigEff = h2_electron_trig_effs_pt_eta[2]->GetBinContent (h2_electron_trig_effs_pt_eta[2]->FindFixBin (electron_eta, electron_pt));
+//    trigEff *= h_electron_trig_effs_fcal[1]->GetBinContent (h_electron_trig_effs_fcal[1]->FindFixBin (fcal_et * 1e-3));
+//  }
+//  return trigEff;
+//}
 
-  double trigEff = 1;
-  if (!isPbPb)
-    trigEff = h2_muon_trig_effs_eta_phi[0]->GetBinContent (h2_muon_trig_effs_eta_phi[0]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
-  else if (isPbPb && !is2015Conds)
-    trigEff = h2_muon_trig_effs_eta_phi[1]->GetBinContent (h2_muon_trig_effs_eta_phi[1]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
-  else if (isPbPb && is2015Conds)
-    trigEff = h2_muon_trig_effs_eta_phi[2]->GetBinContent (h2_muon_trig_effs_eta_phi[2]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
-  return trigEff;
-}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Returns the appropriate trigger efficiency factor for this muon
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//double PhysicsAnalysis :: GetMuonTriggerEfficiency (const float muon_eta, const float muon_phi, const bool isPbPb) {
+//  if (!trigEffsLoaded)
+//    LoadTriggerEfficiencies ();
+//
+//  double trigEff = 1;
+//  if (!isPbPb)
+//    trigEff = h2_muon_trig_effs_eta_phi[0]->GetBinContent (h2_muon_trig_effs_eta_phi[0]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
+//  else if (isPbPb && !is2015Conds)
+//    trigEff = h2_muon_trig_effs_eta_phi[1]->GetBinContent (h2_muon_trig_effs_eta_phi[1]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
+//  else if (isPbPb && is2015Conds)
+//    trigEff = h2_muon_trig_effs_eta_phi[2]->GetBinContent (h2_muon_trig_effs_eta_phi[2]->FindFixBin (muon_eta, InTwoPi (muon_phi)));
+//  return trigEff;
+//}
 
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Returns the appropriate trigger efficiency factor for this Z boson
-////////////////////////////////////////////////////////////////////////////////////////////////
-double PhysicsAnalysis :: GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb) {
-  if (!trigEffsLoaded)
-    LoadTriggerEfficiencies ();
-
-  double trigEff = 1;
-  if (!isPbPb && !isEE)
-    trigEff = h2_zmumu_trig_effs_pt_y[0]->GetBinContent (h2_zmumu_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
-  else if (!isPbPb && isEE)
-    trigEff = h2_zee_trig_effs_pt_y[0]->GetBinContent (h2_zee_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
-  else if (isPbPb && !is2015Conds && !isEE)
-    trigEff = h2_zmumu_trig_effs_pt_y[1]->GetBinContent (h2_zmumu_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
-  else if (isPbPb && !is2015Conds && isEE)
-    trigEff = h2_zee_trig_effs_pt_y[1]->GetBinContent (h2_zee_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
-  else if (isPbPb && is2015Conds && !isEE)
-    trigEff = h2_zmumu_trig_effs_pt_y[2]->GetBinContent (h2_zmumu_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
-  else if (isPbPb && is2015Conds && isEE)
-    trigEff = h2_zee_trig_effs_pt_y[2]->GetBinContent (h2_zee_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
-  return trigEff;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Returns the appropriate trigger efficiency factor for this Z boson
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//double PhysicsAnalysis :: GetZTriggerEfficiency (const bool isEE, const float z_pt, const float z_y, const bool isPbPb) {
+//  if (!trigEffsLoaded)
+//    LoadTriggerEfficiencies ();
+//
+//  double trigEff = 1;
+//  if (!isPbPb && !isEE)
+//    trigEff = h2_zmumu_trig_effs_pt_y[0]->GetBinContent (h2_zmumu_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
+//  else if (!isPbPb && isEE)
+//    trigEff = h2_zee_trig_effs_pt_y[0]->GetBinContent (h2_zee_trig_effs_pt_y[0]->FindFixBin (z_pt, z_y));
+//  else if (isPbPb && !is2015Conds && !isEE)
+//    trigEff = h2_zmumu_trig_effs_pt_y[1]->GetBinContent (h2_zmumu_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
+//  else if (isPbPb && !is2015Conds && isEE)
+//    trigEff = h2_zee_trig_effs_pt_y[1]->GetBinContent (h2_zee_trig_effs_pt_y[1]->FindFixBin (z_pt, z_y));
+//  else if (isPbPb && is2015Conds && !isEE)
+//    trigEff = h2_zmumu_trig_effs_pt_y[2]->GetBinContent (h2_zmumu_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
+//  else if (isPbPb && is2015Conds && isEE)
+//    trigEff = h2_zee_trig_effs_pt_y[2]->GetBinContent (h2_zee_trig_effs_pt_y[2]->FindFixBin (z_pt, z_y));
+//  return trigEff;
+//}
 
 
 
@@ -2380,7 +2424,35 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
   if (backgroundSubtracted)
     return;
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
+  //**** Create dummy subtracted histograms for combined channel yield measurement ****//
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+      h_z_trk_zpt_sub[2][iPtZ][iCent]        = new TH1D (Form ("h_z_trk_zpt_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+      h_z_trk_zpt_sub[2][iPtZ][iCent]->Sumw2 ();
+      h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zpt_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+      h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+      h_z_trk_zxzh_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_z_trk_zxzh_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+      h_z_trk_zxzh_sub[2][iPtZ][iCent]->Sumw2 ();
+      h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_z_trk_zxzh_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+      h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+      for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_z_trk_pt_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+        h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_z_trk_pt_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+        h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_z_trk_xzh_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+        h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+        h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+      }
+      for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent] = new TH1D (Form ("h_z_trk_phi_sub_comb_iPtZ%i_iPtTrk%i_iCent%i_%s", iPtZ, iPtTrk, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
+        h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Sumw2 ();
+      }
+    }
+  }
+  
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
@@ -2419,7 +2491,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
         h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent] = h;
 
 
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
           //******** Do subtraction of pT ********//
           h = (TH1D*) h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           if (a != nullptr) {
@@ -2474,9 +2546,64 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     } // end loop over centralities
   } // end loop over species
 
+  UnfoldSubtractedYield ();
+
+  CombineHists ();
+
   backgroundSubtracted = true;
   return;
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Applies bin migration factors to subtracted yields
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: UnfoldSubtractedYield () {
+
+  if (histsUnfolded)
+    return;
+
+  TFile* f_binMigrationFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/BinMigrationFactors/binmigration_corrfactors_master.root", "read");
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
+    const char* spc = (iSpc == 0 ? "ee" : "mumu");
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        const char* cent = (iCent == 0 ? "pp" : Form ("CENT%i", numCentBins-iCent));
+
+        TF1* f = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_pt_ZPT%i_%s", spc, iPtZ-2, cent));
+        TH1D* h = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+
+        for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+          const float x = h->GetBinCenter (ix);
+          float y = h->GetBinContent (ix);
+          float yerr = h->GetBinError (ix);
+          y *= f->Eval (x);
+          yerr *= f->Eval (x);
+          h->SetBinContent (ix, y);
+          h->SetBinError (ix, yerr);
+        }
+
+        f = f_z_trk_zxzh_binMigration[iSpc][iPtZ][iCent] = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_xh_ZPT%i_%s", spc, iPtZ-2, cent));
+        h = h_z_trk_zxzh_sub[iSpc][iPtZ][iCent];
+        for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+          const float x = h->GetBinCenter (ix);
+          float y = h->GetBinContent (ix);
+          float yerr = h->GetBinError (ix);
+          y *= f->Eval (x);
+          yerr *= f->Eval (x);
+          h->SetBinContent (ix, y);
+          h->SetBinError (ix, yerr);
+        }
+      }
+    }
+  }
+
+  f_binMigrationFile->Close ();
+  histsUnfolded = true;
+}
+
 
 
 

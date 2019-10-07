@@ -8,7 +8,7 @@ void QuickZMassPlot () {
 
   TFile* dataFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/savedHists.root", "read");
   TFile* mcFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/savedHists.root", "read");
-  TH1D**** h_z_m = Get3DArray <TH1D*> (2, numCentBins, 2, 3);          // iCent, iSpc, iReg
+  TH1D***** h_z_m = Get4DArray <TH1D*> (2, numCentBins, 2, 3);          // iCent, iSpc, iReg
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : "mumu");

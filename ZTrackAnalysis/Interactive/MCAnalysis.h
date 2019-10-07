@@ -123,7 +123,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           dphi = pi - dphi;
         fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
         //q2_weight = h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->FindBin (q2));
-        psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
+        //psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
 
         event_weight *= fcal_weight * psi2_weight;
       }
