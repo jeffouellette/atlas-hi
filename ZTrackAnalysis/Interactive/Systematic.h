@@ -34,6 +34,8 @@ class Systematic : public PhysicsAnalysis {
   void AddGraphPair (TH1D* h);
   void CreateSysGraphs ();
 
+  void WriteIAAs () override;
+
   public:
 
   string description;
@@ -1387,6 +1389,54 @@ void Systematic :: PrintIAA (const bool printErrs, const bool useTrkPt, const sh
       cout << "+" << g->GetErrorYhigh (ix) << ",\t-" << g->GetErrorYlow (ix) << "\t";
     cout << endl;
   }
+}
+
+
+
+
+void Systematic :: WriteIAAs () {
+  SetupDirectories ("", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+
+  const char* outFileName = "DataAnalysis/Nominal/data18hi_iaa_fits.root"; 
+  TFile* outFile = new TFile (Form ("%s/%s", rootPath.Data (), outFileName), "recreate");
+
+  TF1**** f_z_trk_zpt_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+  TF1**** f_z_trk_zxzh_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 1; iCent < numCentBins; iCent++) {
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zpt_iaa[iSpc][iPtZ][iCent], "RN0Q");
+
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], "RN0Q");
+
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Write ();
+        h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Write ();
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Write ();
+        h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Write ();
+      }
+    }
+  }
+
+  outFile->Close ();
+
+  Delete3DArray (f_z_trk_zpt_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (f_z_trk_zxzh_iaa, 3, nPtZBins, numCentBins);
+
+  _gDirectory->cd ();
 }
 
    

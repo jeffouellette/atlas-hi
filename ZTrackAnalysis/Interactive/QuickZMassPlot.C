@@ -6,14 +6,14 @@
 
 void QuickZMassPlot () {
 
-  TFile* dataFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/savedHists.root", "read");
-  TFile* mcFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/savedHists.root", "read");
+  TFile* dataFile = new TFile ("../rootFiles/DataAnalysis/Nominal/data18hi_hists_electronesfix.root", "read");
+  TFile* mcFile = new TFile ("../rootFiles/MCAnalysis/Nominal/savedHists.root", "read");
   TH1D***** h_z_m = Get4DArray <TH1D*> (2, numCentBins, 2, 3);          // iCent, iSpc, iReg
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : "mumu");
       for (short iReg = 0; iReg < 3; iReg++) {
-        h_z_m[0][iCent][iSpc][iReg] = (TH1D*) dataFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_data", spc, iCent, iReg));
+        h_z_m[0][iCent][iSpc][iReg] = (TH1D*) dataFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_data18", spc, iCent, iReg));
         h_z_m[0][iCent][iSpc][iReg]->Scale (1./ h_z_m[0][iCent][iSpc][iReg]->Integral ());
 
         h_z_m[1][iCent][iSpc][iReg] = (TH1D*) mcFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_mc", spc, iCent, iReg));
@@ -42,6 +42,35 @@ void QuickZMassPlot () {
         gDirectory->Add (c);
         gDirectory->Add (uPad);
         gDirectory->Add (dPad);
+
+        if (iSpc == 0) {
+          TH1D* h = h_z_m[0][iCent][iSpc][iReg];
+          TF1* f = new TF1 ("f", "gaus(0)", 76, 106);
+          h->Fit (f, "RN0Q");
+          float mu_data = f->GetParameter (1);
+          float sigma_data = f->GetParameter (2);
+          delete f;
+          f = new TF1 ("f", "gaus(0)", fmax (76, mu_data-1.3*sigma_data), fmin (106, mu_data+1.3*sigma_data));
+          h->Fit (f, "RN0Q");
+          mu_data = f->GetParameter (1);
+          //sigma_data = f->GetParameter (2);
+          delete f;
+
+          h = h_z_m[1][iCent][iSpc][iReg];
+          f = new TF1 ("f", "gaus(0)", 76, 106);
+          h->Fit (f, "RN0Q");
+          float mu_mc = f->GetParameter (1);
+          float sigma_mc = f->GetParameter (2);
+          delete f;
+          f = new TF1 ("f", "gaus(0)", fmax (76, mu_mc-1.3*sigma_mc), fmin (106, mu_mc+1.3*sigma_mc));
+          h->Fit (f, "RN0Q");
+          mu_mc = f->GetParameter (1);
+          //sigma_mc = f->GetParameter (2);
+          delete f;
+
+          cout << "iCent, iReg = " << iCent << ", " << iReg << endl;  
+          cout << "sf = " << mu_mc / mu_data << endl;
+        }
 
 
         uPad->cd ();
@@ -99,7 +128,7 @@ void QuickZMassPlot () {
         const char* spc = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
         myText (0.66, 0.85, kBlack, spc, 0.04/0.6);
       
-        myOnlyBoxText (0.71, 0.67, 1.2, kAzure+10, kBlack, 1, "#it{pp}", 0.04/0.6, 1001);
+        myOnlyBoxText (0.71, 0.67, 1.2, kAzure+10, kBlack, 1, "#it{pp}", 0.04/0.6, 1001, 1);
       
         //TVirtualPad* cPad = gPad; // store current pad
         //TBox* b = TBoxNDC (0.4+0.6*(0.598-0.025), 0.67-0.06*numPhiBins-0.018, 0.4+0.6*(0.598+0.025), 0.67-0.06*numPhiBins+0.018);
@@ -155,9 +184,9 @@ void QuickZMassPlot () {
         }
 
         if (iReg == 2)
-          c->SaveAs (Form ("Plots/z%s_mass_spectrum_iCent%i.pdf", iSpc == 0 ? "ee" : "mumu", iCent));
+          c->SaveAs (Form ("Plots/Z%sMassSpectra/z%s_mass_spectrum_iCent%i.pdf", iSpc == 0 ? "ee" : "mumu", iSpc == 0 ? "ee" : "mumu", iCent));
         else
-          c->SaveAs (Form ("Plots/z%s_mass_spectrum_iCent%i_iReg%i.pdf", iSpc == 0 ? "ee" : "mumu", iCent, iReg));
+          c->SaveAs (Form ("Plots/Z%sMassSpectra/z%s_mass_spectrum_iCent%i_iReg%i.pdf", iSpc == 0 ? "ee" : "mumu", iSpc == 0 ? "ee" : "mumu", iCent, iReg));
       }
     }
   }

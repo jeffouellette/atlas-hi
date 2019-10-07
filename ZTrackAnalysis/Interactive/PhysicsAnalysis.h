@@ -261,11 +261,12 @@ class PhysicsAnalysis {
   virtual void PlotIAAdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotIAAdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
-  virtual void PlotSingleIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short iCent = numCentBins-1, const short pSpc = 2);
+  virtual void PlotSingleIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pPtZ = -1, const short iCent = numCentBins-1, const short pSpc = 2);
   //virtual void PlotICPdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICPdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICPdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
 
+  virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
 };
 
@@ -4061,20 +4062,20 @@ void PhysicsAnalysis :: CalculateIAA () {
   if (iaaCalculated)
     return;
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
       TH1D* ppHist = nullptr, *PbPbHist = nullptr;
 
       ppHist = h_z_trk_zpt_sub[iSpc][iPtZ][0];
       for (short iCent = 1; iCent < numCentBins; iCent++) {
-        PbPbHist = (TH1D*)(h_z_trk_zpt_sub[iSpc][iPtZ][iCent]->Clone ());
+        PbPbHist = (TH1D*)(h_z_trk_zpt_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())));
         PbPbHist->Divide (ppHist);
         h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = PbPbHist;
       }
 
       ppHist = h_z_trk_zxzh_sub[iSpc][iPtZ][0];
       for (short iCent = 1; iCent < numCentBins; iCent++) {
-        PbPbHist = (TH1D*)(h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]->Clone ());
+        PbPbHist = (TH1D*)(h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())));
         PbPbHist->Divide (ppHist);
         h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = PbPbHist;
       }
@@ -4084,7 +4085,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
           if (!h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* PbPbHist = (TH1D*)(h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
+            TH1D* PbPbHist = (TH1D*)(h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_pt_iaa_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())));
             PbPbHist->Divide (ppHist);
             h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
           } 
@@ -4093,7 +4094,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
           if (!h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]) {
-            TH1D* PbPbHist = (TH1D*)(h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]->Clone ());
+            TH1D* PbPbHist = (TH1D*)(h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_iaa_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())));
             PbPbHist->Divide (ppHist);
             h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
           } 
@@ -4666,11 +4667,18 @@ void PhysicsAnalysis :: LabelIAAdPtZ (const short iCent, const short iPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between some Pb+Pb centrality and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotAsSystematic, const short iCent, const short pSpc) {
+void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pPtZ, const short iCent, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
     CalculateIAA ();
+
+  short iPtZLo = 2;
+  short iPtZHi = nPtZBins;
+  if (pPtZ != -1) {
+    iPtZLo = pPtZ;
+    iPtZHi = pPtZ+1;
+  }
 
   const int axisTextSize = 35;
 
@@ -4695,8 +4703,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     //gPad->SetLogy ();
 
     if (plotFill) {
-      //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
         TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
         h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
@@ -4729,23 +4736,21 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         h->GetXaxis ()->SetTitleOffset (0.9 * h->GetXaxis ()->GetTitleOffset ());
         //h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
 
-        h->DrawCopy (!canvasExists && iPtZ-4 == 0 ? "bar" : "bar same");
-        //h->DrawCopy (!canvasExists && iPtZ-2 == 0 ? "bar" : "bar same");
+        h->DrawCopy (!canvasExists && iPtZ-iPtZLo == 0 ? "bar" : "bar same");
         h->SetLineWidth (1);
         h->Draw ("hist same");
       } // end loop over pT^Z bins
       gPad->RedrawAxis ();
     } else {
-      //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
         const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
         TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
         if (!plotAsSystematic) {
-          ResetXErrors (g);
           deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+          ResetXErrors (g);
           //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iPtZ-1]);
           g->SetMarkerColor (colors[iPtZ-1]);
@@ -4785,45 +4790,40 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
         //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
         if (!plotAsSystematic) {
-          string drawString = string (!canvasExists && iPtZ-4 == 0 ? "AP" : "P");
-          //string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
+          string drawString = string (!canvasExists && iPtZ-iPtZLo == 0 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
-          string drawString = string (!canvasExists && iPtZ-4 == 0 ? "A5P" : "5P");
-          //string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
+          string drawString = string (!canvasExists && iPtZ-iPtZLo == 0 ? "A5P" : "5P");
           ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
           g->Draw ("2P");
         }
       } // end loop over pT^Z bins
     }
 
-    myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-    myText (0.20, 0.83, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
-    const char* lo = GetPiString (phiLowBins[1]);
-    const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-    myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
-    myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
-    myText (0.59, 0.905, kBlack, "#mu#mu", 0.032);
-    myText (0.66, 0.905, kBlack, "ee", 0.032);
-    //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-    for (short iPtZ = 4; iPtZ < 5; iPtZ++) {
-      myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-4), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
-      //myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
-      myMarkerTextNoLine (0.624, 0.868-0.05*(iPtZ-4), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
-      //myMarkerTextNoLine (0.644, 0.868-0.05*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
-      if (iPtZ == nPtZBins-1)
-        myText (0.700, 0.86-0.05*(iPtZ-4), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
-        //myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
-      else
-        myText (0.700, 0.86-0.05*(iPtZ-4), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
-        //myText (0.700, 0.86-0.05*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
-    }
+    if (!canvasExists) {
+      myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+      myText (0.20, 0.83, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
+      const char* lo = GetPiString (phiLowBins[1]);
+      const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
+      myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
+      myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
+      myText (0.59, 0.905, kBlack, "#mu#mu", 0.032);
+      myText (0.66, 0.905, kBlack, "ee", 0.032);
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+        myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
+        myMarkerTextNoLine (0.624, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
+        if (iPtZ == nPtZBins-1)
+          myText (0.700, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
+        else
+          myText (0.700, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.028);
+      }
 
-    TLine* l = new TLine (xmin, 1, xmax, 1);
-    l->SetLineStyle (2);
-    l->SetLineWidth (2);
-    l->SetLineColor (kPink-8);
-    l->Draw ("same");
+      TLine* l = new TLine (xmin, 1, xmax, 1);
+      l->SetLineStyle (2);
+      l->SetLineWidth (2);
+      l->SetLineColor (kPink-8);
+      l->Draw ("same");
+    }
 
     //c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iCent, spc));
     c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iCent));
@@ -5444,6 +5444,53 @@ void PhysicsAnalysis :: LabelICPdPtZ (const short iCent, const short iPtZ) {
   }
 }
 */
+
+
+
+void PhysicsAnalysis :: WriteIAAs () {
+  SetupDirectories ("", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+
+  const char* outFileName = "DataAnalysis/Nominal/data18hi_iaa_fits.root"; 
+  TFile* outFile = new TFile (Form ("%s/%s", rootPath.Data (), outFileName), "recreate");
+
+  TF1**** f_z_trk_zpt_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+  TF1**** f_z_trk_zxzh_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 1; iCent < numCentBins; iCent++) {
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zpt_iaa[iSpc][iPtZ][iCent], "RN0Q");
+
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], "RN0Q");
+
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Write ();
+        h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Write ();
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Write ();
+        h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Write ();
+      }
+    }
+  }
+
+  outFile->Close ();
+
+  Delete3DArray (f_z_trk_zpt_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (f_z_trk_zxzh_iaa, 3, nPtZBins, numCentBins);
+
+  _gDirectory->cd ();
+}
 
 
 
