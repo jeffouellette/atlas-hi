@@ -54,9 +54,9 @@ class PhysicsAnalysis {
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
-  bool histsUnfolded = false;
 
   public:
+  bool histsUnfolded = false;
   bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
@@ -386,7 +386,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         //for (short iZH = 0; iZH < nXHZBins[iPtZ]; iZH++) {
         //h_z_trk_pt_phi[iPtZ][iCent][iSpc] = (TH2D*) a->h_z_trk_pt_phi[iPtZ][iCent][iSpc]->Clone (Form ("h_z_trk_pt_phi_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         //}
@@ -412,7 +412,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
         for (short iCent = 0; iCent < numCentBins; iCent++) {
-          for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+          for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
             if (a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent]) {
               h_z_trk_zpt_sub[iSpc][iPtZ][iCent] = (TH1D*) a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
@@ -433,6 +433,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
                 h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) a->h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_z_trk_xzh_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
               }
             } // end loop over phi
+
             for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
               if (a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) {
                 h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
@@ -447,7 +448,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     if (a->iaaCalculated) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 1; iCent < numCentBins; iCent++) {
 
             if (a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]) {
@@ -547,7 +548,7 @@ void PhysicsAnalysis :: ClearHists () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
 
         if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])         SaferDelete (h_z_trk_zpt_sub[iSpc][iPtZ][iCent]);
         if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]);
@@ -569,12 +570,12 @@ void PhysicsAnalysis :: ClearHists () {
   backgroundSubtracted = false;
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
         if (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent])   SaferDelete (h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]);
         if (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           if (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent])  SaferDelete (h_z_trk_pt_iaa[iSpc][iPtZ][iPhi][iCent]);
           if (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]) SaferDelete (h_z_trk_xzh_iaa[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over phi
@@ -2456,7 +2457,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         TH1D* sub = nullptr;
