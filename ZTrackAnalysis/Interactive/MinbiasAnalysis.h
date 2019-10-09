@@ -31,6 +31,7 @@ class MinbiasAnalysis : public FullAnalysis {
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
+    hasBkg = false;
     backgroundSubtracted = true;
     histsUnfolded = true;
     iaaCalculated = true;
@@ -40,6 +41,7 @@ class MinbiasAnalysis : public FullAnalysis {
   void LoadEventWeights () override;
   void GenerateWeights (const char* inFileName = "outFile.root", const char* outFileName = "eventWeightsFile.root");
 
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   //void CreateHists () override;
   //void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false) override;
   //void CombineHists ();
@@ -51,6 +53,18 @@ class MinbiasAnalysis : public FullAnalysis {
   }
   void Execute (const char* inFileName, const char* mbInFileName, const char* outFileName);
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Load histograms into memory, then combine channels.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+void MinbiasAnalysis :: LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) {
+  FullAnalysis :: LoadHists (histFileName, _finishHists);
+
+  PhysicsAnalysis :: CombineHists ();
+}
 
 
 
@@ -120,7 +134,7 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //void MinbiasAnalysis :: CombineHists () {
 //  for (short iCent = 0; iCent < numCentBins; iCent++) {
 //    for (short iSpc = 0; iSpc < 2; iSpc++) {
-//      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 //          if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]);
 //          if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]);

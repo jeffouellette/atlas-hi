@@ -480,7 +480,7 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
     if (a->icpCalculated) {
       for (short iSpc = 0; iSpc < 3; iSpc++) {
         const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-        for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           for (short iCent = 2; iCent < numCentBins; iCent++) {
 
             if (a->h_z_trk_zpt_icp[iSpc][iPtZ][iCent]) {
@@ -587,7 +587,7 @@ void PhysicsAnalysis :: ClearHists () {
 
   /*
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 2; iCent < numCentBins; iCent++) {
         if (h_z_trk_zpt_icp[iSpc][iPtZ][iCent])   SaferDelete (h_z_trk_zpt_icp[iSpc][iPtZ][iCent]);
         if (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent])  SaferDelete (h_z_trk_zxzh_icp[iSpc][iPtZ][iCent]);
@@ -628,7 +628,7 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
         }
@@ -660,6 +660,9 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         h_z_counts[2][iPtZ][iCent]->Add (h_z_counts[iSpc][iPtZ][iCent]);
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]) h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+        }
       } // end loop over centralities
     } // end loop over pT^Z
   } // end loop over species
@@ -747,26 +750,31 @@ void PhysicsAnalysis :: CombineHists () {
             h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Rebin (2);
           if (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent])     h_z_trk_phi[2][iPtZ][iPtTrk][iCent]->Add      (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent], spcWeight);
 
-          while (h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->GetNbinsX () > h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]->GetNbinsX ())
-            h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Rebin (2);
-          if (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Add  (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent], spcWeight);
+          if (hasBkg) {
+            while (h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->GetNbinsX () > h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]->GetNbinsX ())
+              h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Rebin (2);
+            if (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]) h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Add  (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent], spcWeight);
+          }
         }
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent])          h_z_trk_raw_pt[2][iPtZ][iPhi][iCent]->Add         (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent], spcWeight);
           if (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent])              h_z_trk_pt[2][iPtZ][iPhi][iCent]->Add             (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], spcWeight);
-          if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])          h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Add         (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
-          if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])   h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
           if (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent])             h_z_trk_xzh[2][iPtZ][iPhi][iCent]->Add            (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], spcWeight);
-          if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])         h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Add        (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
-          if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])  h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          if (hasBkg) {
+            if (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent])          h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Add         (h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
+            if (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])   h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
+            if (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent])         h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Add        (h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
+            if (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])  h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          }
         } // end loop over phi
 
         if (h_z_trk_zpt[iSpc][iPtZ][iCent])             h_z_trk_zpt[2][iPtZ][iCent]->Add              (h_z_trk_zpt[iSpc][iPtZ][iCent], spcWeight);
-        if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])         h_z_trk_zpt_sub[2][iPtZ][iCent]->Add          (h_z_trk_zpt_sub[iSpc][iPtZ][iCent], spcWeight);
-        if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])  h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Add   (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
         if (h_z_trk_zxzh[iSpc][iPtZ][iCent])            h_z_trk_zxzh[2][iPtZ][iCent]->Add             (h_z_trk_zxzh[iSpc][iPtZ][iCent], spcWeight);
-        if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])        h_z_trk_zxzh_sub[2][iPtZ][iCent]->Add         (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], spcWeight);
-        if (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]) h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Add  (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+        if (hasBkg) {
+          if (h_z_trk_zpt_sub[iSpc][iPtZ][iCent])         h_z_trk_zpt_sub[2][iPtZ][iCent]->Add          (h_z_trk_zpt_sub[iSpc][iPtZ][iCent], spcWeight);
+          if (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent])  h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Add   (h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+          if (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent])        h_z_trk_zxzh_sub[2][iPtZ][iCent]->Add         (h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], spcWeight);
+          if (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]) h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Add  (h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+        }
       } // end loop over species
     } // end loop over pT^Z
   } // end loop over centralities
@@ -2429,31 +2437,33 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     return;
 
   //**** Create dummy subtracted histograms for combined channel yield measurement ****//
-  for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
-      h_z_trk_zpt_sub[2][iPtZ][iCent]        = new TH1D (Form ("h_z_trk_zpt_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-      h_z_trk_zpt_sub[2][iPtZ][iCent]->Sumw2 ();
-      h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zpt_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-      h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
-      h_z_trk_zxzh_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_z_trk_zxzh_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-      h_z_trk_zxzh_sub[2][iPtZ][iCent]->Sumw2 ();
-      h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_z_trk_zxzh_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-      h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
-      for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
-        h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_z_trk_pt_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-        h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-        h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_z_trk_pt_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-        h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
-        h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_z_trk_xzh_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-        h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-        h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-        h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
-      }
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-        h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent] = new TH1D (Form ("h_z_trk_phi_sub_comb_iPtZ%i_iPtTrk%i_iCent%i_%s", iPtZ, iPtTrk, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
-        h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Sumw2 ();
-      }
-    }
+  if (!backgroundSubtracted) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+        h_z_trk_zpt_sub[2][iPtZ][iCent]        = new TH1D (Form ("h_z_trk_zpt_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+        h_z_trk_zpt_sub[2][iPtZ][iCent]->Sumw2 ();
+        h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent] = new TH1D (Form ("h_z_trk_zpt_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+        h_z_trk_zpt_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+        h_z_trk_zxzh_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_z_trk_zxzh_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+        h_z_trk_zxzh_sub[2][iPtZ][iCent]->Sumw2 ();
+        h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_z_trk_zxzh_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+        h_z_trk_zxzh_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+        for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
+          h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_z_trk_pt_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+          h_z_trk_pt_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_z_trk_pt_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+          h_z_trk_pt_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_z_trk_xzh_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h_z_trk_xzh_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h_z_trk_xzh_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        }
+        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+          h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent] = new TH1D (Form ("h_z_trk_phi_sub_comb_iPtZ%i_iPtTrk%i_iCent%i_%s", iPtZ, iPtTrk, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
+          h_z_trk_phi_sub[2][iPtZ][iPtTrk][iCent]->Sumw2 ();
+        }
+      } // end loop over iPtZ
+    } // end loop over iCent
   }
   
   for (short iSpc = 0; iSpc < 2; iSpc++) {
@@ -2661,14 +2671,14 @@ void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: ApplyRelativeVariation (float**** relVar, const bool upVar) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 
       // Hadron yield systematics, signal & signal+bkg levels
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
-          h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
-        } // end loop over phi
+        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        //  h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
+        //  h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][iPhi][iCent] : 1./relVar[iSpc][iPtZ][iPhi][iCent]);
+        //} // end loop over phi
 
         h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][numPhiBins][iCent] : 1./relVar[iSpc][iPtZ][numPhiBins][iCent]);
         h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (upVar ? relVar[iSpc][iPtZ][numPhiBins][iCent] : 1./relVar[iSpc][iPtZ][numPhiBins][iCent]);
@@ -2686,7 +2696,7 @@ void PhysicsAnalysis :: ApplyRelativeVariation (float**** relVar, const bool upV
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: ConvertToStatVariation (const bool upVar, const float nSigma) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 
       // Hadron yield systematics, signal & signal+bkg levels
       for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -4128,7 +4138,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -4323,7 +4333,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -4678,7 +4688,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
   if (!iaaCalculated)
     CalculateIAA ();
 
-  short iPtZLo = 2;
+  short iPtZLo = 3;
   short iPtZHi = nPtZBins;
   if (pPtZ != -1) {
     iPtZLo = pPtZ;
@@ -4711,7 +4721,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
         TH1D* h = (useTrkPt ? h_z_trk_zpt_iaa[iSpc][iPtZ][iCent] : h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]);
 
-        h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
+        h->SetFillColorAlpha (fillColors[iPtZ-iPtZLo+1], fillAlpha);
         h->SetMarkerSize (0);
         h->SetLineColor (kBlack);
         h->SetLineWidth (0);
@@ -4757,16 +4767,16 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
           deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
           ResetXErrors (g);
           //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
-          g->SetLineColor (colors[iPtZ-1]);
-          g->SetMarkerColor (colors[iPtZ-1]);
+          g->SetLineColor (colors[iPtZ-iPtZLo+1]);
+          g->SetMarkerColor (colors[iPtZ-iPtZLo+1]);
           g->SetMarkerStyle (markerStyle);
           g->SetMarkerSize (1.2);
           g->SetLineWidth (2);
         } else {
           g->SetMarkerSize (0); 
           g->SetLineWidth (1);
-          g->SetLineColor (colors[iPtZ-1]);
-          g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
+          g->SetLineColor (colors[iPtZ-iPtZLo+1]);
+          g->SetFillColorAlpha (fillColors[iPtZ-iPtZLo+1], 0.3);
         }
 
         useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -4812,11 +4822,11 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
       const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
       myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
       myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
-      myText (0.59, 0.905, kBlack, "#mu#mu", 0.032);
-      myText (0.66, 0.905, kBlack, "ee", 0.032);
+      //myText (0.59, 0.905, kBlack, "#mu#mu", 0.032);
+      //myText (0.66, 0.905, kBlack, "ee", 0.032);
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-        myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-1], kFullCircle, "", 1.8, 0.04);
-        myMarkerTextNoLine (0.624, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-1], kOpenCircle, "", 1.8, 0.04);
+        myMarkerTextNoLine (0.694, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kFullCircle, "", 1.8, 0.04);
+        //myMarkerTextNoLine (0.624, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kOpenCircle, "", 1.8, 0.04);
         if (iPtZ == nPtZBins-1)
           myText (0.700, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.028);
         else
@@ -4849,7 +4859,7 @@ void PhysicsAnalysis :: CalculateICP () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       TH1D* periphHist = nullptr, *centHist = nullptr;
 
       periphHist = h_z_trk_zpt_sub[iSpc][iPtZ][1];
@@ -4912,7 +4922,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
@@ -5108,7 +5118,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
     if (pSpc != -1 && iSpc != pSpc)
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 

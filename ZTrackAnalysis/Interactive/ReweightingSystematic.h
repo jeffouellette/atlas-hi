@@ -62,7 +62,7 @@ class ReweightingSystematic {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void ReweightingSystematic :: ScaleRelativeVariations (const float scaleFactor) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
       for (int iPhi = 0; iPhi <= numPhiBins; iPhi++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           for (TH1D* h : {relVarPt[iSpc][iPtZ][iPhi][iCent], relVarX[iSpc][iPtZ][iPhi][iCent]}) {
@@ -94,19 +94,19 @@ void ReweightingSystematic :: GetRelativeVariations (PhysicsAnalysis* nominal, P
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
-      for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-        for (short iCent = 0; iCent < numCentBins; iCent++) {
-          h = (TH1D*) nominal->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          relVarPt[iSpc][iPtZ][iPhi][iCent] = h;
-          h->Divide (var->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+      //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+      //  for (short iCent = 0; iCent < numCentBins; iCent++) {
+      //    h = (TH1D*) nominal->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+      //    relVarPt[iSpc][iPtZ][iPhi][iCent] = h;
+      //    h->Divide (var->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
 
-          h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          relVarX[iSpc][iPtZ][iPhi][iCent] = h;
-          h->Divide (var->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-        } // end loop over iCent
-      } // end loop over iPhi
+      //    h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+      //    relVarX[iSpc][iPtZ][iPhi][iCent] = h;
+      //    h->Divide (var->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+      //  } // end loop over iCent
+      //} // end loop over iPhi
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         h = (TH1D*) nominal->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
@@ -119,6 +119,24 @@ void ReweightingSystematic :: GetRelativeVariations (PhysicsAnalysis* nominal, P
       } // end loop over iCent
     } // end loop over iPtZ
   } // end loop over iSpc
+
+  //for (short iSpc = 0; iSpc < 2; iSpc++) {
+  //  const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+  //  for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+
+  //    //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+  //    //  for (short iCent = 0; iCent < numCentBins; iCent++) {
+  //    //    relVarPt[iSpc][iPtZ][iPhi][iCent] = relVarPt[2][iPtZ][iPhi][iCent];
+  //    //    relVarX[iSpc][iPtZ][iPhi][iCent] = relVarX[2][iPtZ][iPhi][iCent];
+  //    //  } // end loop over iCent
+  //    //} // end loop over iPhi
+
+  //    for (short iCent = 0; iCent < numCentBins; iCent++) {
+  //      relVarPt[iSpc][iPtZ][numPhiBins][iCent] = relVarPt[2][iPtZ][numPhiBins][iCent];
+  //      relVarX[iSpc][iPtZ][numPhiBins][iCent] = relVarX[2][iPtZ][numPhiBins][iCent];
+  //    } // end loop over iCent
+  //  } // end loop over iPtZ
+  //} // end loop over iSpc
 }
 
 
@@ -131,19 +149,19 @@ void ReweightingSystematic :: GetRelativeVariations (PhysicsAnalysis* nominal, P
 void ReweightingSystematic :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool upVar) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          if (upVar) {
-            a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarX[iSpc][iPtZ][iPhi][iCent]);
-          }
-          else {
-            a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Divide (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Divide (relVarX[iSpc][iPtZ][iPhi][iCent]);
-          }
-        } // end loop over iPhi
+        //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        //  if (upVar) {
+        //    a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarPt[iSpc][iPtZ][iPhi][iCent]);
+        //    a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarX[iSpc][iPtZ][iPhi][iCent]);
+        //  }
+        //  else {
+        //    a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Divide (relVarPt[iSpc][iPtZ][iPhi][iCent]);
+        //    a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Divide (relVarX[iSpc][iPtZ][iPhi][iCent]);
+        //  }
+        //} // end loop over iPhi
         if (upVar) {
           a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Multiply (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
           a->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Multiply (relVarX[iSpc][iPtZ][numPhiBins][iCent]);

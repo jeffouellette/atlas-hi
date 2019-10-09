@@ -61,7 +61,7 @@ void TrackPuritySystematic :: GetRelativeVariations (PhysicsAnalysis* nom, Physi
 
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
 
@@ -101,7 +101,7 @@ void TrackPuritySystematic :: GetRelativeVariations (PhysicsAnalysis* nom, Physi
 void TrackPuritySystematic :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool upVar) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {

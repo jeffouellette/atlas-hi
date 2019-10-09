@@ -21,7 +21,7 @@ class MCAnalysis : public FullAnalysis {
 
   MCAnalysis (const char* _name = "mc") : FullAnalysis () {
     name = _name;
-    plotFill = true;
+    plotFill = false;
     useAltMarker = false;
     isMC = true;
     eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";

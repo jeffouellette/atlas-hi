@@ -40,60 +40,62 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
 
   cout << "Calculating track ID variation on total yields." << endl;
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+  for (short iSpc = 2; iSpc < 3; iSpc++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
-      for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-        for (short iCent = 0; iCent < numCentBins; iCent++) {
-          //cout << "Getting relative variation for iSpc=" << iSpc << ", iPtZ=" << iPtZ << ", iPhi=" << iPhi << ", iCent=" << iCent << endl;
+      //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+      //  for (short iCent = 0; iCent < numCentBins; iCent++) {
+      //    //cout << "Getting relative variation for iSpc=" << iSpc << ", iPtZ=" << iPtZ << ", iPhi=" << iPhi << ", iCent=" << iCent << endl;
 
-          hnom = nominal->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-          hvar = var->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+      //    hnom = nominal->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+      //    hvar = var->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
 
-          hrat = (TH1D*) hvar->Clone ("rattemp");
-          hrat->Divide (hnom);
-          for (int ix = 1; ix <= hrat->GetNbinsX (); ix++)
-            hrat->SetBinError (ix, sqrt ((hrat->GetBinContent (ix)) * (1-hrat->GetBinContent (ix)) / hnom->GetBinContent (ix)));
+      //    hrat = (TH1D*) hvar->Clone ("rattemp");
+      //    hrat->Divide (hnom);
+      //    for (int ix = 1; ix <= hrat->GetNbinsX (); ix++)
+      //      hrat->SetBinError (ix, sqrt ((hrat->GetBinContent (ix)) * (1-hrat->GetBinContent (ix)) / hnom->GetBinContent (ix)));
 
-          nominal->LoadTrackingEfficiencies (true);
-          var->LoadTrackingEfficiencies (true);
-          nominal->LoadTrackingPurities (true);
-          var->LoadTrackingPurities (true);
+      //    nominal->LoadTrackingEfficiencies (true);
+      //    var->LoadTrackingEfficiencies (true);
+      //    nominal->LoadTrackingPurities (true);
+      //    var->LoadTrackingPurities (true);
 
-          eff1 = (TH1D*) nominal->h2_num_trk_effs[iCent]->ProjectionY ("1");
-          effrat = (TH1D*) nominal->h2_den_trk_effs[iCent]->ProjectionY ("2");
-          eff1->Divide (effrat);
-          delete effrat;
-          eff2 = (TH1D*) var->h2_num_trk_effs[iCent]->ProjectionY ("3");
-          effrat = (TH1D*) var->h2_den_trk_effs[iCent]->ProjectionY ("4");
-          eff2->Divide (effrat);
-          delete effrat;
+      //    eff1 = (TH1D*) nominal->h2_num_trk_effs[iCent]->ProjectionY ("1");
+      //    effrat = (TH1D*) nominal->h2_den_trk_effs[iCent]->ProjectionY ("2");
+      //    eff1->Divide (effrat);
+      //    delete effrat;
+      //    eff2 = (TH1D*) var->h2_num_trk_effs[iCent]->ProjectionY ("3");
+      //    effrat = (TH1D*) var->h2_den_trk_effs[iCent]->ProjectionY ("4");
+      //    eff2->Divide (effrat);
+      //    delete effrat;
 
-          effrat = (TH1D*) eff2->Clone ("efftemp");
-          effrat->Divide (eff1);
-          delete eff1, eff2;
+      //    effrat = (TH1D*) eff2->Clone ("efftemp");
+      //    effrat->Divide (eff1);
+      //    delete eff1, eff2;
 
-          eff1 = (TH1D*) nominal->h2_num_trk_purs[iCent]->ProjectionY ("1");
-          eff1->Divide ((TH1D*) nominal->h2_den_trk_purs[iCent]->ProjectionY ("2"));
-          eff2 = (TH1D*) var->h2_num_trk_purs[iCent]->ProjectionY ("3");
-          eff2->Divide ((TH1D*) var->h2_den_trk_purs[iCent]->ProjectionY ("4"));
+      //    eff1 = (TH1D*) nominal->h2_num_trk_purs[iCent]->ProjectionY ("1");
+      //    eff1->Divide ((TH1D*) nominal->h2_den_trk_purs[iCent]->ProjectionY ("2"));
+      //    eff2 = (TH1D*) var->h2_num_trk_purs[iCent]->ProjectionY ("3");
+      //    eff2->Divide ((TH1D*) var->h2_den_trk_purs[iCent]->ProjectionY ("4"));
 
-          purrat = (TH1D*) eff2->Clone ("purtemp");
-          purrat->Divide (eff1);
-          delete eff1, eff2;
+      //    purrat = (TH1D*) eff2->Clone ("purtemp");
+      //    purrat->Divide (eff1);
+      //    delete eff1, eff2;
 
-          const int bin1 = effrat->FindBin (hrat->GetBinCenter (1));
-          const int bin2 = purrat->FindBin (hrat->GetBinCenter (1));
-          for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
-            hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
+      //    const int bin1 = effrat->FindFixBin (hrat->GetBinCenter (1));
+      //    const int bin2 = purrat->FindFixBin (hrat->GetBinCenter (1));
+      //    for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
+      //      hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
-          TF1* fit = new TF1 ("fit", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
-          fit->SetParameter (0, 1);
-          hrat->Fit (fit, "RQN0");
-          relVar[iSpc][iPtZ][iPhi][iCent] = fit->GetParameter (0);
-          delete hrat, effrat, purrat, fit;
-        } // end loop over iCent
-      } // end loop over iPhi
+      //    TF1* fit = new TF1 ("fit", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+      //    fit->SetParameter (0, 1);
+      //    hrat->Fit (fit, "RQN0");
+      //    relVar[2][iPtZ][iPhi][iCent] = fit->GetParameter (0);
+      //    relVar[0][iPtZ][iPhi][iCent] = fit->GetParameter (0);
+      //    relVar[1][iPtZ][iPhi][iCent] = fit->GetParameter (0);
+      //    delete hrat, effrat, purrat, fit;
+      //  } // end loop over iCent
+      //} // end loop over iPhi
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         hnom = (TH1D*) nominal->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("hnom");
@@ -133,15 +135,17 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
         purrat->Divide (eff1);
         delete eff1, eff2;
 
-        const int bin1 = effrat->FindBin (hrat->GetBinCenter (1));
-        const int bin2 = purrat->FindBin (hrat->GetBinCenter (1));
+        const int bin1 = effrat->FindFixBin (hrat->GetBinCenter (1));
+        const int bin2 = purrat->FindFixBin (hrat->GetBinCenter (1));
         for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
           hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
         TF1* fit = new TF1 ("fit", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
         fit->SetParameter (0, 1);
         hrat->Fit (fit, "RQN0");
-        relVar[iSpc][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
+        relVar[2][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
+        relVar[0][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
+        relVar[1][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
         delete hrat, effrat, purrat, fit;
         delete hnom, hvar;
       } // end loop over iCent

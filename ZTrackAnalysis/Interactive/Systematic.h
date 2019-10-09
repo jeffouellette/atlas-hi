@@ -41,11 +41,19 @@ class Systematic : public PhysicsAnalysis {
   string description;
   bool cancelIAA = true;
 
-  Systematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : PhysicsAnalysis (){
+  Systematic (PhysicsAnalysis* nom, const char* _name, const char* _desc) : PhysicsAnalysis (){
     name = _name;
     description = _desc;
     CopyAnalysis (nom, true);
     CreateSysGraphs ();
+    NullifyErrors ();
+  }
+
+  Systematic (PhysicsAnalysis* nom, const char* _name, const char* _desc, const char* _graphFileName) : PhysicsAnalysis () {
+    name = _name;
+    description = _desc;
+    CopyAnalysis (nom, true);
+    LoadGraphs (_graphFileName);
     NullifyErrors ();
   }
 
@@ -54,13 +62,17 @@ class Systematic : public PhysicsAnalysis {
 
   virtual TGAE* GetTGAE (TH1D* h) override;
 
-  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
+  //virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
+  virtual void LoadGraphs (const char* graphFileName);
+  virtual void SaveGraphs (const char* graphFileName);
 
   virtual void AddVariation (PhysicsAnalysis* a, const bool applyBothWays = true);
   virtual void AddSystematic (Systematic* a);
 
   virtual void AddVariations (); // variations add linearly
   virtual void AddSystematics (); // systematics add in quadrature
+
+  virtual void PrintRelSystematics (); // print relative systematics
 
   void PlotTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   void PlotTrkYieldSystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
@@ -89,7 +101,7 @@ void Systematic :: AddGraphPair (TH1D* h) {
 
 void Systematic :: CreateSysGraphs () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iSpc = 2; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
@@ -148,26 +160,29 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 
 
 
-void Systematic :: LoadHists (const char* histFileName, const bool _finishHists) {
-  PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
-  CreateSysGraphs ();
-}
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load pre-filled histograms
+////////////////////////////////////////////////////////////////////////////////////////////////
+//void Systematic :: LoadHists (const char* histFileName, const bool _finishHists) {
+//  PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
+//  CreateSysGraphs ();
+//}
 //void Systematic :: LoadHists (const char* histFileName) {
 //  PhysicsAnalysis :: LoadHists (histFileName, false);
 //
 //  for (short iCent = 0; iCent < numCentBins; iCent++) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
 //          h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
 //        }
-//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-//          h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-//          h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-//          h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-//        }
+//        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//        //  h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//        //  h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//        //  h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//        //  h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//        //}
 //        h_z_trk_zpt_sub[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 //        h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_zpt_sig_to_bkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 //        h_z_trk_zxzh_sub[iSpc][iPtZ][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_zxzh_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
@@ -180,8 +195,11 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Save histograms
+//////////////////////////////////////////////////////////////////////////////////////////////////
 //void Systematic :: SaveHists (const char* histFileName) {
-//  SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
+//  SetupDirectories ("", "ZTrackAnalysis/");
 //  if (!histsLoaded)
 //    return;
 //
@@ -196,15 +214,15 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 //  for (short iCent = 0; iCent < numCentBins; iCent++) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
 //          SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
 //        }
-//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          SafeWrite (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
-//          SafeWrite (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
-//          SafeWrite (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
-//        }
+//        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//        //  SafeWrite (h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]);
+//        //  SafeWrite (h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+//        //  SafeWrite (h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+//        //}
 //        SafeWrite (h_z_counts[iSpc][iPtZ][iCent]);
 //      }
 //    }
@@ -221,17 +239,86 @@ void Systematic :: LoadHists (const char* histFileName, const bool _finishHists)
 
 
 
-//void Systematic :: LoadGraphs (const char* graphFileName) {
-//  if (!histsLoaded)
-//    loadHists (
-//
-//  SetupDirectories (directory.c_str (), "ZTrackAnalysis/");
-//
-//  TDirectory* _gDirectory = gDirectory;
-//  graphFile = new TFile (Form ("%s/%s", rootPath.Data (), graphFileName), "read");
-//
-//  _gDirectory->cd ();
-//}
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load pre-filled histograms
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: LoadGraphs (const char* graphFileName) {
+  SetupDirectories ("", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+  graphFile = new TFile (Form ("%s/%s", rootPath.Data (), graphFileName), "read");
+
+  TH1D* h = nullptr;
+  TGAE* g = nullptr;
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+          h = h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent];
+          g = (TGAE*) graphFile->Get (Form ("g_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+          graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        }
+        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+        //  h = h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent];
+        //  g = (TGAE*) graphFile->Get (Form ("g_z_trk_pt_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+        //  graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //  //h = (h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+        //  //g = (TGAE*) graphFile->Get (Form ("g_z_trk_pt_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+        //  //graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //  h = h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent];
+        //  g = (TGAE*) graphFile->Get (Form ("g_z_trk_xzh_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+        //  graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //  //h = (h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+        //  //g = (TGAE*) graphFile->Get (Form ("g_z_trk_xzh_sig_to_bkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+        //  //graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //}
+        h = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
+        g = (TGAE*) graphFile->Get (Form ("g_z_trk_zpt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //h = h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent];
+        //g = (TGAE*) graphFile->Get (Form ("g_z_trk_zpt_sig_to_bkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        //graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        h = h_z_trk_zxzh_sub[iSpc][iPtZ][iCent];
+        g = (TGAE*) graphFile->Get (Form ("g_z_trk_zxzh_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+        //h = h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent];
+        //g = (TGAE*) graphFile->Get (Form ("g_z_trk_zxzh_sig_to_bkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        //graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
+      }
+    }
+  }
+
+  _gDirectory->cd ();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Load pre-filled histograms
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: SaveGraphs (const char* graphFileName) {
+  SetupDirectories ("", "ZTrackAnalysis/");
+
+  TDirectory* _gDirectory = gDirectory;
+  graphFile = new TFile (Form ("%s/%s", rootPath.Data (), graphFileName), "recreate");
+
+  for (map <TH1D*, TGAE*> :: iterator element = graphMap.begin (); element != graphMap.end (); ++element) {
+    TGAE* g = element->second;
+    //TH1D* h = element->first;
+
+    //h->Write ();
+    g->Write ();
+  }
+
+  graphFile->Close ();
+
+  _gDirectory->cd ();
+
+  return;
+}
 
 
 
@@ -281,7 +368,7 @@ void Systematic :: AddVariations () {
     TGAE* sys = nullptr;
     TH1D* var = nullptr;
 
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iSpc = 2; iSpc < 3; iSpc++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         //// Hadron yield systematics, signal & signal+bkg levels
@@ -398,7 +485,7 @@ void Systematic :: AddVariations () {
 
   if (!cancelIAA) {
     TGAE* pp_sys, *PbPb_sys, *iaa_sys;
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iSpc = 2; iSpc < 3; iSpc++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
         pp_sys = GetTGAE (h_z_trk_zpt_sub[iSpc][iPtZ][0]);
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -409,24 +496,30 @@ void Systematic :: AddVariations () {
           for (int ix = 0; ix < iaa_sys->GetN (); ix++) {
             double x, y, yhierr, yloerr;
 
-            pp_sys->GetPoint (ix-1, x, y);
+            pp_sys->GetPoint (ix, x, y);
             yhierr = pp_sys->GetErrorYhigh (ix);
             yloerr = pp_sys->GetErrorYlow (ix);
             const double pp_relsys_hi = yhierr / y;
             const double pp_relsys_lo = yloerr / y;
 
-            PbPb_sys->GetPoint (ix-1, x, y);
+            //if (name == "trkEffSys")
+            //  cout << pp_relsys_hi << ", " << pp_relsys_lo << endl;
+
+            PbPb_sys->GetPoint (ix, x, y);
             yhierr = PbPb_sys->GetErrorYhigh (ix);
             yloerr = PbPb_sys->GetErrorYlow (ix);
             const double PbPb_relsys_hi = yhierr / y;
             const double PbPb_relsys_lo = yloerr / y;
 
+            //if (name == "trkEffSys")
+            //  cout << PbPb_relsys_hi << ", " << PbPb_relsys_lo << endl;
+
             const double iaa_relsys_hi = TMath::Sqrt (pow (PbPb_relsys_hi, 2) + pow (pp_relsys_hi, 2));
             const double iaa_relsys_lo = TMath::Sqrt (pow (PbPb_relsys_lo, 2) + pow (pp_relsys_lo, 2));
 
-            iaa_sys->GetPoint (ix-1, x, y);
-            iaa_sys->SetPointEYhigh (ix-1, iaa_relsys_hi * y);
-            iaa_sys->SetPointEYlow (ix-1, iaa_relsys_lo * y);
+            iaa_sys->GetPoint (ix, x, y);
+            iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
+            iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
         } // end loop over cents
 
@@ -439,13 +532,13 @@ void Systematic :: AddVariations () {
           for (int ix = 0; ix < iaa_sys->GetN (); ix++) {
             double x, y, yhierr, yloerr;
 
-            pp_sys->GetPoint (ix-1, x, y);
+            pp_sys->GetPoint (ix, x, y);
             yhierr = pp_sys->GetErrorYhigh (ix);
             yloerr = pp_sys->GetErrorYlow (ix);
             const double pp_relsys_hi = yhierr / y;
             const double pp_relsys_lo = yloerr / y;
 
-            PbPb_sys->GetPoint (ix-1, x, y);
+            PbPb_sys->GetPoint (ix, x, y);
             yhierr = PbPb_sys->GetErrorYhigh (ix);
             yloerr = PbPb_sys->GetErrorYlow (ix);
             const double PbPb_relsys_hi = yhierr / y;
@@ -454,9 +547,9 @@ void Systematic :: AddVariations () {
             const double iaa_relsys_hi = TMath::Sqrt (pow (PbPb_relsys_hi, 2) + pow (pp_relsys_hi, 2));
             const double iaa_relsys_lo = TMath::Sqrt (pow (PbPb_relsys_lo, 2) + pow (pp_relsys_lo, 2));
 
-            iaa_sys->GetPoint (ix-1, x, y);
-            iaa_sys->SetPointEYhigh (ix-1, iaa_relsys_hi * y);
-            iaa_sys->SetPointEYlow (ix-1, iaa_relsys_lo * y);
+            iaa_sys->GetPoint (ix, x, y);
+            iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
+            iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
 
         } // end loop over cents
@@ -495,8 +588,8 @@ void Systematic :: AddSystematics () {
 
     TGAE* master = nullptr, *sys = nullptr;
 
-    for (short iSpc = 0; iSpc < 3; iSpc++) {
-      for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) { 
+    for (short iSpc = 2; iSpc < 3; iSpc++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         //// Hadron yield systematics, signal & signal+bkg levels
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -611,6 +704,60 @@ void Systematic :: AddSystematics () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Prints the maximum relative systematics in this bin.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PrintRelSystematics () {
+  TH1D* centralVals = nullptr, *h = nullptr, *highs = nullptr, *lows = nullptr;
+
+  cout << endl;
+  for (Systematic* s : systematics) {
+    cout << s->description;
+    for (short iCent : {0, numCentBins-1}) {
+      for (short iPtZ : {nPtZBins-2, nPtZBins-1}) {
+        cout << " & ";
+        float _maxRelSys = 0;
+        for (bool useTrkPt : {true}) {
+          centralVals = (useTrkPt ? h_z_trk_zpt_sub[2][iPtZ][iCent] : h_z_trk_zxzh_sub[2][iPtZ][iCent]);
+          h = (useTrkPt ? s->h_z_trk_zpt_sub[2][iPtZ][iCent] : s->h_z_trk_zxzh_sub[2][iPtZ][iCent]);
+
+          highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
+          lows = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysLow").c_str ());
+          if (!centralVals) continue;
+
+          SaveRelativeErrors (s->GetTGAE (h), GetTGAE (centralVals), highs, lows);
+
+          highs->Scale (100.);
+          lows->Scale (100.);
+
+          _maxRelSys = fmax (fabs (_maxRelSys), fabs (highs->GetMaximum ()));
+          _maxRelSys = fmax (fabs (_maxRelSys), fabs (lows->GetMaximum ()));
+
+          SaferDelete (highs);
+          SaferDelete (lows);
+        } // end loop over useTrkPt
+
+        int i = 0;
+        while (_maxRelSys < 1 && i < 3) {
+          _maxRelSys *= 10;
+          i++;
+        }
+        _maxRelSys = floor (_maxRelSys);
+        _maxRelSys = _maxRelSys / pow (10, i);
+
+        //if (_maxRelSys < 0.1)
+        //  cout << "< 0.1\\\%";
+        //else
+          cout << _maxRelSys << "\\\%";
+      } // end loop over iPtZ
+    } // end loop iCent
+    cout << "\\\\ \\hline" << endl;
+  } // end loop over systematics
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) {
@@ -630,7 +777,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
       for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
@@ -682,7 +829,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
           short iSys = 0;
           for (Systematic* sys : systematics) {
 
-            if (sys->Name () == string ("bkgSys"))
+            if (sys->Name () == string ("bkgStatSys") || sys->Name () == string ("bkgMixSys"))
               continue;
 
             TH1D* h = sys->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent];
@@ -772,7 +919,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
 
         TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
@@ -821,7 +968,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
-          if (sys->Name () == string ("bkgSys"))
+          if (sys->Name () == string ("bkgStatSys") || sys->Name () == string ("bkgMixSys"))
             continue;
 
           TH1D* h = (useTrkPt ? sys->h_z_trk_zpt[iSpc][iPtZ][iCent] : sys->h_z_trk_zxzh[iSpc][iPtZ][iCent]);
@@ -909,7 +1056,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
       for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
@@ -1187,7 +1334,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iPtZ = 1; iPtZ < nPtZBins; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
       for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
