@@ -34,7 +34,6 @@ class PhysicsAnalysis {
   bool backgroundSubtracted = false;
   bool sameSignsSubtracted = false;
   bool hasBkg = true;
-  bool isMC = false;
 
   vector<TH1*> drawnHists;
   vector<TGAE*> drawnGraphs;
@@ -61,6 +60,7 @@ class PhysicsAnalysis {
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
+  bool isMC           = false;
   bool is2015Conds    = false; // whether this analysis uses 2015 data (different conditions)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
@@ -220,7 +220,7 @@ class PhysicsAnalysis {
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true);
   virtual void SaveHists (const char* histFileName = "savedHists.root");
   virtual void ScaleHists ();
-  virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root");
+  virtual void Execute (const char* inFileName, const char* outFileName);
   virtual void GenerateWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName);
   virtual void LoadEventWeights ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
@@ -689,6 +689,8 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
     histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "recreate");
     histFile->cd ();
   }
+
+  cout << "Saving histograms to " << Form ("%s/%s", rootPath.Data (), histFileName) << endl;
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -1552,7 +1554,7 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
   else if (t->GetYaxis ()->GetNbins () < ybin)
     trk_pt = t->GetYaxis ()->GetBinCenter (t->GetYaxis ()->GetNbins ());
 
-  const double pur = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt)) + trkPurNSigma * t->GetBinError (t->FindFixBin (trk_eta, trk_pt));
+  const double pur = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt));
 
   return pur;
 }

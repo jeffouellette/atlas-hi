@@ -1,5 +1,5 @@
-#ifndef __MCAnalysis_h__
-#define __MCAnalysis_h__
+#ifndef __MCClosureAnalysis_h__
+#define __MCClosureAnalysis_h__
 
 #include "Params.h"
 #include "FullAnalysis.h"
@@ -13,21 +13,22 @@
 using namespace std;
 using namespace atlashi;
 
-class MCAnalysis : public FullAnalysis {
+class MCClosureAnalysis : public FullAnalysis {
 
   public:
 
-  bool takeNonTruthTracks = false;
-
-  MCAnalysis (const char* _name = "mc") : FullAnalysis () {
+  MCClosureAnalysis (const char* _name = "mcclosure") : FullAnalysis () {
     name = _name;
-    plotFill = true;
+    plotFill = false;
     useAltMarker = false;
     isMC = true;
-    eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";
+    eventWeightsFileName = "MCClosureAnalysis/Nominal/eventWeightsFile.root";
   }
 
-  void Execute (const char* inFileName, const char* outFileName) override;
+  void Execute (const char* inFileName, const char* outFileName) override {
+    cout << "Error: In MCAnalysis :: Execute: Called invalid function! A third argument is required to specify the mixing file name. Exiting." << endl;
+  }
+  void Execute (const char* inFileName, const char* mbInFileName, const char* outFileName);
 };
 
 
@@ -36,11 +37,26 @@ class MCAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over Pb+Pb and pp trees and fills histograms appropriately, then saves them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
+void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileName, const char* outFileName) {
 
   LoadEventWeights ();
 
   SetupDirectories ("", "ZTrackAnalysis/");
+
+  int nMBPbPbEvts = 0, nMBppEvts = 0;
+  {
+    TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
+    cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
+
+    TTree* mbPbPbTree = (TTree*) mbInFile->Get ("PbPbZTrackTree");
+    TTree* mbppTree = (TTree*) mbInFile->Get ("ppZTrackTree");
+
+    nMBPbPbEvts = (mbPbPbTree ? mbPbPbTree->GetEntries () : 0);
+    nMBppEvts = (mbppTree ? mbppTree->GetEntries () : 0);
+
+    mbInFile->Close ();
+  }
+
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   if (!inFile || !inFile->IsOpen ()) {
@@ -69,6 +85,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
+    int nEvts = PbPbTree->GetEntries ();
+    PbPbTree->LoadBaskets (4000000000);
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",       &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
@@ -99,11 +117,32 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
     PbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
 
-    const int nEvts = PbPbTree->GetEntries ();
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      PbPbTree->GetEntry (iEvt);
+    if (nEvts == 0)
+      cout << "Warning! No Z's to mix with in this run!" << endl;
+    cout << "For this PbPb tree, maximum mixing fraction = " << nMBPbPbEvts / nEvts << endl;
+
+    bool doShuffle = false;
+    if (mixingFraction * nEvts > nMBPbPbEvts) {
+      cout << "Warning! Mixing fraction too high, will use " << (float)(nMBPbPbEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
+      nEvts = nMBPbPbEvts / mixingFraction;
+      doShuffle = true;
+    }
+
+    std::vector <int> zEventOrder = {};
+    std::vector <int> zEventsUsed = {};
+    for (int i = 0; i < nEvts; i++) {
+      zEventOrder.push_back (i);
+      zEventsUsed.push_back (false);
+    }
+    //std::srand (std::time (0));
+    if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
+
+    for (int iEvt = 0; iEvt < mixingFraction * nEvts; iEvt++) {
+      if (mixingFraction*nEvts > 100 && iEvt % (mixingFraction*nEvts / 100) == 0)
+        cout << iEvt / (mixingFraction*nEvts / 100) << "\% done...\r" << flush;
+
+      PbPbTree->GetEntry (zEventOrder[iEvt % nEvts]);
+      zEventsUsed[iEvt % nEvts]++;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut
@@ -146,41 +185,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
-      TLorentzVector zvec;
-      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
-      z_eta = zvec.Eta ();
-
-      h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
-      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
-      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
-      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
-
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt);
-      h_lepton_eta[iCent][iSpc]->Fill (l1_eta);
-      h_lepton_eta[iCent][iSpc]->Fill (l2_eta);
-      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
-      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-
-      if (z_pt > 5) {
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
-        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
-      }
-
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
-
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
-
-        if (takeNonTruthTracks && trk_truth_matched->at (iTrk))
-          continue;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -188,29 +196,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        {
-          float mindr = pi;
-          float ptdiff = 0;
-          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
-          if (dr < mindr) {
-            mindr = dr;
-            ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
-          }
-          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
-          if (dr < mindr) {
-            mindr = dr;
-            ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
-          }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
-        }
-
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
         const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
-
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
@@ -242,6 +232,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
+    int nEvts = ppTree->GetEntries ();
     ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("isEE",       &isEE);
     ppTree->SetBranchAddress ("vz",         &vz);
@@ -269,11 +260,32 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
     ppTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
 
-    const int nEvts = ppTree->GetEntries ();
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      ppTree->GetEntry (iEvt);
+    if (nEvts == 0)
+      cout << "Warning! No Z's to mix with in this run!" << endl;
+    cout << "For this pp tree, maximum mixing fraction = " << nMBppEvts / nEvts << endl;
+
+    bool doShuffle = false;
+    if (mixingFraction * nEvts > nMBppEvts) {
+      cout << "Warning! Mixing fraction too high, will use " << (float)(nMBppEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
+      nEvts = nMBppEvts / mixingFraction;
+      doShuffle = true;
+    }
+
+    std::vector <int> zEventOrder = {};
+    std::vector <int> zEventsUsed = {};
+    for (int i = 0; i < nEvts; i++) {
+      zEventOrder.push_back (i);
+      zEventsUsed.push_back (false);
+    }
+    //std::srand (std::time (0));
+    if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
+
+    for (int iEvt = 0; iEvt < mixingFraction * nEvts; iEvt++) {
+      if (mixingFraction*nEvts > 100 && iEvt % (mixingFraction*nEvts / 100) == 0)
+        cout << iEvt / (mixingFraction*nEvts / 100) << "\% done...\r" << flush;
+
+      ppTree->GetEntry (zEventOrder[iEvt % nEvts]);
+      zEventsUsed[iEvt % nEvts]++;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut
@@ -297,41 +309,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
-      TLorentzVector zvec;
-      zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
-      z_eta = zvec.Eta ();
-
-      h_z_pt[iCent][iSpc]->Fill (z_pt, event_weight);
-      h_z_y_phi[iCent][iSpc][iPtZ]->Fill (z_y, InTwoPi (z_phi), event_weight);
-      h_z_eta[iCent][iSpc][iPtZ]->Fill (z_eta, event_weight);
-      h_z_y[iCent][iSpc][iPtZ]->Fill (z_y, event_weight);
-      int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
-      h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
-
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt);
-      h_lepton_eta[iCent][iSpc]->Fill (l1_eta);
-      h_lepton_eta[iCent][iSpc]->Fill (l2_eta);
-      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
-      h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
-
-      if (z_pt > 5) {
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
-        h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
-      }
-
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
-
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt->at (iTrk);
-
-        if (takeNonTruthTracks && trk_truth_matched->at (iTrk))
-          continue;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -339,29 +320,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
           continue;
 
-        {
-          float mindr = pi;
-          float ptdiff = 0;
-          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
-          if (dr < mindr) {
-            mindr = dr;
-            ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
-          }
-          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
-          if (dr < mindr) {
-            mindr = dr;
-            ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
-          }
-          h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
-        }
-
         const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
         const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
-
-        h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
@@ -384,7 +347,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
       } // end loop over tracks
     } // end loop over pp tree
-    cout << "Done MC pp loop." << endl;
+    cout << "Done MC closure pp loop." << endl;
   }
 
   //CombineHists ();

@@ -1,86 +1,78 @@
 #include "MCAnalysis.h"
+#include "MCClosureAnalysis.h"
 #include "TruthAnalysis.h"
 #include "MinbiasAnalysis.h"
 
 int main (int argc, char** argv) {
 
-  if (argc < 13) {
+  if (argc < 7) {
     cout << "Insufficient arguments! Exiting." << endl;
     return 1;
   }
 
   string algo = argv[1];
+
   string inFileName = argv[2];
-  string outFileName = argv[3];
+  string mbInFileName = (string (argv[3]) == "0" ? inFileName : argv[3]); // defaults to 1st file name if "0"
+  string outFileName = argv[4];
 
-  bool use2015conds = (string(argv[4]) == "true");
-  bool doElectronPtUpVar = (string (argv[5]) == "true");
-  bool doElectronPtDownVar = (string (argv[6]) == "true");
-  bool doMuonPtUpVar = (string (argv[7]) == "true");
-  bool doMuonPtDownVar = (string (argv[8]) == "true");
-  bool doHITightVar = (string (argv[9]) == "true");
-  bool doTrkEffVar = (string (argv[10]) == "true");
-  bool doTrkPurUpVar = (string (argv[11]) == "true");
-  bool doTrkPurDownVar = (string (argv[12]) == "true");
+  string mixdir = "DataAnalysis/";
+  if (algo == "mcminbias") {
+    mixdir = "MCAnalysis/"; 
+    //outFileName = "Background/" + outFileName;
+  }
+
+  bool use2015conds = (string(argv[5]) == "true");
+  bool doHITightVar = (string (argv[6]) == "true");
 
 
-  if (!doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doHITightVar && !doTrkEffVar && !doTrkPurUpVar && !doTrkPurDownVar) {
+  if (!doHITightVar) {
     inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
-  }
-  else if (doElectronPtUpVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/ElectronPtUpVariation/" + outFileName;
-  }
-  else if (doElectronPtDownVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/ElectronPtDownVariation/" + outFileName;
-  }
-  else if (doMuonPtUpVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/MuonPtUpVariation/" + outFileName;
-  }
-  else if (doMuonPtDownVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/MuonPtDownVariation/" + outFileName;
   }
   else if (doHITightVar) {
     inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
+    mbInFileName = "Variations/TrackHITightWPVariation/" + mbInFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
   }
-  else if (doTrkEffVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/TrackEffPionsVariation/" + outFileName;
-  }
-  else if (doTrkPurUpVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/TrackPurityUpVariation/" + outFileName;
-  }
-  else if (doTrkPurDownVar) {
-    inFileName = "Nominal/" + inFileName;
-    outFileName = "Variations/TrackPurityDownVariation/" + outFileName;
-  }
 
 
+  //if (algo == "mc" || algo == "mcminbias") {
   if (algo == "mc") {
     MCAnalysis* mc = nullptr;
     inFileName = "MCAnalysis/" + inFileName;
     outFileName = "MCAnalysis/" + outFileName;
     if (doHITightVar)
       mc = new MCAnalysis ("mc_trackHITightVar");
-    else if (doTrkEffVar)
-      mc = new MCAnalysis ("mc_trackEffVar");
-    else if (doTrkPurUpVar)
-      mc = new MCAnalysis ("mc_trkPurUpVar");
-    else if (doTrkPurDownVar)
-      mc = new MCAnalysis ("mc_trkPurDownVar");
+    else if (algo == "mcminbias")
+      mc = new MCAnalysis ("mc_bkg");
     else
       mc = new MCAnalysis ("mc");
+
+    if (algo == "mcminbias")
+      mc->takeNonTruthTracks = true;
+
+    mc->is2015Conds = use2015conds;
+    mc->useHijingEffs = use2015conds;
     mc->useHITight = doHITightVar;
-    mc->doTrackEffVar = doTrkEffVar;
-    mc->doTrackPurVar = (doTrkPurUpVar || doTrkPurDownVar);
-    mc->trkPurNSigma = (doTrkPurUpVar ? 1. : (doTrkPurDownVar ? -1 : 0));
+
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete mc;
+  }
+
+  else if (algo == "mcclosure") {
+    MCClosureAnalysis* mc = nullptr;
+    inFileName = "MCAnalysis/" + inFileName;
+    mbInFileName = "MinbiasAnalysis/" + mbInFileName;
+    outFileName = "MCAnalysis/" + outFileName;
+    mc = new MCClosureAnalysis ("mc_closure");
+
+    mc->is2015Conds = use2015conds;
+    mc->useHijingEffs = use2015conds;
+    mc->useHITight = doHITightVar;
+
+    mc->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ());
     delete mc;
   }
 
@@ -93,27 +85,23 @@ int main (int argc, char** argv) {
     delete truth;
   }
 
-  else if (algo == "minbias") {
+  //else if (algo == "minbias") {
+  else if (algo == "minbias" || algo == "mcminbias") {
     MinbiasAnalysis* bkg = nullptr;
-    inFileName = "MinbiasAnalysis/" + inFileName;
+
+    inFileName = mixdir + inFileName;
+    mbInFileName = "MinbiasAnalysis/" + mbInFileName;
     outFileName = "MinbiasAnalysis/" + outFileName;
     if (doHITightVar)
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-    else if (doTrkEffVar)
-      bkg = new MinbiasAnalysis ("bkg_trackEffVar");
-    else if (doTrkPurUpVar)
-      bkg = new MinbiasAnalysis ("bkg_trkPurUpVar");
-    else if (doTrkPurDownVar)
-      bkg = new MinbiasAnalysis ("bkg_trkPurDownVar");
     else
       bkg = new MinbiasAnalysis ("bkg");
+
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
-    bkg->doTrackEffVar = doTrkEffVar;
-    bkg->doTrackPurVar = (doTrkPurUpVar || doTrkPurDownVar);
-    bkg->trkPurNSigma = (doTrkPurUpVar ? 1. : (doTrkPurDownVar ? -1 : 0));
-    bkg->Execute (inFileName.c_str (), outFileName.c_str ());
+
+    bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ());
     delete bkg;
   }
 

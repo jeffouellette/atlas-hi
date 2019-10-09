@@ -105,7 +105,7 @@ class FullAnalysis : public PhysicsAnalysis {
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   virtual void SaveHists (const char* histFileName = "savedHists.root") override;
   virtual void ScaleHists () override;
-  virtual void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
+  virtual void Execute (const char* inFileName, const char* outFileName) override;
 
   //void PrintZYields ();
 

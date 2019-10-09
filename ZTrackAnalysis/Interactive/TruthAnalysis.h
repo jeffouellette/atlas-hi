@@ -35,7 +35,7 @@ class TruthAnalysis : public FullAnalysis {
     isMC = true;
   }
 
-  void Execute (const char* inFileName = "outFile.root", const char* outFileName = "savedHists.root") override;
+  void Execute (const char* inFileName, const char* outFileName) override;
 
   void CreateHists () override;
   void ScaleHists () override;
