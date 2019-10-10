@@ -39,7 +39,7 @@ void PlotTrackMatchingProb () {
   l0p5->Draw ("same");
   l0p6->Draw ("same");
 
-  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Simulation", 0.044);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Simulation Internal", 0.044);
   myMarkerTextNoLine (0.25, 0.83, kRed+1, kFullCircle, "Powheg+Pythia Z#rightarrow ll", 1.4, 0.032);
   myMarkerTextNoLine (0.25, 0.78, kAzure+2, kOpenSquare, "Powheg+Pythia Z#rightarrow ll with overlay", 1.4, 0.032);
 

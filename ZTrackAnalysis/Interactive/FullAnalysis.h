@@ -42,22 +42,23 @@ class FullAnalysis : public PhysicsAnalysis {
   TH1D*   h_pp_nch              = nullptr;
   TH1D*   h_pp_nch_reweighted   = nullptr;
 
-  TH1D*** h_z_phi         = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_z_pt          = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_z_pt_ratio    = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH2D**** h_z_y_phi      = Get3DArray <TH2D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
-  TH1D**** h_z_eta        = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
-  TH1D**** h_z_eta_ratio  = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
-  TH1D**** h_z_y          = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
-  TH1D**** h_z_y_ratio    = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
-  TH1D**** h_z_m          = Get3DArray <TH1D*> (numCentBins, 3, 3);          // iCent, iSpc, iReg
-  TH1D**** h_z_m_ratio    = Get3DArray <TH1D*> (numCentBins, 3, 3);          // iCent, iSpc, iReg
-  TH1D*** h_z_lepton_dphi = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_lepton_pt     = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_lepton_eta    = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_lepton_trk_pt = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH1D*** h_trk_pt        = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
-  TH2D*** h_lepton_trk_dr = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_z_phi           = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_z_pt            = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_z_pt_ratio      = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH2D**** h_z_y_phi        = Get3DArray <TH2D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
+  TH1D**** h_z_eta          = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
+  TH1D**** h_z_eta_ratio    = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
+  TH1D**** h_z_y            = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
+  TH1D**** h_z_y_ratio      = Get3DArray <TH1D*> (numCentBins, 3, nPtZBins+1);   // iCent, iSpc, iPtZ + integrated bin
+  TH1D**** h_z_m            = Get3DArray <TH1D*> (numCentBins, 3, 3);          // iCent, iSpc, iReg
+  TH1D**** h_z_m_ratio      = Get3DArray <TH1D*> (numCentBins, 3, 3);          // iCent, iSpc, iReg
+  TH1D*** h_z_lepton_dphi   = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_lepton_pt       = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_lepton_pt_ratio = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_lepton_eta      = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_lepton_trk_pt   = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH1D*** h_trk_pt          = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
+  TH2D*** h_lepton_trk_dr   = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
 
 
   FullAnalysis () { }
@@ -117,24 +118,24 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotVZDists (const bool _treatAsData = true);
   void PlotNchDists (const bool _treatAsData = true);
 
-  void PlotLeptonPtSpectra ();
+  void PlotLeptonPtSpectra (FullAnalysis* a = nullptr);
   void PlotLeptonEtaSpcComp (FullAnalysis* a = nullptr);
   void PlotLeptonTrackPtSpectra ();
   void PlotLeptonTrackDR ();
   void PlotLeptonTrackDRProjX ();
-  void PlotZPtSpectra ();
+  void PlotZPtSpectra (FullAnalysis* a = nullptr);
   void PlotZYPhiMap ();
-  void PlotZEtaMap ();
-  void PlotZYMap ();
+  void PlotZEtaMap (FullAnalysis* a = nullptr);
+  void PlotZYMap (FullAnalysis* a = nullptr);
   void PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a = nullptr);
-  void PlotZMassSpectra ();
+  void PlotZMassSpectra (FullAnalysis* a = nullptr);
   void PlotZPhiYield (const short pSpc = 2);
   void PlotZLeptonDPhi ();
 
-  void CalculateZPtDistRatio (FullAnalysis* a);
-  void CalculateZEtaDistRatio (FullAnalysis* a);
-  void CalculateZYDistRatio (FullAnalysis* a);
-  void CalculateZMassSpectraRatio (FullAnalysis* a);
+  //void CalculateZPtDistRatio (FullAnalysis* a);
+  //void CalculateZEtaDistRatio (FullAnalysis* a);
+  //void CalculateZYDistRatio (FullAnalysis* a);
+  //void CalculateZMassSpectraRatio (FullAnalysis* a);
 
 };
 
@@ -491,7 +492,7 @@ void FullAnalysis :: ScaleHists () {
 
       double normFactor = 0;
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
-        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
+        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
 
       if (h_lepton_pt[iCent][iSpc]) {
         h_lepton_pt[iCent][iSpc]->Rebin (5);
@@ -1353,44 +1354,163 @@ void FullAnalysis :: PlotNchDists (const bool _treatAsData) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot lepton Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotLeptonPtSpectra () {
-  for (short iSpc = 0; iSpc < 2; iSpc++) {
-    const char* canvasName = Form ("c_%s_pt", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"));
-    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-    TCanvas* c = nullptr;
-    if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-    else {
-      c = new TCanvas (canvasName, "", 600, 600);
-      gDirectory->Add (c);
-      c->cd ();
-    }
+void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
 
+  if (a)
+    a->PlotLeptonPtSpectra ();
+
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = iSpc == 0 ? "e" : "#mu";
 
-    c->cd (iSpc+1);
-    gPad->SetLogy ();
+    //c->cd (iSpc+1);
+    //gPad->SetLogy ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      TH1D* h = (TH1D*)h_lepton_pt[iCent][iSpc]->Clone ();
-      //h->Rebin (5);
-      //h->Scale (1./h_z_counts[iCent][iSpc]->Integral (), "width");
+      const char* canvasName = Form ("c_%s_pt_iCent%i", iSpc == 0 ? "electron" : (iSpc == 1 ? "muon" : "lepton"), iCent);
+      const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+      TCanvas* c = nullptr;
+      TPad* uPad = nullptr, *dPad = nullptr;
+      if (canvasExists) {
+        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        uPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_uPad", canvasName)));
+        dPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_dPad", canvasName)));
+      }
+      else {
+        c = new TCanvas (canvasName, "", 600, 600);
+        c->cd ();
+        uPad = new TPad (Form ("%s_uPad", canvasName), "", 0.0, 0.4, 1.0, 1.0);
+        dPad = new TPad (Form ("%s_dPad", canvasName), "", 0.0, 0.0, 1.0, 0.4);
+        uPad->SetBottomMargin (0);
+        dPad->SetTopMargin (0);
+        dPad->SetBottomMargin (0.25);
+        uPad->Draw ();
+        dPad->Draw ();
+        gDirectory->Add (c);
+        gDirectory->Add (uPad);
+        gDirectory->Add (dPad);
+        c->cd ();
+      }
 
-      h->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
-      h->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
+      TH1D* h = (TH1D*) h_lepton_pt[iCent][iSpc];
 
-      h->SetLineColor (colors[iCent]);
-      h->SetMarkerColor (colors[iCent]);
-      h->SetMarkerStyle (kFullCircle);
-      h->SetMarkerSize (0.75);
+      uPad->cd ();
+      uPad->SetLogx ();
+      uPad->SetLogy ();
+      if (plotFill) {
+        //h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
+        h->SetFillColorAlpha (kAzure+10, fillAlpha);
+        h->SetLineColor (kBlack);
+        h->SetMarkerSize (0);
+        h->SetLineWidth (0);
+        h->GetXaxis ()->SetRangeUser (20, 200);
+        h->GetYaxis ()->SetRangeUser (2e-6, 0.50);
 
-      h->Draw (iCent == 0 ? "e1" : "e1 same");
+        h->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+        h->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
+        h->GetXaxis ()->SetTitleSize (0.04/0.6);
+        h->GetYaxis ()->SetTitleSize (0.04/0.6);
+        h->GetXaxis ()->SetLabelSize (0.04/0.6);
+        h->GetYaxis ()->SetLabelSize (0.04/0.6);
+        h->GetXaxis ()->SetTitleOffset (1.5*0.6);
+        h->GetYaxis ()->SetTitleOffset (1.5*0.6);
+
+        h->GetXaxis ()->SetMoreLogLabels ();
+
+        h->DrawCopy (!canvasExists ? "bar" : "bar same");
+        h->SetLineWidth (1);
+        h->Draw ("hist same");
+
+        gPad->RedrawAxis ();
+      } else {
+        TGraphAsymmErrors* g = GetTGAE (h);
+        ResetXErrors (g);
+
+        const int markerStyle = kFullCircle;
+        g->SetMarkerStyle (markerStyle);
+        g->SetMarkerSize (1.25);
+        g->SetLineWidth (2);
+        g->SetLineColor (kBlack);
+        g->SetMarkerColor (kBlack);
+        //g->SetLineColor (colors[iCent]);
+        //g->SetMarkerColor (colors[iCent]);
+        g->GetXaxis ()->SetRangeUser (20, 200);
+        g->GetYaxis ()->SetRangeUser (2e-6, 0.50);
+
+        g->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+        g->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
+        g->GetXaxis ()->SetTitleSize (0.04/0.6);
+        g->GetYaxis ()->SetTitleSize (0.04/0.6);
+        g->GetXaxis ()->SetLabelSize (0.04/0.6);
+        g->GetYaxis ()->SetLabelSize (0.04/0.6);
+        g->GetXaxis ()->SetTitleOffset (1.5*0.6);
+        g->GetYaxis ()->SetTitleOffset (1.5*0.6);
+
+        g->GetXaxis ()->SetMoreLogLabels ();
+
+        g->Draw (!canvasExists ? "AP" : "P");
+      }
+
+      if (!a)
+        continue;
+
+      h = (TH1D*) h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      h->Divide (a->h_lepton_pt[iCent][iSpc]);
+        
+      dPad->cd ();
+      dPad->SetLogx ();
+      //dPad->SetLogy ();
+      if (h) {
+        TGraphAsymmErrors* g = GetTGAE (h);
+        ResetXErrors (g);
+
+        const int markerStyle = kFullCircle;
+        g->SetMarkerStyle (markerStyle);
+        g->SetMarkerStyle (markerStyle);
+        g->SetMarkerSize (1.25);
+        g->SetLineWidth (1);
+        g->SetLineColor (kBlack);
+        g->SetMarkerColor (kBlack);
+        g->GetXaxis ()->SetRangeUser (20, 200);
+        g->GetYaxis ()->SetRangeUser (0.5, 1.5);
+
+        g->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+        g->GetYaxis ()->SetTitle ("Data / MC");
+        g->GetXaxis ()->SetTitleSize (0.04/0.4);
+        g->GetYaxis ()->SetTitleSize (0.04/0.4);
+        g->GetXaxis ()->SetLabelSize (0.04/0.4);
+        g->GetYaxis ()->SetLabelSize (0.04/0.4);
+        g->GetXaxis ()->SetTitleOffset (2.5*0.4);
+        g->GetYaxis ()->SetTitleOffset (1.5*0.4);
+        g->GetYaxis ()->CenterTitle ();
+
+        g->GetXaxis ()->SetMoreLogLabels ();
+
+        g->Draw ("AP");
+
+        TLine* l = new TLine (0, 1, 200, 1);
+        l->SetLineColor (46);
+        l->SetLineWidth (2);
+        l->SetLineStyle (5);
+        l->Draw ("same");
+      }
+      else {
+        cout << "Warning in FullAnalysis :: PlotLeptonPtSpectra: Lepton pT spectra ratio needs to be calculated!" << endl;
+      }
+
+      uPad->cd ();
+      myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
+      if (iCent == 0)
+        myText (0.71, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.04/0.6);
+      else
+        myText (0.71, 0.85, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      const char* zstr = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      myText (0.71, 0.76, kBlack, zstr, 0.04/0.6);
+
+      myMarkerText (0.753, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myOnlyBoxText (0.76, 0.58, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+
+      c->SaveAs (Form ("%s/LeptonPtSpectra/%sPtSpectra_iCent%i.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : "Muon", iCent));
     }
-    myText (0.76, 0.88, colors[0], "#it{pp}", 0.04);
-    for (short iCent = 1; iCent < numCentBins; iCent++) {
-      myText (0.76, 0.88-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
-    }
-    c->SaveAs (Form ("%s/LeptonPtSpectra/%sPtSpectra.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : "Muon"));
   }
 }
 
@@ -1513,7 +1633,7 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
         g->GetYaxis ()->CenterTitle ();
         g->Draw (iSpc == 0 && !canvasExists ? "AP" : "P");
 
-        if (iSpc == 0 && !canvasExists) {
+        if (iSpc == 0) {
           TLine* l = new TLine (-2.5, 1, 2.5, 1);
           l->SetLineColor (46);
           l->SetLineWidth (2);
@@ -1748,15 +1868,15 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates ratio of Z pT distributions between data and MC
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: CalculateZPtDistRatio (FullAnalysis* a) {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      h_z_pt_ratio[iCent][iSpc] = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      h_z_pt_ratio[iCent][iSpc]->Divide (a->h_z_pt[iCent][iSpc]);
-    }
-  }
-}
+//void FullAnalysis :: CalculateZPtDistRatio (FullAnalysis* a) {
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      h_z_pt_ratio[iCent][iSpc] = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+//      h_z_pt_ratio[iCent][iSpc]->Divide (a->h_z_pt[iCent][iSpc]);
+//    }
+//  }
+//}
 
 
 
@@ -1764,31 +1884,11 @@ void FullAnalysis :: CalculateZPtDistRatio (FullAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZPtSpectra () {
-  //const char* canvasName = "c_z_pt";
-  //const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  //TCanvas* c = nullptr;
-  ////TPad* uPad = nullptr, *dPad = nullptr;
-  //if (canvasExists) {
-  //  c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  //  //uPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_uPad", canvasName)));
-  //  //dPad = dynamic_cast<TPad*>(gDirectory->Get (Form ("%s_dPad", canvasName)));
-  //}
-  //else {
-  //  c = new TCanvas (canvasName, "", 800, 800);
-  //  c->cd ();
-  //  //uPad = new TPad (Form ("%s_uPad", canvasName), "", 0.0, 0.4, 1.0, 1.0);
-  //  //dPad = new TPad (Form ("%s_dPad", canvasName), "", 0.0, 0.0, 1.0, 0.4);
-  //  //uPad->SetBottomMargin (0);
-  //  //dPad->SetTopMargin (0);
-  //  //dPad->SetBottomMargin (0.25);
-  //  //uPad->Draw ();
-  //  //dPad->Draw ();
-  //  gDirectory->Add (c);
-  //  //gDirectory->Add (uPad);
-  //  //gDirectory->Add (dPad);
-  //}
-  //c->cd ();
+void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
+
+  if (a)
+    a->PlotZPtSpectra ();
+
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -1869,8 +1969,13 @@ void FullAnalysis :: PlotZPtSpectra () {
         g->Draw (!canvasExists/* && iCent == 0*/ ? "AP" : "P");
       }
 
+      if (!a)
+        continue;
+
       dPad->cd ();
-      h = h_z_pt_ratio[iCent][iSpc];
+      h = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      h->Divide (a->h_z_pt[iCent][iSpc]);
+      h_z_pt_ratio[iCent][iSpc] = h;
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -1893,15 +1998,13 @@ void FullAnalysis :: PlotZPtSpectra () {
         g->GetXaxis ()->SetTitleOffset (2.5*0.4);
         g->GetYaxis ()->SetTitleOffset (1.5*0.4);
         g->GetYaxis ()->CenterTitle ();
-        g->Draw (!canvasExists/* && iCent == 0*/ ? "AP" : "P");
+        g->Draw ("AP");
 
-        if (!canvasExists) {
-          TLine* l = new TLine (0, 1, 300, 1);
-          l->SetLineColor (46);
-          l->SetLineWidth (2);
-          l->SetLineStyle (5);
-          l->Draw ("same");
-        }
+        TLine* l = new TLine (0, 1, 300, 1);
+        l->SetLineColor (46);
+        l->SetLineWidth (2);
+        l->SetLineStyle (5);
+        l->Draw ("same");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZPtSpectra: Z pT spectra ratio not stored, needs to be calculated!" << endl;
@@ -2001,19 +2104,19 @@ void FullAnalysis :: PlotZYPhiMap () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates ratio of Z eta distributions between central Pb+Pb to pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: CalculateZEtaDistRatio (FullAnalysis* a) {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
-        h_z_eta_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_eta[iCent][iSpc][iPtZ]->Clone (Form ("h_z_eta_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        TH1D* temp = (TH1D*) a->h_z_eta[iCent][iSpc][iPtZ]->Clone ("temp");
-        h_z_eta_ratio[iCent][iSpc][iPtZ]->Divide (temp);
-        delete temp;
-      }
-    }
-  }
-}
+//void FullAnalysis :: CalculateZEtaDistRatio (FullAnalysis* a) {
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
+//        h_z_eta_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_eta[iCent][iSpc][iPtZ]->Clone (Form ("h_z_eta_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
+//        TH1D* temp = (TH1D*) a->h_z_eta[iCent][iSpc][iPtZ]->Clone ("temp");
+//        h_z_eta_ratio[iCent][iSpc][iPtZ]->Divide (temp);
+//        delete temp;
+//      }
+//    }
+//  }
+//}
 
 
 
@@ -2021,7 +2124,11 @@ void FullAnalysis :: CalculateZEtaDistRatio (FullAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots the PSEUDORAPIDITY distribution of reconstructed Z bosons
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZEtaMap () {
+void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
+
+  if (a)
+    a->PlotZEtaMap ();
+
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
@@ -2099,6 +2206,9 @@ void FullAnalysis :: PlotZEtaMap () {
         g->Draw (!canvasExists ? "AP" : "P");
       }
 
+      if (!a)
+        continue;
+
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
       const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
@@ -2116,8 +2226,13 @@ void FullAnalysis :: PlotZEtaMap () {
       myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
       myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
 
+
       dPad->cd ();
-      h = h_z_eta_ratio[iCent][iSpc][nPtZBins];
+
+      h = (TH1D*) h_z_eta[iCent][iSpc][nPtZBins]->Clone (Form ("h_z_eta_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, nPtZBins, name.c_str ()));
+      h->Divide (a->h_z_eta[iCent][iSpc][nPtZBins]);
+      h_z_eta_ratio[iCent][iSpc][nPtZBins] = h;
+
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -2141,15 +2256,13 @@ void FullAnalysis :: PlotZEtaMap () {
         g->GetYaxis ()->SetTitleOffset (1.5*0.4);
 
         g->GetYaxis ()->CenterTitle ();
-        g->Draw (!canvasExists ? "AP" : "P");
+        g->Draw ("AP");
 
-        if (!canvasExists) {
-          TLine* l = new TLine (-5.0, 1, 5.0, 1);
-          l->SetLineColor (46);
-          l->SetLineWidth (2);
-          l->SetLineStyle (5);
-          l->Draw ("same");
-        }
+        TLine* l = new TLine (-5.0, 1, 5.0, 1);
+        l->SetLineColor (46);
+        l->SetLineWidth (2);
+        l->SetLineStyle (5);
+        l->Draw ("same");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZEtaDst: Z Eta spectra ratio not stored, needs to be calculated!" << endl;
@@ -2167,19 +2280,19 @@ void FullAnalysis :: PlotZEtaMap () {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //alculates ratio of Z y distributions between central Pb+Pb to pp
 //////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: CalculateZYDistRatio (FullAnalysis* a) {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
-        h_z_y_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        TH1D* temp = (TH1D*)a->h_z_y[iCent][iSpc][iPtZ]->Clone ("temp");
-        h_z_y_ratio[iCent][iSpc][iPtZ]->Divide (temp);
-        delete temp;
-      }
-    }
-  }
-}
+//void FullAnalysis :: CalculateZYDistRatio (FullAnalysis* a) {
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
+//        h_z_y_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
+//        TH1D* temp = (TH1D*)a->h_z_y[iCent][iSpc][iPtZ]->Clone ("temp");
+//        h_z_y_ratio[iCent][iSpc][iPtZ]->Divide (temp);
+//        delete temp;
+//      }
+//    }
+//  }
+//}
 
 
 
@@ -2187,7 +2300,11 @@ void FullAnalysis :: CalculateZYDistRatio (FullAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots the PSEUDORAPIDITY distribution of reconstructed Z bosons
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZYMap () {
+void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
+
+  if (a)
+    a->PlotZYMap ();
+
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -2266,6 +2383,9 @@ void FullAnalysis :: PlotZYMap () {
         g->Draw (!canvasExists ? "AP" : "P");
       }
 
+      if (!a)
+        continue;
+
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
       const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
@@ -2285,7 +2405,11 @@ void FullAnalysis :: PlotZYMap () {
       
 
       dPad->cd ();
-      h = h_z_y_ratio[iCent][iSpc][nPtZBins];
+
+      h = (TH1D*) h_z_y[iCent][iSpc][nPtZBins]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, nPtZBins, name.c_str ()));
+      h->Divide (a->h_z_y[iCent][iSpc][nPtZBins]);
+      h_z_y_ratio[iCent][iSpc][nPtZBins] = h;
+
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -2309,15 +2433,13 @@ void FullAnalysis :: PlotZYMap () {
         g->GetYaxis ()->SetTitleOffset (1.5*0.4);
 
         g->GetYaxis ()->CenterTitle ();
-        g->Draw (!canvasExists ? "AP" : "P");
+        g->Draw ("AP");
 
-        if (!canvasExists) {
-          TLine* l = new TLine (-2.5, 1, 2.5, 1);
-          l->SetLineColor (46);
-          l->SetLineWidth (2);
-          l->SetLineStyle (5);
-          l->Draw ("same");
-        }
+        TLine* l = new TLine (-2.5, 1, 2.5, 1);
+        l->SetLineColor (46);
+        l->SetLineWidth (2);
+        l->SetLineStyle (5);
+        l->Draw ("same");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZEtaDst: Z Eta spectra ratio not stored, needs to be calculated!" << endl;
@@ -2510,25 +2632,25 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates ratio of Z mass spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: CalculateZMassSpectraRatio (FullAnalysis* a) {
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iCent = 0; iCent < numCentBins; iCent++) {
-      //if (iCent > 0) {
-      //  h_z_m[iCent][iSpc]->Rebin (2);
-      //  h_z_m[iCent][iSpc]->Scale (0.5);
-      //  a->h_z_m[iCent][iSpc]->Rebin (2);
-      //  a->h_z_m[iCent][iSpc]->Scale (0.5);
-      //}
-
-      for (short iReg = 0; iReg < 3; iReg++) {
-
-        h_z_m_ratio[iCent][iSpc][iReg] = (TH1D*) h_z_m[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
-        h_z_m_ratio[iCent][iSpc][iReg]->Divide (a->h_z_m[iCent][iSpc][iReg]);
-      }
-    }
-  }
-}
+//void FullAnalysis :: CalculateZMassSpectraRatio (FullAnalysis* a) {
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      //if (iCent > 0) {
+//      //  h_z_m[iCent][iSpc]->Rebin (2);
+//      //  h_z_m[iCent][iSpc]->Scale (0.5);
+//      //  a->h_z_m[iCent][iSpc]->Rebin (2);
+//      //  a->h_z_m[iCent][iSpc]->Scale (0.5);
+//      //}
+//
+//      for (short iReg = 0; iReg < 3; iReg++) {
+//
+//        h_z_m_ratio[iCent][iSpc][iReg] = (TH1D*) h_z_m[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
+//        h_z_m_ratio[iCent][iSpc][iReg]->Divide (a->h_z_m[iCent][iSpc][iReg]);
+//      }
+//    }
+//  }
+//}
 
 
 
@@ -2536,7 +2658,11 @@ void FullAnalysis :: CalculateZMassSpectraRatio (FullAnalysis* a) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z mass spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotZMassSpectra () {
+void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
+
+  if (a)
+    a->PlotZMassSpectra ();
+
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
@@ -2635,11 +2761,19 @@ void FullAnalysis :: PlotZMassSpectra () {
           //fit->SetLineColor (kBlack);
           //fit->Draw ("same");
         }
+
+        if (!a)
+          continue;
+
         LabelZMassSpectra (iSpc, iCent, iReg);
         
 
         dPad->cd ();
-        h = h_z_m_ratio[iCent][iSpc][iReg];
+
+        h = (TH1D*) h_z_m[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
+        h->Divide (a->h_z_m[iCent][iSpc][iReg]);
+        h_z_m_ratio[iCent][iSpc][iReg] = h;
+
         if (h) {
           TGraphAsymmErrors* g = GetTGAE (h);
           ResetXErrors (g);
@@ -2662,15 +2796,13 @@ void FullAnalysis :: PlotZMassSpectra () {
           g->GetXaxis ()->SetTitleOffset (2.5*0.4);
           g->GetYaxis ()->SetTitleOffset (1.5*0.4);
           g->GetYaxis ()->CenterTitle ();
-          g->Draw (!canvasExists ? "AP" : "P");
+          g->Draw ("AP");
 
-          if (!canvasExists) {
-            TLine* l = new TLine (76, 1, 106, 1);
-            l->SetLineColor (46);
-            l->SetLineWidth (2);
-            l->SetLineStyle (5);
-            l->Draw ("same");
-          }
+          TLine* l = new TLine (76, 1, 106, 1);
+          l->SetLineColor (46);
+          l->SetLineWidth (2);
+          l->SetLineStyle (5);
+          l->Draw ("same");
         }
         else {
           cout << "Warning in FullAnalysis :: PlotZMassSpectra: Z mass spectra ratio not stored, needs to be calculated!" << endl;
@@ -2789,7 +2921,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   if (pSpc != 2)
     myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.05);
 
-  c->SaveAs (Form ("%s/ZPhiYields.pdf", plotPath.Data ()));
+  c->SaveAs (Form ("%s/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
 
 

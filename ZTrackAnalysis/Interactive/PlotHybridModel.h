@@ -52,22 +52,22 @@ void PlotHybridModel (const bool useTrkPt = true) {
   gPad->SetLogx ();
   gPad->SetLogy ();
 
-  for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+  for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
     TGAE* g = g_hybridModel[iPtZ];
 
     g->GetYaxis ()->SetRangeUser (0.1, max_iaa);
 
-    g->SetFillColorAlpha (modelFillColors[iPtZ-1], 0.3);
+    g->SetFillColorAlpha (modelFillColors[iPtZ-2], 0.3);
     //g->SetFillStyle (1001);
 
-    g->Draw (!canvasExists && iPtZ == 2 ? "A3" : "3");
+    g->Draw (!canvasExists && iPtZ == 3 ? "A3" : "3");
   }
 
-  for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++)
-    myOnlyBoxText (0.623, 0.868-0.05*(iPtZ-2), 1.2, modelFillColors[iPtZ-1], kBlack, 1, "", 0.040, 1001, 0.3);
+  for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++)
+    myOnlyBoxText (0.603, 0.868-0.05*(iPtZ-3), 1.2, modelFillColors[iPtZ-2], kBlack, 1, "", 0.040, 1001, 0.3);
 
-  myText (0.56, 0.90, kBlack, "Hybrid", 0.030);
-  myText (0.65, 0.90, kBlack, "Data", 0.030);
+  myText (0.54, 0.90, kBlack, "Hybrid", 0.030);
+  myText (0.63, 0.90, kBlack, "Data", 0.030);
 
 
 }
