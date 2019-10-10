@@ -60,7 +60,7 @@ class MinbiasAnalysis : public FullAnalysis {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //// Load histograms into memory, then combine channels.
 //////////////////////////////////////////////////////////////////////////////////////////////////
-void MinbiasAnalysis :: LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) {
+void MinbiasAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   FullAnalysis :: LoadHists (histFileName, _finishHists);
 
   PhysicsAnalysis :: CombineHists ();
@@ -316,7 +316,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0;
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
-  //vector<float>* z_trk_pt = nullptr, *z_trk_eta = nullptr, *z_trk_phi = nullptr, *z_trk_charge = nullptr;
+  vector<float>* z_trk_pt = nullptr, *z_trk_eta = nullptr, *z_trk_phi = nullptr, *z_trk_charge = nullptr;
+  vector<float> out_z_trk_pt (0), out_z_trk_eta (0), out_z_trk_phi (0), out_z_trk_charge (0);
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -366,10 +367,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("z_phi",         &z_phi);
     zTree->SetBranchAddress ("z_m",           &z_m);
     zTree->SetBranchAddress ("ntrk",          &z_ntrk);
-    //zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
-    //zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
-    //zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
-    //zTree->SetBranchAddress ("trk_charge",    &z_trk_charge);
+    zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
+    zTree->SetBranchAddress ("trk_charge",    &z_trk_charge);
     zTree->SetBranchAddress ("l1_pt",         &l1_pt);
     zTree->SetBranchAddress ("l1_eta",        &l1_eta);
     zTree->SetBranchAddress ("l1_phi",        &l1_phi);
@@ -411,6 +412,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mixedEventsTree->Branch ("z_psi2",          &z_psi2,          "z_psi2/F");
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
+    mixedEventsTree->Branch ("z_trk_pt",        &out_z_trk_pt);
+    mixedEventsTree->Branch ("z_trk_eta",       &out_z_trk_eta);
+    mixedEventsTree->Branch ("z_trk_phi",       &out_z_trk_phi);
+    mixedEventsTree->Branch ("z_trk_charge",    &out_z_trk_charge);
 
     mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
     mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
@@ -506,6 +511,17 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           continue;
         }
         mbEventsUsed[iMBEvt] = true;
+      }
+
+      out_z_trk_pt.clear ();
+      out_z_trk_eta.clear ();
+      out_z_trk_phi.clear ();
+      out_z_trk_charge.clear ();
+      for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
+        out_z_trk_pt.push_back (z_trk_pt->at (iTrk));
+        out_z_trk_eta.push_back (z_trk_eta->at (iTrk));
+        out_z_trk_phi.push_back (z_trk_phi->at (iTrk));
+        out_z_trk_charge.push_back (z_trk_charge->at (iTrk));
       }
 
       // at this point we have a Z boson and a new (unique & random) event to mix with
@@ -631,6 +647,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("z_phi",         &z_phi);
     zTree->SetBranchAddress ("z_m",           &z_m);
     zTree->SetBranchAddress ("ntrk",          &z_ntrk);
+    zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
+    zTree->SetBranchAddress ("trk_charge",    &z_trk_charge);
     zTree->SetBranchAddress ("l1_pt",         &l1_pt);
     zTree->SetBranchAddress ("l1_eta",        &l1_eta);
     zTree->SetBranchAddress ("l1_phi",        &l1_phi);
@@ -670,6 +690,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/i");
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
+    mixedEventsTree->Branch ("z_trk_pt",        &out_z_trk_pt);
+    mixedEventsTree->Branch ("z_trk_eta",       &out_z_trk_eta);
+    mixedEventsTree->Branch ("z_trk_phi",       &out_z_trk_phi);
+    mixedEventsTree->Branch ("z_trk_charge",    &out_z_trk_charge);
 
     mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
     mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
@@ -747,6 +771,17 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           continue;
         }
         mbEventsUsed[iMBEvt] = true;
+      }
+
+      out_z_trk_pt.clear ();
+      out_z_trk_eta.clear ();
+      out_z_trk_phi.clear ();
+      out_z_trk_charge.clear ();
+      for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
+        out_z_trk_pt.push_back (z_trk_pt->at (iTrk));
+        out_z_trk_eta.push_back (z_trk_eta->at (iTrk));
+        out_z_trk_phi.push_back (z_trk_phi->at (iTrk));
+        out_z_trk_charge.push_back (z_trk_charge->at (iTrk));
       }
 
       // at this point we have a Z boson and a new (unique & random) event to mix with

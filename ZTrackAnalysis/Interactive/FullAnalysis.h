@@ -822,10 +822,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       int iReg = (fabs (z_y) > 1.00 ? 1 : 0); // barrel vs. endcaps
       h_z_m[iCent][iSpc][iReg]->Fill (z_m, event_weight);
 
-      h_lepton_pt[iCent][iSpc]->Fill (l1_pt);
-      h_lepton_pt[iCent][iSpc]->Fill (l2_pt);
-      h_lepton_eta[iCent][iSpc]->Fill (l1_eta);
-      h_lepton_eta[iCent][iSpc]->Fill (l2_eta);
+      h_lepton_pt[iCent][iSpc]->Fill (l1_pt, event_weight);
+      h_lepton_pt[iCent][iSpc]->Fill (l2_pt, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l1_eta, event_weight);
+      h_lepton_eta[iCent][iSpc]->Fill (l2_eta, event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l1_phi), event_weight);
       h_z_lepton_dphi[iCent][iSpc]->Fill (DeltaPhi (z_phi, l2_phi), event_weight);
 
@@ -836,8 +836,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt);
-      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
+      h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
       //if (iPtZ < 2)
       //  continue;

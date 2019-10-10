@@ -22,7 +22,7 @@ class MCClosureAnalysis : public FullAnalysis {
     plotFill = false;
     useAltMarker = false;
     isMC = true;
-    eventWeightsFileName = "MCClosureAnalysis/Nominal/eventWeightsFile.root";
+    eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";
   }
 
   void Execute (const char* inFileName, const char* outFileName) override {
@@ -43,19 +43,19 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
-  int nMBPbPbEvts = 0, nMBppEvts = 0;
-  {
-    TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
-    cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
+  //int nMBPbPbEvts = 0, nMBppEvts = 0;
+  //{
+  //  TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
+  //  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
 
-    TTree* mbPbPbTree = (TTree*) mbInFile->Get ("PbPbZTrackTree");
-    TTree* mbppTree = (TTree*) mbInFile->Get ("ppZTrackTree");
+  //  TTree* mbPbPbTree = (TTree*) mbInFile->Get ("PbPbZTrackTree");
+  //  TTree* mbppTree = (TTree*) mbInFile->Get ("ppZTrackTree");
 
-    nMBPbPbEvts = (mbPbPbTree ? mbPbPbTree->GetEntries () : 0);
-    nMBppEvts = (mbppTree ? mbppTree->GetEntries () : 0);
+  //  nMBPbPbEvts = (mbPbPbTree ? mbPbPbTree->GetEntries () : 0);
+  //  nMBppEvts = (mbppTree ? mbppTree->GetEntries () : 0);
 
-    mbInFile->Close ();
-  }
+  //  mbInFile->Close ();
+  //}
 
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
@@ -65,12 +65,13 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   }
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
-  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
-  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
+  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbMixedTree");
+  TTree* ppTree = (TTree*)inFile->Get ("ppMixedTree");
 
   CreateHists ();
 
   bool isEE = false;
+  int event_number = 0;
   float event_weight = 1, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
@@ -78,21 +79,21 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
   vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
-  vector<bool>* trk_truth_matched = nullptr;
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    int nEvts = PbPbTree->GetEntries ();
+    const int nEvts = PbPbTree->GetEntries ();
     PbPbTree->LoadBaskets (4000000000);
-    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("z_event_number", &event_number);
+    PbPbTree->SetBranchAddress ("z_event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",       &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("q2",         &q2);
-    PbPbTree->SetBranchAddress ("psi2",       &psi2);
-    PbPbTree->SetBranchAddress ("vz",         &vz);
+    PbPbTree->SetBranchAddress ("z_fcal_et",  &fcal_et);
+    PbPbTree->SetBranchAddress ("z_q2",       &q2);
+    PbPbTree->SetBranchAddress ("z_psi2",     &psi2);
+    PbPbTree->SetBranchAddress ("z_vz",       &vz);
     PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
     PbPbTree->SetBranchAddress ("z_y",        &z_y);
     PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
@@ -111,38 +112,44 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
-    PbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
+    PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
+    PbPbTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
+    PbPbTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
+    PbPbTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
-    if (nEvts == 0)
-      cout << "Warning! No Z's to mix with in this run!" << endl;
-    cout << "For this PbPb tree, maximum mixing fraction = " << nMBPbPbEvts / nEvts << endl;
+    PbPbTree->GetEntry (0);
+    const int init_event_number = event_number;
 
-    bool doShuffle = false;
-    if (mixingFraction * nEvts > nMBPbPbEvts) {
-      cout << "Warning! Mixing fraction too high, will use " << (float)(nMBPbPbEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
-      nEvts = nMBPbPbEvts / mixingFraction;
-      doShuffle = true;
-    }
+    //if (nEvts == 0)
+    //  cout << "Warning! No Z's to mix with in this run!" << endl;
+    //cout << "For this PbPb tree, maximum mixing fraction = " << nMBPbPbEvts / nEvts << endl;
 
-    std::vector <int> zEventOrder = {};
-    std::vector <int> zEventsUsed = {};
-    for (int i = 0; i < nEvts; i++) {
-      zEventOrder.push_back (i);
-      zEventsUsed.push_back (false);
-    }
-    //std::srand (std::time (0));
-    if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
+    //bool doShuffle = false;
+    //if (mixingFraction * nEvts > nMBPbPbEvts) {
+    //  cout << "Warning! Mixing fraction too high, will use " << (float)(nMBPbPbEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
+    //  nEvts = nMBPbPbEvts / mixingFraction;
+    //  doShuffle = true;
+    //}
 
-    for (int iEvt = 0; iEvt < mixingFraction * nEvts; iEvt++) {
-      if (mixingFraction*nEvts > 100 && iEvt % (mixingFraction*nEvts / 100) == 0)
-        cout << iEvt / (mixingFraction*nEvts / 100) << "\% done...\r" << flush;
+    //std::vector <int> zEventOrder = {};
+    //std::vector <int> zEventsUsed = {};
+    //for (int i = 0; i < nEvts; i++) {
+    //  zEventOrder.push_back (i);
+    //  zEventsUsed.push_back (false);
+    //}
+    ////std::srand (std::time (0));
+    //if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
 
-      PbPbTree->GetEntry (zEventOrder[iEvt % nEvts]);
-      zEventsUsed[iEvt % nEvts]++;
+    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
+        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+
+      PbPbTree->GetEntry (iEvt);
+      //PbPbTree->GetEntry (zEventOrder[iEvt % nEvts]);
+      //zEventsUsed[iEvt % nEvts]++;
+
+      if (iEvt > 0 && event_number == init_event_number)
+        break;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut
@@ -160,6 +167,8 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
+      if (iPtZ < 2)
+        continue; // no one cares about these events anyways
 
       //{
       //  float dphi = DeltaPhi (z_phi, psi2, false);
@@ -232,10 +241,12 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    int nEvts = ppTree->GetEntries ();
-    ppTree->SetBranchAddress ("event_weight", &event_weight);
+    const int nEvts = ppTree->GetEntries ();
+    ppTree->LoadBaskets (4000000000);
+    ppTree->SetBranchAddress ("z_event_number", &event_number);
+    ppTree->SetBranchAddress ("z_event_weight", &event_weight);
     ppTree->SetBranchAddress ("isEE",       &isEE);
-    ppTree->SetBranchAddress ("vz",         &vz);
+    ppTree->SetBranchAddress ("z_vz",       &vz);
     ppTree->SetBranchAddress ("z_pt",       &z_pt);
     ppTree->SetBranchAddress ("z_y",        &z_y);
     ppTree->SetBranchAddress ("z_phi",      &z_phi);
@@ -254,38 +265,44 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",       &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
-    ppTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
+    ppTree->SetBranchAddress ("z_ntrk",     &ntrk);
+    ppTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
+    ppTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
+    ppTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
-    if (nEvts == 0)
-      cout << "Warning! No Z's to mix with in this run!" << endl;
-    cout << "For this pp tree, maximum mixing fraction = " << nMBppEvts / nEvts << endl;
+    ppTree->GetEntry (0);
+    const int init_event_number = event_number;
 
-    bool doShuffle = false;
-    if (mixingFraction * nEvts > nMBppEvts) {
-      cout << "Warning! Mixing fraction too high, will use " << (float)(nMBppEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
-      nEvts = nMBppEvts / mixingFraction;
-      doShuffle = true;
-    }
+    //if (nEvts == 0)
+    //  cout << "Warning! No Z's to mix with in this run!" << endl;
+    //cout << "For this pp tree, maximum mixing fraction = " << nMBppEvts / nEvts << endl;
 
-    std::vector <int> zEventOrder = {};
-    std::vector <int> zEventsUsed = {};
-    for (int i = 0; i < nEvts; i++) {
-      zEventOrder.push_back (i);
-      zEventsUsed.push_back (false);
-    }
-    //std::srand (std::time (0));
-    if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
+    //bool doShuffle = false;
+    //if (mixingFraction * nEvts > nMBppEvts) {
+    //  cout << "Warning! Mixing fraction too high, will use " << (float)(nMBppEvts / mixingFraction) / (float)(nEvts) * 100. << "% of Z events" << endl;
+    //  nEvts = nMBppEvts / mixingFraction;
+    //  doShuffle = true;
+    //}
 
-    for (int iEvt = 0; iEvt < mixingFraction * nEvts; iEvt++) {
-      if (mixingFraction*nEvts > 100 && iEvt % (mixingFraction*nEvts / 100) == 0)
-        cout << iEvt / (mixingFraction*nEvts / 100) << "\% done...\r" << flush;
+    //std::vector <int> zEventOrder = {};
+    //std::vector <int> zEventsUsed = {};
+    //for (int i = 0; i < nEvts; i++) {
+    //  zEventOrder.push_back (i);
+    //  zEventsUsed.push_back (false);
+    //}
+    ////std::srand (std::time (0));
+    //if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
 
-      ppTree->GetEntry (zEventOrder[iEvt % nEvts]);
-      zEventsUsed[iEvt % nEvts]++;
+    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
+        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+
+      if (iEvt > 0 && event_number == init_event_number)
+        break;
+
+      ppTree->GetEntry (iEvt);
+      //ppTree->GetEntry (zEventOrder[iEvt % nEvts]);
+      //zEventsUsed[iEvt % nEvts]++;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut
@@ -296,6 +313,8 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
+      if (iPtZ < 2)
+        continue; // no one cares about these events anyways
 
       //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
 
