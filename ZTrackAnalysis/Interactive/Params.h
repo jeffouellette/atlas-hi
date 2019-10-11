@@ -57,8 +57,8 @@ const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 //const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 //const int centCuts[4]    = {80,     30,     10,      0};
 
-const double centBins[4] = {296.17, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
-const int centCuts[4]    = {60,     30,     10,      0};
+const double centBins[4] = {66.402, 885.172, 1378.92, 5000}; // updated 2015 recommendations, new Glauber MC
+const int centCuts[4]    = {80,     40,     30,      0};
 
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 
