@@ -77,29 +77,23 @@ class PhysicsAnalysis {
   //TH1D* h_ppNch_weights       = nullptr;
 
   // Efficiencies
-  TH1D*** h_trk_effs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  //TF1**   f_trk_effs          = Get1DArray <TH1D*> (numCentBins); // iCent (eta dependence is extrapolated)
-  TH2D**  h2_trk_effs         = Get1DArray <TH2D*> (numCentBins); // iCent
-  //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numCentBins); // iCent
-  TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numCentBins);
-
-  // Bin migration factors
-  TF1**** f_z_trk_zpt_binMigration  = Get3DArray <TF1*> (2, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
-  TF1**** f_z_trk_zxzh_binMigration = Get3DArray <TF1*> (2, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
-
-  //TH2D* h2_muon_trig_effs_eta_phi[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  //TH2D* h2_electron_trig_effs_pt_eta[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  //TH1D* h_electron_trig_effs_fcal[2]; // 2018 Pb+Pb, 2015 Pb+Pb
-  //TH2D* h2_zmumu_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
-  //TH2D* h2_zee_trig_effs_pt_y[3]; // 2017 pp, 2018 Pb+Pb, 2015 Pb+Pb
+  TH1D*** h_trk_effs          = Get2DArray <TH1D*> (numTrkCorrCentBins, numEtaTrkBins); // iCent, iEta
+  //TF1**   f_trk_effs          = Get1DArray <TH1D*> (numTrkCorrCentBins); // iCent (eta dependence is extrapolated)
+  TH2D**  h2_trk_effs         = Get1DArray <TH2D*> (numTrkCorrCentBins); // iCent
+  //TEfficiency*** h_trk_effs   = Get2DArray <TEfficiency*> (numTrkCorrCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D** h2_num_trk_effs      = Get1DArray <TH2D*> (numTrkCorrCentBins); // iCent
+  TH2D** h2_den_trk_effs      = Get1DArray <TH2D*> (numTrkCorrCentBins);
 
   // Tracking purities
-  TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D**  h2_trk_purs         = Get1DArray <TH2D*> (numCentBins); // iCent
-  //TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numCentBins, numEtaTrkBins); // iCent, iEta
-  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numCentBins); // iCent
-  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numCentBins);
+  TH1D*** h_trk_purs          = Get2DArray <TH1D*> (numTrkCorrCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D**  h2_trk_purs         = Get1DArray <TH2D*> (numTrkCorrCentBins); // iCent
+  //TEfficiency*** h_trk_purs   = Get2DArray <TEfficiency*> (numTrkCorrCentBins, numEtaTrkBins); // iCent, iEta
+  TH2D** h2_num_trk_purs      = Get1DArray <TH2D*> (numTrkCorrCentBins); // iCent
+  TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numTrkCorrCentBins);
+
+  // Bin migration factors
+  TF1**** f_z_trk_zpt_binMigration  = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
+  TF1**** f_z_trk_zxzh_binMigration = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
 
   // Physics plots
   TH1D*****   h_z_trk_phi         = Get4DArray <TH1D*> (3, nPtZBins, maxNPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
@@ -146,18 +140,18 @@ class PhysicsAnalysis {
 
     ClearHists ();
 
-    Delete2DArray (h_trk_effs,      numCentBins, numEtaTrkBins);
-    Delete1DArray (h2_trk_effs,     numCentBins);
-    Delete1DArray (h2_num_trk_effs, numCentBins);
-    Delete1DArray (h2_den_trk_effs, numCentBins);
+    Delete2DArray (h_trk_effs,      numTrkCorrCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_effs,     numTrkCorrCentBins);
+    Delete1DArray (h2_num_trk_effs, numTrkCorrCentBins);
+    Delete1DArray (h2_den_trk_effs, numTrkCorrCentBins);
 
-    Delete2DArray (h_trk_purs,      numCentBins, numEtaTrkBins);
-    Delete1DArray (h2_trk_purs,     numCentBins);
-    Delete1DArray (h2_num_trk_purs, numCentBins);
-    Delete1DArray (h2_den_trk_purs, numCentBins);
+    Delete2DArray (h_trk_purs,      numTrkCorrCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_purs,     numTrkCorrCentBins);
+    Delete1DArray (h2_num_trk_purs, numTrkCorrCentBins);
+    Delete1DArray (h2_den_trk_purs, numTrkCorrCentBins);
 
-    Delete3DArray (f_z_trk_zpt_binMigration,  3, nPtZBins, numCentBins);
-    Delete3DArray (f_z_trk_zxzh_binMigration, 3, nPtZBins, numCentBins);
+    Delete3DArray (f_z_trk_zpt_binMigration,  3, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_z_trk_zxzh_binMigration, 3, nPtZBins, numBBBCorrCentBins);
 
     Delete4DArray (h_z_trk_phi,     3, nPtZBins, maxNPtTrkBins, numCentBins);
     Delete4DArray (h_z_trk_phi_sub, 3, nPtZBins, maxNPtTrkBins, numCentBins);
@@ -1416,7 +1410,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies (const bool doRebin) {
 
   trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? (useHijingEffs ? "Hijing_15":"15") : (useHijingEffs ? "Hijing_18":"18")), "read");
 
-  for (int iCent = 0; iCent < numCentBins; iCent++) {
+  for (int iCent = 0; iCent < numTrkCorrCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
     h2_num_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_matched_reco_tracks_iCent%i", iCent));
     h2_den_trk_effs[iCent] = (TH2D*) trkEffFile->Get (Form ("h_truth_tracks_iCent%i", iCent));
@@ -1480,13 +1474,13 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
 
   short iCent = 0;
   if (isPbPb) {
-    while (iCent < numCentBins) {
-      if (fcal_et < centBins[iCent])
+    while (iCent < numTrkCorrCentBins) {
+      if (fcal_et < trkCorrCentBins[iCent])
         break;
       else
         iCent++;
     }
-    if (iCent < 1 || iCent > numCentBins-1)
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }
 
@@ -1532,7 +1526,7 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
     return;
   }
 
-  for (int iCent = 0; iCent < numCentBins; iCent++) {
+  for (int iCent = 0; iCent < numTrkCorrCentBins; iCent++) {
     h2_num_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_primary_reco_tracks_iCent%i", iCent));
     h2_den_trk_purs[iCent] = (TH2D*) trkPurFile->Get (Form ("h2_reco_tracks_iCent%i", iCent));
 
@@ -1600,13 +1594,13 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
 
   short iCent = 0;
   if (isPbPb) {
-    while (iCent < numCentBins) {
-      if (fcal_et < centBins[iCent])
+    while (iCent < numTrkCorrCentBins) {
+      if (fcal_et < trkCorrCentBins[iCent])
         break;
       else
         iCent++;
     }
-    if (iCent < 1 || iCent > numCentBins-1)
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }
 
@@ -2668,7 +2662,9 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
     const char* spc = (iSpc == 0 ? "ee" : "mumu");
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        const char* cent = (iCent == 0 ? "pp" : Form ("CENT%i", numCentBins-iCent-1));
+        const short iBBBCent = (iCent == 0 ? 0 : GetBBBCorrCentBin (0.5 * (centBins[iCent-1] + centBins[iCent])));
+
+        const char* cent = (iBBBCent == 0 ? "pp" : Form ("CENT%i", numBBBCorrCentBins-iBBBCent-1));
 
         TF1* f = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_pt_ZPT%i_%s", spc, iPtZ-2, cent));
         TH1D* h = h_z_trk_zpt_sub[iSpc][iPtZ][iCent];
@@ -4877,8 +4873,8 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1200, 800);
-    c->Divide (3, 2);
+    c = new TCanvas (canvasName, "", 400*(numCentBins-1), 800);
+    c->Divide (numCentBins-1, 2);
     gDirectory->Add (c);
   }
 

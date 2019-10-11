@@ -57,8 +57,40 @@ const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 //const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 //const int centCuts[4]    = {80,     30,     10,      0};
 
-const double centBins[4] = {66.402, 885.172, 1378.92, 5000}; // updated 2015 recommendations, new Glauber MC
-const int centCuts[4]    = {80,     40,     30,      0};
+const double bbbCorrCentBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
+const int bbbCorrCentCuts[4]    = {80,     30,     10,      0};
+
+const int numBBBCorrCentBins = sizeof (bbbCorrCentBins) / sizeof (bbbCorrCentBins[0]); // no minus 1 to include pp bin
+
+short GetBBBCorrCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numBBBCorrCentBins) {
+    if (fcal_et < bbbCorrCentBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
+
+const double trkCorrCentBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
+const int trkCorrCentCuts[4]    = {80,     30,     10,      0};
+
+const int numTrkCorrCentBins = sizeof (trkCorrCentBins) / sizeof (trkCorrCentBins[0]); // no minus 1 to include pp bin
+
+short GetTrkCorrCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numTrkCorrCentBins) {
+    if (fcal_et < trkCorrCentBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
+
+//const double centBins[4] = {66.402, 885.172, 1378.92, 5000}; // updated 2015 recommendations, new Glauber MC
+//const int centCuts[4]    = {80,     40,     30,      0};
+const double centBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
+const int centCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
 
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 
