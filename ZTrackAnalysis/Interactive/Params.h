@@ -12,7 +12,7 @@ using namespace atlashi;
 
 typedef TGraphAsymmErrors TGAE;
 
-const Style_t markerStyles[6] = {kOpenCircle, kOpenSquare, kOpenDiamond, kFullCircle, kFullSquare, kFullDiamond};
+const Style_t markerStyles[7] = {kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCrossX, kFullCircle, kFullSquare, kFullDiamond};
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
 const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
 const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kViolet-2, kMagenta-10, kCyan-6, kOrange, kGreen-2, kGray};
@@ -89,8 +89,9 @@ short GetTrkCorrCentBin (const float fcal_et) {
 
 //const double centBins[4] = {66.402, 885.172, 1378.92, 5000}; // updated 2015 recommendations, new Glauber MC
 //const int centCuts[4]    = {80,     40,     30,      0};
-const double centBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
-const int centCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
+const double centBins[9] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 5000};
+const int centCuts[9]    = {80,     70,      60,     50,      40,      30,      20,      10,      0};
+
 
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 
