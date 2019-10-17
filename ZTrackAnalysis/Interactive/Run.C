@@ -67,14 +67,13 @@ PhysicsAnalysis* data_trackPurity = nullptr, *data_trkPurUpVar = nullptr, *data_
 MinbiasAnalysis* bkg_trackPurity = nullptr, *bkg_trkPurUpVar = nullptr, *bkg_trkPurDownVar = nullptr;
 
 PhysicsAnalysis* data_electronPtUp = nullptr, *data_electronPtDown = nullptr;
-MinbiasAnalysis* bkg_electronPtUp = nullptr, *bkg_electronPtDown = nullptr;
+//MinbiasAnalysis* bkg_electronPtUp = nullptr, *bkg_electronPtDown = nullptr;
 PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 //MinbiasAnalysis* bkg_muonPtUp = nullptr, *bkg_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
 void Run () {
-
   data18    = new FullAnalysis ("data18");
   //data18_nounfold = new FullAnalysis ("data18_nounfold");
   //data18_nounfold->histsUnfolded = true;
@@ -93,6 +92,11 @@ void Run () {
   //mc_bkg  = new MCAnalysis ("mc_bkg");
   //mc_bkg  = new MinbiasAnalysis ("bkg");
   //truth   = new TruthAnalysis ();
+  //bkg15     = new MinbiasAnalysis ();
+  //bkg15->is2015Conds = true;
+  //bkg15->useHijingEffs = true;
+  mc      = new MCAnalysis ();
+  truth   = new TruthAnalysis ();
 
   if (doSys) {
     data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar");
@@ -105,6 +109,7 @@ void Run () {
     bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
     bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
 
+    
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar");
     data_trackHItight->useHITight = true;
     //bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar");
@@ -122,14 +127,14 @@ void Run () {
     data_partComp->doTrackEffVar = true;
     //bkg_partComp         = new MinbiasAnalysis ("bkg_trackEffVar");
     //bkg_partComp->doTrackEffVar = true;
-    data_partCompUpVar   = new PhysicsAnalysis ("data_partCompUpVar");
-    data_partCompUpVar->doTrackEffVar = true;
-    bkg_partCompUpVar    = new MinbiasAnalysis ("bkg_partCompUpVar");
-    bkg_partCompUpVar->doTrackEffVar = true;
-    data_partCompDownVar   = new PhysicsAnalysis ("data_partCompDownVar");
-    data_partCompDownVar->doTrackEffVar = true;
-    bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
-    bkg_partCompDownVar->doTrackEffVar = true;
+    //data_partCompUpVar   = new PhysicsAnalysis ("data_partCompUpVar");
+    //data_partCompUpVar->doTrackEffVar = true;
+    //bkg_partCompUpVar    = new MinbiasAnalysis ("bkg_partCompUpVar");
+    //bkg_partCompUpVar->doTrackEffVar = true;
+    //data_partCompDownVar   = new PhysicsAnalysis ("data_partCompDownVar");
+    //data_partCompDownVar->doTrackEffVar = true;
+    //bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
+    //bkg_partCompDownVar->doTrackEffVar = true;
 
     //data_trackPurity        = new PhysicsAnalysis ("data_trackPurityVar");
     //data_trackPurity->doTrackPurVar = true;
@@ -144,6 +149,7 @@ void Run () {
     bkg_trkPurDownVar    = new MinbiasAnalysis ("bkg_trkPurDownVar");
     bkg_trkPurDownVar->doTrackPurVar = true;
 
+    
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
     data_leptonRejVar->doLeptonRejVar = true;
 
@@ -159,7 +165,9 @@ void Run () {
 
   }
 
-  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  //mc->GenerateWeights ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/PbPb18*Z*.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/eventWeightsFile.root");
+  //bkg18->GenerateWeights("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi_mixed.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal/eventWeightsFile.root");
+  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
   if (doSys) {
@@ -171,6 +179,8 @@ void Run () {
     //data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
     //data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
     //data_trackPurity->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityVariation/data18hi_hists.root");
+    //data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    //data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
   }
 
 
@@ -431,6 +441,7 @@ void Run () {
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
 
   }
+  */
 
 
   SetupDirectories ("", "ZTrackAnalysis/");
