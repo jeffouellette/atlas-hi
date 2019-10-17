@@ -101,7 +101,7 @@ void Systematic :: AddGraphPair (TH1D* h) {
 
 void Systematic :: CreateSysGraphs () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
-    for (short iSpc = 2; iSpc < 3; iSpc++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
@@ -368,7 +368,7 @@ void Systematic :: AddVariations () {
     TGAE* sys = nullptr;
     TH1D* var = nullptr;
 
-    for (short iSpc = 2; iSpc < 3; iSpc++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         //// Hadron yield systematics, signal & signal+bkg levels
@@ -485,7 +485,7 @@ void Systematic :: AddVariations () {
 
   if (!cancelIAA) {
     TGAE* pp_sys, *PbPb_sys, *iaa_sys;
-    for (short iSpc = 2; iSpc < 3; iSpc++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
         pp_sys = GetTGAE (h_z_trk_zpt_sub[iSpc][iPtZ][0]);
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -588,7 +588,7 @@ void Systematic :: AddSystematics () {
 
     TGAE* master = nullptr, *sys = nullptr;
 
-    for (short iSpc = 2; iSpc < 3; iSpc++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         //// Hadron yield systematics, signal & signal+bkg levels

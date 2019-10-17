@@ -853,6 +853,7 @@ void PhysicsAnalysis :: ScaleHists () {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
         const float counts = countsHist->GetBinContent (1);
+        const float countsErr = countsHist->GetBinError (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           const double countsdPhi = counts * (phiHighBins[iPhi]-phiLowBins[iPhi]);
 
@@ -4951,7 +4952,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
           c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
           if (iPtZ == iPtZHi-1)
-            myText (0.25, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+            myText (0.65, 0.85, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
           if (iCent == iCentLo && iPtZ == iPtZLo) {
             myText (0.25, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.08);
             myText (0.25, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.07);
@@ -4966,8 +4967,8 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
           c->cd (iCent-iCentLo + 1);
           if (iCent == iCentLo+2) {
             if (iPtZ == iPtZLo) {
-              myText (0.356, 0.875, kBlack, "#mu#mu", 0.06);
-              myText (0.436, 0.875, kBlack, "ee", 0.06);
+              myText (0.356, 0.875, kBlack, "ee", 0.06);
+              myText (0.436, 0.875, kBlack, "#mu#mu", 0.06);
             }
             myMarkerTextNoLine (0.490, 0.810-0.10*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kFullCircle, "", 1.8, 0.06);
             myMarkerTextNoLine (0.410, 0.810-0.10*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kOpenCircle, "", 1.8, 0.06);
@@ -4985,9 +4986,43 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         } // end loop over iPtZ
       } // end loop over iCent
     }
-
-    c->SaveAs (Form ("%s/IAASpcComp/iaa_%s_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz"));
   } // end loop over species
+
+  //if (!plotAsSystematic) {
+  if (false) {
+    for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+        c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
+
+        for (short iSpc = 0; iSpc < 2; iSpc++) {
+          TGAE* g1 = GetTGAE (useTrkPt ? h_z_trk_zpt_iaa[0][iPtZ][iCent] : h_z_trk_zxzh_iaa[0][iPtZ][iCent]);
+          TGAE* g2 = GetTGAE (useTrkPt ? h_z_trk_zpt_iaa[1][iPtZ][iCent] : h_z_trk_zxzh_iaa[1][iPtZ][iCent]);
+
+          double chisq = 0;
+          double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+          for (int ix = 0; ix < g1->GetN (); ix++) {
+            g1->GetPoint (ix, x1, y1);
+            g2->GetPoint (ix, x2, y2);
+
+            if (y1 > y2) {
+              chisq += pow (y2-y1, 2)/ (pow (g2->GetErrorYhigh (ix), 2) + pow (g1->GetErrorYlow (ix), 2));
+            
+            }
+            else if (y1 < y2) {
+              chisq += pow (y2-y1, 2)/ (pow (g1->GetErrorYhigh (ix), 2) + pow (g2->GetErrorYlow (ix), 2));
+            }
+          }
+          if (iPtZ == 4)
+            myText (0.50, 0.61, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chisq, 6), 0.06);
+          else
+            myText (0.50, 0.61, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chisq, 5), 0.06);
+        } // end loop over species
+      } // end loop over iPtZ
+    } // end loop over iCent
+  }
+
+
+  c->SaveAs (Form ("%s/IAASpcComp/iaa_%s_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz"));
 }
 
 

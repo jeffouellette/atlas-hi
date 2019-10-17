@@ -24,9 +24,9 @@ void PlotHybridModel (const bool useTrkPt = true) {
       f >> x;
       for (int iPtZ = 2; iPtZ <= 4; iPtZ++) {
         f >> dummy >> dummy >> dummy >> dummy >> y1 >> y2;
-        if (useTrkPt && x > zPtBins[iPtZ+1])
+        if (useTrkPt && x > zPtBins[iPtZ])
           continue;
-        else if (!useTrkPt && x*zPtBins[iPtZ+1] < 1)
+        else if (!useTrkPt && x*zPtBins[iPtZ] < 1)
           continue;
         y = 0.5*(y1+y2);
         yerr = 0.5*(y1-y2); 
@@ -38,19 +38,19 @@ void PlotHybridModel (const bool useTrkPt = true) {
     f.close ();
   }
 
-  const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_iCent%i", useTrkPt ? "pttrk" : "xhz", iCent);
-  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
-  TCanvas* c = nullptr;
-  if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
-  else {
-    c = new TCanvas (canvasName, "", 800, 800);
-    gDirectory->Add (c);
-  }
+  //const char* canvasName = Form ("c_z_trk_zpt_%s_iaa_iCent%i", useTrkPt ? "pttrk" : "xhz", iCent);
+  //const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  //TCanvas* c = nullptr;
+  //if (canvasExists)
+  //  c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  //else {
+  //  c = new TCanvas (canvasName, "", 800, 800);
+  //  gDirectory->Add (c);
+  //}
 
   double xmin = 0, xmax = 0;
-  gPad->SetLogx ();
-  gPad->SetLogy ();
+  //gPad->SetLogx ();
+  //gPad->SetLogy ();
 
   for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
     TGAE* g = g_hybridModel[iPtZ];
@@ -60,7 +60,8 @@ void PlotHybridModel (const bool useTrkPt = true) {
     g->SetFillColorAlpha (modelFillColors[iPtZ-2], 0.3);
     //g->SetFillStyle (1001);
 
-    g->Draw (!canvasExists && iPtZ == 3 ? "A3" : "3");
+    //g->Draw (!canvasExists && iPtZ == 3 ? "A3" : "3");
+    g->Draw ("3");
   }
 
   for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++)

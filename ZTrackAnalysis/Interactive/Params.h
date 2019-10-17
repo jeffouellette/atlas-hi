@@ -14,8 +14,8 @@ typedef TGraphAsymmErrors TGAE;
 
 const Style_t markerStyles[7] = {kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCrossX, kFullCircle, kFullSquare, kFullDiamond};
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
-const Color_t colors[10] =    {kBlack, kRed+1, kAzure+2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
-const Color_t fillColors[10] = {kGray, kRed-10, kBlue-10, kGreen-10, kViolet-2, kMagenta-10, kCyan-6, kOrange, kGreen-2, kGray};
+const Color_t colors[10] =    {kBlack, kRed+1, kAzure-1, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
+const Color_t fillColors[10] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, kMagenta-10, kCyan-6, kOrange, kGreen-2, kGray};
 const Color_t modelFillColors[8] = {kGray, kRed+2, kBlue-3, kGreen+3, kViolet-6, kMagenta+2, kCyan+3, kOrange+2};
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
@@ -56,11 +56,6 @@ const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
 //const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations, old Glauber MC
 const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 const int centCuts[4]    = {80,     30,     10,      0};
-//const double centBins[4] = {66.402, 885.172, 1378.92, 5000}; // updated 2015 recommendations, new Glauber MC
-//const int centCuts[4]    = {80,     40,     30,      0};
-//const double centBins[9] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 5000};
-//const int centCuts[9]    = {80,     70,      60,     50,      40,      30,      20,      10,      0};
-
 
 const int numCentBins = sizeof (centBins) / sizeof (centBins[0]); // no minus 1 to include pp bin
 

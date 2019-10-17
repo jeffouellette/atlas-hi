@@ -954,7 +954,8 @@ void GetReflectionX (TH1D* h, const int n) {
 
 
 /**
- * New binning
+ * Applies new binning to a histogram
+ * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */ 
 void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
   if (nbins >= h->GetNbinsX ()) {
@@ -977,6 +978,10 @@ void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
   for (int ix = 0; ix < nbins; ix++) {
     for (int ixprime = 0; ixprime < noldbins; ixprime++) {
       if (bins[ix] <= oldbins[ixprime] && oldbins[ixprime+1] <= bins[ix+1]) {
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + pow (h->GetBinError (ixprime+1), 2));
+      }
+      else if (oldbins[ixprime] <= bins[ix] && bins[ix+1] <= oldbins[ixprime+1]) {
         hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1));
         hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + pow (h->GetBinError (ixprime+1), 2));
       }
