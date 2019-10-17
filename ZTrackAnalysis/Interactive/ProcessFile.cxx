@@ -1,5 +1,6 @@
 #include "MCAnalysis.h"
 #include "MCClosureAnalysis.h"
+#include "MixedMCAnalysis.h"
 #include "TruthAnalysis.h"
 #include "MinbiasAnalysis.h"
 
@@ -76,6 +77,20 @@ int main (int argc, char** argv) {
     delete mc;
   }
 
+  else if (algo == "mixmc") {
+    MixedMCAnalysis* mc = nullptr;
+    inFileName = "MCAnalysis/" + inFileName;
+    outFileName = "MixedMCAnalysis/" + outFileName;
+    mc = new MixedMCAnalysis ("mixed_mc");
+
+    mc->is2015Conds = use2015conds;
+    mc->useHijingEffs = use2015conds;
+    mc->useHITight = doHITightVar;
+
+    mc->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete mc;
+  }
+
   else if (algo == "truth") {
     TruthAnalysis* truth = nullptr;
     inFileName = "TruthAnalysis/" + inFileName;
@@ -101,7 +116,8 @@ int main (int argc, char** argv) {
     bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
 
-    bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ());
+    //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
+    bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code
     delete bkg;
   }
 

@@ -44,18 +44,16 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   SetupDirectories ("", "ZTrackAnalysis/");
 
   //int nMBPbPbEvts = 0, nMBppEvts = 0;
-  //{
-  //  TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
-  //  cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
+  //TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
+  //cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
 
-  //  TTree* mbPbPbTree = (TTree*) mbInFile->Get ("PbPbZTrackTree");
-  //  TTree* mbppTree = (TTree*) mbInFile->Get ("ppZTrackTree");
+  //TTree* mbPbPbTree = (TTree*) mbInFile->Get ("PbPbZTrackTree");
+  //TTree* mbppTree = (TTree*) mbInFile->Get ("ppZTrackTree");
 
-  //  nMBPbPbEvts = (mbPbPbTree ? mbPbPbTree->GetEntries () : 0);
-  //  nMBppEvts = (mbppTree ? mbppTree->GetEntries () : 0);
+  //nMBPbPbEvts = (mbPbPbTree ? mbPbPbTree->GetEntries () : 0);
+  //nMBppEvts = (mbppTree ? mbppTree->GetEntries () : 0);
 
-  //  mbInFile->Close ();
-  //}
+  //mbInFile->Close ();
 
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
@@ -65,8 +63,8 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   }
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
-  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbMixedTree");
-  TTree* ppTree = (TTree*)inFile->Get ("ppMixedTree");
+  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
+  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
   CreateHists ();
 
@@ -85,11 +83,10 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    const int nEvts = PbPbTree->GetEntries ();
+    int nEvts = PbPbTree->GetEntries ();
     PbPbTree->LoadBaskets (4000000000);
     PbPbTree->SetBranchAddress ("z_event_number", &event_number);
     PbPbTree->SetBranchAddress ("z_event_weight", &event_weight);
-    PbPbTree->SetBranchAddress ("isEE",       &isEE);
     PbPbTree->SetBranchAddress ("z_fcal_et",  &fcal_et);
     PbPbTree->SetBranchAddress ("z_q2",       &q2);
     PbPbTree->SetBranchAddress ("z_psi2",     &psi2);
@@ -112,13 +109,20 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",     &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",   &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",  &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",  &trk_phi);
     PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
     PbPbTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
     PbPbTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
     PbPbTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
-    PbPbTree->GetEntry (0);
-    const int init_event_number = event_number;
+    cout << "Found " << nEvts << " events, assuming " << nEvts << " / " << mixingFraction << " = " << nEvts / mixingFraction << " are unique" << endl;
+    nEvts = nEvts / mixingFraction;
+
+    //PbPbTree->GetEntry (0);
+    //const int init_event_number = event_number;
 
     //if (nEvts == 0)
     //  cout << "Warning! No Z's to mix with in this run!" << endl;
@@ -148,8 +152,8 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       //PbPbTree->GetEntry (zEventOrder[iEvt % nEvts]);
       //zEventsUsed[iEvt % nEvts]++;
 
-      if (iEvt > 0 && event_number == init_event_number)
-        break;
+      //if (iEvt > 0 && event_number == init_event_number)
+      //  break;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut
@@ -241,7 +245,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   // Loop over pp tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (ppTree) {
-    const int nEvts = ppTree->GetEntries ();
+    int nEvts = ppTree->GetEntries ();
     ppTree->LoadBaskets (4000000000);
     ppTree->SetBranchAddress ("z_event_number", &event_number);
     ppTree->SetBranchAddress ("z_event_weight", &event_weight);
@@ -270,8 +274,11 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     ppTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
     ppTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
-    ppTree->GetEntry (0);
-    const int init_event_number = event_number;
+    cout << "Found " << nEvts << " events, assuming " << nEvts << " / " << mixingFraction << " = " << nEvts / mixingFraction << " are unique" << endl;
+    nEvts = nEvts / mixingFraction;
+
+    //ppTree->GetEntry (0);
+    //const int init_event_number = event_number;
 
     //if (nEvts == 0)
     //  cout << "Warning! No Z's to mix with in this run!" << endl;
@@ -297,12 +304,12 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
 
-      if (iEvt > 0 && event_number == init_event_number)
-        break;
-
       ppTree->GetEntry (iEvt);
       //ppTree->GetEntry (zEventOrder[iEvt % nEvts]);
       //zEventsUsed[iEvt % nEvts]++;
+
+      //if (iEvt > 0 && event_number == init_event_number)
+      //  break;
 
       //if (fabs (vz) > 150)
       //  continue; // vertex cut

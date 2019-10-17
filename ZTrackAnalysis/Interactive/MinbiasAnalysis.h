@@ -26,6 +26,8 @@ class MinbiasAnalysis : public FullAnalysis {
 
   public:
 
+  bool takeNonTruthTracks = false;
+
   MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
     plotFill = true;
@@ -318,6 +320,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
   vector<float>* z_trk_pt = nullptr, *z_trk_eta = nullptr, *z_trk_phi = nullptr, *z_trk_charge = nullptr;
   vector<float> out_z_trk_pt (0), out_z_trk_eta (0), out_z_trk_phi (0), out_z_trk_charge (0);
+  vector<bool>* trk_truth_matched = nullptr;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,6 +342,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbPbPbTree->SetBranchAddress ("trk_eta",      trk_eta);
     mbPbPbTree->SetBranchAddress ("trk_phi",      trk_phi);
 
+    if (takeNonTruthTracks)
+      mbPbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
+
     mbPbPbTree->LoadBaskets (8000000000); //2000000000 = 2GB
 
 
@@ -354,6 +360,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     //std::srand (std::time (0));
     std::random_shuffle (mbEventOrder.begin (), mbEventOrder.end ());
 
+    cout << Form ("Reading Z bosons from %s/%s", rootPath.Data (), inFileName) << endl;
     TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
     //TTree* zTree = LoadEventMixingTree (inFileName, "PbPbZTrackTree");
     TTree* zTree = (TTree*) inFile->Get ("PbPbZTrackTree");
@@ -504,7 +511,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbPbPbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[iMBEvt] && iFCalEt == GetSuperFineCentBin (fcal_et));// && fabs (vz) <= 150);// && iVZ == GetVZBin (vz));
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && iFCalEt == GetSuperFineCentBin (fcal_et));// && fabs (vz) <= 150);// && iVZ == GetVZBin (vz));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -764,7 +771,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[iMBEvt]);
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
