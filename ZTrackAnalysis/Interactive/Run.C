@@ -72,12 +72,10 @@ PhysicsAnalysis* data_leptonRejVar = nullptr;
 
 
 void Run () {
-
   data18    = new FullAnalysis ("data18");
   //data15  = new FullAnalysis ("data15");
   //data15->is2015Conds = true;
   //data15->useHijingEffs = true;
-  //
   bkg18     = new MinbiasAnalysis ();
   //bkg15->is2015Conds = true;
   //bkg15->useHijingEffs = true;
@@ -99,7 +97,6 @@ void Run () {
     bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
     bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
 
-    
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar");
     data_trackHItight->useHITight = true;
     //bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar");
@@ -117,14 +114,14 @@ void Run () {
     data_partComp->doTrackEffVar = true;
     //bkg_partComp         = new MinbiasAnalysis ("bkg_trackEffVar");
     //bkg_partComp->doTrackEffVar = true;
-    data_partCompUpVar   = new PhysicsAnalysis ("data_partCompUpVar");
-    data_partCompUpVar->doTrackEffVar = true;
-    bkg_partCompUpVar    = new MinbiasAnalysis ("bkg_partCompUpVar");
-    bkg_partCompUpVar->doTrackEffVar = true;
-    data_partCompDownVar   = new PhysicsAnalysis ("data_partCompDownVar");
-    data_partCompDownVar->doTrackEffVar = true;
-    bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
-    bkg_partCompDownVar->doTrackEffVar = true;
+    //data_partCompUpVar   = new PhysicsAnalysis ("data_partCompUpVar");
+    //data_partCompUpVar->doTrackEffVar = true;
+    //bkg_partCompUpVar    = new MinbiasAnalysis ("bkg_partCompUpVar");
+    //bkg_partCompUpVar->doTrackEffVar = true;
+    //data_partCompDownVar   = new PhysicsAnalysis ("data_partCompDownVar");
+    //data_partCompDownVar->doTrackEffVar = true;
+    //bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
+    //bkg_partCompDownVar->doTrackEffVar = true;
 
     data_trackPurity        = new PhysicsAnalysis ("data_trackPurityVar");
     data_trackPurity->doTrackPurVar = true;
@@ -138,7 +135,6 @@ void Run () {
     data_trkPurDownVar->doTrackPurVar = true;
     bkg_trkPurDownVar    = new MinbiasAnalysis ("bkg_trkPurDownVar");
     bkg_trkPurDownVar->doTrackPurVar = true;
-
     
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
     data_leptonRejVar->doLeptonRejVar = true;
@@ -152,12 +148,11 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
     //bkg_muonPtUp           = new MinbiasAnalysis ("bkg");//_muonPtUpVar");
     //bkg_muonPtDown         = new MinbiasAnalysis ("bkg");//_muonPtDownVar");
-
   }
 
   //mc->GenerateWeights ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/PbPb18*Z*.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/eventWeightsFile.root");
   //bkg18->GenerateWeights("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi_mixed.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal/eventWeightsFile.root");
-  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
   if (doSys) {
@@ -188,6 +183,14 @@ void Run () {
   //mc_bkg->LoadHists   ("MinbiasAnalysis/Nominal/mc_bkg_hists.root");
   //mc_mixed->LoadHists   ("MixedMCAnalysis/Nominal/mc_bkg_hists.root");
   //truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
+  /*
+  data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
+  //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
+  bkg18->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists.root");
+  //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
+  mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
+  truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
+>>>>>>> Stashed changes
 
   data18->SubtractBackground (bkg18);
   data18->CalculateIAA ();
@@ -305,7 +308,11 @@ void Run () {
 
 
     cout << "Calculating track purity systematic errors." << endl;
-    //data_trackPurity->LoadHists       ("DataAnalysis/Variations/TrackPurityVariation/data18hi_hists.root");
+    data_trkPurUpVar->Execute         ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    data_trkPurDownVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+    data_trkPurUpVar->LoadHists         ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    data_trkPurDownVar->LoadHists        ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+    data_trackPurity->LoadHists       ("DataAnalysis/Variations/TrackPurityVariation/data18hi_hists.root");
     //bkg_trackPurity->LoadHists        ("MinbiasAnalysis/Variations/TrackPurityVariation/data18hi_hists.root");
     //data_trackPurity->SubtractBackground (bkg_trackPurity);
     data_trkPurUpVar->LoadHists       ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
@@ -415,6 +422,7 @@ void Run () {
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
 
   }
+  */
 
 
   SetupDirectories ("", "ZTrackAnalysis/");
@@ -459,10 +467,6 @@ void MakePhysicsPlots () {
   combSys->PlotIAAdPtZ (0, 1);
   data18->PlotIAAdPtZ (0, 0);
 
-  //max_icp = 3.;
-  //combSys->PlotICPdPtZ (1, 1);
-  //data18->PlotICPdPtZ (1, 0);
-  
 }
 
 
