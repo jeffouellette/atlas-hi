@@ -17,8 +17,9 @@ namespace atlashi {
 /** User defined parameters **/
 
 const bool debugStatements = false; // Print out periodic statements to monitor code flow
-const TString homePath = std::getenv ("ATLAS_PATH"); // ATLAS Heavy Ions home directory
-const TString drivePath = std::getenv ("ATLAS_DATA_PATH"); // ATLAS Heavy Ions external drive directory
+const TString homePath = std::getenv ("ATLAS_PATH"); // ATLAS Heavy Ions home directory (stores code, pdfs, etc.)
+const TString drivePath = std::getenv ("ATLAS_DATA_PATH"); // ATLAS Heavy Ions external drive directory (stores grid output)
+const TString intPath = std::getenv ("ATLAS_INTERMEDIATE_PATH"); // ATLAS Heavy Ions intermediate files directory (stores smaller root files)
 
 const double dR_HEC = 0.0; // details on the hadronic end cap data cuts.
 const double lowerPhiCut = TMath::Pi()-dR_HEC;
@@ -36,6 +37,7 @@ const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 3
 // More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
 extern TString workPath; // Home analysis directory, should be modified in code outside this path structure
 extern TString externalWorkPath; // External drive storage directory, should be modified in code below
+extern TString intWorkPath; // Base directory for intermediate root files, should be modified in code outside this path structure
 extern TString rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
 extern TString dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
 extern TString plotPath; // Where plots are stored.

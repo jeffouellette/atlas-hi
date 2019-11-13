@@ -116,22 +116,18 @@ const char* FormatMeasurement (double val, double err, const int n) {
 void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
   ResetDirectories ();
 
-  if (thisWorkPath[thisWorkPath.Length()-1] != '/') {
-    workPath = homePath + thisWorkPath + "/";
-    externalWorkPath = drivePath + thisWorkPath + "/";
-  } else {
-    workPath = homePath + thisWorkPath;
-    externalWorkPath = drivePath + thisWorkPath;
-  }
+  workPath = homePath + thisWorkPath + "/";
+  externalWorkPath = drivePath + thisWorkPath + "/";
+  intWorkPath = intPath + thisWorkPath + "/";
 
-  rootPath = workPath + "rootFiles/" + dataSubDir;
-  dataPath = externalWorkPath + "data/" + dataSubDir;
-  plotPath = workPath + "Plots/" + dataSubDir;
-  ptPath = rootPath + "ptData/";
-  trigPath = rootPath + "trigData/";
-  effPath = rootPath + "effData/";
-  xPath = rootPath + "xData/";
-  RpPbPath = rootPath + "RpPbData/";
+  rootPath = intPath + "/rootFiles/" + dataSubDir;
+  dataPath = externalWorkPath + "/data/" + dataSubDir;
+  plotPath = workPath + "/Plots/" + dataSubDir;
+  ptPath = rootPath + "/ptData/";
+  trigPath = rootPath + "/trigData/";
+  effPath = rootPath + "/effData/";
+  xPath = rootPath + "/xData/";
+  RpPbPath = rootPath + "/RpPbData/";
 
   return;
 }
@@ -141,16 +137,17 @@ void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
  * Clears sub-directory information from the directory strings
  */
 void ResetDirectories () {
-  TString workPath = ""; // Home analysis directory, should be modified in code outside this path structure
-  TString externalWorkPath = ""; // External drive storage directory, should be modified in code below
-  TString rootPath = ""; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
-  TString dataPath = ""; // Where the *.root raw data files (from the CERN grid) are stored.
-  TString plotPath = ""; // Where plots are stored.
-  TString ptPath = ""; // Where the pt analysis module output is stored.
-  TString trigPath = "";  // Where the trigger fire count module output is stored.
-  TString effPath = ""; // Where the trigger efficiency module output is stored.
-  TString xPath = ""; // Where the xa/xp module output is stored.
-  TString RpPbPath = ""; // Where the R_pPb module output is stored.
+  workPath = ""; // Home analysis directory, should be modified in code outside this path structure
+  externalWorkPath = ""; // External drive storage directory, should be modified in code below
+  intWorkPath = ""; // Base directory for intermediate root files, should be modified in code outside this path structure
+  rootPath = ""; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
+  dataPath = ""; // Where the *.root raw data files (from the CERN grid) are stored.
+  plotPath = ""; // Where plots are stored.
+  ptPath = ""; // Where the pt analysis module output is stored.
+  trigPath = "";  // Where the trigger fire count module output is stored.
+  effPath = ""; // Where the trigger efficiency module output is stored.
+  xPath = ""; // Where the xa/xp module output is stored.
+  RpPbPath = ""; // Where the R_pPb module output is stored.
 }
 
 

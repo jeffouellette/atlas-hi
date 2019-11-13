@@ -10,6 +10,7 @@ namespace atlashi {
 
 TString workPath = ""; // Home analysis directory, should be modified in code outside this path structure
 TString externalWorkPath = ""; // External drive storage directory, should be modified in code below
+TString intWorkPath = ""; // Base directory for intermediate root files, should be modified in code outside this path structure
 TString rootPath = ""; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
 TString dataPath = ""; // Where the *.root raw data files (from the CERN grid) are stored.
 TString plotPath = ""; // Where plots are stored.
