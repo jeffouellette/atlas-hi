@@ -13,6 +13,7 @@ using namespace atlashi;
 typedef TGraphAsymmErrors TGAE;
 
 const Style_t markerStyles[7] = {kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCrossX, kFullCircle, kFullSquare, kFullDiamond};
+//const Style_t markerStyles[7] = {kFullCircle, kFullSquare, kFullDiamond, kFullCrossX, kFullCircle, kFullSquare, kFullDiamond};
 //const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
 const Color_t colors[10] =    {kBlack, kRed+1, kAzure-1, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
 const Color_t fillColors[10] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, kMagenta-10, kCyan-6, kOrange, kGreen-2, kGray};

@@ -29,8 +29,8 @@ TColor* kirchCol = new TColor ();
 Color_t starColor = kirchCol->GetColor(240,197,40);//kOrange-7;//kMagenta-6;//kirchCol->GetColor(240,197,40);
 Color_t cmsColor = kirchCol->GetColor (153,55,55);//kirchCol->GetColor(71,97,130);//kGreen-2;//kAzure+7;//kirchCol->GetColor(145, 103, 65);
 Color_t phenixColor = kMagenta-6;//kOrange-7;
-Color_t atlasColor = kAzure+2;//kRed+1;//kMagenta+1;
-Color_t atlasFillColor = kAzure+8;//kRed-9;
+Color_t atlasColor = colors[2];//kAzure+2;//kRed+1;//kMagenta+1;
+Color_t atlasFillColor = fillColors[2];//kAzure+8;//kRed-9;
 
 void MakeCONFPlots () {
 
@@ -212,6 +212,27 @@ void MakeCONFPlots () {
   }
 
 
+  TGAE** g_jewel_xhz = Get1DArray <TGAE*> (nPtZBins);
+  TGAE** g_jewel_pth = Get1DArray <TGAE*> (nPtZBins);
+  {
+    TFile* jewelFile = new TFile ("../rootFiles/Jewel/hists.root", "read");
+    for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      TH1D* h_num = (TH1D*) jewelFile->Get (Form ("h_z_trk_pth_medium_iSpc2_iPtZ%i", iPtZ));
+      TH1D* h_den = (TH1D*) jewelFile->Get (Form ("h_z_trk_pth_vacuum_iSpc2_iPtZ%i", iPtZ));
+
+      h_num->Divide (h_den);
+      g_jewel_pth[iPtZ] = make_graph (h_num);
+
+      h_num = (TH1D*) jewelFile->Get (Form ("h_z_trk_xhz_medium_iSpc2_iPtZ%i", iPtZ));
+      h_den = (TH1D*) jewelFile->Get (Form ("h_z_trk_xhz_vacuum_iSpc2_iPtZ%i", iPtZ));
+
+      h_num->Divide (h_den);
+      g_jewel_xhz[iPtZ] = make_graph (h_num);
+    }
+    jewelFile->Close ();
+  }
+
+
 
 
   TFile* dataCompFile = new TFile ("../DataComparisons/Zhadron_IAA_data_comparisons.root", "read");
@@ -266,7 +287,7 @@ void MakeCONFPlots () {
     h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.1);
 
-    h->GetXaxis ()->SetMoreLogLabels ();
+    //h->GetXaxis ()->SetMoreLogLabels ();
 
     h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
     h->GetYaxis ()->SetTitle ("#it{I}_{AA}");
@@ -278,12 +299,31 @@ void MakeCONFPlots () {
 
     h->GetXaxis ()->SetTitleSize (30);
     h->GetYaxis ()->SetTitleSize (30);
-    h->GetXaxis ()->SetTitleOffset (2.5);
+    h->GetXaxis ()->SetTitleOffset (2.35);
     h->GetYaxis ()->SetTitleOffset (2.5);
-    h->GetXaxis ()->SetLabelSize (27);
+    //h->GetXaxis ()->SetLabelSize (0);
+    h->GetXaxis ()->SetLabelSize (0);
     h->GetYaxis ()->SetLabelSize (27);
 
     h->Draw ("");
+
+    {
+      TLatex* tl = new TLatex ();
+      tl->SetTextFont (43);
+      tl->SetTextSize (25);
+      tl->SetTextAlign (21);
+      double yoff = -0.30*3.1/3.8;
+      tl->DrawLatex (1,  yoff, "1");
+      tl->DrawLatex (2,  yoff, "2");
+      tl->DrawLatex (3,  yoff, "3");
+      tl->DrawLatex (4,  yoff, "4");
+      tl->DrawLatex (5,  yoff, "5");
+      tl->DrawLatex (6,  yoff, "6");
+      tl->DrawLatex (7,  yoff, "7");
+      tl->DrawLatex (10, yoff, "10");
+      tl->DrawLatex (20, yoff, "20");
+      tl->DrawLatex (30, yoff, "30");
+    }
 
     //Color_t _colors[4] = {kBlack, kAzure-3, kViolet-3, kRed+1};
     //Color_t _fillColors[4] = {kGray, kAzure-9, kViolet-9, kRed-9};
@@ -338,24 +378,44 @@ void MakeCONFPlots () {
     h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.8);
 
-    h->GetXaxis ()->SetMoreLogLabels ();
+    //h->GetXaxis ()->SetMoreLogLabels ();
 
     h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
     h->GetYaxis ()->SetTitle ("#it{I}_{AA}");
 
     h->GetXaxis ()->SetTitleFont (43);
     h->GetYaxis ()->SetTitleFont (43);
-    h->GetXaxis ()->SetLabelFont (43);
+    //h->GetXaxis ()->SetLabelFont (43);
     h->GetYaxis ()->SetLabelFont (43);
 
     h->GetXaxis ()->SetTitleSize (30);
     h->GetYaxis ()->SetTitleSize (30);
-    h->GetXaxis ()->SetTitleOffset (2.5);
+    h->GetXaxis ()->SetTitleOffset (2.35);
     h->GetYaxis ()->SetTitleOffset (2.5);
-    h->GetXaxis ()->SetLabelSize (27);
+    //h->GetXaxis ()->SetLabelSize (27);
+    h->GetXaxis ()->SetLabelSize (0);
     h->GetYaxis ()->SetLabelSize (27);
 
     h->Draw ("");
+
+    {
+      TLatex* tl = new TLatex ();
+      tl->SetTextFont (43);
+      tl->SetTextSize (25);
+      tl->SetTextAlign (21);
+      double yoff = -0.30;
+      tl->DrawLatex (1,  yoff, "1");
+      tl->DrawLatex (2,  yoff, "2");
+      tl->DrawLatex (3,  yoff, "3");
+      tl->DrawLatex (4,  yoff, "4");
+      tl->DrawLatex (5,  yoff, "5");
+      tl->DrawLatex (6,  yoff, "6");
+      tl->DrawLatex (7,  yoff, "7");
+      tl->DrawLatex (10, yoff, "10");
+      tl->DrawLatex (20, yoff, "20");
+      tl->DrawLatex (30, yoff, "30");
+      tl->DrawLatex (60, yoff, "60");
+    }
 
     for (iCent = numCentBins-1; iCent >= 1; iCent--) {
       TGAE* g_syst = (TGAE*) g_ztrk_pt_iaa_syst[iPtZ][iCent]->Clone ();
@@ -406,24 +466,37 @@ void MakeCONFPlots () {
     h->GetYaxis ()->SetRangeUser (0, 3.1);
     h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 5.);
 
-    h->GetXaxis ()->SetMoreLogLabels ();
+    //h->GetXaxis ()->SetMoreLogLabels ();
 
     h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
     //h->GetYaxis ()->SetTitle ("#it{I}_{AA} (#it{x}_{hZ})");
 
     h->GetXaxis ()->SetTitleFont (43);
     h->GetYaxis ()->SetTitleFont (43);
-    h->GetXaxis ()->SetLabelFont (43);
+    //h->GetXaxis ()->SetLabelFont (43);
     h->GetYaxis ()->SetLabelFont (43);
 
     h->GetXaxis ()->SetTitleSize (30);
     h->GetYaxis ()->SetTitleSize (30);
-    h->GetXaxis ()->SetTitleOffset (2.5);
+    h->GetXaxis ()->SetTitleOffset (2.35);
     h->GetYaxis ()->SetTitleOffset (2.5);
-    h->GetXaxis ()->SetLabelSize (27);
+    //h->GetXaxis ()->SetLabelSize (27);
+    h->GetXaxis ()->SetLabelSize (0);
     h->GetYaxis ()->SetLabelSize (0);
 
     h->Draw ("");
+
+    {
+      TLatex* tl = new TLatex ();
+      tl->SetTextFont (43);
+      tl->SetTextSize (25);
+      tl->SetTextAlign (21);
+      double yoff = -0.30*3.1/3.8;
+      tl->DrawLatex (4e-2,  yoff, "4#times10^{-2}");
+      tl->DrawLatex (1e-1,  yoff, "10^{-1}");
+      tl->DrawLatex (2e-1,  yoff, "2#times10^{-1}");
+      tl->DrawLatex (1,     yoff, "1");
+    }
 
     for (iCent = numCentBins-1; iCent >= 1; iCent--) {
       TGAE* g_syst = (TGAE*) g_ztrk_xhz_iaa_syst[iPtZ][iCent]->Clone ();
@@ -474,24 +547,37 @@ void MakeCONFPlots () {
     h->GetYaxis ()->SetRangeUser (0, 3.8);
     h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 5.);
 
-    h->GetXaxis ()->SetMoreLogLabels ();
+    //h->GetXaxis ()->SetMoreLogLabels ();
 
     h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
     //h->GetYaxis ()->SetTitle ("#it{I}_{AA} (#it{x}_{hZ})");
 
     h->GetXaxis ()->SetTitleFont (43);
     h->GetYaxis ()->SetTitleFont (43);
-    h->GetXaxis ()->SetLabelFont (43);
+    //h->GetXaxis ()->SetLabelFont (43);
     h->GetYaxis ()->SetLabelFont (43);
 
     h->GetXaxis ()->SetTitleSize (30);
     h->GetYaxis ()->SetTitleSize (30);
-    h->GetXaxis ()->SetTitleOffset (2.5);
+    h->GetXaxis ()->SetTitleOffset (2.35);
     h->GetYaxis ()->SetTitleOffset (2.5);
-    h->GetXaxis ()->SetLabelSize (27);
+    //h->GetXaxis ()->SetLabelSize (27);
+    h->GetXaxis ()->SetLabelSize (0);
     h->GetYaxis ()->SetLabelSize (0);
 
     h->Draw ("");
+
+    {
+      TLatex* tl = new TLatex ();
+      tl->SetTextFont (43);
+      tl->SetTextSize (25);
+      tl->SetTextAlign (21);
+      double yoff = -0.30;
+      tl->DrawLatex (2e-2,  yoff, "2#times10^{-2}");
+      tl->DrawLatex (1e-1,  yoff, "10^{-1}");
+      tl->DrawLatex (2e-1,  yoff, "2#times10^{-1}");
+      tl->DrawLatex (1,     yoff, "1");
+    }
 
     for (iCent = numCentBins-1; iCent >= 1; iCent--) {
       TGAE* g_syst = (TGAE*) g_ztrk_xhz_iaa_syst[iPtZ][iCent]->Clone ();
@@ -532,12 +618,12 @@ void MakeCONFPlots () {
     l->Draw ("same");
 
     luPad->cd ();
-    myText (0.35, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+    myText (0.35, 0.86, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.07);
     myText (0.35, 0.78, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.050);
     myText (0.35, 0.71, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02, 1.4-1.7 nb^{-1}", 0.050);
 
     ldPad->cd ();
-    myText (0.35, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+    myText (0.35, 0.86, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.07);
     myText (0.35, 0.78, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.050);
     myText (0.35, 0.71, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02, 1.4-1.7 nb^{-1}", 0.050);
 
@@ -635,7 +721,7 @@ void MakeCONFPlots () {
   //      myMarkerTextNoLine (0.650, 0.75-0.06*(iPtZ-3), colors[iPtZ-2], markerStyle, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 1.1 * markerSize, 0.038);
   //  }
 
-  //  myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
+  //  myText (0.56, 0.88, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.055);
   //  myText (0.56, 0.82, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV", 0.038);
 
   //  PlotHybridModel (true);
@@ -670,8 +756,12 @@ void MakeCONFPlots () {
     short iPtZ = 3;
     const short iCent = 3;
 
-    const Color_t hybridColor = kRed+2;//kViolet-6;
-    const Color_t vitevColor = kCyan-3;
+    const Color_t hybridColor = kViolet-5;
+    const double  hybridAlpha = 0.5;
+    const Color_t vitevColor = kGreen-2;
+    const double  vitevAlpha = 0.5;
+    const Color_t jewelColor = kirchCol->GetColor (255, 153, 0);
+    const double  jewelAlpha = 0.5;
 
     for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
       pads[iPtZ-3]->cd ();
@@ -711,7 +801,7 @@ void MakeCONFPlots () {
 
       TGAE* g = g_hybridModel_xhz[iPtZ];
 
-      g->SetFillColorAlpha (hybridColor, 0.8);
+      g->SetFillColorAlpha (hybridColor, hybridAlpha);
       g->Draw ("3");
     }
 
@@ -720,7 +810,16 @@ void MakeCONFPlots () {
 
       TGAE* g = g_vitevModel[iPtZ];
   
-      g->SetFillColorAlpha (vitevColor, 0.5);
+      g->SetFillColorAlpha (vitevColor, vitevAlpha);
+      g->Draw ("3");
+    }
+
+    for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+      pads[iPtZ-3]->cd ();
+
+      TGAE* g = g_jewel_xhz[iPtZ];
+  
+      g->SetFillColorAlpha (jewelColor, jewelAlpha);
       g->Draw ("3");
     }
 
@@ -731,8 +830,10 @@ void MakeCONFPlots () {
 
       g_syst->SetMarkerSize (0);
       g_syst->SetLineWidth (1);
-      g_syst->SetLineColor (kBlack);
-      g_syst->SetFillColorAlpha (kGray, 0.3);
+      //g_syst->SetLineColor (kBlack);
+      //g_syst->SetFillColorAlpha (kGray, 0.3);
+      g_syst->SetLineColor (colors[iPtZ-2]);
+      g_syst->SetFillColorAlpha (fillColors[iPtZ-2], 0.3);
 
       g_syst->Draw ("5P");
     }
@@ -747,16 +848,18 @@ void MakeCONFPlots () {
       //deltaize (g_stat, 1 + 0.012*(iPtZ - 3.5), true);
 
       g_stat->SetMarkerStyle (kOpenCircle);
-      g_stat->SetMarkerSize (1.5);
+      g_stat->SetMarkerSize (2.3);
       g_stat->SetLineWidth (2);
-      g_stat->SetMarkerColor (kBlack);
-      g_stat->SetLineColor (kBlack);
+      //g_stat->SetMarkerColor (kBlack);
+      //g_stat->SetLineColor (kBlack);
+      g_stat->SetMarkerColor (colors[iPtZ-2]);
+      g_stat->SetLineColor (colors[iPtZ-2]);
 
       g_stat->Draw ("P");
     }
 
     lPad->cd ();
-    myText (0.35, 0.876, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
+    myText (0.35, 0.876, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.060);
     myText (0.35, 0.815, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.040);
     myText (0.35, 0.755, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.040);
     myText (0.22, 0.21, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.046 * 2. * (1.-xPadMiddle));
@@ -768,14 +871,104 @@ void MakeCONFPlots () {
     l->Draw ("same");
 
     rPad->cd ();
-    myText             (-0.05+0.56,  0.10+0.800-0.0130, kBlack, "ATLAS 0-10\% Pb+Pb", 0.048);
-    myText             (-0.05+0.56,  0.10+0.745-0.0130, kBlack, "Hybrid Model", 0.048);
-    myText             (-0.05+0.56,  0.10+0.690-0.0130, kBlack, "Li & Vitev", 0.048);
-    myOnlyBoxText      (-0.05+0.550, 0.10+0.800, 1.2, kGray, kBlack, 0, "", 0.050, 1001, 0.30);
-    myMarkerTextNoLine (-0.05+0.54,  0.10+0.800+0.0001, kBlack, kOpenCircle, "", 1.1 * 1.5, 0.040);
-    myOnlyBoxText      (-0.05+0.550, 0.10+0.745, 1.2, hybridColor, hybridColor, 0, "", 0.050, 1001, 0.80);
-    myOnlyBoxText      (-0.05+0.550, 0.10+0.690, 1.2, vitevColor, vitevColor,  0, "", 0.050, 1001, 0.50);
+    myText             (-0.05+0.56,  0.05+0.855-0.0130, kBlack, "#it{p}_{T}^{Z} [GeV]", 0.044);
+    myText             (-0.05+0.48,  0.05+0.852-0.0130, kBlack, "60+", 0.040);
+    myText             (-0.05+0.375, 0.05+0.852-0.0130, kBlack, "30-60", 0.040);
+    myText             (-0.05+0.56,  0.05+0.800-0.0130, kBlack, "ATLAS 0-10\% Pb+Pb", 0.048);
+    myText             (-0.05+0.56,  0.05+0.745-0.0130, kBlack, "Hybrid Model", 0.048);
+    myText             (-0.05+0.56,  0.05+0.690-0.0130, kBlack, "Li & Vitev", 0.048);
+    myText             (-0.05+0.56,  0.05+0.635-0.0130, kBlack, "JEWEL", 0.048);
+    //myOnlyBoxText      (-0.05+0.550, 0.05+0.800, 1.2,   kGray, kBlack, 0, "", 0.050, 1001, 0.30);
+    //myMarkerTextNoLine (-0.05+0.54,  0.05+0.800+0.0001, kBlack, kOpenCircle, "", 1.1 * 1.5, 0.040);
+    myOnlyBoxText      (-0.05+0.460, 0.05+0.800, 1.2,   fillColors[1], colors[1], 0, "", 0.070, 1001, 0.30);
+    myMarkerTextNoLine (-0.05+0.44,  0.05+0.800+0.0001, colors[1], kOpenCircle, "", 1.1 * 1.5, 0.040);
+    myOnlyBoxText      (-0.05+0.550, 0.05+0.800, 1.2,   fillColors[2], colors[2], 0, "", 0.070, 1001, 0.30);
+    myMarkerTextNoLine (-0.05+0.53,  0.05+0.800+0.0001, colors[2], kOpenCircle, "", 1.1 * 1.5, 0.040);
+
+    //myOnlyBoxText      (-0.09+0.550, 0.05+0.745, 1.2, hybridColor, hybridColor, 0, "", 0.160, 1001, 0.80);
+    //myOnlyBoxText      (-0.09+0.550, 0.05+0.690, 1.2, vitevColor, vitevColor,  0, "", 0.160, 1001, 0.50);
     myText (0.12, 0.21, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.044 * 2.*xPadMiddle);
+
+    {
+      const double x = -0.015+0.53;
+      const double y = 0.05+0.745;
+      const double ytsize = 0.07;
+      const double xtsize = 0.18;
+      const double y1=y-0.25*ytsize;
+      const double y2=y+0.25*ytsize;
+      const double x2=x-0.15*xtsize;
+      const double x1=x-0.95*xtsize;
+      TPave *mbox= new TPave(x1, y1, x2, y2, 0, "NDC");
+      mbox->SetFillColorAlpha(hybridColor, hybridAlpha);
+      mbox->SetFillStyle(1001);
+      mbox->Draw();
+
+      TLine mline;
+      mline.SetLineWidth(1);
+      mline.SetLineColor(hybridColor);
+      //mline.SetLineStyle(lstyle);
+      mline.SetLineStyle(0);
+      Double_t y_new=(y1+y2)/2.;
+      //mline.DrawLineNDC(x1,y_new,x2,y_new);
+      mline.DrawLineNDC(x1,y1,x2,y1);
+      mline.DrawLineNDC(x1,y2,x2,y2);
+      mline.DrawLineNDC(x1,y1,x1,y2);
+      mline.DrawLineNDC(x2,y1,x2,y2);
+    }
+
+    {
+      const double x = -0.015+0.53;
+      const double y = 0.05+0.690;
+      const double ytsize = 0.07;
+      const double xtsize = 0.18;
+      const double y1=y-0.25*ytsize;
+      const double y2=y+0.25*ytsize;
+      const double x2=x-0.15*xtsize;
+      const double x1=x-0.95*xtsize;
+      TPave *mbox= new TPave(x1, y1, x2, y2, 0, "NDC");
+      mbox->SetFillColorAlpha(vitevColor, vitevAlpha);
+      mbox->SetFillStyle(1001);
+      mbox->Draw();
+
+      TLine mline;
+      mline.SetLineWidth(1);
+      mline.SetLineColor(vitevColor);
+      //mline.SetLineStyle(lstyle);
+      mline.SetLineStyle(0);
+      Double_t y_new=(y1+y2)/2.;
+      //mline.DrawLineNDC(x1,y_new,x2,y_new);
+      mline.DrawLineNDC(x1,y1,x2,y1);
+      mline.DrawLineNDC(x1,y2,x2,y2);
+      mline.DrawLineNDC(x1,y1,x1,y2);
+      mline.DrawLineNDC(x2,y1,x2,y2);
+    }
+
+    {
+      const double x = -0.015+0.53;
+      const double y = 0.05+0.635;
+      const double ytsize = 0.07;
+      const double xtsize = 0.18;
+      const double y1=y-0.25*ytsize;
+      const double y2=y+0.25*ytsize;
+      const double x2=x-0.15*xtsize;
+      const double x1=x-0.95*xtsize;
+      TPave *mbox= new TPave(x1, y1, x2, y2, 0, "NDC");
+      mbox->SetFillColorAlpha(jewelColor, jewelAlpha);
+      mbox->SetFillStyle(1001);
+      mbox->Draw();
+
+      TLine mline;
+      mline.SetLineWidth(1);
+      mline.SetLineColor(jewelColor);
+      //mline.SetLineStyle(lstyle);
+      mline.SetLineStyle(0);
+      Double_t y_new=(y1+y2)/2.;
+      //mline.DrawLineNDC(x1,y_new,x2,y_new);
+      mline.DrawLineNDC(x1,y1,x2,y1);
+      mline.DrawLineNDC(x1,y2,x2,y2);
+      mline.DrawLineNDC(x1,y1,x1,y2);
+      mline.DrawLineNDC(x2,y1,x2,y2);
+    }
 
     l = new TLine (1./60., 1, 1, 1);
     l->SetLineStyle (2);
@@ -904,7 +1097,7 @@ void MakeCONFPlots () {
     //l->SetLineColor (kPink-8);
     l->Draw ("same");
 
-    myText (0.20, 0.320, kBlack, "#bf{#it{ATLAS}} Internal", 0.052);
+    myText (0.20, 0.320, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.052);
     myText (0.20, 0.265, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.044);
     myText (0.20, 0.210, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.044);
   }
@@ -918,7 +1111,7 @@ void MakeCONFPlots () {
     double llMargin = 0.18;
     double lrMargin = 0.023;
     double rlMargin = 0.032;
-    double rrMargin = 0.02;
+    double rrMargin = 0.025;
 
     double a = (double) 1./(2. + (llMargin+lrMargin)/(1.-llMargin-lrMargin) + (rlMargin+rrMargin)/(1.-rlMargin-rrMargin));
     double xPadMiddle = a * (1 + (llMargin+lrMargin)/(1.-llMargin-lrMargin));
@@ -964,27 +1157,47 @@ void MakeCONFPlots () {
       //if (gPad == ruPad)
       //  h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 500.);
 
-      h->GetXaxis ()->SetMoreLogLabels ();
+      //h->GetXaxis ()->SetMoreLogLabels ();
 
       h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
       h->GetYaxis ()->SetTitle ("(1/N_{Z}) (d^{2}N_{ch} / d#it{p}_{T} d#Delta#phi) [GeV^{-1}]");
 
       h->GetXaxis ()->SetTitleFont (43);
       h->GetYaxis ()->SetTitleFont (43);
-      h->GetXaxis ()->SetLabelFont (43);
+      //h->GetXaxis ()->SetLabelFont (43);
       h->GetYaxis ()->SetLabelFont (43);
 
       h->GetXaxis ()->SetTitleSize (30);
       h->GetYaxis ()->SetTitleSize (30);
-      h->GetXaxis ()->SetTitleOffset (2.5);
+      h->GetXaxis ()->SetTitleOffset (2.35);
       h->GetYaxis ()->SetTitleOffset (2.5);
-      h->GetXaxis ()->SetLabelSize (27);
+      //h->GetXaxis ()->SetLabelSize (27);
+      h->GetXaxis ()->SetLabelSize (0);
       if (gPad == ruPad || gPad == rdPad)
         h->GetYaxis ()->SetLabelSize (0);
       else
         h->GetYaxis ()->SetLabelSize (27);
 
       h->Draw ("");
+
+      {
+        TLatex* tl = new TLatex ();
+        tl->SetTextFont (43);
+        tl->SetTextSize (25);
+        tl->SetTextAlign (21);
+        double yoff = 2.8e-4;
+        tl->DrawLatex (1,  yoff, "1");
+        tl->DrawLatex (2,  yoff, "2");
+        tl->DrawLatex (3,  yoff, "3");
+        tl->DrawLatex (4,  yoff, "4");
+        tl->DrawLatex (5,  yoff, "5");
+        tl->DrawLatex (6,  yoff, "6");
+        tl->DrawLatex (7,  yoff, "7");
+        tl->DrawLatex (10, yoff, "10");
+        tl->DrawLatex (20, yoff, "20");
+        tl->DrawLatex (30, yoff, "30");
+        tl->DrawLatex (60, yoff, "60");
+      }
     }
 
     for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
@@ -1048,27 +1261,43 @@ void MakeCONFPlots () {
       if (gPad == rdPad)
         h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 500.);
 
-      h->GetXaxis ()->SetMoreLogLabels ();
+      //h->GetXaxis ()->SetMoreLogLabels ();
 
       h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
       h->GetYaxis ()->SetTitle ("(1/N_{Z}) (d^{2}N_{ch} / d#it{x} d#Delta#phi)");
 
       h->GetXaxis ()->SetTitleFont (43);
       h->GetYaxis ()->SetTitleFont (43);
-      h->GetXaxis ()->SetLabelFont (43);
+      //h->GetXaxis ()->SetLabelFont (43);
       h->GetYaxis ()->SetLabelFont (43);
 
       h->GetXaxis ()->SetTitleSize (30);
       h->GetYaxis ()->SetTitleSize (30);
-      h->GetXaxis ()->SetTitleOffset (2.5);
+      h->GetXaxis ()->SetTitleOffset (2.35);
       h->GetYaxis ()->SetTitleOffset (2.5);
-      h->GetXaxis ()->SetLabelSize (27);
+      //h->GetXaxis ()->SetLabelSize (27);
+      h->GetXaxis ()->SetLabelSize (0);
       if (gPad == ruPad || gPad == rdPad)
         h->GetYaxis ()->SetLabelSize (0);
       else
         h->GetYaxis ()->SetLabelSize (27);
 
       h->Draw ("");
+
+      {
+        TLatex* tl = new TLatex ();
+        tl->SetTextFont (43);
+        tl->SetTextSize (25);
+        tl->SetTextAlign (21);
+        double yoff = 1.95e-3;
+        if (gPad == rdPad)
+          tl->DrawLatex (2e-2,  yoff, "2#times10^{-2}");
+        else
+          tl->DrawLatex (4e-2,  yoff, "4#times10^{-2}");
+        tl->DrawLatex (1e-1,  yoff, "10^{-1}");
+        tl->DrawLatex (2e-1,  yoff, "2#times10^{-1}");
+        tl->DrawLatex (1,     yoff, "1");
+      }
     }
 
     for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
@@ -1125,7 +1354,7 @@ void MakeCONFPlots () {
     const double textSF = 0.91;
 
     luPad->cd ();
-    myText (0.44, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+    myText (0.44, 0.85, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.07);
 
     //ruPad->cd ();
     //myText (0.53, 0.870, kBlack, "#it{pp}, 260 pb^{-1}", 0.054);
@@ -1150,10 +1379,10 @@ void MakeCONFPlots () {
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.440, 1.2, _fillColors[1], _colors[1], 0, "", 0.068, 1001, 0.30);
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.380, 1.2, _fillColors[2], _colors[2], 0, "", 0.068, 1001, 0.30);
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.320, 1.2, _fillColors[3], _colors[3], 0, "", 0.068, 1001, 0.30);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.500+0.0000, _colors[0], markerStyles[0], "", 1.2 * 1.0, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.440+0.0000, _colors[1], markerStyles[1], "", 1.2 * 1.0, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.380-0.0005, _colors[2], markerStyles[2], "", 1.2 * 1.2, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.320+0.0000, _colors[3], markerStyles[3], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.500+0.0000, _colors[0], markerStyles[0], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.440+0.0000, _colors[1], markerStyles[1], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.380-0.0005, _colors[2], markerStyles[2], "", 1.2 * 1.2, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.320+0.0000, _colors[3], markerStyles[3], "", 1.2 * 1.0, 0.040);
     //myText             (-0.000+0.60,         0.390+0.500-0.018, kBlack, "#it{pp}", 0.052);
     //myText             (-0.000+0.60,         0.390+0.440-0.018, kBlack, "Pb+Pb 30-80\%", 0.052);
     //myText             (-0.000+0.60,         0.390+0.380-0.018, kBlack, "Pb+Pb 10-30\%", 0.052);
@@ -1169,7 +1398,7 @@ void MakeCONFPlots () {
 
 
     ldPad->cd ();
-    myText (0.44, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+    myText (0.44, 0.85, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.07);
 
     //rdPad->cd ();
     //myText (0.53, 0.870, kBlack, "#it{pp}, 260 pb^{-1}", 0.054);
@@ -1194,10 +1423,10 @@ void MakeCONFPlots () {
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.440, 1.2, _fillColors[1], _colors[1], 0, "", 0.068, 1001, 0.30);
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.380, 1.2, _fillColors[2], _colors[2], 0, "", 0.068, 1001, 0.30);
     myOnlyBoxText      (-0.375+0.650,        -0.080+0.320, 1.2, _fillColors[3], _colors[3], 0, "", 0.068, 1001, 0.30);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.500+0.0000, _colors[0], markerStyles[0], "", 1.2 * 1.0, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.440+0.0000, _colors[1], markerStyles[1], "", 1.2 * 1.0, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.380-0.0005, _colors[2], markerStyles[2], "", 1.2 * 1.2, 0.040);
-    myMarkerTextNoLine (-0.378+0.64-0.0050,  -0.080+0.320+0.0000, _colors[3], markerStyles[3], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.500+0.0000, _colors[0], markerStyles[0], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.440+0.0000, _colors[1], markerStyles[1], "", 1.2 * 1.0, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.380-0.0005, _colors[2], markerStyles[2], "", 1.2 * 1.2, 0.040);
+    myMarkerTextNoLine (-0.3788+0.64-0.0050,  -0.080+0.320+0.0000, _colors[3], markerStyles[3], "", 1.2 * 1.0, 0.040);
     //myText             (-0.000+0.60,         0.390+0.500-0.018, kBlack, "#it{pp}", 0.052);
     //myText             (-0.000+0.60,         0.390+0.440-0.018, kBlack, "Pb+Pb 30-80\%", 0.052);
     //myText             (-0.000+0.60,         0.390+0.380-0.018, kBlack, "Pb+Pb 10-30\%", 0.052);
@@ -1266,7 +1495,7 @@ void MakeCONFPlots () {
       deltaize (g_stat, 1 + 0.030*(iPtZ - 3.5), true);
 
       g_stat->SetMarkerStyle (markerStyles[iPtZ-3]);
-      g_stat->SetMarkerSize (1.5);
+      g_stat->SetMarkerSize (2.3);
       g_stat->SetLineWidth (2);
       g_stat->SetMarkerColor (colors[iPtZ-2]);
       g_stat->SetLineColor (colors[iPtZ-2]);
@@ -1275,7 +1504,7 @@ void MakeCONFPlots () {
     }
 
     c7->cd (1);
-    myText (0.32, 0.880, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
+    myText (0.32, 0.880, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.055);
     myText (0.32, 0.830, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.040);
     myText (0.32, 0.780, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.040);
 
@@ -1285,6 +1514,93 @@ void MakeCONFPlots () {
     myText             (0.05-0.050+0.58,   -0.08+0.80-0.01, kBlack, "#it{p}_{T}^{Z} [GeV]", 0.036);
     myText             (0.05-0.050+0.58,   -0.08+0.74-0.01, kBlack, "ATLAS 0-10\% Pb+Pb", 0.036);
     myText             (0.05-0.050+0.58,   -0.08+0.68-0.01, kBlack, "Hybrid Model", 0.036);
+    myOnlyBoxText      (0.05-0.050+0.5566, -0.08+0.74, 1.2, fillColors[2], colors[2], 0, "", 0.060, 1001, 0.36);
+    myOnlyBoxText      (0.05-0.133+0.5566, -0.08+0.74, 1.2, fillColors[1], colors[1], 0, "", 0.060, 1001, 0.46);
+    myOnlyBoxText      (0.05-0.050+0.5566, -0.08+0.68, 1.2, modelFillColors[2], modelFillColors[2], 0, "", 0.060, 1001, 0.80);
+    myOnlyBoxText      (0.05-0.133+0.5566, -0.08+0.68, 1.2, modelFillColors[1], modelFillColors[1], 0, "", 0.060, 1001, 0.80);
+    myMarkerTextNoLine (0.05-0.050+0.54,   -0.08+0.74+0.0001, colors[2], markerStyles[1], "", 1.3 * 1.5, 0.036);
+    myMarkerTextNoLine (0.05-0.133+0.54,   -0.08+0.74+0.0001, colors[1], markerStyles[0], "", 1.3 * 1.5, 0.036);
+
+    TLine* l = new TLine (ptTrkBins[nPtZBins-1][0], 1, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]], 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    //l->SetLineColor (kPink-8);
+    l->Draw ("same");
+  }
+
+
+
+
+
+  {
+    TCanvas* c8 = new TCanvas ("c8", "", 1200, 1200);
+    c8->SetLogx ();
+    //c8->Divide (2, 1);
+    short iPtZ = 4;
+    const short iCent = 3;
+
+    //const Color_t vitevColor = kCyan+3;
+
+    TH1D* h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+    h->GetYaxis ()->SetRangeUser (0, 3.8);
+
+    h->GetXaxis ()->SetMoreLogLabels ();
+
+    h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+    h->GetYaxis ()->SetTitle ("#it{I}_{AA}");
+    h->Draw ("");
+
+    for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+      c8->cd (iPtZ-3+1);
+      gPad->SetLogx ();
+
+      TGAE* g = g_jewel_pth[iPtZ];
+
+      g->SetFillColorAlpha (modelFillColors[iPtZ-2], 0.8);
+      g->Draw ("3");
+    }
+
+    for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+      //c8->cd (iPtZ-3+1);
+      TGAE* g_syst = (TGAE*) g_ztrk_pt_iaa_syst[iPtZ][iCent]->Clone ();
+
+      g_syst->SetMarkerSize (0);
+      g_syst->SetLineWidth (1);
+      g_syst->SetLineColor (colors[iPtZ-2]);
+      g_syst->SetFillColorAlpha (fillColors[iPtZ-2], 0.3);
+
+      g_syst->Draw ("5P");
+    }
+
+    for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+      //c8->cd (iPtZ-3+1);
+      TGAE* g_stat = make_graph (h_ztrk_pt_iaa_stat[iPtZ][iCent]);
+
+      RecenterGraph (g_stat);
+      ResetXErrors (g_stat);
+      deltaize (g_stat, 1 + 0.030*(iPtZ - 3.5), true);
+
+      g_stat->SetMarkerStyle (markerStyles[iPtZ-3]);
+      g_stat->SetMarkerSize (2.3);
+      g_stat->SetLineWidth (2);
+      g_stat->SetMarkerColor (colors[iPtZ-2]);
+      g_stat->SetLineColor (colors[iPtZ-2]);
+
+      g_stat->Draw ("P");
+    }
+
+    c8->cd (1);
+    myText (0.32, 0.880, kBlack, "#bf{#it{ATLAS}} Preliminary", 0.055);
+    myText (0.32, 0.830, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.040);
+    myText (0.32, 0.780, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.040);
+
+    c8->cd (2);
+    myText             (0.05-0.150+0.50,   -0.08+0.80-0.01, kBlack, "30-60", 0.036);
+    myText             (0.05-0.050+0.50,   -0.08+0.80-0.01, kBlack, "60+", 0.036);
+    myText             (0.05-0.050+0.58,   -0.08+0.80-0.01, kBlack, "#it{p}_{T}^{Z} [GeV]", 0.036);
+    myText             (0.05-0.050+0.58,   -0.08+0.74-0.01, kBlack, "ATLAS 0-10\% Pb+Pb", 0.036);
+    myText             (0.05-0.050+0.58,   -0.08+0.68-0.01, kBlack, "JEWEL", 0.036);
     myOnlyBoxText      (0.05-0.050+0.5566, -0.08+0.74, 1.2, fillColors[2], colors[2], 0, "", 0.060, 1001, 0.36);
     myOnlyBoxText      (0.05-0.133+0.5566, -0.08+0.74, 1.2, fillColors[1], colors[1], 0, "", 0.060, 1001, 0.46);
     myOnlyBoxText      (0.05-0.050+0.5566, -0.08+0.68, 1.2, modelFillColors[2], modelFillColors[2], 0, "", 0.060, 1001, 0.80);

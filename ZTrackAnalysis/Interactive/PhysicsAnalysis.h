@@ -220,6 +220,7 @@ class PhysicsAnalysis {
   virtual void LoadEventWeights ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void UnfoldSubtractedYield ();
+  virtual void InflateStatUnc (const float amount);
   virtual void SubtractSameSigns (PhysicsAnalysis* a);
 
   virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
@@ -261,6 +262,8 @@ class PhysicsAnalysis {
   //virtual void PlotICPdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICPdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICPdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
+  virtual void PlotSignalToBkg (const bool useTrkPt = true, const short iSpc = 2);
+  //virtual void PlotPullDist (const bool useTrkPt = true);
 
   virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
@@ -835,6 +838,8 @@ void PhysicsAnalysis :: CombineHists () {
       } // end loop over species
     } // end loop over pT^Z
   } // end loop over centralities
+
+  InflateStatUnc (0.54);
   return;
 }
 
@@ -2507,6 +2512,8 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     return;
   }
 
+  //cout << "Subtracting bkg. " << a->Name () << " from " << Name () << endl;
+
   //**** Create dummy subtracted histograms for combined channel yield measurement ****//
   if (!backgroundSubtracted) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -2699,6 +2706,27 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
   histsUnfolded = true;
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Inflates statistical uncertainty in final results histograms by some amount
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: InflateStatUnc (const float amount) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        for (TH1D* h : {h_z_trk_zpt[iSpc][iPtZ][iCent], h_z_trk_zxzh[iSpc][iPtZ][iCent], h_z_trk_zpt_sub[iSpc][iPtZ][iCent], h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent], h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]}) {
+          if (!h)
+            continue;
+          for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+            h->SetBinError (ix, h->GetBinError (ix) * (1+amount));
+          }
+        }
+      } // end loop over pT^Z
+    } // end loop over centralities
+  } // end loop over species
+}
 
 
 
@@ -4978,15 +5006,22 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
               myText (0.500, 0.80-0.10*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.06);
           }
 
-          TLine* l = new TLine (xmin, 1, xmax, 1);
-          l->SetLineStyle (2);
-          l->SetLineWidth (2);
-          l->SetLineColor (kPink-8);
-          l->Draw ("same");
         } // end loop over iPtZ
       } // end loop over iCent
     }
   } // end loop over species
+  for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
+    for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+      c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
+      const float xmin = useTrkPt ? trk_min_pt : allXHZBins[0];
+      const float xmax = useTrkPt ? ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]] : allXHZBins[maxNXHZBins];
+      TLine* l = new TLine (xmin, 1, xmax, 1);
+      l->SetLineStyle (2);
+      l->SetLineWidth (2);
+      l->SetLineColor (kPink-8);
+      l->Draw ("same");
+    }
+  } // end loop over iCent
 
   //if (!plotAsSystematic) {
   if (false) {
@@ -5687,6 +5722,72 @@ void PhysicsAnalysis :: WriteIAAs () {
 
   _gDirectory->cd ();
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots signal-to-background panels for data
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) {
+  TCanvas* c = new TCanvas ("c_stb", "", 1500, 800);
+  c->Divide (2, 1);
+
+  for (short iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
+    c->cd (iPtZ-3+1);
+    gPad->SetLogx ();
+    gPad->SetLogy ();
+
+    TH1D* htemp = new TH1D (Form ("htemp_iPtZ%i", iPtZ), "", useTrkPt ? nPtTrkBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? ptTrkBins[iPtZ] : xHZBins[iPtZ]);
+    htemp->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+    htemp->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
+
+    htemp->GetXaxis ()->SetMoreLogLabels ();
+
+    htemp->GetYaxis ()->SetRangeUser (8e-4, 2e4);
+    htemp->Draw ();
+
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      TGAE* g = GetTGAE (useTrkPt ? h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent] : h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]);
+      RecenterGraph (g);
+      ResetXErrors (g);
+      deltaize (g, 1 + 0.01*(iCent - (numCentBins-1)), true);
+      
+      g->SetMarkerStyle (markerStyles[iCent]);
+      g->SetMarkerSize (markerStyles[iCent] == kFullDiamond ? 1.9 : 1.4);
+      g->SetMarkerColor (colors[iCent]);
+      g->SetLineColor (colors[iCent]);
+      g->SetLineWidth (2);
+      g->Draw ("P");
+    }
+
+    if (iPtZ == 3) {
+      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+      myText (0.22, 0.83, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.04);
+      myText (0.65, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.04);
+    }
+    else if (iPtZ == 4) {
+      myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}, 258 pb^{-1}", 1.4, 0.04);
+      myMarkerTextNoLine (0.25, 0.83, colors[1], markerStyles[1], "30-80%", 1.4, 0.04);
+      myMarkerTextNoLine (0.25, 0.78, colors[2], markerStyles[2], "10-30%", 1.9, 0.04);
+      myMarkerTextNoLine (0.25, 0.73, colors[3], markerStyles[3], "0-10%", 1.4, 0.04);
+      myText (0.65, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.04);
+    }
+  }
+
+  c->SaveAs (Form ("%s/TrkYields/sigToBkg_%s_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTTrk" : "xhz"));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots pull between electron & muon channels
+////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: PlotPullDist (const bool useTrkPt = true) {
+//  TCanvas* c = new TCanvas ("c_pull", "", 800, 600);
+//  TH1D* h_pull = new TH1D ("h_pull", ";#Delta#it{I}_{AA}
+//}
 
 
 

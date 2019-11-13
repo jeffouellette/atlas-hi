@@ -19,12 +19,18 @@ class MixedMCAnalysis : public FullAnalysis {
 
   bool takeNonTruthTracks = false;
 
-  MixedMCAnalysis (const char* _name = "mcclosure") : FullAnalysis () {
+  MixedMCAnalysis (const char* _name = "mc_mixed") : FullAnalysis () {
     name = _name;
-    plotFill = false;
+    plotFill = true;
     useAltMarker = false;
     isMC = true;
     eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";
+    plotSignal = false;
+    hasBkg = false;
+    backgroundSubtracted = true;
+    histsUnfolded = true;
+    iaaCalculated = true;
+    //icpCalculated = true;
   }
 
   void Execute (const char* inFileName, const char* outFileName) override;

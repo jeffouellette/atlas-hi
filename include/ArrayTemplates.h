@@ -1,7 +1,7 @@
 #ifndef __ArrayTemplates_h__
 #define __ArrayTemplates_h__
 
-namespace atlashi {
+//namespace atlashi {
 
 /**
  * Each of the following functions returns an n-dimensional array of T's with each entry set to 0.
@@ -113,6 +113,6 @@ void Delete6DArray (T****** &arr, const int n1, const int n2, const int n3, cons
    arr = NULL;
 }
 
-} // end namespace
+//} // end namespace
 
 #endif

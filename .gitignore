@@ -5,9 +5,13 @@ vp1
 *.key
 lib
 *.pdf
+*.png
 *.zip
 *.swp
 *.root
+*.tgz
+*.tar.gz
+*.dSYM
 
 # ROOT compilation tags
 *_h.d
