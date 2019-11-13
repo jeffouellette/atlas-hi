@@ -620,6 +620,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbppTree->SetBranchAddress ("run_number",   &run_number);
     mbppTree->SetBranchAddress ("event_number", &event_number);
     mbppTree->SetBranchAddress ("lumi_block",   &lumi_block);
+    mbppTree->SetBranchAddress ("fcal_et",      &fcal_et);
     mbppTree->SetBranchAddress ("vz",           &vz);
     mbppTree->SetBranchAddress ("ntrk",         &ntrk);
     mbppTree->SetBranchAddress ("trk_pt",       trk_pt);
@@ -689,6 +690,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mixedEventsTree->Branch ("event_number",  &event_number,  "event_number/i");
     mixedEventsTree->Branch ("lumi_block",    &lumi_block,    "lumi_block/i");
     mixedEventsTree->Branch ("isEE",          &isEE,          "isEE/O");
+    mixedEventsTree->Branch ("fcal_et",       &fcal_et,       "fcal_et/F");
     mixedEventsTree->Branch ("vz",            &vz,            "vz/F");
     mixedEventsTree->Branch ("ntrk",          &ntrk,          "ntrk/I");
 
@@ -771,7 +773,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fcal_et >= 20);
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;

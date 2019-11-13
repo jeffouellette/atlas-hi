@@ -87,6 +87,8 @@ int main (int argc, char** argv) {
     mc->useHijingEffs = use2015conds;
     mc->useHITight = doHITightVar;
 
+    mc->takeNonTruthTracks = true;
+
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
   }

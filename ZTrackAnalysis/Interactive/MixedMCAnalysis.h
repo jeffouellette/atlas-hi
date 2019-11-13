@@ -80,6 +80,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->LoadBaskets (4000000000);
     PbPbTree->SetBranchAddress ("event_number", &event_number);
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
+    PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
@@ -102,10 +103,6 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->SetBranchAddress ("l2_trk_pt",    &l2_trk_pt);
     PbPbTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
     PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
     PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
     PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
@@ -184,31 +181,47 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       // save info about this particular Z boson
       const float _event_weight = event_weight;
+      const bool  _isEE         = isEE;
       const float _z_pt         = z_pt;
       const float _z_y          = z_y;
       const float _z_m          = z_m;
       const float _z_phi        = z_phi;
-      const float _l1_pt        = l1_eta;
-      const float _l1_eta       = l1_eta;
-      const float _l1_phi       = l1_phi;
-      const float _l2_pt        = l2_pt;
-      const float _l2_eta       = l2_eta;
-      const float _l2_phi       = l2_phi;
+      //const float _l1_pt        = l1_pt;
+      //const float _l1_eta       = l1_eta;
+      //const float _l1_phi       = l1_phi;
+      //const float _l2_pt        = l2_pt;
+      //const float _l2_eta       = l2_eta;
+      //const float _l2_phi       = l2_phi;
+      //const float _l1_trk_pt    = l1_trk_pt;
+      //const float _l1_trk_eta   = l1_trk_eta;
+      //const float _l1_trk_phi   = l1_trk_phi;
+      //const float _l2_trk_pt    = l2_trk_pt;
+      //const float _l2_trk_eta   = l2_trk_eta;
+      //const float _l2_trk_phi   = l2_trk_phi;
 
       for (int iPrime = 1; iPrime <= mixingFraction; iPrime++) {
+
+        cout << "Getting entry " << (iPrime+iEvt) %nEvts << endl;
         PbPbTree->GetEntry ((iPrime+iEvt) % nEvts);
         
         event_weight  = _event_weight;
+        isEE          = _isEE;
         z_pt          = _z_pt;
         z_y           = _z_y;
         z_m           = _z_m;
         z_phi         = _z_phi;
-        l1_pt         = _l1_eta;
-        l1_eta        = _l1_eta;
-        l1_phi        = _l1_phi;
-        l2_pt         = _l2_pt;
-        l2_eta        = _l2_eta;
-        l2_phi        = _l2_phi;
+        //l1_pt         = _l1_pt;
+        //l1_eta        = _l1_eta;
+        //l1_phi        = _l1_phi;
+        //l2_pt         = _l2_pt;
+        //l2_eta        = _l2_eta;
+        //l2_phi        = _l2_phi;
+        //l1_trk_pt     = _l1_trk_pt;
+        //l1_trk_eta    = _l1_trk_eta;
+        //l1_trk_phi    = _l1_trk_phi;
+        //l2_trk_pt     = _l2_trk_pt;
+        //l2_trk_eta    = _l2_trk_eta;
+        //l2_trk_phi    = _l2_trk_phi;
 
         h_fcal_et->Fill (fcal_et);
         h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -273,10 +286,10 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
   if (ppTree) {
     int nEvts = ppTree->GetEntries ();
     ppTree->LoadBaskets (4000000000);
-    ppTree->SetBranchAddress ("z_event_number", &event_number);
-    ppTree->SetBranchAddress ("z_event_weight", &event_weight);
+    ppTree->SetBranchAddress ("event_number", &event_number);
+    ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("isEE",       &isEE);
-    ppTree->SetBranchAddress ("z_vz",       &vz);
+    ppTree->SetBranchAddress ("vz",       &vz);
     ppTree->SetBranchAddress ("z_pt",       &z_pt);
     ppTree->SetBranchAddress ("z_y",        &z_y);
     ppTree->SetBranchAddress ("z_phi",      &z_phi);
@@ -295,10 +308,10 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    ppTree->SetBranchAddress ("z_ntrk",     &ntrk);
-    ppTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
-    ppTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
-    ppTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
+    ppTree->SetBranchAddress ("ntrk",     &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",   &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",  &trk_phi);
     ppTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
 
     //cout << "Found " << nEvts << " events, assuming " << nEvts << " / " << mixingFraction << " = " << nEvts / mixingFraction << " are unique" << endl;
