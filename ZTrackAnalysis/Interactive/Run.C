@@ -23,7 +23,7 @@ const bool doSys = false;
 // nominal analyses
 FullAnalysis* data18 = nullptr;
 //FullAnalysis* data15 = nullptr;
-MinbiasAnalysis* bkg18 = nullptr, *bkg_alt = nullptr;
+MinbiasAnalysis* bkg18 = nullptr;
 //MinbiasAnalysis* bkg15 = nullptr;
 MCAnalysis* mc = nullptr;
 MixedMCAnalysis* mc_mixed = nullptr;
@@ -70,15 +70,18 @@ PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
+
 void Run () {
+
   data18    = new FullAnalysis ("data18");
   //data15  = new FullAnalysis ("data15");
   //data15->is2015Conds = true;
   //data15->useHijingEffs = true;
+  //
   bkg18     = new MinbiasAnalysis ();
-  bkg_alt   = new MinbiasAnalysis ();
   //bkg15->is2015Conds = true;
   //bkg15->useHijingEffs = true;
+  //
   //mc      = new MCAnalysis ();
   //mc_closure = new MCClosureAnalysis ("mc_closure");
   //mc_bkg  = new MCAnalysis ("mc_bkg");
@@ -177,7 +180,6 @@ void Run () {
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
   //bkg18->LoadHists      ("MinbiasAnalysis/Nominal/testfile.root");
   bkg18->LoadHists      ("MinbiasAnalysis/Nominal/v1_2_0.root");
-  bkg_alt->LoadHists      ("MinbiasAnalysis/Nominal/fcal_over_20_hists.root");
   //bkg18->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists.root");
   //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
   //mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
@@ -691,6 +693,8 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   l->Draw ("same");
   
 }
+
+
 
 
 void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) {
