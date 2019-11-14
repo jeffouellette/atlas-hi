@@ -219,14 +219,14 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+            h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
@@ -370,14 +370,14 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-            h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+            h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }

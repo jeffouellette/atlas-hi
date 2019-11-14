@@ -64,7 +64,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
   int event_number = 0;
   float event_weight = 1, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
-  float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
+  float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
@@ -260,14 +260,14 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
 
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
             if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-              h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+              h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
           }
 
           // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
           dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
           for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
             if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-              h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+              h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
               h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
               h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
             }
@@ -375,12 +375,18 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
       const float _z_y          = z_y;
       const float _z_m          = z_m;
       const float _z_phi        = z_phi;
-      const float _l1_pt        = l1_eta;
-      const float _l1_eta       = l1_eta;
-      const float _l1_phi       = l1_phi;
-      const float _l2_pt        = l2_pt;
-      const float _l2_eta       = l2_eta;
-      const float _l2_phi       = l2_phi;
+      //const float _l1_pt        = l1_pt;
+      //const float _l1_eta       = l1_eta;
+      //const float _l1_phi       = l1_phi;
+      //const float _l2_pt        = l2_pt;
+      //const float _l2_eta       = l2_eta;
+      //const float _l2_phi       = l2_phi;
+      //const float _l1_trk_pt    = l1_trk_pt;
+      //const float _l1_trk_eta   = l1_trk_eta;
+      //const float _l1_trk_phi   = l1_trk_phi;
+      //const float _l2_trk_pt    = l2_trk_pt;
+      //const float _l2_trk_eta   = l2_trk_eta;
+      //const float _l2_trk_phi   = l2_trk_phi;
 
       for (int iPrime = 1; iPrime <= mixingFraction; iPrime++) {
         ppTree->GetEntry ((iPrime+iEvt) % nEvts);
@@ -390,12 +396,18 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
         z_y           = _z_y;
         z_m           = _z_m;
         z_phi         = _z_phi;
-        l1_pt         = _l1_eta;
-        l1_eta        = _l1_eta;
-        l1_phi        = _l1_phi;
-        l2_pt         = _l2_pt;
-        l2_eta        = _l2_eta;
-        l2_phi        = _l2_phi;
+        //l1_pt         = _l1_pt;
+        //l1_eta        = _l1_eta;
+        //l1_phi        = _l1_phi;
+        //l2_pt         = _l2_pt;
+        //l2_eta        = _l2_eta;
+        //l2_phi        = _l2_phi;
+        //l1_trk_pt     = _l1_trk_pt;
+        //l1_trk_eta    = _l1_trk_eta;
+        //l1_trk_phi    = _l1_trk_phi;
+        //l2_trk_pt     = _l2_trk_pt;
+        //l2_trk_eta    = _l2_trk_eta;
+        //l2_trk_phi    = _l2_trk_phi;
 
         h_pp_vz->Fill (vz);
         h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -430,14 +442,14 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
 
           for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
             if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
-              h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
+              h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, trkWeight);
           }
 
           // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
           dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
           for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
             if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-              h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+              h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
               h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
               h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
             }

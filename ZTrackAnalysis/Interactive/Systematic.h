@@ -107,7 +107,7 @@ void Systematic :: CreateSysGraphs () {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 
-        //  AddGraphPair (h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]);
+        //  AddGraphPair (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
 
         //  AddGraphPair (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
         //  AddGraphPair (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
@@ -124,8 +124,8 @@ void Systematic :: CreateSysGraphs () {
         //} // end loop over iPhi
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          AddGraphPair (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
-          AddGraphPair (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+          AddGraphPair (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+          AddGraphPair (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
         } // end loop over iPtTrk
 
         AddGraphPair (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
@@ -175,7 +175,7 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-//          h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+//          h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 //        //  h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
@@ -216,10 +216,10 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-//          SafeWrite (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+//          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//        //  SafeWrite (h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]);
+//        //  SafeWrite (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
 //        //  SafeWrite (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
 //        //  SafeWrite (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
 //        //}
@@ -256,7 +256,7 @@ void Systematic :: LoadGraphs (const char* graphFileName) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          h = h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent];
+          h = h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
           g = (TGAE*) graphFile->Get (Form ("g_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
           graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
         }
@@ -374,8 +374,8 @@ void Systematic :: AddVariations () {
         //// Hadron yield systematics, signal & signal+bkg levels
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
         //  for (short iCent = 0; iCent < numCentBins; iCent++) {
-        //    sys = GetTGAE (h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]);
-        //    var = a->h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent];
+        //    sys = GetTGAE (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
+        //    var = a->h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent];
         //    if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
 
         //    sys = GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
@@ -402,11 +402,11 @@ void Systematic :: AddVariations () {
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            sys = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
-            var = a->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent];
+            sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+            var = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            sys = GetTGAE (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-            var = a->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent];
+            sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
         } // end loop over iPtTrk
@@ -594,8 +594,8 @@ void Systematic :: AddSystematics () {
         //// Hadron yield systematics, signal & signal+bkg levels
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
         //  for (short iCent = 0; iCent < numCentBins; iCent++) {
-        //    master = GetTGAE (h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]);
-        //    sys = s->GetTGAE (s->h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]);
+        //    master = GetTGAE (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
+        //    sys = s->GetTGAE (s->h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
         //    if (master && sys) AddErrorsInQuadrature (master, sys);
 
         //    master = GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
@@ -622,12 +622,12 @@ void Systematic :: AddSystematics () {
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            master = GetTGAE (h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_phi[iSpc][iPtZ][iPtTrk][iCent]);
+            master = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+            sys = s->GetTGAE (s->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
 
-            master = GetTGAE (h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-            sys = s->GetTGAE (s->h_z_trk_phi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            master = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            sys = s->GetTGAE (s->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
           } // end loop over cents
         } // end loop over iPtTrk

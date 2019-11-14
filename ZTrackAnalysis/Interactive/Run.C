@@ -527,14 +527,14 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   TH1D* h_ee = nullptr, *h_ee_bkg = nullptr, *h_ee_sub = nullptr;
   TH1D* h_mumu = nullptr, *h_mumu_bkg = nullptr, *h_mumu_sub = nullptr;
 
-  h_ee = a1->h_z_trk_zpt[0][iPtZ][iCent];
-  h_mumu = a1->h_z_trk_zpt[1][iPtZ][iCent];
+  h_ee = a1->h_trk_pt_ptz[0][iPtZ][iCent];
+  h_mumu = a1->h_trk_pt_ptz[1][iPtZ][iCent];
 
-  h_ee_bkg = a2->h_z_trk_zpt[0][iPtZ][iCent];
-  h_mumu_bkg = a2->h_z_trk_zpt[1][iPtZ][iCent];
+  h_ee_bkg = a2->h_trk_pt_ptz[0][iPtZ][iCent];
+  h_mumu_bkg = a2->h_trk_pt_ptz[1][iPtZ][iCent];
   
-  h_ee_sub = a1->h_z_trk_zpt_sub[0][iPtZ][iCent];
-  h_mumu_sub = a1->h_z_trk_zpt_sub[1][iPtZ][iCent];
+  h_ee_sub = a1->h_trk_pt_ptz_sub[0][iPtZ][iCent];
+  h_mumu_sub = a1->h_trk_pt_ptz_sub[1][iPtZ][iCent];
 
   h_ee->SetMarkerColor (kRed);
   h_ee->SetLineColor (kRed);
@@ -739,9 +739,9 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     a2 = data_muonPtUp;
     a3 = data_muonPtDown;
 
-    h1 = a1->h_z_trk_zpt[2][iPtZ][iCent];
-    h2 = a2->h_z_trk_zpt[2][iPtZ][iCent];
-    h3 = a3->h_z_trk_zpt[2][iPtZ][iCent];
+    h1 = a1->h_trk_pt_ptz[2][iPtZ][iCent];
+    h2 = a2->h_trk_pt_ptz[2][iPtZ][iCent];
+    h3 = a3->h_trk_pt_ptz[2][iPtZ][iCent];
 
     //float i1 = 0, i2 = 0;
     //for (int ix = 1; ix <= h1->GetNbinsX (); ix++) {
@@ -760,7 +760,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     //cout << "i1 = " << i1 << endl;
     //cout << "i2 = " << i2 << endl;
 
-    //h3 = a3->h_z_trk_zxzh[iSpc][iPtZ][iCent];
+    //h3 = a3->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
     //h1 = (TH1D*) a1->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("h1");
     //h1->Add (a1->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
     //h2 = (TH1D*) a2->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("h2");
