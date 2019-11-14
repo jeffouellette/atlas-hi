@@ -172,7 +172,7 @@ void MixedAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 
@@ -279,7 +279,7 @@ void MixedAnalysis :: Execute () {
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight / trkEff);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (zH, event_weight / trkEff);
           }
         }
 

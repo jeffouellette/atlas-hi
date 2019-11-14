@@ -114,10 +114,10 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_pt_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
-//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_z_trk_xzh_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+//          h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_trk_pt_dphi_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+//          h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
+//          h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent] = new TH1D (Form ("h_trk_xhz_dphi_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+//          h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]->Sumw2 ();
 //        }
 //      }
 //    }
@@ -138,14 +138,14 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //    for (short iSpc = 0; iSpc < 2; iSpc++) {
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_pt_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]);
-//          if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_xzh_corr[2][iPtZ][iPhi][iCent]->Add (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//          if (h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_pt_dphi_corr[2][iPtZ][iPhi][iCent]->Add (h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]);
+//          if (h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_dphi_corr[2][iPtZ][iPhi][iCent]->Add (h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]);
 //
 //          if (iPhi != 0) {
-//            if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt_corr[iSpc][iPtZ][iCent]->Add (h_z_trk_zpt_corr[iSpc][iPtZ][iPhi][iCent]);
-//            if (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zpt_corr[2][iPtZ][iCent]->Add (h_z_trk_zpt_corr[iSpc][iPtZ][iPhi][iCent]);
-//            if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh_corr[iSpc][iPtZ][iCent]->Add (h_z_trk_zxzh_corr[iSpc][iPtZ][iPhi][iCent]);
-//            if (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]) h_z_trk_zxzh_corr[2][iPtZ][iCent]->Add (h_z_trk_zxzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_pt_ptz_corr[iSpc][iPtZ][iCent]->Add (h_trk_pt_ptz_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_pt_ptz_corr[2][iPtZ][iCent]->Add (h_trk_pt_ptz_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz_corr[iSpc][iPtZ][iCent]->Add (h_trk_xhz_ptz_corr[iSpc][iPtZ][iPhi][iCent]);
+//            if (h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz_corr[2][iPtZ][iCent]->Add (h_trk_xhz_ptz_corr[iSpc][iPtZ][iPhi][iCent]);
 //          }
 //        } // end loop over phi
 //      } // end loop over pT^Z
@@ -173,8 +173,8 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 //          const double countsdPhi = counts * (phiHighBins[iPhi]-phiLowBins[iPhi]);
 //
-//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
-//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//          h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
+//          h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]->Scale (1. / countsdPhi, "width");
 //        }
 //      }
 //    }
@@ -208,8 +208,8 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_pt_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-//          h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_z_trk_xzh_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//          h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+//          h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_xhz_dphi_corr_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
 //        }
 //      }
 //    }
@@ -246,8 +246,8 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
 //        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-//          SafeWrite (h_z_trk_pt_corr[iSpc][iPtZ][iPhi][iCent]);
-//          SafeWrite (h_z_trk_xzh_corr[iSpc][iPtZ][iPhi][iCent]);
+//          SafeWrite (h_trk_pt_dphi_corr[iSpc][iPtZ][iPhi][iCent]);
+//          SafeWrite (h_trk_xhz_dphi_corr[iSpc][iPtZ][iPhi][iCent]);
 //        }
 //      }
 //    }
@@ -595,9 +595,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       }
@@ -838,9 +838,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       }

@@ -47,8 +47,8 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
       //  for (short iCent = 0; iCent < numCentBins; iCent++) {
       //    //cout << "Getting relative variation for iSpc=" << iSpc << ", iPtZ=" << iPtZ << ", iPhi=" << iPhi << ", iCent=" << iCent << endl;
 
-      //    hnom = nominal->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
-      //    hvar = var->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent];
+      //    hnom = nominal->h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent];
+      //    hvar = var->h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent];
 
       //    hrat = (TH1D*) hvar->Clone ("rattemp");
       //    hrat->Divide (hnom);
@@ -98,10 +98,10 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
       //} // end loop over iPhi
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        hnom = (TH1D*) nominal->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("hnom");
-        hvar = (TH1D*) var->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("hvar");
-        hnom->Add (nominal->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
-        hvar->Add (var->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
+        hnom = (TH1D*) nominal->h_trk_pt_dphi_unscaled[iSpc][iPtZ][1][iCent]->Clone ("hnom");
+        hvar = (TH1D*) var->h_trk_pt_dphi_unscaled[iSpc][iPtZ][1][iCent]->Clone ("hvar");
+        hnom->Add (nominal->h_trk_pt_dphi_unscaled[iSpc][iPtZ][2][iCent]);
+        hvar->Add (var->h_trk_pt_dphi_unscaled[iSpc][iPtZ][2][iCent]);
 
         hrat = (TH1D*) hvar->Clone ("rattemp");
         hrat->Divide (hnom);

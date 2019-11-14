@@ -114,7 +114,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     PbPbTree->SetBranchAddress ("trk_eta",  &trk_eta);
     PbPbTree->SetBranchAddress ("trk_phi",  &trk_phi);
     PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
-    PbPbTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_pt_dphi",   &trk_pt);
     PbPbTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
     PbPbTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
@@ -229,9 +229,9 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       } // end loop over tracks
@@ -270,7 +270,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
     ppTree->SetBranchAddress ("z_ntrk",     &ntrk);
-    ppTree->SetBranchAddress ("z_trk_pt",   &trk_pt);
+    ppTree->SetBranchAddress ("trk_pt_dphi",   &trk_pt);
     ppTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
     ppTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
 
@@ -366,9 +366,9 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       } // end loop over tracks

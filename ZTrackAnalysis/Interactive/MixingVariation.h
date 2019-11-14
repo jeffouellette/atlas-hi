@@ -19,8 +19,8 @@ void ApplyBkgVariation (PhysicsAnalysis* a, const float relErr) {
       } // end loop over iPtTrk
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Scale (1+relErr);
-        a->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Scale (1+relErr);
+        a->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale (1+relErr);
+        a->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale (1+relErr);
       } // end loop over cents
     } // end loop over pT^Z bins
   } // end loop over species

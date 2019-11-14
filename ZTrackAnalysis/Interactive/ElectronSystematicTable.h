@@ -87,7 +87,7 @@ void ElectronSystematicTable :: ApplyRelativeVariations (PhysicsAnalysis* a, con
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
 
-        for (TH1D* h : {a->h_z_trk_zpt[iSpc][iPtZ][iCent], a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent], a->h_z_trk_zpt_iaa[iSpc][iPtZ][iCent]}) {
+        for (TH1D* h : {a->h_trk_pt_ptz[iSpc][iPtZ][iCent], a->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent], a->h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
           TH1D* hrelsys =  relVarPt[iPtZ][iCent];
@@ -103,7 +103,7 @@ void ElectronSystematicTable :: ApplyRelativeVariations (PhysicsAnalysis* a, con
           }
         }
 
-        for (TH1D* h : {a->h_z_trk_zxzh[iSpc][iPtZ][iCent], a->h_z_trk_zxzh_sub[iSpc][iPtZ][iCent], a->h_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]}) {
+        for (TH1D* h : {a->h_trk_xhz_ptz[iSpc][iPtZ][iCent], a->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent], a->h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
           TH1D* hrelsys =  relVarX[iPtZ][iCent];

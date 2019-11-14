@@ -72,8 +72,8 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
 
       //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
       //  for (short iCent = 0; iCent < numCentBins; iCent++) {
-      //    hn = (TH1D*) var->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
-      //    hn->Divide (nominal->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]);
+      //    hn = (TH1D*) var->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
+      //    hn->Divide (nominal->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
       //    f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
@@ -81,8 +81,8 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       //    delete hn;
       //    relVarPt[iSpc][iPtZ][iPhi][iCent] = f;
   
-      //    hn = (TH1D*) var->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
-      //    hn->Divide (nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+      //    hn = (TH1D*) var->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
+      //    hn->Divide (nominal->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
       //    f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
@@ -93,8 +93,8 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       //} // end loop over iPhi
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        hn = (TH1D*) var->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone ("temp");
-        hd = nominal->h_z_trk_zpt[iSpc][iPtZ][iCent];
+        hn = (TH1D*) var->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone ("temp");
+        hd = nominal->h_trk_pt_ptz[iSpc][iPtZ][iCent];
         for (int ix = 1; ix <= hn->GetNbinsX (); ix++) {
           const float yn = hn->GetBinContent (ix);
           const float yne = hn->GetBinError (ix);
@@ -110,8 +110,8 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
         delete hn;
         relVarPt[iSpc][iPtZ][numPhiBins][iCent] = f;
 
-        hn = (TH1D*) var->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone ("temp");
-        hd = nominal->h_z_trk_zxzh[iSpc][iPtZ][iCent];
+        hn = (TH1D*) var->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone ("temp");
+        hd = nominal->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
         for (int ix = 1; ix <= hn->GetNbinsX (); ix++) {
           const float yn = hn->GetBinContent (ix);
           const float yne = hn->GetBinError (ix);
@@ -146,7 +146,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
 
-        //  for (TH1D* h : {a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent], a->h_z_trk_pt_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_z_trk_pt_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
+        //  for (TH1D* h : {a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], a->h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
         //    if (!h)
         //      continue;
         //    TF1* f =  relVarPt[iSpc][iPtZ][numPhiBins][iCent];
@@ -162,7 +162,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
         //    }
         //  }
 
-        //  for (TH1D* h : {a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent], a->h_z_trk_xzh_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_z_trk_xzh_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
+        //  for (TH1D* h : {a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], a->h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
         //    if (!h)
         //      continue;
         //    TF1* f =  relVarX[iSpc][iPtZ][numPhiBins][iCent];
@@ -179,7 +179,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
         //  }
         //} // end loop over iPhi
 
-        for (TH1D* h : {a->h_z_trk_zpt[iSpc][iPtZ][iCent], a->h_z_trk_zpt_sub[iSpc][iPtZ][iCent]}) {//, a->h_z_trk_zpt_sig_to_bkg[iSpc][iPtZ][iCent]}) {
+        for (TH1D* h : {a->h_trk_pt_ptz[iSpc][iPtZ][iCent], a->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]}) {//, a->h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
           TF1* f =  relVarPt[iSpc][iPtZ][numPhiBins][iCent];
@@ -195,7 +195,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
           }
         }
 
-        for (TH1D* h : {a->h_z_trk_zxzh[iSpc][iPtZ][iCent], a->h_z_trk_zxzh_sub[iSpc][iPtZ][iCent]}) {//, a->h_z_trk_zxzh_sig_to_bkg[iSpc][iPtZ][iCent]}) {
+        for (TH1D* h : {a->h_trk_xhz_ptz[iSpc][iPtZ][iCent], a->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]}) {//, a->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
           TF1* f =  relVarX[iSpc][iPtZ][numPhiBins][iCent];

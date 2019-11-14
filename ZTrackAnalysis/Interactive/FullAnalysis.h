@@ -742,9 +742,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       } // end loop over tracks
@@ -893,9 +893,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
-            h_z_trk_raw_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_z_trk_pt[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
-            h_z_trk_xzh[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+            h_trk_pt_dphi_unscaled[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
       } // end loop over tracks
@@ -1019,7 +1019,7 @@ void FullAnalysis :: PlotQ2Dists (const bool _treatAsData) {
   //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
-  c->SaveAs (Form ("%s/Q2Dists.pdf", plotPath.Data ()));
+  c->SaveAs (Form ("%s/q2_Mixing/Q2Dists.pdf", plotPath.Data ()));
 }
 
 
@@ -1072,7 +1072,7 @@ void FullAnalysis :: PlotQ2Weights (FullAnalysis* a) {
   //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
-  c->SaveAs (Form ("%s/Q2Weights.pdf", plotPath.Data ()));
+  c->SaveAs (Form ("%s/q2_Mixing/Q2Weights.pdf", plotPath.Data ()));
 
 }
 
@@ -1166,7 +1166,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
   //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
-  c->SaveAs (Form ("%s/Psi2Dists.pdf", plotPath.Data ()));
+  c->SaveAs (Form ("%s/q2_Mixing/Psi2Dists.pdf", plotPath.Data ()));
 }
 
 
@@ -1219,7 +1219,7 @@ void FullAnalysis :: PlotPsi2Weights (FullAnalysis* a) {
   //myText (0.36, 0.22, kBlack, "Z-tagged data", 0.06);
   //myText (0.36, 0.22, kBlack, "Minimum bias", 0.06);
 
-  c->SaveAs (Form ("%s/Psi2Weights.pdf", plotPath.Data ()));
+  c->SaveAs (Form ("%s/q2_Mixing/Psi2Weights.pdf", plotPath.Data ()));
 
 }
 
@@ -2921,7 +2921,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   if (pSpc != 2)
     myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.05);
 
-  c->SaveAs (Form ("%s/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
+  c->SaveAs (Form ("%s/q2_Mixing/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
 
 

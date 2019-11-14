@@ -67,25 +67,25 @@ void TrackPuritySystematic :: GetRelativeVariations (PhysicsAnalysis* nom, Physi
 
           relVarPt[iSpc][iPtZ][iPhi][iCent] = (TH1D*) hnom->Clone (Form "h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ());
           relVarPt[iSpc][iPtZ][iPhi][iCent] = 
-          var->h_z_trk_raw_pt[iSpc][iPtZ][iPhi][iCent]->Multiply (h
+          var->h_trk_pt_dphi_unscaled[iSpc][iPtZ][iPhi][iCent]->Multiply (h
           
 
           h = (TH1D*) nominal
 
-          h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]-
+          h = (TH1D*) nominal->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]-
 
-          h = (TH1D*) nominal->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h = (TH1D*) nominal->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           relVarX[iSpc][iPtZ][iPhi][iCent] = h;
-          h->Divide (var->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]);
+          h->Divide (var->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
         } // end loop over iPhi
 
-        h = (TH1D*) nominal->h_z_trk_zpt[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
+        h = (TH1D*) nominal->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
         relVarPt[iSpc][iPtZ][numPhiBins][iCent] = h;
-        h->Divide (var->h_z_trk_zpt[iSpc][iPtZ][iCent]);
+        h->Divide (var->h_trk_pt_ptz[iSpc][iPtZ][iCent]);
 
-        h = (TH1D*) nominal->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
+        h = (TH1D*) nominal->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()));
         relVarX[iSpc][iPtZ][numPhiBins][iCent] = h;
-        h->Divide (var->h_z_trk_zxzh[iSpc][iPtZ][iCent]);
+        h->Divide (var->h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
       } // end loop over iPtZ
     } // end loop over iSpc
   } // end loop over iCent
@@ -106,21 +106,21 @@ void TrackPuritySystematic :: ApplyRelativeVariations (PhysicsAnalysis* a, const
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
           if (upVar) {
-            a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarX[iSpc][iPtZ][iPhi][iCent]);
+            a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarPt[iSpc][iPtZ][iPhi][iCent]);
+            a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Multiply (relVarX[iSpc][iPtZ][iPhi][iCent]);
           }
           else {
-            a->h_z_trk_pt[iSpc][iPtZ][iPhi][iCent]->Divide (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            a->h_z_trk_xzh[iSpc][iPtZ][iPhi][iCent]->Divide (relVarX[iSpc][iPtZ][iPhi][iCent]);
+            a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Divide (relVarPt[iSpc][iPtZ][iPhi][iCent]);
+            a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Divide (relVarX[iSpc][iPtZ][iPhi][iCent]);
           }
         } // end loop over iPhi
         if (upVar) {
-          a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Multiply (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
-          a->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Multiply (relVarX[iSpc][iPtZ][numPhiBins][iCent]);
+          a->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Multiply (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
+          a->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Multiply (relVarX[iSpc][iPtZ][numPhiBins][iCent]);
         }
         else {
-          a->h_z_trk_zpt[iSpc][iPtZ][iCent]->Divide (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
-          a->h_z_trk_zxzh[iSpc][iPtZ][iCent]->Divide (relVarX[iSpc][iPtZ][numPhiBins][iCent]);
+          a->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Divide (relVarPt[iSpc][iPtZ][numPhiBins][iCent]);
+          a->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Divide (relVarX[iSpc][iPtZ][numPhiBins][iCent]);
         }
       } // end loop over iCent
     } // end loop over iPtZ

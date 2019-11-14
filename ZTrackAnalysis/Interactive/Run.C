@@ -170,10 +170,8 @@ void Run () {
 
 
   data18->LoadHists   ("DataAnalysis/Nominal/v1_2_0.root");
-  //data18->LoadHists   ("DataAnalysis/Nominal/testfile.root");
   //data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
-  //bkg18->LoadHists      ("MinbiasAnalysis/Nominal/testfile.root");
   bkg18->LoadHists      ("MinbiasAnalysis/Nominal/v1_2_0.root");
   //bkg18->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists.root");
   //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
@@ -183,6 +181,7 @@ void Run () {
   //mc_bkg->LoadHists   ("MinbiasAnalysis/Nominal/mc_bkg_hists.root");
   //mc_mixed->LoadHists   ("MixedMCAnalysis/Nominal/mc_bkg_hists.root");
   //truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
+
   /*
   data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
@@ -190,7 +189,6 @@ void Run () {
   //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
   mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
   truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
->>>>>>> Stashed changes
 
   data18->SubtractBackground (bkg18);
   data18->CalculateIAA ();
