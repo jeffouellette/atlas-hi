@@ -20,11 +20,6 @@
 
 const bool doSys = false;
 
-<<<<<<< Updated upstream
-=======
-const bool doSys = false;
-
->>>>>>> Stashed changes
 // nominal analyses
 FullAnalysis* data18 = nullptr;
 //FullAnalysis* data15 = nullptr;
@@ -64,25 +59,20 @@ MinbiasAnalysis* bkg_trackHItight = nullptr, *bkg_trkIDUpVar = nullptr, *bkg_trk
 
 PhysicsAnalysis* data_partComp = nullptr, *data_partCompUpVar = nullptr, *data_partCompDownVar = nullptr;
 MinbiasAnalysis* bkg_partComp = nullptr, *bkg_partCompUpVar = nullptr, *bkg_partCompDownVar = nullptr;
-<<<<<<< Updated upstream
 
 PhysicsAnalysis* data_trackPurity = nullptr, *data_trkPurUpVar = nullptr, *data_trkPurDownVar = nullptr;
 MinbiasAnalysis* bkg_trackPurity = nullptr, *bkg_trkPurUpVar = nullptr, *bkg_trkPurDownVar = nullptr;
 
-=======
 PhysicsAnalysis* data_trackPurity = nullptr, *data_noPurUpVar = nullptr, *data_noPurDownVar = nullptr;
 MinbiasAnalysis* bkg_trackPurity = nullptr, *bkg_noPurUpVar = nullptr, *bkg_noPurDownVar = nullptr;
 PhysicsAnalysis* data_trkPurUpVar = nullptr, *data_trkPurDownVar = nullptr;
 //MinbiasAnalysis* bkg_trkPurUpVar = nullptr, *bkg_trkPurDownVar = nullptr;
->>>>>>> Stashed changes
+
 PhysicsAnalysis* data_electronPtUp = nullptr, *data_electronPtDown = nullptr;
 //MinbiasAnalysis* bkg_electronPtUp = nullptr, *bkg_electronPtDown = nullptr;
 PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 //MinbiasAnalysis* bkg_muonPtUp = nullptr, *bkg_muonPtDown = nullptr;
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
 
@@ -92,22 +82,14 @@ void Run () {
   //data15->is2015Conds = true;
   //data15->useHijingEffs = true;
   bkg18     = new MinbiasAnalysis ();
-<<<<<<< Updated upstream
   //bkg15->is2015Conds = true;
   //bkg15->useHijingEffs = true;
-  //
+
   //mc      = new MCAnalysis ();
   //mc_closure = new MCClosureAnalysis ("mc_closure");
   //mc_bkg  = new MCAnalysis ("mc_bkg");
   //mc_bkg  = new MinbiasAnalysis ("bkg");
   //truth   = new TruthAnalysis ();
-=======
-  //bkg15     = new MinbiasAnalysis ();
-  //bkg15->is2015Conds = true;
-  //bkg15->useHijingEffs = true;
-  mc      = new MCAnalysis ();
-  truth   = new TruthAnalysis ();
->>>>>>> Stashed changes
 
   if (doSys) {
     data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar");
@@ -125,7 +107,6 @@ void Run () {
     data_trackHItight->useHITight = true;
     //bkg_trackHItight        = new MinbiasAnalysis ("bkg_trackHITightVar");
     //bkg_trackHItight->useHITight = true;
-<<<<<<< Updated upstream
     data_trkIDUpVar         = new PhysicsAnalysis ("data_trkIDUpVar");
     data_trkIDUpVar->useHITight = true;
     bkg_trkIDUpVar          = new MinbiasAnalysis ("bkg_trkIDUpVar");
@@ -134,7 +115,7 @@ void Run () {
     data_trkIDDownVar->useHITight = true;
     bkg_trkIDDownVar        = new MinbiasAnalysis ("bkg_trkIDDownVar");
     bkg_trkIDDownVar->useHITight = true;
-=======
+
     //data_trkIDUpVar         = new PhysicsAnalysis ("data_trkIDUpVar");
     //data_trkIDUpVar->useHITight = true;
     //bkg_trkIDUpVar          = new MinbiasAnalysis ("bkg_trkIDUpVar");
@@ -144,8 +125,6 @@ void Run () {
     //bkg_trkIDDownVar        = new MinbiasAnalysis ("bkg_trkIDDownVar");
     //bkg_trkIDDownVar->useHITight = true;
     
->>>>>>> Stashed changes
-
     data_partComp        = new PhysicsAnalysis ("data_trackEffVar");
     data_partComp->doTrackEffVar = true;
     //bkg_partComp         = new MinbiasAnalysis ("bkg_trackEffVar");
@@ -158,25 +137,11 @@ void Run () {
     //data_partCompDownVar->doTrackEffVar = true;
     //bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
     //bkg_partCompDownVar->doTrackEffVar = true;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
     data_trackPurity        = new PhysicsAnalysis ("data_trackPurityVar");
     data_trackPurity->doTrackPurVar = true;
     //bkg_trackPurity         = new MinbiasAnalysis ("bkg_trackPurityVar");
     //bkg_trackPurity->doTrackPurVar = true;
-<<<<<<< Updated upstream
-    data_trkPurUpVar   = new PhysicsAnalysis ("data_trkPurUpVar");
-    data_trkPurUpVar->doTrackPurVar = true;
-    bkg_trkPurUpVar    = new MinbiasAnalysis ("bkg_trkPurUpVar");
-    bkg_trkPurUpVar->doTrackPurVar = true;
-    data_trkPurDownVar   = new PhysicsAnalysis ("data_trkPurDownVar");
-    data_trkPurDownVar->doTrackPurVar = true;
-    bkg_trkPurDownVar    = new MinbiasAnalysis ("bkg_trkPurDownVar");
-    bkg_trkPurDownVar->doTrackPurVar = true;
-=======
     data_trkPurUpVar      = new PhysicsAnalysis ("data_trkPurUpVar");
     data_trkPurUpVar->doTrackPurVar = true; data_trkPurUpVar->trkPurNSigma = 1;
     data_trkPurDownVar    = new PhysicsAnalysis ("data_trkPurDownVar");
@@ -194,18 +159,14 @@ void Run () {
     //bkg_noPurDownVar    = new MinbiasAnalysis ("bkg_noPurDownVar");
     //bkg_noPurDownVar->doTrackPurVar = true;
 
->>>>>>> Stashed changes
-    
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
     data_leptonRejVar->doLeptonRejVar = true;
 
-<<<<<<< Updated upstream
     data_electronPtUp       = new PhysicsAnalysis ("data_electronPtUpVar");
     data_electronPtDown     = new PhysicsAnalysis ("data_electronPtDownVar");
-=======
+
     //data_electronPtUp       = new PhysicsAnalysis ("data_electronPtUpVar");
     //data_electronPtDown     = new PhysicsAnalysis ("data_electronPtDownVar");
->>>>>>> Stashed changes
     //bkg_electronPtUp       = new MinbiasAnalysis ("bkg");//_electronPtUpVar");
     //bkg_electronPtDown     = new MinbiasAnalysis ("bkg");//_electronPtDownVar");
 
@@ -213,14 +174,6 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
     //bkg_muonPtUp           = new MinbiasAnalysis ("bkg");//_muonPtUpVar");
     //bkg_muonPtDown         = new MinbiasAnalysis ("bkg");//_muonPtDownVar");
-<<<<<<< Updated upstream
-=======
-
-    //data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar");
-    //data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar");
-    //bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
-    //bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
->>>>>>> Stashed changes
   }
 
   //mc->GenerateWeights ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/PbPb18*Z*.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal/data18hi.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MCAnalysis/Nominal/eventWeightsFile.root");
@@ -242,7 +195,6 @@ void Run () {
   }
 
 
-<<<<<<< Updated upstream
   data18->LoadHists   ("DataAnalysis/Nominal/v1_2_0.root");
   //data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
@@ -256,8 +208,6 @@ void Run () {
   //mc_mixed->LoadHists   ("MixedMCAnalysis/Nominal/mc_bkg_hists.root");
   //truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
 
-=======
->>>>>>> Stashed changes
   /*
   data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
@@ -271,10 +221,6 @@ void Run () {
 
   //data15->SubtractBackground (bkg15);
   //data15->CalculateIAA ();
-<<<<<<< Updated upstream
-=======
-  //data15->CalculateICP ();
->>>>>>> Stashed changes
 
   //data18->CalculateZPtDistRatio (mc);
   //data18->CalculateZEtaDistRatio (mc);
