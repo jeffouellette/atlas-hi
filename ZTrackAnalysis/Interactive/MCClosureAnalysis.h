@@ -76,7 +76,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
+  float trk_pt[10000], trk_eta[10000], trk_phi[10000];
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,14 +109,14 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
     PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("ntrk",     &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",   &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",  &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",  &trk_phi);
+    PbPbTree->SetBranchAddress ("ntrk",       &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",    &trk_phi);
     PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt_dphi",   &trk_pt);
-    PbPbTree->SetBranchAddress ("z_trk_eta",  &trk_eta);
-    PbPbTree->SetBranchAddress ("z_trk_phi",  &trk_phi);
+    PbPbTree->SetBranchAddress ("z_trk_pt",   trk_pt);
+    PbPbTree->SetBranchAddress ("z_trk_eta",  trk_eta);
+    PbPbTree->SetBranchAddress ("z_trk_phi",  trk_phi);
 
     cout << "Found " << nEvts << " events, assuming " << nEvts << " / " << mixingFraction << " = " << nEvts / mixingFraction << " are unique" << endl;
     nEvts = nEvts / mixingFraction;
@@ -201,22 +201,22 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt->at (iTrk);
+        const float trkpt = trk_pt[iTrk];
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
+        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -226,7 +226,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
@@ -338,22 +338,22 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt->at (iTrk);
+        const float trkpt = trk_pt[iTrk];
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
           continue;
 
-        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
+        const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
+        const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const float trkWeight = event_weight * trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -363,7 +363,7 @@ void MCClosureAnalysis :: Execute (const char* inFileName, const char* mbInFileN
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);

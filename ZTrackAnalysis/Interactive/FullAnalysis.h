@@ -585,7 +585,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
+  float trk_pt[10000], trk_eta[10000], trk_phi[10000];
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -617,9 +617,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     PbPbTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
     PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    PbPbTree->SetBranchAddress ("trk_pt",       trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",      trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",      trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -694,25 +694,25 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt->at (iTrk);
+        const float trkpt = trk_pt[iTrk];
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
-        //if (trk_eta->at (iTrk) < 0)
+        //if (trk_eta[iTrk] < 0)
         //  continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
           continue;
 
         {
           float mindr = pi;
           float ptdiff = 0;
-          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
+          float dr = DeltaR (trk_eta[iTrk], l1_trk_eta, trk_phi[iTrk], l1_trk_phi);
           if (dr < mindr) {
             mindr = dr;
             ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
           }
-          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
+          dr = DeltaR (trk_eta[iTrk], l2_trk_eta, trk_phi[iTrk], l2_trk_phi);
           if (dr < mindr) {
             mindr = dr;
             ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
@@ -720,8 +720,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
 
-        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -729,7 +729,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -739,7 +739,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
@@ -780,9 +780,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     ppTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
     ppTree->SetBranchAddress ("ntrk",         &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    ppTree->SetBranchAddress ("trk_pt",       trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",      trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",      trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -845,25 +845,25 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt->at (iTrk);
+        const float trkpt = trk_pt[iTrk];
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
-        //if (trk_eta->at (iTrk) < 0)
+        //if (trk_eta[iTrk] < 0)
         //  continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
           continue;
 
         {
           float mindr = pi;
           float ptdiff = 0;
-          float dr = DeltaR (trk_eta->at (iTrk), l1_trk_eta, trk_phi->at (iTrk), l1_trk_phi);
+          float dr = DeltaR (trk_eta[iTrk], l1_trk_eta, trk_phi[iTrk], l1_trk_phi);
           if (dr < mindr) {
             mindr = dr;
             ptdiff = 2. * fabs (trkpt - l1_trk_pt) / (trkpt + l1_trk_pt);
           }
-          dr = DeltaR (trk_eta->at (iTrk), l2_trk_eta, trk_phi->at (iTrk), l2_trk_phi);
+          dr = DeltaR (trk_eta[iTrk], l2_trk_eta, trk_phi[iTrk], l2_trk_phi);
           if (dr < mindr) {
             mindr = dr;
             ptdiff = 2. * fabs (trkpt - l2_trk_pt) / (trkpt + l2_trk_pt);
@@ -871,8 +871,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
 
-        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
+        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
         if (trkEff == 0 || trkPur == 0)
           continue;
         const double trkWeight = event_weight * trkPur / trkEff;
@@ -880,7 +880,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         h_trk_pt[iCent][iSpc]->Fill (trkpt, trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
-        float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+        float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
@@ -890,7 +890,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-        dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+        dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
