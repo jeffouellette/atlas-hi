@@ -32,16 +32,16 @@ const double* gw_nchBins = linspace (-0.5, 160.5, gw_nNchBins);
 //const double* gw_q2Bins = linspace (0, 1, gw_nQ2Bins);
 
 TH1D* referenceFCalDist;
-TH1D* referenceQ2Dist[numFinerCentBins];
-TH1D* referencePsi2Dist[numFinerCentBins];
+TH1D* referenceQ2Dist[numFineCentBins];
+TH1D* referencePsi2Dist[numFineCentBins];
 TH1D* referenceNchDist;
 
 TH1D* h_PbPbFCalDist;
 TH1D* h_PbPbFCal_weights;
-TH1D* h_PbPbQ2Dist[numFinerCentBins];
-TH1D* h_PbPbQ2_weights[numFinerCentBins];
-TH1D* h_PbPbPsi2Dist[numFinerCentBins];
-TH1D* h_PbPbPsi2_weights[numFinerCentBins];
+TH1D* h_PbPbQ2Dist[numFineCentBins];
+TH1D* h_PbPbQ2_weights[numFineCentBins];
+TH1D* h_PbPbPsi2Dist[numFineCentBins];
+TH1D* h_PbPbPsi2_weights[numFineCentBins];
 
 TH1D* h_PbPbNchDist = nullptr;
 TH1D* h_PbPbNch_weights = nullptr;
@@ -62,7 +62,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
   h_PbPbFCalDist->Sumw2 ();
   h_PbPbFCal_weights->Sumw2 ();
 
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (int iCent = 0; iCent < numFineCentBins; iCent++) {
     h_PbPbQ2Dist[iCent] = new TH1D (Form ("h_PbPbQ2Dist_iCent%i_%s", iCent, name), "", gw_nQ2Bins, gw_q2Bins);
     h_PbPbQ2_weights[iCent] = new TH1D (Form ("h_PbPbQ2_weights_iCent%i_%s", iCent, name), "", gw_nQ2Bins, gw_q2Bins);
     h_PbPbQ2Dist[iCent]->Sumw2 ();
@@ -106,13 +106,13 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
       PbPbTree->GetEntry (iEvt);
 
       short iCent = 0;
-      while (iCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iCent])
+      while (iCent < numFineCentBins) {
+        if (fcal_et < fineCentBins[iCent])
           break;
         else
           iCent++;
       }
-      if (iCent < 1 || iCent > numFinerCentBins-1)
+      if (iCent < 1 || iCent > numFineCentBins-1)
         continue;
 
       h_PbPbFCalDist->Fill (fcal_et, b_event_weight);
@@ -133,7 +133,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
     if (h_PbPbFCalDist->Integral () > 0)
       h_PbPbFCalDist->Scale (1./h_PbPbFCalDist->Integral ());
 
-    for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+    for (int iCent = 0; iCent < numFineCentBins; iCent++) {
       if (h_PbPbQ2Dist[iCent]->Integral () > 0)
         h_PbPbQ2Dist[iCent]->Scale (1./h_PbPbQ2Dist[iCent]->Integral ());
       if (h_PbPbPsi2Dist[iCent]->Integral () > 0)
@@ -147,7 +147,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
     if (strcmp (name, "data") == 0) {
       for (int ix = 1; ix <= h_PbPbFCal_weights->GetNbinsX (); ix++)
         h_PbPbFCal_weights->SetBinContent (ix, 1);
-      for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+      for (int iCent = 0; iCent < numFineCentBins; iCent++) {
         for (int ix = 1; ix <= h_PbPbQ2_weights[iCent]->GetNbinsX (); ix++) {
           h_PbPbQ2_weights[iCent]->SetBinContent (ix, 1);
           h_PbPbPsi2_weights[iCent]->SetBinContent (ix, 1);
@@ -164,7 +164,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
       referenceNchDist = (TH1D*)ztrackFile->Get ("h_PbPbNchDist_data");
 
       referenceFCalDist = (TH1D*) ztrackFile->Get ("h_PbPbFCalDist_data");
-      for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+      for (int iCent = 0; iCent < numFineCentBins; iCent++) {
         referenceQ2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbQ2Dist_iCent%i_data", iCent));
         referencePsi2Dist[iCent] = (TH1D*)ztrackFile->Get (Form ("h_PbPbPsi2Dist_iCent%i_data", iCent));
       }
@@ -180,7 +180,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
       }
 
       // restore other histograms (so we don't fill it twice)
-      for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+      for (int iCent = 0; iCent < numFineCentBins; iCent++) {
         for (int ix = 1; ix <= h_PbPbQ2Dist[iCent]->GetNbinsX (); ix++) {
           h_PbPbQ2Dist[iCent]->SetBinContent (ix, 0);
           h_PbPbQ2Dist[iCent]->SetBinError (ix, 0);
@@ -198,13 +198,13 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
         PbPbTree->GetEntry (iEvt);
 
         short iCent = 0;
-        while (iCent < numFinerCentBins) {
-          if (fcal_et < finerCentBins[iCent])
+        while (iCent < numFineCentBins) {
+          if (fcal_et < fineCentBins[iCent])
             break;
           else
             iCent++;
         }
-        if (iCent < 1 || iCent > numFinerCentBins-1)
+        if (iCent < 1 || iCent > numFineCentBins-1)
           continue;
 
         //event_weight = b_event_weight * h_PbPbFCal_weights->GetBinContent (h_PbPbFCal_weights->FindBin (fcal_et));
@@ -215,14 +215,14 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
       cout << "Done 2nd Pb+Pb loop." << endl;
 
       // now set other weighting histograms
-      for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+      for (int iCent = 0; iCent < numFineCentBins; iCent++) {
         if (h_PbPbQ2Dist[iCent]->Integral () > 0)
           h_PbPbQ2Dist[iCent]->Scale (1./h_PbPbQ2Dist[iCent]->Integral ());
         if (h_PbPbPsi2Dist[iCent]->Integral () > 0)
           h_PbPbPsi2Dist[iCent]->Scale (1./h_PbPbPsi2Dist[iCent]->Integral ());
       }
       
-      for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+      for (int iCent = 0; iCent < numFineCentBins; iCent++) {
         for (int ix = 1; ix <= h_PbPbQ2_weights[iCent]->GetNbinsX (); ix++) {
           const double q2_weight = (h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? referenceQ2Dist[iCent]->GetBinContent (ix) / h_PbPbQ2Dist[iCent]->GetBinContent (ix) : 0);
           const double q2_weight_err = (h_PbPbQ2Dist[iCent]->GetBinContent (ix) != 0 ? q2_weight * sqrt (pow (h_PbPbQ2Dist[iCent]->GetBinError (ix) / h_PbPbQ2Dist[iCent]->GetBinContent (ix), 2) + pow (referenceQ2Dist[iCent]->GetBinError (ix) / referenceQ2Dist[iCent]->GetBinContent (ix), 2)) : 0);
@@ -284,7 +284,7 @@ void GenerateWeights (const char* name, const char* inFileName = "outFile.root",
   SafeWrite (h_PbPbFCalDist);
   SafeWrite (h_PbPbFCal_weights);
 
-  for (int iCent = 0; iCent < numFinerCentBins; iCent++) {
+  for (int iCent = 0; iCent < numFineCentBins; iCent++) {
     SafeWrite (h_PbPbQ2Dist[iCent]);
     SafeWrite (h_PbPbQ2_weights[iCent]);
 

@@ -263,8 +263,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      //const short iFinerCent = GetFinerCentBin (fcal_et);
-      //if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      //const short iFineCent = GetFineCentBin (fcal_et);
+      //if (iFineCent < 1 || iFineCent > numFineCentBins-1)
       //  continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin

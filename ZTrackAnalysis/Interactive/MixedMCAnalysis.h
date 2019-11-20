@@ -155,8 +155,8 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      const short iFineCent = GetFineCentBin (fcal_et);
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
         continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
@@ -170,8 +170,8 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
       //  if (dphi > pi/2)
       //    dphi = pi - dphi;
       //  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
-      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->FindBin (q2));
-      //  //psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
+      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
+      //  //psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
 
       //  event_weight *= fcal_weight;// * psi2_weight;
       //}
@@ -226,10 +226,10 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
         h_fcal_et->Fill (fcal_et);
         h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
-        h_q2[iFinerCent]->Fill (q2);
-        h_q2_reweighted[iFinerCent]->Fill (q2, event_weight);
-        h_psi2[iFinerCent]->Fill (psi2);
-        h_psi2_reweighted[iFinerCent]->Fill (psi2, event_weight);
+        h_q2[iFineCent]->Fill (q2);
+        h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
+        h_psi2[iFineCent]->Fill (psi2);
+        h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
         h_PbPb_vz->Fill (vz);
         h_PbPb_vz_reweighted->Fill (vz, event_weight);
 

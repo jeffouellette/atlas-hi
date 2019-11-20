@@ -85,10 +85,10 @@ void MinbiasAnalysis :: LoadEventWeights () {
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()));
-        h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()));
+        h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+        h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
       }
     }
   }
@@ -345,7 +345,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     if (takeNonTruthTracks)
       mbPbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
 
-    mbPbPbTree->LoadBaskets (8000000000); //2000000000 = 2GB
+    mbPbPbTree->LoadBaskets (4000000000); //2000000000 = 2GB
 
 
     int iMBEvt = 0;
@@ -367,7 +367,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     if (!zTree)
       cout << "Got a null Z boson tree!" << endl;
     int nZEvts = zTree->GetEntries ();
-    zTree->LoadBaskets (4000000000);
+    zTree->LoadBaskets (2000000000);
     zTree->SetBranchAddress ("isEE",          &isEE);
     zTree->SetBranchAddress ("z_pt",          &z_pt);
     zTree->SetBranchAddress ("z_y",           &z_y);
@@ -455,6 +455,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
     if (nZEvts == 0)
       cout << "Warning! No Z's to mix with in this run!" << endl;
+    cout << "N MB events = " << nMBEvts << endl;
+    cout << "N Z-tagged events = " << nZEvts << endl;
     cout << "For this PbPb tree, maximum mixing fraction = " << nMBEvts / nZEvts << endl;
 
     bool doShuffle = false;
@@ -496,19 +498,25 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
-        //const short iPsi2 = GetPsi2Bin (z_psi2);
-        //if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
-        //  continue;
+        const short iQ2 = GetQ2Bin (z_q2);
+        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+          continue;
+        const short iPsi2 = GetPsi2Bin (z_psi2);
+        if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
+          continue;
         //const short iVZ = GetVZBin (z_vz);
         //if (iVZ < 0 || iVZ > numVZBins)
         //  continue;
+        const short iRG = GetRunGroup (z_run_number);
+        if (iRG < 0 || iRG >= (short)runGroups.size ())
+          continue;
         
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbPbPbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && iFCalEt == GetSuperFineCentBin (fcal_et));// && fabs (vz) <= 150);// && iVZ == GetVZBin (vz));
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && iRG == GetRunGroup (run_number) && iFCalEt == GetSuperFineCentBin (fcal_et) && iQ2 == GetQ2Bin (q2) && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -531,16 +539,16 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      const short iFineCent = GetFineCentBin (fcal_et);
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
         continue;
 
       //{
       //  float dphi = DeltaPhi (z_phi, psi2, false);
       //  if (dphi > pi/2)
       //    dphi = pi - dphi;
-      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFinerCent][iPtZ]->FindBin (q2));
-      //  psi2_weight = h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFinerCent][iPtZ]->FindBin (dphi));
+      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
+      //  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
 
       //  //z_event_weight = fcal_weight * q2_weight * psi2_weight * vz_weight;
       //  z_event_weight *= psi2_weight;
@@ -549,10 +557,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, z_event_weight);
-      h_q2[iFinerCent]->Fill (q2);
-      h_q2_reweighted[iFinerCent]->Fill (q2, z_event_weight);
-      h_psi2[iFinerCent]->Fill (psi2);
-      h_psi2_reweighted[iFinerCent]->Fill (psi2, z_event_weight);
+      h_q2[iFineCent]->Fill (q2);
+      h_q2_reweighted[iFineCent]->Fill (q2, z_event_weight);
+      h_psi2[iFineCent]->Fill (psi2);
+      h_psi2_reweighted[iFineCent]->Fill (psi2, z_event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, z_event_weight);
 
@@ -763,7 +771,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fcal_et >= 20);
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -866,10 +874,10 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
   //const int nNchBins = 160;
   //const double* nchBins = linspace (-0.5, 160.5, nNchBins);
 
-  TH1D* h_z_q2_dist[3][numFinerCentBins][nPtZBins];
-  TH1D* h_mixed_q2_dist[3][numFinerCentBins][nPtZBins];
-  TH1D* h_z_psi2_dist[3][numFinerCentBins][nPtZBins];
-  TH1D* h_mixed_psi2_dist[3][numFinerCentBins][nPtZBins];
+  TH1D* h_z_q2_dist[3][numFineCentBins][nPtZBins];
+  TH1D* h_mixed_q2_dist[3][numFineCentBins][nPtZBins];
+  TH1D* h_z_psi2_dist[3][numFineCentBins][nPtZBins];
+  TH1D* h_mixed_psi2_dist[3][numFineCentBins][nPtZBins];
 
   TFile* inFile = new TFile (inFileName, "read");
 
@@ -878,16 +886,16 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
   for (int iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (int iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
-        h_z_q2_dist[iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_mixed_q2_dist[iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_z_q2_dist[iSpc][iFinerCent][iPtZ]->Sumw2 ();
-        h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]->Sumw2 ();
+      for (int iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+        h_z_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_mixed_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
 
-        h_z_psi2_dist[iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ] = new TH1D (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFinerCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->Sumw2 ();
-        h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]->Sumw2 ();
+        h_z_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
       }
     }
   }
@@ -915,8 +923,8 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      const short iFinerCent = GetFinerCentBin (fcal_et);
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      const short iFineCent = GetFineCentBin (fcal_et);
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
         continue;
 
       const short iPtZ = GetPtZBin (z_pt);
@@ -925,56 +933,56 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
 
       const short iSpc = (isEE ? 0 : 1);
 
-      h_z_q2_dist[iSpc][iFinerCent][iPtZ]->Fill (z_q2);
-      h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]->Fill (q2);
+      h_z_q2_dist[iSpc][iFineCent][iPtZ]->Fill (z_q2);
+      h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Fill (q2);
 
       float dphi = DeltaPhi (z_phi, z_psi2, false);
       if (dphi > pi/2)
         dphi = pi - dphi;
-      h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->Fill (dphi);
+      h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
 
       dphi = DeltaPhi (z_phi, psi2, false);
       if (dphi > pi/2)
         dphi = pi - dphi;
-      h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]->Fill (dphi);
+      h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
     }
     cout << "Done Pb+Pb loop." << endl;
   }
 
   for (short iSpc = 0; iSpc < 2; iSpc++) {
-    for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (int ix = 1; ix <= h_z_q2_dist[iSpc][iFinerCent][iPtZ]->GetNbinsX (); ix++)
-          h_z_q2_dist[iSpc][iFinerCent][iPtZ]->SetBinError (ix, h_z_q2_dist[iSpc][iFinerCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
-        for (int ix = 1; ix <= h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->GetNbinsX (); ix++)
-          h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->SetBinError (ix, h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
+        for (int ix = 1; ix <= h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
+          h_z_q2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
+        for (int ix = 1; ix <= h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
+          h_z_psi2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
 
-        h_z_q2_dist[2][iFinerCent][iPtZ]->Add (h_z_q2_dist[iSpc][iFinerCent][iPtZ]);
-        h_mixed_q2_dist[2][iFinerCent][iPtZ]->Add (h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]);
-        h_z_psi2_dist[2][iFinerCent][iPtZ]->Add (h_z_psi2_dist[iSpc][iFinerCent][iPtZ]);
-        h_mixed_psi2_dist[2][iFinerCent][iPtZ]->Add (h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]);
+        h_z_q2_dist[2][iFineCent][iPtZ]->Add (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
+        h_mixed_q2_dist[2][iFineCent][iPtZ]->Add (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+        h_z_psi2_dist[2][iFineCent][iPtZ]->Add (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
+        h_mixed_psi2_dist[2][iFineCent][iPtZ]->Add (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
       }
     }
   }
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_q2_dist[iSpc][iFinerCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iFinerCent][iPtZ]->Integral ());
-        h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]->Integral ());
-        h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->Integral ());
-        h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]->Integral ());
+        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
       }
     }
   }
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_q2_dist[iSpc][iFinerCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]);
-        h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]);
-        h_z_psi2_dist[iSpc][iFinerCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]);
-        h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]);
+        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
+        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
       }
     }
   }
@@ -986,12 +994,12 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
 
   eventWeightsFile = new TFile (outFileName, "recreate");
   for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFinerCent = 0; iFinerCent < numFinerCentBins; iFinerCent++) {
+    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        SafeWrite (h_z_q2_dist[iSpc][iFinerCent][iPtZ]);
-        SafeWrite (h_mixed_q2_dist[iSpc][iFinerCent][iPtZ]);
-        SafeWrite (h_z_psi2_dist[iSpc][iFinerCent][iPtZ]);
-        SafeWrite (h_mixed_psi2_dist[iSpc][iFinerCent][iPtZ]);
+        SafeWrite (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
+        SafeWrite (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+        SafeWrite (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
+        SafeWrite (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
       }
     }
   }

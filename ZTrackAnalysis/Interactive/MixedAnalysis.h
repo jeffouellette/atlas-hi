@@ -104,14 +104,14 @@ void MixedAnalysis :: Execute () {
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
-      short iFinerCent = 0;
-      while (iFinerCent < numFinerCentBins) {
-        if (fcal_et < finerCentBins[iFinerCent])
+      short iFineCent = 0;
+      while (iFineCent < numFineCentBins) {
+        if (fcal_et < fineCentBins[iFineCent])
           break;
         else
-          iFinerCent++;
+          iFineCent++;
       }
-      if (iFinerCent < 1 || iFinerCent > numFinerCentBins-1)
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
         continue;
 
       short iPtZ = 0; // find z-pt bin

@@ -116,11 +116,11 @@ const char* FormatMeasurement (double val, double err, const int n) {
 void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
   ResetDirectories ();
 
-  workPath = homePath + thisWorkPath + "/";
-  externalWorkPath = drivePath + thisWorkPath + "/";
-  intWorkPath = intPath + thisWorkPath + "/";
+  workPath = homePath + "/" + thisWorkPath;
+  externalWorkPath = drivePath + "/" + thisWorkPath;
+  intWorkPath = intPath + "/" + thisWorkPath;
 
-  rootPath = intPath + "/rootFiles/" + dataSubDir;
+  rootPath = intWorkPath + "/rootFiles/" + dataSubDir;
   dataPath = externalWorkPath + "/data/" + dataSubDir;
   plotPath = workPath + "/Plots/" + dataSubDir;
   ptPath = rootPath + "/ptData/";

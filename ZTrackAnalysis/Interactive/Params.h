@@ -5,6 +5,8 @@
 #include <Utilities.h>
 #include <ArrayTemplates.h>
 
+#include <set>
+#include <map>
 #include <iostream>
 
 using namespace std;
@@ -49,8 +51,8 @@ const double phiTrkBins[3] = {0, pi/8, pi/2};
 const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
 const double etaTrkBins[6] = {0, 0.5, 1.0, 1.5, 2.0, 2.5};
 const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
-const int numFinerEtaTrkBins = 40;
-const double* finerEtaTrkBins = linspace (-2.5, 2.5, numFinerEtaTrkBins);
+const int numFineEtaTrkBins = 40;
+const double* fineEtaTrkBins = linspace (-2.5, 2.5, numFineEtaTrkBins);
 
 
 // Centrality cuts in GeV:  80%  -  30%  -  10%  -   0%
@@ -100,13 +102,13 @@ short GetTrkCorrCentBin (const float fcal_et) {
   return i;
 }
 
-const double finerCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
-const int finerCentCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
-const int numFinerCentBins = sizeof (finerCentBins) / sizeof (finerCentBins[0]);
-short GetFinerCentBin (const float fcal_et) {
+const double fineCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
+const int fineCentCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
+const int numFineCentBins = sizeof (fineCentBins) / sizeof (fineCentBins[0]);
+short GetFineCentBin (const float fcal_et) {
   short i = 0;
-  while (i < numFinerCentBins) {
-    if (fcal_et < finerCentBins[i])
+  while (i < numFineCentBins) {
+    if (fcal_et < fineCentBins[i])
       break;
     i++;
   }
@@ -515,6 +517,19 @@ short GetSuperFineCentBin (const float fcal_et) {
   return i;
 }
 
+const short numQ2Bins = 10;
+const double* q2Bins = linspace (0, 0.2, numQ2Bins);
+
+short GetQ2Bin (const float q2) {
+  short i = 0;
+  while (i < numQ2Bins) {
+    if (q2 < q2Bins[i+1])
+      break;
+    i++;
+  }
+  return i;
+}
+
 const double psi2Bins[7] = {
   -pi/2,
   -pi/3,
@@ -546,6 +561,54 @@ short GetVZBin (const float vz) {
     i++;
   }
   return i;
+}
+
+const set<int> group1 = {286711, 286717, 286748, 286767, 286834, 286854, 286908, 286990};
+const set<int> group2 = {287038, 287044, 287068, 287222, 287224, 287259, 287270, 287281};
+const set<int> group3 = {287321, 287330, 287334, 287378, 287380, 287382, 287560, 287594};
+const set<int> group4 = {287632, 287706, 287728, 287827};
+const set<int> group5 = {287843, 287866, 287924, 287931};
+const set<int> groupA = {365502, 365512, 365573, 365602, 365627, 365678, 365681, 365709};
+const set<int> groupB = {365752, 365834};
+const set<int> groupC = {365914, 365932};
+const set<int> groupD = {366011, 366029, 366092};
+const set<int> groupE = {366142, 366268, 366337};
+const set<int> groupF = {366383, 366413, 366476};
+const set<int> groupG = {366526, 366528, 366627, 366691, 366754, 366805};
+const set<int> groupH = {366860, 366878, 366919, 366931, 366994, 367023};
+const set<int> groupI = {367099, 367134, 367165};
+const set<int> groupJ = {367170, 367233, 367273};
+const set<int> groupK = {367318, 367321, 367363, 367364, 367365, 367384};
+//const vector<const set<int>*> runGroups = {&group1, &group2, &group3, &group4, &group5, &groupA, &groupB, &groupC, &groupD, &groupE, &groupF, &groupG, &groupH, &groupI, &groupJ, &groupK};
+
+const map <string, const set<int>*> runGroups = {
+  //{"Group1", &group1},
+  //{"Group2", &group2},
+  //{"Group3", &group3},
+  //{"Group4", &group4},
+  //{"Group5", &group5},
+  {"GroupA", &groupA},
+  {"GroupB", &groupB},
+  {"GroupC", &groupC},
+  {"GroupD", &groupD},
+  {"GroupE", &groupE},
+  {"GroupF", &groupF},
+  {"GroupG", &groupG},
+  {"GroupH", &groupH},
+  {"GroupI", &groupI},
+  {"GroupJ", &groupJ},
+  {"GroupK", &groupK}
+};
+
+short GetRunGroup (int rn) {
+  short rg = 0;
+  for (const auto& group : runGroups) {
+    if (group.second->find (rn) == group.second->end ())
+      rg++;
+    else
+      break;
+  }
+  return rg;
 }
 
 
