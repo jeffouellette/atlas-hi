@@ -170,69 +170,80 @@ void MakeZTaggedMixingCatTrees () {
   TChain* c = new TChain ("PbPbZTrackTree", "PbPbZTrackTree");
   const char* path = "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/DataAnalysis/Nominal";
 
-  TFile**** farr = Get3DArray <TFile*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
-  TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
+  TFile**** farr = Get3DArray <TFile*> (numFileCentBins, 1, 1);
+  TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, 1, 1);
+  //TFile**** farr = Get3DArray <TFile*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
+  //TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
 
   for (const auto& group : runGroups) {
     c->Reset ();
     for (int run : *(group.second)) {
       c->Add (Form ("%s/%i.root", path, run));
-      c->Add (Form ("%s/%i.root", path, run));
     }
-  }
+    gSystem->Exec (Form ("mkdir -p %s/%s_sorted", path, group.first.c_str ()));
 
-  gSystem->Exec (Form ("mkdir -p %s/MixingTrees", path));
+  //gSystem->Exec (Form ("mkdir -p %s/MixingTrees", path));
 
-  for (int iCent = 1; iCent < numFileCentBins; iCent++) {
-    for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
-      for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
-        farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/MixingTrees/tree_iCent%i_iQ2%i_iPsi2%i.root", path, iCent, iQ2, iPsi2), "update");
-        tarr[iCent][iQ2][iPsi2] = (TTree*) farr[iCent][iQ2][iPsi2]->Get ("PbPbZTrackTree");
-        if (!tarr[iCent][iQ2][iPsi2])
-          tarr[iCent][iQ2][iPsi2] = (TTree*) c->CloneTree (0);
-        tarr[iCent][iQ2][iPsi2]->SetDirectory (farr[iCent][iQ2][iPsi2]);
+    for (int iCent = 1; iCent < numFileCentBins; iCent++) {
+      for (int iQ2 = 0; iQ2 < 1; iQ2++) {
+        for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
+      //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
+      //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
+          farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "update");
+          //farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/MixingTrees/tree_iCent%i_iQ2%i_iPsi2%i.root", path, iCent, iQ2, iPsi2), "update");
+          tarr[iCent][iQ2][iPsi2] = (TTree*) farr[iCent][iQ2][iPsi2]->Get ("PbPbZTrackTree");
+          if (!tarr[iCent][iQ2][iPsi2])
+            tarr[iCent][iQ2][iPsi2] = (TTree*) c->CloneTree (0);
+          tarr[iCent][iQ2][iPsi2]->SetDirectory (farr[iCent][iQ2][iPsi2]);
+        }
       }
     }
-  }
 
-  float fcal_et = 0, q2 = 0, psi2 = 0;
-  c->SetBranchAddress ("fcal_et", &fcal_et);
-  c->SetBranchAddress ("q2",      &q2);
-  c->SetBranchAddress ("psi2",    &psi2);
+    float fcal_et = 0, q2 = 0, psi2 = 0;
+    c->SetBranchAddress ("fcal_et", &fcal_et);
+    c->SetBranchAddress ("q2",      &q2);
+    c->SetBranchAddress ("psi2",    &psi2);
 
-  const int nEvts = c->GetEntries ();
-  for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-    if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-      cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-    c->GetEntry (iEvt);
+    const int nEvts = c->GetEntries ();
+    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+      c->GetEntry (iEvt);
 
-    //fcal_et = fcal_et + fcal_et_shift;
+      //fcal_et = fcal_et + fcal_et_shift;
 
-    const short iCent = GetFileCentBin (fcal_et);
-    if (iCent < 1 || iCent > numFileCentBins-1)
-      continue;
+      const short iCent = GetFileCentBin (fcal_et);
+      if (iCent < 1 || iCent > numFileCentBins-1)
+        continue;
 
-    const short iQ2 = GetFileQ2Bin (q2);
-    if (iQ2 < 0 || iQ2 > numFileQ2Bins-1)
-      continue;
+      const short iQ2 = 0;
+      const short iPsi2 = 0;
 
-    const short iPsi2 = GetPsi2Bin (psi2);
-    if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
-      continue;
+      //const short iQ2 = GetFileQ2Bin (q2);
+      //if (iQ2 < 0 || iQ2 > numFileQ2Bins-1)
+      //  continue;
 
-    tarr[iCent][iQ2][iPsi2]->Fill ();
-  }
-  cout << endl;
-  c->Reset ();
-  
-  for (int iCent = 1; iCent < numFileCentBins; iCent++) {
-    for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
-      for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
-        farr[iCent][iQ2][iPsi2]->cd ();
-        tarr[iCent][iQ2][iPsi2]->Write ("", TObject :: kOverwrite);
-        farr[iCent][iQ2][iPsi2]->Close ();
+      //const short iPsi2 = GetPsi2Bin (psi2);
+      //if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
+      //  continue;
+
+      tarr[iCent][iQ2][iPsi2]->Fill ();
+    }
+    cout << endl;
+    c->Reset ();
+    
+    for (int iCent = 1; iCent < numFileCentBins; iCent++) {
+      for (int iQ2 = 0; iQ2 < 1; iQ2++) {
+        for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
+      //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
+      //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
+          farr[iCent][iQ2][iPsi2]->cd ();
+          tarr[iCent][iQ2][iPsi2]->Write ("", TObject :: kOverwrite);
+          farr[iCent][iQ2][iPsi2]->Close ();
+        }
       }
     }
+
   }
 }
 
@@ -257,8 +268,10 @@ void MakeMinbiasMixingCatTrees () {
   TChain* c = new TChain ("PbPbZTrackTree", "PbPbZTrackTree");
   const char* path = "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/MinbiasAnalysis/Nominal";
 
-  TFile**** farr = Get3DArray <TFile*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
-  TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
+  TFile**** farr = Get3DArray <TFile*> (numFileCentBins, 1, 1);
+  TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, 1, 1);
+  //TFile**** farr = Get3DArray <TFile*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
+  //TTree**** tarr = Get3DArray <TTree*> (numFileCentBins, numFileQ2Bins, numPsi2Bins);
 
   for (const auto& group : runGroups) {
     c->Reset ();
@@ -270,8 +283,10 @@ void MakeMinbiasMixingCatTrees () {
     gSystem->Exec (Form ("mkdir -p %s/%s_sorted", path, group.first.c_str ()));
 
     for (int iCent = 1; iCent < numFileCentBins; iCent++) {
-      for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
-        for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
+      for (int iQ2 = 0; iQ2 < 1; iQ2++) {
+        for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
+      //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
+      //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
           farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "update");
           tarr[iCent][iQ2][iPsi2] = (TTree*) farr[iCent][iQ2][iPsi2]->Get ("PbPbZTrackTree");
           if (!tarr[iCent][iQ2][iPsi2])
@@ -298,13 +313,16 @@ void MakeMinbiasMixingCatTrees () {
       if (iCent < 1 || iCent > numFileCentBins-1)
         continue;
 
-      const short iQ2 = GetFileQ2Bin (q2);
-      if (iQ2 < 0 || iQ2 > numFileQ2Bins-1)
-        continue;
+      const short iQ2 = 0;
+      const short iPsi2 = 0;
 
-      const short iPsi2 = GetPsi2Bin (psi2);
-      if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
-        continue;
+      //const short iQ2 = GetFileQ2Bin (q2);
+      //if (iQ2 < 0 || iQ2 > numFileQ2Bins-1)
+      //  continue;
+
+      //const short iPsi2 = GetPsi2Bin (psi2);
+      //if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
+      //  continue;
 
       tarr[iCent][iQ2][iPsi2]->Fill ();
     }
@@ -312,8 +330,10 @@ void MakeMinbiasMixingCatTrees () {
     c->Reset ();
   
     for (int iCent = 1; iCent < numFileCentBins; iCent++) {
-      for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
-        for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
+      for (int iQ2 = 0; iQ2 < 1; iQ2++) {
+        for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
+      //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
+      //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
           farr[iCent][iQ2][iPsi2]->cd ();
           tarr[iCent][iQ2][iPsi2]->Write ("", TObject :: kOverwrite);
           farr[iCent][iQ2][iPsi2]->Close ();

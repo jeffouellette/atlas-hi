@@ -383,6 +383,9 @@ const float superFineCentBins[69]={//164] = {
     //0.5*477.734 + 0.5*505.085,
     //505.085, // 51%
     //0.5*505.085 + 0.5*533.608,
+    533.608, // 50%
+    //0.5*533.608 + 0.5*563.263,
+    //563.263, // 49%
     //0.5*563.263 + 0.5*594.07,
     594.07,  // 48%
     //0.5*594.07 + 0.5*626.047,
@@ -522,7 +525,7 @@ short GetSuperFineCentBin (const float fcal_et) {
   return i;
 }
 
-const short numQ2Bins = 10;
+const short numQ2Bins = 20;
 const double* q2Bins = linspace (0, 0.2, numQ2Bins);
 
 short GetQ2Bin (const float q2) {

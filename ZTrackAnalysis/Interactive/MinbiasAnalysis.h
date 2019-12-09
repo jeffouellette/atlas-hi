@@ -309,7 +309,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
   CreateHists ();
 
-  unsigned int event_number = 0, z_event_number = 0, lumi_block = 0;
+  int event_number = 0, z_event_number = 0, lumi_block = 0;
   int run_number = 0, z_run_number = 0, ntrk = 0, z_ntrk = 0;
   bool isEE = false;//, passes_toroid = false;
   float z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
@@ -516,7 +516,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbPbPbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && iRG == GetRunGroup (run_number) && iFCalEt == GetSuperFineCentBin (fcal_et) && iQ2 == GetQ2Bin (q2) && iPsi2 == GetPsi2Bin (psi2));
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
+          goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
+          goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
+          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2) && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -728,6 +731,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
     if (nZEvts == 0)
       cout << "Warning! No Z's to mix with in this run!" << endl;
+    cout << "N MB events = " << nMBEvts << endl;
+    cout << "N Z-tagged events = " << nZEvts << endl;
     cout << "For this pp tree, maximum mixing fraction = " << nMBEvts / nZEvts << endl;
 
     bool doShuffle = false;
