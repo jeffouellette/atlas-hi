@@ -41,14 +41,6 @@ float max_rel_sys = 40;
 
 int mixingFraction = 40;
 
-const int nFCalBins = 250;
-const double* fcalBins = linspace (0, 5000, nFCalBins);
-
-//const int numZMissingPtBins = 16;
-//const double* zMissingPtBins = doubleLogSpace (1, 150, 8);
-//const double* zMissingPtBins = linspace (-150, 150, numZMissingPtBins);
-const double phiTrkBins[3] = {0, pi/8, pi/2};
-const int numPhiTrkBins = sizeof (phiTrkBins) / sizeof (phiTrkBins[0]) - 1;
 const double etaTrkBins[6] = {0, 0.5, 1.0, 1.5, 2.0, 2.5};
 const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
 const int numFineEtaTrkBins = 40;
@@ -72,6 +64,7 @@ short GetCentBin (const float fcal_et) {
   return i;
 }
 
+// Centrality cuts for bin-by-bin corrections (<--> "bbbCorr")
 const double bbbCorrCentBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 const int bbbCorrCentCuts[4]    = {80,     30,     10,      0};
 
@@ -87,6 +80,7 @@ short GetBBBCorrCentBin (const float fcal_et) {
   return i;
 }
 
+// Centrality cuts for track-based corrections (purity, efficiency)
 const double trkCorrCentBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC
 const int trkCorrCentCuts[4]    = {80,     30,     10,      0};
 
@@ -102,6 +96,7 @@ short GetTrkCorrCentBin (const float fcal_et) {
   return i;
 }
 
+// Finer centrality cuts for slightly increased precision measurements
 const double fineCentBins[10] = {66.402, 148.625, 296.17, 533.608, 885.172, 1378.92, 2055.77, 2995.94, 3622.6, 5000};
 const int fineCentCuts[10]    = {80,     70,      60,     50,      40,      30,      20,      10,      5,      0};
 const int numFineCentBins = sizeof (fineCentBins) / sizeof (fineCentBins[0]);
@@ -116,12 +111,25 @@ short GetFineCentBin (const float fcal_et) {
 }
 
 
+// delta-phi bin edges between Z and tracks
 const double phiLowBins[3] = {0,      3*pi/4,     15*pi/16};
 const double phiHighBins[3] = {pi/2,  15*pi/16,   pi};
 const int numPhiBins = sizeof (phiLowBins) / sizeof (phiLowBins[0]);
 
+// Returns which delta-phi bin corresponds to this relative angle
+short GetidPhi (const float dphi) {
+  short idPhi = 0;
+  while (idPhi < numPhiBins) {
+    if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
+      break;
+    else
+      idPhi++;
+  }
+  return idPhi;
+}
 
-//const double zPtBins[5] = {0, 5, 20, 40, 10000};
+
+// Z boson pT bins used in analysis
 const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
 const int nPtZBins = sizeof (zPtBins) / sizeof (zPtBins[0]) - 1;
 short GetPtZBin (const float zPt) {
@@ -136,10 +144,13 @@ short GetPtZBin (const float zPt) {
 }
 
 
+// min/max values on track kinematics
 const double trk_min_pt = 1;
 const double trk_max_pt = 60;
 
 
+// code that instantiates bins in track pT.
+// essentially just a set-of-a-set of bin edges where the highest bin edge is min (Z pT)
 const int maxNPtTrkBins = 6;
 double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
 int* nPtTrkBins = Get1DArray <int> (nPtZBins);
@@ -166,7 +177,8 @@ double** init_ptTrkBins () {
 }
 double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
 
-
+// code that instantiates bins in track pT / Z pT.
+// essentially just a set-of-a-set of bin edges where the lowest bin is min (track pT) / min (Z pT)
 const int maxNXHZBins = 6;
 double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
 int* nXHZBins = Get1DArray <int> (nPtZBins);
@@ -194,19 +206,34 @@ double** init_xHZBins () {
 }
 double** xHZBins = init_xHZBins ();
 
+// Returns which bin corresponds to this value of zH for this Z boson pT bin number
+short GetiZH (const float zH, const int iPtZ) {
+  short iZH = 0;
+  while (iZH < nXHZBins[iPtZ]) {
+    if (xHZBins[iPtZ][iZH+1] < zH)
+      iZH++;
+    else
+      break;
+  }
+  return iZH;
+}
 
+
+// Prints track pT bins for this Z pT bin
 void PrintPtBins (const short iPtZ) {
   for (int i = 0; i <= nPtTrkBins[iPtZ]; i++) {
     cout << ptTrkBins[iPtZ][i] << endl;
   }
 }
 
+// Prints track pT / Z pT bins for this Z pT bin
 void PrintXHZBins (const short iPtZ) {
   for (int i = 0; i <= nXHZBins[iPtZ]; i++) {
     cout << xHZBins[iPtZ][i] << endl;
   }
 }
 
+// Prints track pT / Z pT bin edges in a LaTeX friendly format (intended to be placed in a table)
 void LatexXHZBins () {
   cout << "\\hline" << endl;
   for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
@@ -241,6 +268,7 @@ void LatexXHZBins () {
 }
 
 
+// Calculates the greatest-common-denominator of a & b, for use in converting decimal to fractional representations
 long gcd (long a, long b) {
   if (a == 0)
     return b;
@@ -254,6 +282,7 @@ long gcd (long a, long b) {
 }
 
 
+// Returns a string of phi in units of pi, e.g. GetPiString (1.57079633) would return "#pi/2"
 const char* GetPiString (double phi) {
   phi = phi / pi;
   while (phi < 0)
@@ -292,221 +321,197 @@ const char* GetPiString (double phi) {
 }
 
 
-short GetidPhi (const float dphi) {
-  short idPhi = 0;
-  while (idPhi < numPhiBins) {
-    if (phiLowBins[idPhi] < dphi && dphi < phiHighBins[idPhi])
-      break;
-    else
-      idPhi++;
-  }
-  return idPhi;
-}
-
-
-short GetiZH (const float zH, const int iPtZ) {
-  short iZH = 0;
-  while (iZH < nXHZBins[iPtZ]) {
-    if (xHZBins[iPtZ][iZH+1] < zH)
-      iZH++;
-    else
-      break;
-  }
-  return iZH;
-}
-
-
-const float superFineCentBins[164] = {
+// Set of very fine centrality cuts, intended for use as mixed event categories
+const float superFineCentBins[69]={//164] = {
     66.402, // 80%
-    0.5*66.402 + 0.5*72.411,
-    72.411, // 79%
-    0.5*72.411 + 0.5*78.834,
+    //0.5*66.402 + 0.5*72.411,
+    //72.411, // 79%
+    //0.5*72.411 + 0.5*78.834,
     78.834, // 78%
-    0.5*78.834 + 0.5*85.729,
-    85.729, // 77%
-    0.5*85.729 + 0.5*93.071,
+    //0.5*78.834 + 0.5*85.729,
+    //85.729, // 77%
+    //0.5*85.729 + 0.5*93.071,
     93.071, // 76%
-    0.5*93.071 + 0.5*100.928,
-   100.928, // 75%
-    0.5*100.928 + 0.5*109.333,
-   109.333, // 74%
-    0.5*109.333 + 0.5*118.249,
-   118.249, // 73%
-    0.5*118.249 + 0.5*127.745,
-   127.745, // 72%
-    0.5*127.745 + 0.5*137.874,
-   137.874, // 71%
-    0.5*137.874 + 0.5*148.625,
-   148.625, // 70%
-    0.5*148.625 + 0.5*160.033,
-   160.033, // 69%
-    0.5*160.033 + 0.5*172.097,
-   172.097, // 68%
-    0.5*172.097 + 0.5*184.922,
-   184.922, // 67%
-    0.5*184.922 + 0.5*198.428,
-   198.428, // 66%
-    0.5*198.428 + 0.5*212.684,
-   212.684, // 65%
-    0.5*212.684 + 0.5*227.751,
-   227.751, // 64%
-    0.5*227.751 + 0.5*243.588,
-   243.588, // 63%
-    0.5*243.588 + 0.5*260.219,
-   260.219, // 62%
-    0.5*260.219 + 0.5*277.742,
-   277.742, // 61%
-    0.5*277.742 + 0.5*296.17,
-   296.17,  // 60%
-    0.5*296.17 + 0.5*315.523,
-   315.523, // 59%
-    0.5*315.523 + 0.5*335.738,
-   335.738, // 58%
-    0.5*335.738 + 0.5*356.885,
-   356.885, // 57%
-    0.5*356.885 + 0.5*378.968,
-   378.968, // 56%
-    0.5*378.968 + 0.5*402.144,
-   402.144, // 55%
-    0.5*402.144 + 0.5*426.354,
-   426.354, // 54%
-    0.5*426.354 + 0.5*451.509,
-   451.509, // 53%
-    0.5*451.509 + 0.5*477.734,
-   477.734, // 52%
-    0.5*477.734 + 0.5*505.085,
-   505.085, // 51%
-    0.5*505.085 + 0.5*533.608,
-   533.608, // 50%
-    0.5*533.608 + 0.5*563.263,
-   563.263, // 49%
-    0.5*563.263 + 0.5*594.07,
-   594.07,  // 48%
-    0.5*594.07 + 0.5*626.047,
-   626.047, // 47%
-    0.5*626.047 + 0.5*659.269,
-   659.269, // 46%
-    0.5*659.269 + 0.5*693.606,
-   693.606, // 45%
-    0.5*693.606 + 0.5*729.251,
-   729.251, // 44%
-    0.5*729.251 + 0.5*766.305,
-   766.305, // 43%
-    0.5*766.305 + 0.5*804.607,
-   804.607, // 42%
-    0.5*804.607 + 0.5*844.192,
-   844.192, // 41%
-    0.5*844.192 + 0.5*885.172,
-   885.172, // 40%
-    0.5*885.172 + 0.5*927.582,
-   927.582, // 39%
-    0.5*927.582 + 0.5*971.487,
-   971.487, // 38%
-    0.5*971.487 + 0.5*1016.86,
-  1016.86,  // 37%
-    0.5*1016.86 + 0.5*1063.71,
-  1063.71,  // 36%
-    0.5*1063.71 + 0.5*1112.2,
-  1112.2,   // 35%
-    0.5*1112.2 + 0.5*1162.33,
-  1162.33,  // 34%
-    0.5*1162.33 + 0.5*1213.91,
-  1213.91,  // 33%
-    0.5*1213.91 + 0.5*1267.07,
-  1267.07,  // 32%
-    0.5*1267.07 + 0.5*1322.12,
-  1322.12,  // 31%
-    0.5*1322.12 + 0.5*1378.92,
-  1378.92,  // 30%
-    0.5*1378.92 + 0.5*1437.29,
-  1437.29,  // 29%
-    0.5*1437.29 + 0.5*1497.54,
-  1497.54,  // 28%
-    0.5*1497.54 + 0.5*1560.05,
-  1560.05,  // 27%
-    0.5*1560.05 + 0.5*1624.34,
-  1624.34,  // 26%
-    0.5*1624.34 + 0.5*1690.47,
-  1690.47,  // 25%
-    0.5*1690.47 + 0.5*1759.06,
-  1759.06,  // 24%
-    0.5*1759.06 + 0.5*1829.74,
-  1829.74,  // 23%
-    0.5*1829.74 + 0.5*1902.73,
-  1902.73,  // 22%
-    0.5*1902.73 + 0.5*1978.02,
-  1978.02,  // 21%
-    0.5*1978.02 + 0.5*2055.77,
-  2055.77,  // 20%
-    0.5*2055.77 + 0.5*2136.17,
-  2136.17,  // 19%
-    0.5*2136.17 + 0.5*2218.88,
-  2218.88,  // 18%
-    0.5*2218.88 + 0.5*2304.47,
-  2304.47,  // 17%
-    0.5*2304.47 + 0.5*2393.11,
-  2393.11,  // 16%
-    0.5*2393.11 + 0.5*2484.75,
-  2484.75,  // 15%
-    0.5*2484.75 + 0.5*2579.56,
-  2579.56,  // 14%
-    0.5*2579.56 + 0.5*2677.6,
-  2677.6,   // 13%
-    0.5*2677.6 + 0.5*2779.68,
-  2779.68,  // 12%
-    0.5*2779.68 + 0.5*2885.71,
-  2885.71,  // 11%
-    0.5*2885.71 + 0.5*2995.94,
-  2995.94,  // 10%
-  //0.75*2995.94+0.25*3110.27, // middle bin
-  0.50*2995.94+0.50*3110.27, // middle bin
-  //0.25*2995.94+0.75*3110.27, // middle bin
-  3110.27,  //  9%
-  //0.75*3110.27+0.25*3229.67, // middle bin
-  0.50*3110.27+0.50*3229.67, // middle bin
-  //0.25*3110.27+0.75*3229.67, // middle bin
-  3229.67,  //  8%
-  //0.75*3229.67+0.25*3354.66, // middle bin
-  0.50*3229.67+0.50*3354.66, // middle bin
-  //0.25*3229.67+0.75*3354.66, // middle bin
-  3354.66,  //  7%
-  //0.75*3354.66+0.25*3485.57, // middle bin
-  0.50*3354.66+0.50*3485.57, // middle bin
-  //0.25*3354.66+0.75*3485.57, // middle bin
-  3485.57,  //  6%
-  //0.75*3485.57+0.25*3622.6,   // middle bin
-  0.50*3485.57+0.50*3622.6,   // middle bin
-  //0.25*3485.57+0.75*3622.6,   // middle bin
-  3622.6,   //  5%
-  //0.75*3622.6+0.25*3767.,     // middle bin
-  0.50*3622.6+0.50*3767.,     // middle bin
-  //0.25*3622.6+0.75*3767.,     // middle bin
-  3767.,    //  4%
-  //0.75*3767.+0.25*3920.41,    // middle bin
-  0.50*3767.+0.50*3920.41,    // middle bin
-  //0.25*3767.+0.75*3920.41,    // middle bin
-  3920.41,  //  3%
-  //0.75*3920.41+0.25*4083.38,  // middle bin
-  0.50*3920.41+0.50*4083.38,  // middle bin
-  //0.25*3920.41+0.75*4083.38,  // middle bin
-  4083.38,  //  2%
-  //0.75*4083.38+0.25*4263.72,  // middle bin
-  0.50*4083.38+0.50*4263.72,  // middle bin
-  //0.25*4083.38+0.75*4263.72,  // middle bin
-  4263.72,  //  1%
-  //0.9*4263.72+0.1*5000,     // middle bin
-  0.8*4263.72+0.2*5000,     // middle bin
-  //0.7*4263.72+0.3*5000,     // middle bin
-  0.6*4263.72+0.4*5000,     // middle bin
-  //0.5*4263.72+0.5*5000,     // middle bin
-  0.4*4263.72+0.6*5000,     // middle bin
-  //0.3*4263.72+0.7*5000,     // middle bin
-  0.2*4263.72+0.8*5000,     // middle bin
-  //0.1*4263.72+0.9*5000,     // middle bin
-  5000      //  0%,   entry in array is numSuperFineCentBins-1
+    //0.5*93.071 + 0.5*100.928,
+    //100.928, // 75%
+    //0.5*100.928 + 0.5*109.333,
+    109.333, // 74%
+    //0.5*109.333 + 0.5*118.249,
+    //118.249, // 73%
+    //0.5*118.249 + 0.5*127.745,
+    127.745, // 72%
+    //0.5*127.745 + 0.5*137.874,
+    //137.874, // 71%
+    //0.5*137.874 + 0.5*148.625,
+    148.625, // 70%
+    //0.5*148.625 + 0.5*160.033,
+    //160.033, // 69%
+    //0.5*160.033 + 0.5*172.097,
+    172.097, // 68%
+    //0.5*172.097 + 0.5*184.922,
+    //184.922, // 67%
+    //0.5*184.922 + 0.5*198.428,
+    198.428, // 66%
+    //0.5*198.428 + 0.5*212.684,
+    //212.684, // 65%
+    //0.5*212.684 + 0.5*227.751,
+    227.751, // 64%
+    //0.5*227.751 + 0.5*243.588,
+    //243.588, // 63%
+    //0.5*243.588 + 0.5*260.219,
+    260.219, // 62%
+    //0.5*260.219 + 0.5*277.742,
+    //277.742, // 61%
+    //0.5*277.742 + 0.5*296.17,
+    296.17,  // 60%
+    //0.5*296.17 + 0.5*315.523,
+    //315.523, // 59%
+    //0.5*315.523 + 0.5*335.738,
+    335.738, // 58%
+    //0.5*335.738 + 0.5*356.885,
+    //356.885, // 57%
+    //0.5*356.885 + 0.5*378.968,
+    378.968, // 56%
+    //0.5*378.968 + 0.5*402.144,
+    //402.144, // 55%
+    //0.5*402.144 + 0.5*426.354,
+    426.354, // 54%
+    //0.5*426.354 + 0.5*451.509,
+    //451.509, // 53%
+    //0.5*451.509 + 0.5*477.734,
+    477.734, // 52%
+    //0.5*477.734 + 0.5*505.085,
+    //505.085, // 51%
+    //0.5*505.085 + 0.5*533.608,
+    //0.5*563.263 + 0.5*594.07,
+    594.07,  // 48%
+    //0.5*594.07 + 0.5*626.047,
+    //626.047, // 47%
+    //0.5*626.047 + 0.5*659.269,
+    659.269, // 46%
+    //0.5*659.269 + 0.5*693.606,
+    //693.606, // 45%
+    //0.5*693.606 + 0.5*729.251,
+    729.251, // 44%
+    //0.5*729.251 + 0.5*766.305,
+    //766.305, // 43%
+    //0.5*766.305 + 0.5*804.607,
+    804.607, // 42%
+    //0.5*804.607 + 0.5*844.192,
+    //844.192, // 41%
+    //0.5*844.192 + 0.5*885.172,
+    885.172, // 40%
+    //0.5*885.172 + 0.5*927.582,
+    //927.582, // 39%
+    //0.5*927.582 + 0.5*971.487,
+    971.487, // 38%
+    //0.5*971.487 + 0.5*1016.86,
+    //1016.86,  // 37%
+    //0.5*1016.86 + 0.5*1063.71,
+    1063.71,  // 36%
+    //0.5*1063.71 + 0.5*1112.2,
+    //1112.2,   // 35%
+    //0.5*1112.2 + 0.5*1162.33,
+    1162.33,  // 34%
+    //0.5*1162.33 + 0.5*1213.91,
+    //1213.91,  // 33%
+    //0.5*1213.91 + 0.5*1267.07,
+    1267.07,  // 32%
+    //0.5*1267.07 + 0.5*1322.12,
+    //1322.12,  // 31%
+    //0.5*1322.12 + 0.5*1378.92,
+    1378.92,  // 30%
+    //0.5*1378.92 + 0.5*1437.29,
+    1437.29,  // 29%
+    //0.5*1437.29 + 0.5*1497.54,
+    1497.54,  // 28%
+    //0.5*1497.54 + 0.5*1560.05,
+    1560.05,  // 27%
+    //0.5*1560.05 + 0.5*1624.34,
+    1624.34,  // 26%
+    //0.5*1624.34 + 0.5*1690.47,
+    1690.47,  // 25%
+    //0.5*1690.47 + 0.5*1759.06,
+    1759.06,  // 24%
+    //0.5*1759.06 + 0.5*1829.74,
+    1829.74,  // 23%
+    //0.5*1829.74 + 0.5*1902.73,
+    1902.73,  // 22%
+    //0.5*1902.73 + 0.5*1978.02,
+    1978.02,  // 21%
+    //0.5*1978.02 + 0.5*2055.77,
+    2055.77,  // 20%
+    //0.5*2055.77 + 0.5*2136.17,
+    2136.17,  // 19%
+    //0.5*2136.17 + 0.5*2218.88,
+    2218.88,  // 18%
+    //0.5*2218.88 + 0.5*2304.47,
+    2304.47,  // 17%
+    //0.5*2304.47 + 0.5*2393.11,
+    2393.11,  // 16%
+    //0.5*2393.11 + 0.5*2484.75,
+    2484.75,  // 15%
+    //0.5*2484.75 + 0.5*2579.56,
+    2579.56,  // 14%
+    //0.5*2579.56 + 0.5*2677.6,
+    2677.6,   // 13%
+    //0.5*2677.6 + 0.5*2779.68,
+    2779.68,  // 12%
+    //0.5*2779.68 + 0.5*2885.71,
+    2885.71,  // 11%
+    //0.5*2885.71 + 0.5*2995.94,
+    2995.94,  // 10%
+    //0.75*2995.94+0.25*3110.27, // middle bin
+    0.50*2995.94+0.50*3110.27, // middle bin
+    //0.25*2995.94+0.75*3110.27, // middle bin
+    3110.27,  //  9%
+    //0.75*3110.27+0.25*3229.67, // middle bin
+    0.50*3110.27+0.50*3229.67, // middle bin
+    //0.25*3110.27+0.75*3229.67, // middle bin
+    3229.67,  //  8%
+    //0.75*3229.67+0.25*3354.66, // middle bin
+    0.50*3229.67+0.50*3354.66, // middle bin
+    //0.25*3229.67+0.75*3354.66, // middle bin
+    3354.66,  //  7%
+    //0.75*3354.66+0.25*3485.57, // middle bin
+    0.50*3354.66+0.50*3485.57, // middle bin
+    //0.25*3354.66+0.75*3485.57, // middle bin
+    3485.57,  //  6%
+    //0.75*3485.57+0.25*3622.6,   // middle bin
+    0.50*3485.57+0.50*3622.6,   // middle bin
+    //0.25*3485.57+0.75*3622.6,   // middle bin
+    3622.6,   //  5%
+    //0.75*3622.6+0.25*3767.,     // middle bin
+    0.50*3622.6+0.50*3767.,     // middle bin
+    //0.25*3622.6+0.75*3767.,     // middle bin
+    3767.,    //  4%
+    //0.75*3767.+0.25*3920.41,    // middle bin
+    0.50*3767.+0.50*3920.41,    // middle bin
+    //0.25*3767.+0.75*3920.41,    // middle bin
+    3920.41,  //  3%
+    //0.75*3920.41+0.25*4083.38,  // middle bin
+    0.50*3920.41+0.50*4083.38,  // middle bin
+    //0.25*3920.41+0.75*4083.38,  // middle bin
+    4083.38,  //  2%
+    //0.75*4083.38+0.25*4263.72,  // middle bin
+    0.50*4083.38+0.50*4263.72,  // middle bin
+    //0.25*4083.38+0.75*4263.72,  // middle bin
+    4263.72,  //  1%
+    //0.9*4263.72+0.1*5000,     // middle bin
+    0.8*4263.72+0.2*5000,     // middle bin
+    //0.7*4263.72+0.3*5000,     // middle bin
+    0.6*4263.72+0.4*5000,     // middle bin
+    //0.5*4263.72+0.5*5000,     // middle bin
+    0.4*4263.72+0.6*5000,     // middle bin
+    //0.3*4263.72+0.7*5000,     // middle bin
+    0.2*4263.72+0.8*5000,     // middle bin
+    //0.1*4263.72+0.9*5000,     // middle bin
+    5000      //  0%,   entry in array is numSuperFineCentBins-1
 };
+
 const short numSuperFineCentBins = sizeof (superFineCentBins) / sizeof (superFineCentBins[0]);
 
+// Returns which "super fine" centrality bin number corresponds to this sum fcal et.
 short GetSuperFineCentBin (const float fcal_et) {
   short i = 0;
   while (i < numSuperFineCentBins) {
