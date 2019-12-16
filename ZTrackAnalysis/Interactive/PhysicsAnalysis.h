@@ -942,9 +942,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
     PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",       trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",      trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",      trk_phi);
+    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -952,8 +952,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 150)
-      //  continue;
+      if (fabs (vz) > 150)
+        continue;
 
       if (event_weight == 0)
         continue;
@@ -1037,9 +1037,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->SetBranchAddress ("l2_trk_eta",   &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi",   &l2_trk_phi);
     ppTree->SetBranchAddress ("ntrk",         &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",       trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",      trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",      trk_phi);
+    ppTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -1047,8 +1047,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 150)
-      //  continue;
+      if (fabs (vz) > 150)
+        continue;
 
       if (event_weight == 0)
         continue;
@@ -2342,7 +2342,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
   //cout << "Subtracting bkg. " << a->Name () << " from " << Name () << endl;
 
-  //**** Create dummy subtracted histograms for combined channel yield measurement ****//
+  //**** Create empty subtracted histograms for combined channel yield measurement ****//
   if (!backgroundSubtracted) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 

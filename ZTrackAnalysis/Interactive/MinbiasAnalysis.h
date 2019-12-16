@@ -309,10 +309,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
   CreateHists ();
 
-  int event_number = 0, z_event_number = 0, lumi_block = 0;
+  unsigned int event_number = 0, lumi_block = 0;
+  int z_event_number = 0;
   int run_number = 0, z_run_number = 0, ntrk = 0, z_ntrk = 0;
   bool isEE = false;//, passes_toroid = false;
-  float z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
+  float event_weight = 1, z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_q2 = 0, z_psi2 = 0, z_vz = 0, z_zdcEnergy = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -331,6 +332,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbPbPbTree->SetBranchAddress ("run_number",   &run_number);
     mbPbPbTree->SetBranchAddress ("event_number", &event_number);
     mbPbPbTree->SetBranchAddress ("lumi_block",   &lumi_block);
+    mbPbPbTree->SetBranchAddress ("event_weight", &event_weight);
     //mbPbPbTree->SetBranchAddress ("passes_toroid",&passes_toroid);
     mbPbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     mbPbPbTree->SetBranchAddress ("zdcEnergy",    &zdcEnergy);
@@ -338,9 +340,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbPbPbTree->SetBranchAddress ("psi2",         &psi2);
     mbPbPbTree->SetBranchAddress ("vz",           &vz);
     mbPbPbTree->SetBranchAddress ("ntrk",         &ntrk);
-    mbPbPbTree->SetBranchAddress ("trk_pt",       trk_pt);
-    mbPbPbTree->SetBranchAddress ("trk_eta",      trk_eta);
-    mbPbPbTree->SetBranchAddress ("trk_phi",      trk_phi);
+    mbPbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    mbPbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    mbPbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
 
     if (takeNonTruthTracks)
       mbPbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
@@ -360,6 +362,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     //std::srand (std::time (0));
     std::random_shuffle (mbEventOrder.begin (), mbEventOrder.end ());
 
+    cout << "Shuffled minimum bias events randomly; first ten events are ";
+    for (int i = 0; i < 10; i++) {
+      cout << mbEventOrder[i];
+      if (i < 9)
+        cout << ", ";
+    }
+    cout << endl;
+
     cout << Form ("Reading Z bosons from %s/%s", rootPath.Data (), inFileName) << endl;
     TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
     //TTree* zTree = LoadEventMixingTree (inFileName, "PbPbZTrackTree");
@@ -374,9 +384,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("z_phi",         &z_phi);
     zTree->SetBranchAddress ("z_m",           &z_m);
     zTree->SetBranchAddress ("ntrk",          &z_ntrk);
-    zTree->SetBranchAddress ("trk_pt",        z_trk_pt);
-    zTree->SetBranchAddress ("trk_eta",       z_trk_eta);
-    zTree->SetBranchAddress ("trk_phi",       z_trk_phi);
+    zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
     zTree->SetBranchAddress ("l1_pt",         &l1_pt);
     zTree->SetBranchAddress ("l1_eta",        &l1_eta);
     zTree->SetBranchAddress ("l1_phi",        &l1_phi);
@@ -404,24 +414,22 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
     TFile* mixedEventsFile = new TFile (Form ("%s/%s_mixed.root", rootPath.Data (), inFileName), "recreate");
     TTree* mixedEventsTree = new TTree ("PbPbMixedTree", "PbPbMixedTree");
-    mixedEventsTree->Branch ("run_number",    &run_number,    "run_number/i");
-    mixedEventsTree->Branch ("event_number",  &event_number,  "event_number/i");
-    mixedEventsTree->Branch ("lumi_block",    &lumi_block,    "lumi_block/i");
-    mixedEventsTree->Branch ("isEE",          &isEE,          "isEE/O");
-
-    mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/i");
-    mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/i");
-    //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/i");
+    mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/I");
+    mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/I");
+    mixedEventsTree->Branch ("lumi_block",      &lumi_block,      "lumi_block/I");
+    mixedEventsTree->Branch ("isEE",            &isEE,            "isEE/O");
+    mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/I");
+    mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/I");
+    //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/I");
     mixedEventsTree->Branch ("z_fcal_et",       &z_fcal_et,       "z_fcal_et/F");
     mixedEventsTree->Branch ("z_zdcEnergy",     &z_zdcEnergy,     "z_zdcEnergy/F");
     mixedEventsTree->Branch ("z_q2",            &z_q2,            "z_q2/F");
     mixedEventsTree->Branch ("z_psi2",          &z_psi2,          "z_psi2/F");
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
-    mixedEventsTree->Branch ("z_trk_pt",        out_z_trk_pt,     "z_trk_pt[z_ntrk]/F");
-    mixedEventsTree->Branch ("z_trk_eta",       out_z_trk_eta,    "z_trk_eta[z_ntrk]/F");
-    mixedEventsTree->Branch ("z_trk_phi",       out_z_trk_phi,    "z_trk_phi[z_ntrk]/F");
-
+    mixedEventsTree->Branch ("z_trk_pt",        &z_trk_pt,        "z_trk_pt[z_ntrk]/F");
+    mixedEventsTree->Branch ("z_trk_eta",       &z_trk_eta,       "z_trk_eta[z_ntrk]/F");
+    mixedEventsTree->Branch ("z_trk_phi",       &z_trk_phi,       "z_trk_phi[z_ntrk]/F");
     mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
     mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
     mixedEventsTree->Branch ("z_y",             &z_y,             "z_y/F");
@@ -441,17 +449,15 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mixedEventsTree->Branch ("l2_trk_eta",      &l2_trk_eta,      "l2_trk_eta/F");
     mixedEventsTree->Branch ("l2_trk_phi",      &l2_trk_phi,      "l2_trk_phi/F");
     mixedEventsTree->Branch ("l2_charge",       &l2_charge,       "l2_charge/I");
-
-    mixedEventsTree->Branch ("fcal_et",       &fcal_et,       "fcal_et/F");
-    mixedEventsTree->Branch ("zdcEnergy",     &zdcEnergy,     "zdcEnergy/F");
-    mixedEventsTree->Branch ("q2",            &q2,            "q2/F");
-    mixedEventsTree->Branch ("psi2",          &psi2,          "psi2/F");
-    mixedEventsTree->Branch ("vz",            &vz,            "vz/F");
-    mixedEventsTree->Branch ("ntrk",          &ntrk,          "ntrk/I");
-    mixedEventsTree->Branch ("trk_pt",        &trk_pt,        "trk_pt[ntrk]/F");
-    mixedEventsTree->Branch ("trk_eta",       &trk_eta,       "trk_eta[ntrk]/F");
-    mixedEventsTree->Branch ("trk_phi",       &trk_phi,       "trk_phi[ntrk]/F");
-
+    mixedEventsTree->Branch ("fcal_et",         &fcal_et,         "fcal_et/F");
+    mixedEventsTree->Branch ("zdcEnergy",       &zdcEnergy,       "zdcEnergy/F");
+    mixedEventsTree->Branch ("q2",              &q2,              "q2/F");
+    mixedEventsTree->Branch ("psi2",            &psi2,            "psi2/F");
+    mixedEventsTree->Branch ("vz",              &vz,              "vz/F");
+    mixedEventsTree->Branch ("ntrk",            &ntrk,            "ntrk/I");
+    mixedEventsTree->Branch ("trk_pt",          &trk_pt,          "trk_pt[ntrk]/F");
+    mixedEventsTree->Branch ("trk_eta",         &trk_eta,         "trk_eta[ntrk]/F");
+    mixedEventsTree->Branch ("trk_phi",         &trk_phi,         "trk_phi[ntrk]/F");
 
     if (nZEvts == 0)
       cout << "Warning! No Z's to mix with in this run!" << endl;
@@ -470,7 +476,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     std::vector <int> zEventsUsed = {};
     for (int i = 0; i < nZEvts; i++) {
       zEventOrder.push_back (i);
-      zEventsUsed.push_back (false);
+      zEventsUsed.push_back (0);
     }
     //std::srand (std::time (0));
     if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
@@ -482,8 +488,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
       zEventsUsed[iZEvt % nZEvts]++;
 
-      //if (fabs (z_vz) > 150)
-      //  continue;
+      if (fabs (z_vz) > 150)
+        continue;
 
       if (z_event_weight == 0)
         continue;
@@ -491,35 +497,36 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       const short iPtZ = GetPtZBin (z_pt);
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
-      if (iPtZ < 2)
-        continue; // no one cares about these events anyways
 
+
+      // Find the next unused minimum bias event
       {
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
-        const short iQ2 = GetQ2Bin (z_q2);
-        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
-          continue;
+        //const short iQ2 = GetQ2Bin (z_q2);
+        //if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+        //  continue;
         const short iPsi2 = GetPsi2Bin (z_psi2);
         if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
           continue;
         //const short iVZ = GetVZBin (z_vz);
         //if (iVZ < 0 || iVZ > numVZBins)
         //  continue;
-        const short iRG = GetRunGroup (z_run_number);
-        if (iRG < 0 || iRG >= (short)runGroups.size ())
-          continue;
+        //const short iRG = GetRunGroup (z_run_number);
+        //if (iRG < 0 || iRG >= (short)runGroups.size ())
+        //  continue;
         
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbPbPbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
-          goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
+          //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
-          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2) && iPsi2 == GetPsi2Bin (psi2));
+          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
+          goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -528,14 +535,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         mbEventsUsed[iMBEvt] = true;
       }
 
-      for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
-        out_z_trk_pt[iTrk] = z_trk_pt[iTrk];
-        out_z_trk_eta[iTrk] = z_trk_eta[iTrk];
-        out_z_trk_phi[iTrk] = z_trk_phi[iTrk];
-      }
-
       // at this point we have a Z boson and a new (unique & random) event to mix with
       mixedEventsTree->Fill ();
+
+      event_weight *= z_event_weight;
 
       const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = GetCentBin (fcal_et);
@@ -559,15 +562,18 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       //z_event_weight = 1;
 
       h_fcal_et->Fill (fcal_et);
-      h_fcal_et_reweighted->Fill (fcal_et, z_event_weight);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
       h_q2[iFineCent]->Fill (q2);
-      h_q2_reweighted[iFineCent]->Fill (q2, z_event_weight);
+      h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
       h_psi2[iFineCent]->Fill (psi2);
-      h_psi2_reweighted[iFineCent]->Fill (psi2, z_event_weight);
+      h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
-      h_PbPb_vz_reweighted->Fill (vz, z_event_weight);
+      h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, z_event_weight);
+      //if (iPtZ < 2)
+      //  continue; // no one cares about these events anyways
+
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -575,14 +581,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
-        //if (trk_eta[iTrk] < 0)
-        //  continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkPur == 0 || trkEff == 0)
           continue;
-        const double trkWeight = z_event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
@@ -615,6 +619,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     inFile->Close ();
 
     cout << "Done minbias Pb+Pb loop." << endl;
+    for (int i = 0; i < nZEvts; i++) {
+      if (zEventsUsed[i] < mixingFraction) {
+        cout << "Warning! Some events used fewer than " << mixingFraction << " times!" << endl;
+        break;
+      }
+    }
   }
 
 
@@ -623,12 +633,13 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbppTree->SetBranchAddress ("run_number",   &run_number);
     mbppTree->SetBranchAddress ("event_number", &event_number);
     mbppTree->SetBranchAddress ("lumi_block",   &lumi_block);
+    mbppTree->SetBranchAddress ("event_weight", &event_weight);
     mbppTree->SetBranchAddress ("fcal_et",      &fcal_et);
     mbppTree->SetBranchAddress ("vz",           &vz);
     mbppTree->SetBranchAddress ("ntrk",         &ntrk);
-    mbppTree->SetBranchAddress ("trk_pt",       trk_pt);
-    mbppTree->SetBranchAddress ("trk_eta",      trk_eta);
-    mbppTree->SetBranchAddress ("trk_phi",      trk_phi);
+    mbppTree->SetBranchAddress ("trk_pt",       &trk_pt);
+    mbppTree->SetBranchAddress ("trk_eta",      &trk_eta);
+    mbppTree->SetBranchAddress ("trk_phi",      &trk_phi);
     mbppTree->LoadBaskets (3000000000);
 
 
@@ -644,6 +655,14 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     //std::srand (std::time (0));
     std::random_shuffle (mbEventOrder.begin (), mbEventOrder.end ());
 
+    cout << "Shuffled minimum bias events randomly; first ten events are ";
+    for (int i = 0; i < 10; i++) {
+      cout << mbEventOrder[i];
+      if (i < 9)
+        cout << ", ";
+    }
+    cout << endl;
+
 
     TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
     //TTree* zTree = LoadEventMixingTree (inFileName, "ppZTrackTree");
@@ -658,9 +677,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("z_phi",         &z_phi);
     zTree->SetBranchAddress ("z_m",           &z_m);
     zTree->SetBranchAddress ("ntrk",          &z_ntrk);
-    zTree->SetBranchAddress ("trk_pt",        z_trk_pt);
-    zTree->SetBranchAddress ("trk_eta",       z_trk_eta);
-    zTree->SetBranchAddress ("trk_phi",       z_trk_phi);
+    zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
+    zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
+    zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
     zTree->SetBranchAddress ("l1_pt",         &l1_pt);
     zTree->SetBranchAddress ("l1_eta",        &l1_eta);
     zTree->SetBranchAddress ("l1_phi",        &l1_phi);
@@ -688,23 +707,21 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
     TFile* mixedEventsFile = new TFile (Form ("%s/%s_mixed.root", rootPath.Data (), inFileName), "recreate");
     TTree* mixedEventsTree = new TTree ("ppMixedTree", "ppMixedTree");
-    mixedEventsTree->Branch ("run_number",    &run_number,    "run_number/i");
-    mixedEventsTree->Branch ("event_number",  &event_number,  "event_number/i");
-    mixedEventsTree->Branch ("lumi_block",    &lumi_block,    "lumi_block/i");
-    mixedEventsTree->Branch ("isEE",          &isEE,          "isEE/O");
-    mixedEventsTree->Branch ("fcal_et",       &fcal_et,       "fcal_et/F");
-    mixedEventsTree->Branch ("vz",            &vz,            "vz/F");
-    mixedEventsTree->Branch ("ntrk",          &ntrk,          "ntrk/I");
-
+    mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/i");
+    mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/i");
+    mixedEventsTree->Branch ("lumi_block",      &lumi_block,      "lumi_block/i");
+    mixedEventsTree->Branch ("isEE",            &isEE,            "isEE/O");
+    mixedEventsTree->Branch ("fcal_et",         &fcal_et,         "fcal_et/F");
+    mixedEventsTree->Branch ("vz",              &vz,              "vz/F");
+    mixedEventsTree->Branch ("ntrk",            &ntrk,            "ntrk/I");
     mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/i");
     mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/i");
     //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/i");
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
-    mixedEventsTree->Branch ("z_trk_pt",        out_z_trk_pt,     "z_trk_pt[z_ntrk]/F");
-    mixedEventsTree->Branch ("z_trk_eta",       out_z_trk_eta,    "z_trk_eta[z_ntrk]/F");
-    mixedEventsTree->Branch ("z_trk_phi",       out_z_trk_phi,    "z_trk_phi[z_ntrk]/F");
-
+    mixedEventsTree->Branch ("z_trk_pt",        &z_trk_pt,        "z_trk_pt[z_ntrk]/F");
+    mixedEventsTree->Branch ("z_trk_eta",       &z_trk_eta,       "z_trk_eta[z_ntrk]/F");
+    mixedEventsTree->Branch ("z_trk_phi",       &z_trk_phi,       "z_trk_phi[z_ntrk]/F");
     mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
     mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
     mixedEventsTree->Branch ("z_y",             &z_y,             "z_y/F");
@@ -724,10 +741,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mixedEventsTree->Branch ("l2_trk_eta",      &l2_trk_eta,      "l2_trk_eta/F");
     mixedEventsTree->Branch ("l2_trk_phi",      &l2_trk_phi,      "l2_trk_phi/F");
     mixedEventsTree->Branch ("l2_charge",       &l2_charge,       "l2_charge/I");
+    mixedEventsTree->Branch ("trk_pt",          &trk_pt,          "trk_pt[ntrk]/F");
+    mixedEventsTree->Branch ("trk_eta",         &trk_eta,         "trk_eta[ntrk]/F");
+    mixedEventsTree->Branch ("trk_phi",         &trk_phi,         "trk_phi[ntrk]/F");
 
-    mixedEventsTree->Branch ("trk_pt",        &trk_pt,        "trk_pt[ntrk]/F");
-    mixedEventsTree->Branch ("trk_eta",       &trk_eta,       "trk_eta[ntrk]/F");
-    mixedEventsTree->Branch ("trk_phi",       &trk_phi,       "trk_phi[ntrk]/F");
 
     if (nZEvts == 0)
       cout << "Warning! No Z's to mix with in this run!" << endl;
@@ -751,6 +768,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     //std::srand (std::time (0));
     if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
 
+
     for (int iZEvt = 0; iZEvt < mixingFraction*nZEvts; iZEvt++) {
       if (mixingFraction*nZEvts > 100 && iZEvt % (mixingFraction*nZEvts / 100) == 0)
         cout << iZEvt / (mixingFraction*nZEvts / 100) << "\% done...\r" << flush;
@@ -758,8 +776,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
       zEventsUsed[iZEvt % nZEvts]++;
 
-      //if (fabs (z_vz) > 150)
-      //  continue;
+      if (fabs (z_vz) > 150)
+        continue;
 
       if (z_event_weight == 0)
         continue;
@@ -767,8 +785,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       const short iPtZ = GetPtZBin (z_pt);
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
-      if (iPtZ < 2)
-        continue; // no one cares about these events anyways
 
       {
         bool goodMixEvent = false;
@@ -776,7 +792,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]]);
+          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -785,27 +801,24 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         mbEventsUsed[iMBEvt] = true;
       }
 
-      for (int iTrk = 0; iTrk < z_ntrk; iTrk++) {
-        out_z_trk_pt[iTrk] = z_trk_pt[iTrk];
-        out_z_trk_eta[iTrk] = z_trk_eta[iTrk];
-        out_z_trk_phi[iTrk] = z_trk_phi[iTrk];
-      }
-
       // at this point we have a Z boson and a new (unique & random) event to mix with
       mixedEventsTree->Fill ();
+
+      event_weight *= z_event_weight;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
-      //z_event_weight = 1;
-
       h_pp_vz->Fill (vz);
-      h_pp_vz_reweighted->Fill (vz, z_event_weight);
+      h_pp_vz_reweighted->Fill (vz, event_weight);
 
       h_pp_nch->Fill (ntrk);
-      h_pp_nch_reweighted->Fill (ntrk, z_event_weight);
+      h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, z_event_weight);
+      //if (iPtZ < 2)
+      //  continue; // no one cares about these events anyways
+
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
@@ -813,14 +826,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
-        //if (trk_eta[iTrk] < 0)
-        //  continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
         if (trkEff == 0 || trkPur == 0)
           continue;
-        const double trkWeight = z_event_weight * trkPur / trkEff;
+        const double trkWeight = event_weight * trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);

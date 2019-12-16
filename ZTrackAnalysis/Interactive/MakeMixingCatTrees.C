@@ -189,7 +189,7 @@ void MakeZTaggedMixingCatTrees () {
         for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
       //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
       //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
-          farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "update");
+          farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "recreate");
           //farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/MixingTrees/tree_iCent%i_iQ2%i_iPsi2%i.root", path, iCent, iQ2, iPsi2), "update");
           tarr[iCent][iQ2][iPsi2] = (TTree*) farr[iCent][iQ2][iPsi2]->Get ("PbPbZTrackTree");
           if (!tarr[iCent][iQ2][iPsi2])
@@ -287,7 +287,7 @@ void MakeMinbiasMixingCatTrees () {
         for (int iPsi2 = 0; iPsi2 < 1; iPsi2++) {
       //for (int iQ2 = 0; iQ2 < numFileQ2Bins; iQ2++) {
       //  for (int iPsi2 = 0; iPsi2 < numPsi2Bins; iPsi2++) {
-          farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "update");
+          farr[iCent][iQ2][iPsi2] = new TFile (Form ("%s/%s_sorted/tree_iCent%i_iQ2%i_iPsi2%i.root", path, group.first.c_str (), iCent, iQ2, iPsi2), "recreate");
           tarr[iCent][iQ2][iPsi2] = (TTree*) farr[iCent][iQ2][iPsi2]->Get ("PbPbZTrackTree");
           if (!tarr[iCent][iQ2][iPsi2])
             tarr[iCent][iQ2][iPsi2] = (TTree*) c->CloneTree (0);

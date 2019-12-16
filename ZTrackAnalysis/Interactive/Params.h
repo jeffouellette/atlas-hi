@@ -538,16 +538,25 @@ short GetQ2Bin (const float q2) {
   return i;
 }
 
-const double psi2Bins[7] = {
-  -pi/2,
-  -pi/3,
-  -pi/6,
-  0,
-  pi/6,
-  pi/3,
-  pi/2
-};
-const short numPsi2Bins = sizeof (psi2Bins) / sizeof (psi2Bins[0]) - 1;
+const short numPsi2Bins = 20;
+const double* psi2Bins = linspace (-pi/2., pi/2., numPsi2Bins);
+
+//const double psi2Bins[13] = {
+//  -pi/2.,
+//  -5.*pi/12.,
+//  -pi/3.,
+//  -pi/4.,
+//  -pi/6.,
+//  -pi/12.,
+//  0,
+//  pi/12.,
+//  pi/6.,
+//  pi/4.,
+//  pi/3.,
+//  5.*pi/12.,
+//  pi/2.
+//};
+//const short numPsi2Bins = sizeof (psi2Bins) / sizeof (psi2Bins[0]) - 1;
 
 short GetPsi2Bin (const float psi2) {
   short i = 0;
@@ -614,9 +623,9 @@ short GetRunGroup (int rn) {
     if (group.second->find (rn) == group.second->end ())
       rg++;
     else
-      break;
+      return rg;
   }
-  return rg;
+  return -1;
 }
 
 
