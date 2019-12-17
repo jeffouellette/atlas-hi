@@ -321,7 +321,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
   bool trk_truth_matched[10000];
   float z_trk_pt[10000], z_trk_eta[10000], z_trk_phi[10000];
-  float out_z_trk_pt[10000], out_z_trk_eta[10000], out_z_trk_phi[10000];
+  bool HLT_mb_sptrk_L1ZDC_A_C_VTE50 = false;
+  bool HLT_noalg_pc_L1TE50_VTE600_0ETA49 = false;
+  bool HLT_noalg_cc_L1TE600_0ETA49 = false;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -343,6 +345,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     mbPbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
     mbPbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
     mbPbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    mbPbPbTree->SetBranchAddress ("HLT_mb_sptrk_L1ZDC_A_C_VTE50",       &HLT_mb_sptrk_L1ZDC_A_C_VTE50);
+    mbPbPbTree->SetBranchAddress ("HLT_noalg_pc_L1TE50_VTE600.0ETA49",  &HLT_noalg_pc_L1TE50_VTE600_0ETA49);
+    mbPbPbTree->SetBranchAddress ("HLT_noalg_cc_L1TE600_0ETA49",        &HLT_noalg_cc_L1TE600_0ETA49);
 
     if (takeNonTruthTracks)
       mbPbPbTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
@@ -504,15 +509,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
-        //const short iQ2 = GetQ2Bin (z_q2);
-        //if (iQ2 < 0 || iQ2 > numQ2Bins-1)
-        //  continue;
+        const short iQ2 = GetQ2Bin (z_q2);
+        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+          continue;
         const short iPsi2 = GetPsi2Bin (z_psi2);
         if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
           continue;
-        //const short iVZ = GetVZBin (z_vz);
-        //if (iVZ < 0 || iVZ > numVZBins)
-        //  continue;
         //const short iRG = GetRunGroup (z_run_number);
         //if (iRG < 0 || iRG >= (short)runGroups.size ())
         //  continue;
@@ -525,7 +527,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
           //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
-          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
+          goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
           goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
@@ -538,7 +540,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       // at this point we have a Z boson and a new (unique & random) event to mix with
       mixedEventsTree->Fill ();
 
-      event_weight *= z_event_weight;
+      event_weight = z_event_weight;
 
       const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = GetCentBin (fcal_et);
@@ -561,14 +563,30 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       //}
       //z_event_weight = 1;
 
-      h_fcal_et->Fill (fcal_et);
-      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
-      h_q2[iFineCent]->Fill (q2);
-      h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
-      h_psi2[iFineCent]->Fill (psi2);
-      h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
-      h_PbPb_vz->Fill (vz);
-      h_PbPb_vz_reweighted->Fill (vz, event_weight);
+      {
+        const float centrality = GetPercentileCentrality (fcal_et);
+        h_fcal_et->Fill (fcal_et);
+        h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+        if (HLT_mb_sptrk_L1ZDC_A_C_VTE50) {
+          h_centrality[0]->Fill (centrality);
+          h_centrality_reweighted[0]->Fill (centrality, event_weight);
+        }
+        if (HLT_noalg_pc_L1TE50_VTE600_0ETA49) {
+          h_centrality[1]->Fill (centrality);
+          h_centrality_reweighted[1]->Fill (centrality, event_weight);
+
+        }
+        if (HLT_noalg_cc_L1TE600_0ETA49) {
+          h_centrality[2]->Fill (centrality);
+          h_centrality_reweighted[2]->Fill (centrality, event_weight);
+        }
+        h_q2[iFineCent]->Fill (q2);
+        h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
+        h_psi2[iFineCent]->Fill (psi2);
+        h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
+        h_PbPb_vz->Fill (vz);
+        h_PbPb_vz_reweighted->Fill (vz, event_weight);
+      }
 
       //if (iPtZ < 2)
       //  continue; // no one cares about these events anyways
