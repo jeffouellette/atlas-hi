@@ -396,10 +396,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("isEE",          &isEE);
     zTree->SetBranchAddress ("fcal_et",       &z_fcal_et);
     zTree->SetBranchAddress ("zdcEnergy",     &z_zdcEnergy);
-    zTree->SetBranchAddress ("z_qx_a",        &z_qx_a);
-    zTree->SetBranchAddress ("z_qy_a",        &z_qy_a);
-    zTree->SetBranchAddress ("z_qx_c",        &z_qx_c);
-    zTree->SetBranchAddress ("z_qy_c",        &z_qy_c);
+    zTree->SetBranchAddress ("qx_a",          &z_qx_a);
+    zTree->SetBranchAddress ("qy_a",          &z_qy_a);
+    zTree->SetBranchAddress ("qx_c",          &z_qx_c);
+    zTree->SetBranchAddress ("qy_c",          &z_qy_c);
     //zTree->SetBranchAddress ("q2",            &z_q2);
     //zTree->SetBranchAddress ("psi2",          &z_psi2);
     zTree->SetBranchAddress ("vz",            &z_vz);
@@ -516,10 +516,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
       {
         CorrectQ2Vector (z_qx_a, z_qy_a, z_qx_c, z_qy_c);
-        const float qx = qx_a + qx_c;
-        const float qy = qy_a + qy_c;
-        z_q2 = sqrt (qx*qx + qy*qy);
-        z_psi2 = 0.5 * atan2 (qy, qx);
+        const float z_qx = z_qx_a + z_qx_c;
+        const float z_qy = z_qy_a + z_qy_c;
+        z_q2 = sqrt (z_qx*z_qx + z_qy*z_qy) / fcal_et;
+        z_psi2 = 0.5 * atan2 (z_qy, z_qx);
       }
 
 
@@ -547,7 +547,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
             CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
             const float qx = qx_a + qx_c;
             const float qy = qy_a + qy_c;
-            q2 = sqrt (qx*qx + qy*qy);
+            q2 = sqrt (qx*qx + qy*qy) / fcal_et;
             psi2 = 0.5 * atan2 (qy, qx);
           }
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
@@ -613,9 +613,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         h_PbPb_vz->Fill (vz);
         h_PbPb_vz_reweighted->Fill (vz, event_weight);
       }
-
-      //if (iPtZ < 2)
-      //  continue; // no one cares about these events anyways
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -857,9 +854,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
-
-      //if (iPtZ < 2)
-      //  continue; // no one cares about these events anyways
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);

@@ -50,6 +50,7 @@ struct EventPlaneCalibrator {
 // Loads calibration matrix from a specified file
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void EventPlaneCalibrator :: LoadCalibration (const char* file) {
+  cout << "EventPlaneCalibrator loading config from " << file << endl;
   TFile* f = new TFile (file, "read");
 
   _qx_a = ((TH1D*) f->Get ("h_qx_a"))->GetMean ();
@@ -88,7 +89,7 @@ void EventPlaneCalibrator :: LoadCalibration (const char* file) {
 float EventPlaneCalibrator :: CalibrateQ2XA (float qx_a, float qy_a) {
   qx_a = qx_a - _qx_a;
   qy_a = qy_a - _qy_a;
-  return (1./sqrt (_N_a)) * ((_qyqyhat_a+_D_a)*(qx_a) + (-_qxqyhat_a)*(qy_a));
+  return (1./sqrt (_N_a)) * ((_qyqyhat_a+_D_a)*(qx_a) + (-_qxqyhat_a)*(qy_a)) + _qx_a;
 }
 
 
@@ -98,7 +99,7 @@ float EventPlaneCalibrator :: CalibrateQ2XA (float qx_a, float qy_a) {
 float EventPlaneCalibrator :: CalibrateQ2YA (float qx_a, float qy_a) {
   qx_a = qx_a - _qx_a;
   qy_a = qy_a - _qy_a;
-  return (1./sqrt (_N_a)) * ((-_qxqyhat_a)*(qx_a) + (_qxqxhat_a+_D_a)*(qy_a));
+  return (1./sqrt (_N_a)) * ((-_qxqyhat_a)*(qx_a) + (_qxqxhat_a+_D_a)*(qy_a)) + _qy_a;
 }
 
 
@@ -108,7 +109,7 @@ float EventPlaneCalibrator :: CalibrateQ2YA (float qx_a, float qy_a) {
 float EventPlaneCalibrator :: CalibrateQ2XC (float qx_c, float qy_c) {
   qx_c = qx_c - _qx_c;
   qy_c = qy_c - _qy_c;
-  return (1./sqrt (_N_c)) * ((_qyqyhat_c+_D_c)*(qx_c) + (-_qxqyhat_c)*(qy_c));
+  return (1./sqrt (_N_c)) * ((_qyqyhat_c+_D_c)*(qx_c) + (-_qxqyhat_c)*(qy_c)) + _qx_c;
 }
 
 
@@ -118,7 +119,7 @@ float EventPlaneCalibrator :: CalibrateQ2XC (float qx_c, float qy_c) {
 float EventPlaneCalibrator :: CalibrateQ2YC (float qx_c, float qy_c) {
   qx_c = qx_c - _qx_c;
   qy_c = qy_c - _qy_c;
-  return (1./sqrt (_N_c)) * ((-_qxqyhat_c)*(qx_c) + (_qxqxhat_c+_D_c)*(qy_c));
+  return (1./sqrt (_N_c)) * ((-_qxqyhat_c)*(qx_c) + (_qxqxhat_c+_D_c)*(qy_c)) + _qy_c;
 }
 
 #endif
