@@ -1097,7 +1097,7 @@ void MinbiasAnalysis :: PlotCentralityDists () {
 
 //    h_centrality[iMBTrig]->GetYaxis ()->SetRangeUser (5e-2, 2e3);
 
-    h_centrality[iMBTrig]->Draw (canvasExists && iMBTrig != 0 ? "same hist" : "hist");
+    h_centrality[iMBTrig]->Draw (!canvasExists && iMBTrig == 0 ? "hist" : "same hist");
   }
 
   myMarkerTextNoLine (0.67, 0.81, colors[1], kFullCircle, "HLT_mb_sptrk_L1ZDC_A_C_VTE50 (PC)", 1.25, 0.04);

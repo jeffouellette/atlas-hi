@@ -1738,7 +1738,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
           double min = -1.5, max = 3.5;
           if (!subBkg) {
             GetMinAndMax (min, max, true);
-            for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+            for (short iPtTrk = 0; iPtTrk < std::min (3, nPtTrkBins[iPtZ]); iPtTrk++) {
               TH1D* h = (!subBkg ? h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent] : h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
               if (h->GetMinimum () < min) min = h->GetMinimum ();
               if (h->GetMaximum () > max) max = h->GetMaximum ();
@@ -1875,8 +1875,8 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
     const float pt_hi = ptTrkBins[iPtZ][iPtTrk+1];
     //if (iPtTrk == 0)
     //  myText (0.3, 0.93, kBlack, "#it{p}_{T}^{ ch} [GeV]", 0.04);
-    myMarkerTextNoLine (0.23, 0.85-0.065*iPtTrk, colors[iPtTrk], markerStyles[iPtTrk], "", 1.4, 0.06);
-    myText             (0.24, 0.83-0.065*iPtTrk,  kBlack,                               Form ("%.0f < #it{p}_{T} < %.0f GeV", pt_lo, pt_hi), 0.06);
+    myMarkerTextNoLine (0.23, 0.85-0.065*(iPtTrk), colors[iPtTrk], markerStyles[iPtTrk], "", 1.4, 0.06);
+    myText             (0.24, 0.83-0.065*(iPtTrk),  kBlack,                               Form ("%.0f < #it{p}_{T} < %.0f GeV", pt_lo, pt_hi), 0.06);
     //myText (0.3, 0.89-0.04*iPtTrk, colors[iPtTrk], Form ("(%.1f, %.1f)", pt_lo, pt_hi), 0.04);
 
     //b = TBoxNDC (0.33-0.024, 0.87-0.065*iPtTrk-0.016, 0.33+0.024, 0.87-0.065*iPtTrk+0.016);
@@ -3451,12 +3451,12 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       //SetMinAndMax (min, max);
 
       if (plotFill) {
-        for (int iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+        for (int iPtZ = nPtZBins-1; iPtZ >= 2; iPtZ--) {
           TH1D* h = (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] :  h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
 
           //h->SetFillColorAlpha (fillColors[iPtZ-2], fillAlpha);
           //h->SetMarkerSize (0);
-          h->SetLineColor (colors[iPtZ-2]);
+          h->SetLineColor (colors[iPtZ-1]);
           h->SetLineStyle (iPtZ);
           h->SetLineWidth (1);
 
@@ -3487,23 +3487,23 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
         }
         gPad->RedrawAxis ();
       } else {
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-          const Style_t markerStyle = markerStyles[iPtZ-3];
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+          const Style_t markerStyle = markerStyles[iPtZ-2];
           TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] : h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
             ResetXErrors (g);
             g->SetMarkerStyle (markerStyle);
-            g->SetMarkerColor (colors[iPtZ-2]);
-            g->SetLineColor (colors[iPtZ-2]);
+            g->SetMarkerColor (colors[iPtZ-1]);
+            g->SetLineColor (colors[iPtZ-1]);
             g->SetMarkerSize (1);
             g->SetLineWidth (2);
           } else {
             g->SetMarkerSize (0); 
             g->SetLineWidth (1);
-            g->SetLineColor (colors[iPtZ-2]);
-            g->SetFillColorAlpha (fillColors[iPtZ-2], 0.3);
+            g->SetLineColor (colors[iPtZ-1]);
+            g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
           useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -3527,10 +3527,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
 
           if (!plotAsSystematic) {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "AP" : "P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "A5P" : "5P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
             ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
             g->Draw ("2P");
           }
@@ -3538,7 +3538,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       }
 
       if (!canvasExists)
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           LabelTrkYieldZPt (iCent, iPtZ, iSpc);
         }
 
@@ -3572,12 +3572,12 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       //SetMinAndMax (min, max);
 
       if (plotFill) {
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
 
           if (!h) continue;
 
-          h->SetFillColorAlpha (fillColors[iPtZ-2], fillAlpha);
+          h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
           h->SetLineColor (kBlack);
           h->SetMarkerSize (0);
           h->SetLineWidth (0);
@@ -3610,8 +3610,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
         } // end loop over phi
         gPad->RedrawAxis ();
       } else {
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-          const Style_t markerStyle = markerStyles[iPtZ-3];
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+          const Style_t markerStyle = markerStyles[iPtZ-2];
 
           TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
           //if (iCent == 3)
@@ -3621,15 +3621,15 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           if (!plotAsSystematic) {
             ResetXErrors (g);
             g->SetMarkerStyle (markerStyle);
-            g->SetMarkerColor (colors[iPtZ-2]);
-            g->SetLineColor (colors[iPtZ-2]);
+            g->SetMarkerColor (colors[iPtZ-1]);
+            g->SetLineColor (colors[iPtZ-1]);
             g->SetMarkerSize (1);
             g->SetLineWidth (2);
           } else {
             g->SetMarkerSize (0); 
             g->SetLineWidth (1);
-            g->SetLineColor (colors[iPtZ-2]);
-            g->SetFillColorAlpha (fillColors[iPtZ-2], 0.3);
+            g->SetLineColor (colors[iPtZ-1]);
+            g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
           useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -3654,10 +3654,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
 
           if (!plotAsSystematic) {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "AP" : "P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "A5P" : "5P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
             ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
             g->Draw ("2P");
           }
@@ -3678,7 +3678,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
       min = 1e30, max = 0;
       GetMinAndMax (min, max, true);
-      for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
+      for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
         min = fmin (min, h->GetMinimum (0));
         max = fmax (max, h->GetMaximum ());
@@ -3692,12 +3692,12 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       SetMinAndMax (min, max);
 
       if (plotFill) {
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
 
           if (!h) continue;
 
-          h->SetFillColorAlpha (fillColors[iPtZ-2], fillAlpha);
+          h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
           h->SetLineColor (kBlack);
           h->SetMarkerSize (0);
           h->SetLineWidth (0);
@@ -3725,29 +3725,29 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           h->GetXaxis ()->SetTitleOffset (2.6 * h->GetXaxis ()->GetTitleOffset ());
           h->GetYaxis ()->SetTitleOffset (2.2 * h->GetYaxis ()->GetTitleOffset ());
 
-          h->DrawCopy (plotNewAxes && iPtZ-3 == 0 ? "bar" : "bar same");
+          h->DrawCopy (plotNewAxes && iPtZ-2 == 0 ? "bar" : "bar same");
           h->SetLineWidth (1);
           h->Draw ("hist same");
         } // end loop over phi
         gPad->RedrawAxis ();
       } else {
-        for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-          const Style_t markerStyle = markerStyles[iPtZ-3];
+        for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+          const Style_t markerStyle = markerStyles[iPtZ-2];
           TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
             ResetXErrors (g);
             g->SetMarkerStyle (markerStyle);
-            g->SetMarkerColor (colors[iPtZ-2]);
-            g->SetLineColor (colors[iPtZ-2]);
+            g->SetMarkerColor (colors[iPtZ-1]);
+            g->SetLineColor (colors[iPtZ-1]);
             g->SetMarkerSize (1);
             g->SetLineWidth (2);
           } else {
             g->SetMarkerSize (0); 
             g->SetLineWidth (1);
-            g->SetLineColor (colors[iPtZ-2]);
-            g->SetFillColorAlpha (fillColors[iPtZ-2], 0.3);
+            g->SetLineColor (colors[iPtZ-1]);
+            g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
           useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, trk_max_pt) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -3773,10 +3773,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
           g->GetYaxis ()->SetTitleOffset (2.2 * g->GetYaxis ()->GetTitleOffset ());
 
           if (!plotAsSystematic) {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "AP" : "P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
-            string drawString = string (!canvasExists && iPtZ-3 == 0 ? "A5P" : "5P");
+            string drawString = string (!canvasExists && iPtZ-2 == 0 ? "A5P" : "5P");
             ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
             g->Draw ("2P");
           }
@@ -3817,13 +3817,13 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ, c
   else if (iCent == numCentBins-1) {
     myText (0.38, 0.90, kBlack, "MB", 0.06);
     myText (0.47, 0.90, kBlack, "Z-tag", 0.06);
-    myLineText (0.47, 0.85-0.06*(iPtZ-3), colors[iPtZ-2], iPtZ, "", 2.0, 0.054) ;
-    myMarkerTextNoLine (0.54, 0.85-0.06*(iPtZ-3), colors[iPtZ-2], markerStyles[iPtZ-3], "", 1.5, 0.054); // for plotting data vs bkg.
+    myLineText (0.47, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], iPtZ, "", 2.0, 0.054) ;
+    myMarkerTextNoLine (0.54, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", 1.5, 0.054); // for plotting data vs bkg.
 
     if (iPtZ == nPtZBins-1)
-      myText (0.56, 0.84-0.06*(iPtZ-3), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
+      myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
     else
-      myText (0.56, 0.84-0.06*(iPtZ-3), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
+      myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
   }
 }
 
@@ -5595,11 +5595,11 @@ void PhysicsAnalysis :: WriteIAAs () {
 // Plots signal-to-background panels for data
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) {
-  TCanvas* c = new TCanvas ("c_stb", "", 1500, 800);
-  c->Divide (2, 1);
+  TCanvas* c = new TCanvas ("c_stb", "", 1500, 600);
+  c->Divide (3, 1);
 
-  for (short iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-    c->cd (iPtZ-3+1);
+  for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+    c->cd (iPtZ-2+1);
     gPad->SetLogx ();
     gPad->SetLogy ();
 
@@ -5626,17 +5626,20 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
       g->Draw ("P");
     }
 
-    if (iPtZ == 3) {
+    if (iPtZ == 2) {
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
       myText (0.22, 0.83, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.04);
-      myText (0.65, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.04);
+      myText (0.56, 0.24, kBlack, "15 < #it{p}_{T}^{Z} < 30 GeV", 0.04);
+    }
+    else if (iPtZ == 3) {
+      myText (0.56, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.04);
     }
     else if (iPtZ == 4) {
       myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}, 258 pb^{-1}", 1.4, 0.04);
       myMarkerTextNoLine (0.25, 0.83, colors[1], markerStyles[1], "30-80%", 1.4, 0.04);
       myMarkerTextNoLine (0.25, 0.78, colors[2], markerStyles[2], "10-30%", 1.9, 0.04);
       myMarkerTextNoLine (0.25, 0.73, colors[3], markerStyles[3], "0-10%", 1.4, 0.04);
-      myText (0.65, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.04);
+      myText (0.56, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.04);
     }
   }
 
