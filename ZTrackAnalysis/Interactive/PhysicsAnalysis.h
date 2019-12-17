@@ -2,6 +2,7 @@
 #define __PhysicsAnalysis_h__
 
 #include "Params.h"
+#include "EventPlaneCalibrator.h"
 
 #include <ArrayTemplates.h>
 
@@ -75,6 +76,9 @@ class PhysicsAnalysis {
   TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
   TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
   //TH1D* h_ppNch_weights        = nullptr;
+
+  // Event plane calibration information
+  EventPlaneCalibrator eventPlaneCalibrator;
 
   // Efficiencies
   TH1D*** h_trk_effs          = Get2DArray <TH1D*> (numTrkCorrCentBins, numEtaTrkBins); // iCent, iEta
@@ -231,6 +235,8 @@ class PhysicsAnalysis {
 
   virtual void LoadTrackingPurities (const bool doRebin = false); // defaults to HILoose
   virtual double GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
+
+  void CorrectQ2Vector (float& qx_a, float& qy_a, float& qx_c, float& qy_c);
 
   void PrintZYields (const int iPtZ = 2);
 
@@ -895,6 +901,8 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
+  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/q2_distributions.root", rootPath.Data ()));
+
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
@@ -906,6 +914,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   bool isEE = false;
   float event_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -920,6 +929,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("qx_a",         &qx_a);
+    PbPbTree->SetBranchAddress ("qy_a",         &qy_a);
+    PbPbTree->SetBranchAddress ("qx_c",         &qx_c);
+    PbPbTree->SetBranchAddress ("qy_c",         &qy_c);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
     PbPbTree->SetBranchAddress ("vz",           &vz);
@@ -957,6 +970,14 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       if (event_weight == 0)
         continue;
+
+      {
+        CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
+        const float qx = qx_a + qx_c;
+        const float qy = qy_a + qy_c;
+        q2 = sqrt (qx*qx + qy*qy);
+        psi2 = 0.5 * atan2 (qy, qx);
+      }
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
@@ -1620,6 +1641,22 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
   const double pur = t->GetBinContent (t->FindFixBin (trk_eta, trk_pt));
 
   return pur;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Takes references to the q2 vector entries in each detector side and corrects them.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: CorrectQ2Vector (float& qx_a, float& qy_a, float& qx_c, float& qy_c) {
+  float temp = eventPlaneCalibrator.CalibrateQ2XA (qx_a, qy_a);
+  qy_a = eventPlaneCalibrator.CalibrateQ2YA (qx_a, qy_a);
+  qx_a = temp;
+
+  temp = eventPlaneCalibrator.CalibrateQ2XC (qx_c, qy_c);
+  qy_c = eventPlaneCalibrator.CalibrateQ2YC (qx_c, qy_c);
+  qx_c = temp;
 }
 
 

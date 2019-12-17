@@ -590,6 +590,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
+  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/q2_distributions.root", rootPath.Data ()));
+
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
@@ -601,6 +603,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   bool isEE = false;
   float event_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -615,6 +618,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("qx_a",         &qx_a);
+    PbPbTree->SetBranchAddress ("qy_a",         &qy_a);
+    PbPbTree->SetBranchAddress ("qx_c",         &qx_c);
+    PbPbTree->SetBranchAddress ("qy_c",         &qy_c);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
     PbPbTree->SetBranchAddress ("vz",           &vz);
@@ -655,6 +662,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       if (event_weight == 0)
         continue;
+
+      {
+        CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
+        const float qx = qx_a + qx_c;
+        const float qy = qy_a + qy_c;
+        q2 = sqrt (qx*qx + qy*qy);
+        psi2 = 0.5 * atan2 (qy, qx);
+      }
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 

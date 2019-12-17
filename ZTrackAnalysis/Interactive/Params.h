@@ -525,6 +525,7 @@ short GetSuperFineCentBin (const float fcal_et) {
   return i;
 }
 
+
 // Set of percentile-space centrality cuts, intended for plotting # events vs. centrality %
 const float percentileCentBins[81]={//164] = {
     5000,     //  0%
@@ -642,7 +643,7 @@ short GetQ2Bin (const float q2) {
   return i;
 }
 
-const short numPsi2Bins = 8;
+const short numPsi2Bins = 16;
 const double* psi2Bins = linspace (-pi/2., pi/2., numPsi2Bins);
 
 //const double psi2Bins[13] = {
