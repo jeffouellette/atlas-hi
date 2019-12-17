@@ -667,7 +667,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
         const float qx = qx_a + qx_c;
         const float qy = qy_a + qy_c;
-        q2 = sqrt (qx*qx + qy*qy);
+        q2 = sqrt (qx*qx + qy*qy) / fcal_et;
         psi2 = 0.5 * atan2 (qy, qx);
       }
 
