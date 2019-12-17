@@ -152,10 +152,10 @@ void FullAnalysis :: CreateHists () {
   h_fcal_et->Sumw2 ();
   h_fcal_et_reweighted = new TH1D (Form ("h_fcal_et_reweighted_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
   h_fcal_et_reweighted->Sumw2 ();
-  for (int iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
-    h_centrality[iMBTrig] = new TH1D (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()), "", 160, 0, 80);
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    h_centrality[iMBTrig] = new TH1D (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()), "", 80, 0, 80);
     h_centrality[iMBTrig]->Sumw2 ();
-    h_centrality_reweighted[iMBTrig] = new TH1D (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()), "", 160, 0, 80);
+    h_centrality_reweighted[iMBTrig] = new TH1D (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()), "", 80, 0, 80);
     h_centrality_reweighted[iMBTrig]->Sumw2 ();
   }
 
@@ -235,7 +235,7 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
   // Should clone these histograms
   h_fcal_et               = (TH1D*) a->h_fcal_et->Clone (Form ("h_fcal_et_%s", name.c_str ()));
   h_fcal_et_reweighted    = (TH1D*) a->h_fcal_et_reweighted->Clone (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
-  for (int iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
     h_centrality[iMBTrig] = (TH1D*) a->h_centrality[iMBTrig]->Clone (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()));
     h_centrality_reweighted[iMBTrig] = (TH1D*) a->h_centrality[iMBTrig]->Clone (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()));
   }
@@ -343,7 +343,7 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   }
   h_fcal_et               = (TH1D*) histFile->Get (Form ("h_fcal_et_%s", name.c_str ()));
   h_fcal_et_reweighted    = (TH1D*) histFile->Get (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
-  for (int iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
     h_centrality[iMBTrig]             = (TH1D*) histFile->Get (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()));
     h_centrality_reweighted[iMBTrig]  = (TH1D*) histFile->Get (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()));
   }
@@ -416,7 +416,7 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
   }
   SafeWrite (h_fcal_et);
   SafeWrite (h_fcal_et_reweighted);
-  for (int iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
     SafeWrite (h_centrality[iMBTrig]);
     SafeWrite (h_centrality_reweighted[iMBTrig]);
   }

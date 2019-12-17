@@ -54,6 +54,8 @@ class MinbiasAnalysis : public FullAnalysis {
     cout << "Error: In MinbiasAnalysis :: Execute: Called invalid function! A third argument is required to specify the mixing file name. Exiting." << endl;
   }
   void Execute (const char* inFileName, const char* mbInFileName, const char* outFileName);
+
+  void PlotCentralityDists ();
 };
 
 
@@ -565,6 +567,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
       {
         const float centrality = GetPercentileCentrality (fcal_et);
+        cout << "fcal_et = " << fcal_et << ", centrality = " << centrality << endl;
         h_fcal_et->Fill (fcal_et);
         h_fcal_et_reweighted->Fill (fcal_et, event_weight);
         if (HLT_mb_sptrk_L1ZDC_A_C_VTE50) {
@@ -1038,6 +1041,52 @@ void MinbiasAnalysis :: GenerateWeights (const char* inFileName, const char* out
     }
   }
   eventWeightsFile->Close ();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot centrality distributions for different MB triggers
+////////////////////////////////////////////////////////////////////////////////////////////////
+void MinbiasAnalysis :: PlotCentralityDists () {
+  const char* canvasName = "c_centrality";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    gDirectory->Add (c);
+    c->cd ();
+  }
+
+  c->cd ();
+
+  c->SetLogy ();
+
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    h_centrality[iMBTrig]->Rebin (2);
+    h_centrality[iMBTrig]->Scale (1., "width");
+
+    h_centrality[iMBTrig]->SetLineColor (colors[iMBTrig+1]);
+
+    h_centrality[iMBTrig]->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
+    h_centrality[iMBTrig]->GetYaxis ()->SetTitle ("dN_{evt} / d#Sigma#it{E}_{T} [GeV^{-1}]");
+
+//    h_centrality[iMBTrig]->GetYaxis ()->SetRangeUser (5e-2, 2e3);
+
+    h_centrality[iMBTrig]->Draw (canvasExists && iMBTrig != 0 ? "same hist" : "hist");
+  }
+
+  myMarkerTextNoLine (0.67, 0.81, colors[1], kFullCircle, "HLT_mb_sptrk_L1ZDC_A_C_VTE50 (PC)", 1.25, 0.04);
+  myMarkerTextNoLine (0.67, 0.76, colors[2], kFullCircle, "HLT_noalg_pc_L1TE50_VTE600_0ETA49 (PC)", 1.25, 0.04);
+  myMarkerTextNoLine (0.67, 0.71, colors[3], kFullCircle, "HLT_noalg_cc_L1TE600_0ETA49 (CC)", 1.25, 0.04);
+
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+  myText (0.22, 0.81, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV", 0.04);
+
+  c->SaveAs (Form ("%s/CentralityDist.pdf", plotPath.Data ()));
 }
 
 #endif

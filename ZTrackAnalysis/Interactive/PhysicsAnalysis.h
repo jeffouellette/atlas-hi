@@ -2381,8 +2381,8 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+
         //******** Do subtraction of integrated dPhi plot ********//
-      
         TH1D* h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         TH1D* sub = nullptr;
         if (a != nullptr) {
@@ -2418,8 +2418,8 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          //******** Do subtraction of pT ********//
 
+          //******** Do subtraction of pT ********//
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           if (a != nullptr) {
             sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
