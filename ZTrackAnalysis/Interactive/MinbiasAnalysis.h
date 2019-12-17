@@ -311,15 +311,15 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
   CreateHists ();
 
-  unsigned int event_number = 0, lumi_block = 0;
-  int z_event_number = 0;
-  int run_number = 0, z_run_number = 0, ntrk = 0, z_ntrk = 0;
+  int event_number = 0, z_event_number = 0;
+  int run_number = 0, z_run_number = 0;
   bool isEE = false;//, passes_toroid = false;
   float event_weight = 1, z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_q2 = 0, z_psi2 = 0, z_vz = 0, z_zdcEnergy = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0;
+  int ntrk = 0, z_ntrk = 0;
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
   bool trk_truth_matched[10000];
   float z_trk_pt[10000], z_trk_eta[10000], z_trk_phi[10000];
@@ -335,7 +335,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     const int nMBEvts = mbPbPbTree->GetEntries ();
     mbPbPbTree->SetBranchAddress ("run_number",   &run_number);
     mbPbPbTree->SetBranchAddress ("event_number", &event_number);
-    mbPbPbTree->SetBranchAddress ("lumi_block",   &lumi_block);
     mbPbPbTree->SetBranchAddress ("event_weight", &event_weight);
     //mbPbPbTree->SetBranchAddress ("passes_toroid",&passes_toroid);
     mbPbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
@@ -415,7 +414,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("vz",            &z_vz);
     zTree->SetBranchAddress ("event_number",  &z_event_number);
     zTree->SetBranchAddress ("run_number",    &z_run_number);
-    //zTree->SetBranchAddress ("lumi_block",    &z_lumi_block);
     zTree->SetBranchAddress ("event_weight",  &z_event_weight);
 
 
@@ -423,11 +421,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     TTree* mixedEventsTree = new TTree ("PbPbMixedTree", "PbPbMixedTree");
     mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/I");
     mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/I");
-    mixedEventsTree->Branch ("lumi_block",      &lumi_block,      "lumi_block/I");
     mixedEventsTree->Branch ("isEE",            &isEE,            "isEE/O");
     mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/I");
     mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/I");
-    //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/I");
     mixedEventsTree->Branch ("z_fcal_et",       &z_fcal_et,       "z_fcal_et/F");
     mixedEventsTree->Branch ("z_zdcEnergy",     &z_zdcEnergy,     "z_zdcEnergy/F");
     mixedEventsTree->Branch ("z_q2",            &z_q2,            "z_q2/F");
@@ -566,8 +562,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       //z_event_weight = 1;
 
       {
-        const float centrality = GetPercentileCentrality (fcal_et);
-        cout << "fcal_et = " << fcal_et << ", centrality = " << centrality << endl;
+        const int centrality = GetPercentileCentrality (fcal_et);
         h_fcal_et->Fill (fcal_et);
         h_fcal_et_reweighted->Fill (fcal_et, event_weight);
         if (HLT_mb_sptrk_L1ZDC_A_C_VTE50) {
@@ -653,7 +648,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     const int nMBEvts = mbppTree->GetEntries ();
     mbppTree->SetBranchAddress ("run_number",   &run_number);
     mbppTree->SetBranchAddress ("event_number", &event_number);
-    mbppTree->SetBranchAddress ("lumi_block",   &lumi_block);
     mbppTree->SetBranchAddress ("event_weight", &event_weight);
     mbppTree->SetBranchAddress ("fcal_et",      &fcal_et);
     mbppTree->SetBranchAddress ("vz",           &vz);
@@ -722,7 +716,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     zTree->SetBranchAddress ("vz",            &z_vz);
     zTree->SetBranchAddress ("event_number",  &z_event_number);
     zTree->SetBranchAddress ("run_number",    &z_run_number);
-    //zTree->SetBranchAddress ("lumi_block",    &z_lumi_block);
     zTree->SetBranchAddress ("event_weight",  &z_event_weight);
 
 
@@ -730,14 +723,12 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
     TTree* mixedEventsTree = new TTree ("ppMixedTree", "ppMixedTree");
     mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/i");
     mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/i");
-    mixedEventsTree->Branch ("lumi_block",      &lumi_block,      "lumi_block/i");
     mixedEventsTree->Branch ("isEE",            &isEE,            "isEE/O");
     mixedEventsTree->Branch ("fcal_et",         &fcal_et,         "fcal_et/F");
     mixedEventsTree->Branch ("vz",              &vz,              "vz/F");
     mixedEventsTree->Branch ("ntrk",            &ntrk,            "ntrk/I");
     mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/i");
     mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/i");
-    //mixedEventsTree->Branch ("z_lumi_block",    &z_lumi_block,    "z_lumi_block/i");
     mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
     mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
     mixedEventsTree->Branch ("z_trk_pt",        &z_trk_pt,        "z_trk_pt[z_ntrk]/F");
@@ -1066,7 +1057,6 @@ void MinbiasAnalysis :: PlotCentralityDists () {
   c->SetLogy ();
 
   for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
-    h_centrality[iMBTrig]->Rebin (2);
     h_centrality[iMBTrig]->Scale (1., "width");
 
     h_centrality[iMBTrig]->SetLineColor (colors[iMBTrig+1]);
