@@ -630,6 +630,19 @@ int GetPercentileCentrality (const float fcal_et) {
 }
 
 
+const short numppCentBins = 150;
+const double* ppCentBins = linspace (-100, 200, numppCentBins);
+int GetPPCentBin (const float fcal_et) {
+  short i = 0;
+  while (i < numppCentBins)
+    if (fcal_et < ppCentBins[i+1])
+      break;
+    i++;
+  }
+  return i;
+}
+
+
 const short numQ2Bins = 8;
 const double* q2Bins = linspace (0, 0.2, numQ2Bins);
 
