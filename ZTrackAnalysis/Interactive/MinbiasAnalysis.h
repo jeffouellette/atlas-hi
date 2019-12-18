@@ -303,7 +303,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
-  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/q2_distributions.root", rootPath.Data ()));
+  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
 
   TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
@@ -553,7 +553,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
           //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
-          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
+          goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
           goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {

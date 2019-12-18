@@ -590,7 +590,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
-  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/q2_distributions.root", rootPath.Data ()));
+  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
