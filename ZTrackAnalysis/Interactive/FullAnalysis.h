@@ -1131,7 +1131,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
   c->cd ();
 
-  for (short iCent = 1; iCent < numCentBins; iCent++) {
+  for (short iCent = 1; iCent < numFineCentBins; iCent++) {
     c->cd (numCentBins-iCent);
     gPad->SetLogy ();
 

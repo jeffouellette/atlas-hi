@@ -1712,7 +1712,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 900, 450*numCentBins);
+        c = new TCanvas (canvasName, "", 500, 250*numCentBins);
         gDirectory->Add (c);
         c->cd ();
         c->Divide (2, numCentBins);
@@ -4525,7 +4525,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
 
         if (!plotAsSystematic) {
           ResetXErrors (g);
-          //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+          deltaize (g, 1+(iPtZ-3)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iPtZ-1]);
           g->SetMarkerColor (colors[iPtZ-1]);
           g->SetMarkerStyle (markerStyle);
