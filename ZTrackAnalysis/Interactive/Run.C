@@ -18,7 +18,7 @@
 
 #include "PlotHybridModel.h"
 
-const bool doSys = false;
+const bool doSys = true;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
@@ -45,7 +45,7 @@ TruthAnalysis* truth = nullptr;
 // master systematics objects
 Systematic* combSys = nullptr;
 Systematic* bkgStatSys = nullptr;
-Systematic* bkgMixSys = nullptr;
+//Systematic* bkgMixSys = nullptr;
 TrackIDSystematic* trkSys = nullptr;
 ReweightingSystematic* trkEffSysWeights = nullptr;
 Systematic* trkEffSys = nullptr;
@@ -61,8 +61,8 @@ Systematic* muonPtSys = nullptr;
 // variations for systematics
 MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
-MinbiasAnalysis* bkg_mixUpVar = nullptr, *bkg_mixDownVar = nullptr;
-PhysicsAnalysis* data_mixUpVar = nullptr, *data_mixDownVar = nullptr;
+//MinbiasAnalysis* bkg_mixUpVar = nullptr, *bkg_mixDownVar = nullptr;
+//PhysicsAnalysis* data_mixUpVar = nullptr, *data_mixDownVar = nullptr;
 
 PhysicsAnalysis* data_trackHItight = nullptr, *data_trkIDUpVar = nullptr, *data_trkIDDownVar = nullptr;
 MinbiasAnalysis* bkg_trkIDUpVar = nullptr, *bkg_trkIDDownVar = nullptr;
@@ -110,10 +110,10 @@ void Run () {
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
     bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
 
-    data_mixUpVar           = new PhysicsAnalysis ("data_mixUpVar");
-    data_mixDownVar         = new PhysicsAnalysis ("data_mixDownVar");
-    bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
-    bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
+    //data_mixUpVar           = new PhysicsAnalysis ("data_mixUpVar");
+    //data_mixDownVar         = new PhysicsAnalysis ("data_mixDownVar");
+    //bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
+    //bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
 
     
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar");
@@ -142,10 +142,10 @@ void Run () {
     data_trkPurUpVar->doTrackPurVar = true; data_trkPurUpVar->trkPurNSigma = 1;
     data_trkPurDownVar    = new PhysicsAnalysis ("data_trkPurDownVar");
     data_trkPurDownVar->doTrackPurVar = true; data_trkPurDownVar->trkPurNSigma = -1;
-    //bkg_trkPurUpVar       = new MinbiasAnalysis ("bkg_trkPurUpVar");
-    //bkg_trkPurUpVar->doTrackPurVar = true; bkg_trkPurUpVar->trkPurNSigma = 1;
-    //bkg_trkPurDownVar     = new MinbiasAnalysis ("bkg_trkPurDownVar");
-    //bkg_trkPurDownVar->doTrackPurVar = true; bkg_trkPurDownVar->trkPurNSigma = -1;
+    bkg_trkPurUpVar       = new MinbiasAnalysis ("bkg_trkPurUpVar");
+    bkg_trkPurUpVar->doTrackPurVar = true; bkg_trkPurUpVar->trkPurNSigma = 1;
+    bkg_trkPurDownVar     = new MinbiasAnalysis ("bkg_trkPurDownVar");
+    bkg_trkPurDownVar->doTrackPurVar = true; bkg_trkPurDownVar->trkPurNSigma = -1;
 
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
     data_leptonRejVar->doLeptonRejVar = true;
@@ -157,17 +157,20 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
   }
 
-  if (doSys) {
-    //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
-    //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
-    data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
-    data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
-    data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
-    data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
-    data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
-    data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
-  }
+  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");  
+
+  //if (doSys) {
+  //  //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
+  //  //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
+  //  data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
+  //  data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
+  //  data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
+  //  data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
+  //  data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
+  //  data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+  //  data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+  //}
 
 
   data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
@@ -235,7 +238,7 @@ void Run () {
     cout << "Initializing systematic objects. " << endl;
     bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Stat.");
     bkgStatSys->cancelIAA = false;
-    bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
+    //bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
     trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
     trkEffSysWeights = new ReweightingSystematic ("trkEffSysWeights");
     trkEffSys = new Systematic (data18, "trkEffSys", "Particle Composition");
@@ -270,18 +273,18 @@ void Run () {
     bkgStatSys->AddVariations ();
 
 
-    cout << "Calculating mixed event systematic errors." << endl;
-    bkg_mixUpVar->CopyAnalysis (bkg18, false);
-    bkg_mixDownVar->CopyAnalysis (bkg18, false);
-    data_mixUpVar->CopyAnalysis (data18, false);
-    data_mixDownVar->CopyAnalysis (data18, false);
-    ApplyBkgVariation (bkg_mixUpVar, 0.005);
-    ApplyBkgVariation (bkg_mixDownVar, -0.005);
-    data_mixUpVar->SubtractBackground (bkg_mixUpVar);
-    data_mixDownVar->SubtractBackground (bkg_mixDownVar);
-    bkgMixSys->AddVariation (data_mixUpVar, true);
-    bkgMixSys->AddVariation (data_mixDownVar, true);
-    bkgMixSys->AddVariations ();
+    //cout << "Calculating mixed event systematic errors." << endl;
+    //bkg_mixUpVar->CopyAnalysis (bkg18, false);
+    //bkg_mixDownVar->CopyAnalysis (bkg18, false);
+    //data_mixUpVar->CopyAnalysis (data18, false);
+    //data_mixDownVar->CopyAnalysis (data18, false);
+    //ApplyBkgVariation (bkg_mixUpVar, 0.005);
+    //ApplyBkgVariation (bkg_mixDownVar, -0.005);
+    //data_mixUpVar->SubtractBackground (bkg_mixUpVar);
+    //data_mixDownVar->SubtractBackground (bkg_mixDownVar);
+    //bkgMixSys->AddVariation (data_mixUpVar, true);
+    //bkgMixSys->AddVariation (data_mixDownVar, true);
+    //bkgMixSys->AddVariations ();
 
 
 
@@ -325,11 +328,8 @@ void Run () {
 
 
     cout << "Calculating track purity systematic errors." << endl;
-    data_trkPurUpVar->Execute         ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     data_trkPurUpVar->LoadHists         ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->LoadHists        ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
-    data_trkPurUpVar->LoadHists       ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    data_trkPurDownVar->LoadHists       ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurUpVar);
     data_trkPurUpVar->CopyAnalysis (data18, false);
@@ -401,14 +401,14 @@ void Run () {
     combSys->AddSystematic (electronPtSys);
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematic (bkgStatSys);
-    combSys->AddSystematic (bkgMixSys);
+    //combSys->AddSystematic (bkgMixSys);
     combSys->AddSystematics ();
 
     trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
     trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
     trkPurSys->SaveGraphs ("Systematics/TrackPurSys.root");
     bkgStatSys->SaveGraphs ("Systematics/BkgStatSys.root");
-    bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
+    //bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
     leptonRejSys->SaveGraphs ("Systematics/LeptonRejSys.root");
     electronPtSys->SaveGraphs ("Systematics/ElectronPtSys.root");
     muonPtSys->SaveGraphs ("Systematics/MuonPtSys.root");

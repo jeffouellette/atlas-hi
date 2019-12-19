@@ -35,7 +35,7 @@ double* doubleLogSpace (const double lo, const double hi, const int num) {
   return arr;
 }
 
-float max_iaa = 1.4;
+float max_iaa = 3.2;
 //float max_icp = 1.4;
 float max_rel_sys = 40;
 

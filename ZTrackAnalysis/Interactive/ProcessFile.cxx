@@ -23,11 +23,13 @@ int main (int argc, char** argv) {
     //outFileName = "Background/" + outFileName;
   }
 
-  bool use2015conds = (string(argv[5]) == "true");
+  bool use2015conds = (string (argv[5]) == "true");
   bool doHITightVar = (string (argv[6]) == "true");
+  bool doQ2Mixing   = (string (argv[7]) == "true");
+  bool doPsi2Mixing = (string (argv[7]) == "true");
 
 
-  if (!doHITightVar) {
+  if (!doHITightVar && !doQ2Mixing && !doPsi2Mixing) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -36,6 +38,16 @@ int main (int argc, char** argv) {
     inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
     mbInFileName = "Variations/TrackHITightWPVariation/" + mbInFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
+  }
+  else if (doQ2Mixing) {
+    inFileName = "Variations/Q2MixingVariation/" + inFileName;
+    mbInFileName = "Variations/Q2MixingVariation/" + mbInFileName;
+    outFileName = "Variations/Q2MixingVariation/" + outFileName;
+  }
+  else if (doPsi2Mixing) {
+    inFileName = "Variations/Psi2MixingVariation/" + inFileName;
+    mbInFileName = "Variations/Psi2MixingVariation/" + mbInFileName;
+    outFileName = "Variations/Psi2MixingVariation/" + outFileName;
   }
 
 
@@ -111,12 +123,18 @@ int main (int argc, char** argv) {
     outFileName = "MinbiasAnalysis/" + outFileName;
     if (doHITightVar)
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
+    else if (doQ2Mixing)
+      bkg = new MinbiasAnalysis ("bkg_q2mixed");
+    else if (doPsi2Mixing)
+      bkg = new MinbiasAnalysis ("bkg_psi2mixed");
     else
       bkg = new MinbiasAnalysis ("bkg");
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
+    bkg->doQ2Mixing = doQ2Mixing;
+    bkg->doPsi2Mixing = doPsi2Mixing;
 
     //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
     bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code

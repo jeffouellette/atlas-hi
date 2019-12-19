@@ -27,6 +27,8 @@ class MinbiasAnalysis : public FullAnalysis {
   public:
 
   bool takeNonTruthTracks = false;
+  bool doQ2Mixing = false;
+  bool doPsi2Mixing = false;
 
   MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
     name = _name;
@@ -528,9 +530,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
-        //const short iQ2 = GetQ2Bin (z_q2);
-        //if (iQ2 < 0 || iQ2 > numQ2Bins-1)
-        //  continue;
+        const short iQ2 = GetQ2Bin (z_q2);
+        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+          continue;
         const short iPsi2 = GetPsi2Bin (z_psi2);
         if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
           continue;
@@ -553,8 +555,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
           //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
-          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
-          goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
+          if (doQ2Mixing)
+            goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
+          if (doPsi2Mixing)
+            goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
