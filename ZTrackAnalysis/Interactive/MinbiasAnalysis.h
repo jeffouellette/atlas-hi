@@ -515,7 +515,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         continue; // skip unneeded events
 
       {
-        CorrectQ2Vector (z_qx_a, z_qy_a, z_qx_c, z_qy_c);
+        //CorrectQ2Vector (z_qx_a, z_qy_a, z_qx_c, z_qy_c);
         const float z_qx = z_qx_a + z_qx_c;
         const float z_qy = z_qy_a + z_qy_c;
         z_q2 = sqrt (z_qx*z_qx + z_qy*z_qy) / fcal_et;
@@ -528,9 +528,9 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
-        const short iQ2 = GetQ2Bin (z_q2);
-        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
-          continue;
+        //const short iQ2 = GetQ2Bin (z_q2);
+        //if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+        //  continue;
         const short iPsi2 = GetPsi2Bin (z_psi2);
         if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
           continue;
@@ -544,7 +544,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbPbPbTree->GetEntry (mbEventOrder[iMBEvt]);
           {
-            CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
+            //CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
             const float qx = qx_a + qx_c;
             const float qy = qy_a + qy_c;
             q2 = sqrt (qx*qx + qy*qy) / fcal_et;
@@ -553,7 +553,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
           //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
-          goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
+          //goodMixEvent = (goodMixEvent && iQ2 == GetQ2Bin (q2));
           goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2Bin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
@@ -826,13 +826,19 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       if (iPtZ < 2)
         continue; // skip unneeded events
 
+      // Find the next unused minimum bias event
       {
+        //const short iFCalEt = GetPPCentBin (z_fcal_et);
+        //if (iFCalEt < 0 || iFCalEt > numppCentBins)
+        //  continue;
+
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
           goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
+          //goodMixEvent = (goodMixEvent && iFCalEt == GetPPCentBin (fcal_et+13.899132));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
