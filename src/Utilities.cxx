@@ -992,4 +992,25 @@ void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
 }
 
 
+/**
+ * Adds a to h without propagating errors (e.g. for subtracting a background)
+ */
+void AddNoErrors (TH1D* h, TH1D* a, const float sf) {
+  assert (h->GetNbinsX () == a->GetNbinsX ());
+  for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+    h->SetBinContent (ix, h->GetBinContent (ix) + sf * a->GetBinContent (ix));
+  }
+}
+
+
+/**
+ * Multiplies h by a raised to power without propagating errors (e.g. for subtracting a background)
+ */
+void MultiplyNoErrors (TH1D* h, TH1D* a, const float power) {
+  for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+    h->SetBinContent (ix, h->GetBinContent (ix) * pow (a->GetBinContent (ix), power));
+  }
+}
+
+
 } // end namespace

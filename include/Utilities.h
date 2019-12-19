@@ -241,6 +241,19 @@ void GetReflectionX (TH1D* h, const int n);
  */ 
 void RebinSomeBins (TH1D* &h, int nbins, double* bins);
 
+
+/**
+ * Adds a to h without propagating errors (e.g. for subtracting a background)
+ */
+void AddNoErrors (TH1D* h, TH1D* a, const float sf = 1.);
+
+
+/**
+ * Multiplies h by a raised to power without propagating errors (e.g. for subtracting a background)
+ */
+void MultiplyNoErrors (TH1D* h, TH1D* a, const float power = 1.);
+
+
 } // end namespace
 
 #endif

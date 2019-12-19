@@ -1712,7 +1712,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
       if (canvasExists)
         c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
       else {
-        c = new TCanvas (canvasName, "", 500, 250*numCentBins);
+        c = new TCanvas (canvasName, "", 800, 250*numCentBins);
         gDirectory->Add (c);
         c->cd ();
         c->Divide (2, numCentBins);
@@ -2421,88 +2421,88 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         //******** Do subtraction of integrated dPhi plot ********//
         TH1D* h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] = h;
         TH1D* sub = nullptr;
         if (a != nullptr) {
           sub = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
-          h->Add (sub, -1);
+          AddNoErrors (h, sub, -1);
         }
-        h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] = h;
 
         h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        if (a != nullptr && sub != nullptr) {
-          h->Add (sub, -1);
-          h->Divide (sub);
-        }
-        else
-          h->Divide (h);
         h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
+        if (a != nullptr && sub != nullptr) {
+          AddNoErrors (h, sub, -1);
+          h->Divide (sub);
+          //MultiplyNoErrors (h, sub, -1);
+        }
 
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent] = h;
         if (a != nullptr) {
           sub = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-          h->Add (sub, -1);
+          AddNoErrors (h, sub, -1);
         }
-        h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent] = h;
 
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        if (a != nullptr && sub != nullptr) {
-          h->Add (sub, -1);
-          h->Divide (sub);
-        }
-        else
-          h->Divide (h);
         h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
+        if (a != nullptr && sub != nullptr) {
+          AddNoErrors (h, sub, -1);
+          h->Divide (sub);
+          //MultiplyNoErrors (h, sub, -1);
+        }
 
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
 
           //******** Do subtraction of pT ********//
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
+          h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
           if (a != nullptr) {
             sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-            h->Add (sub, -1);
+            AddNoErrors (h, sub, -1);
           }
-          h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
-          if (a != nullptr && sub != nullptr) {
-            h->Add (sub, -1);
-            h->Divide (sub);
-          }
           h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
+          if (a != nullptr && sub != nullptr) {
+            AddNoErrors (h, sub, -1);
+            h->Divide (sub);
+            //MultiplyNoErrors (h, sub, -1);
+          }
 
 
           //******** Do subtraction of z_h ********//
           h = new TH1D (Form ("h_trk_xhz_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
           h->Sumw2 ();
           h->Add (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
           if (a != nullptr) {
             sub = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
-            h->Add (sub, -1);
+            AddNoErrors (h, sub, -1);
           }
-          h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
 
           h = new TH1D (Form ("h_trk_xhz_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]);
+          h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
           h->Sumw2 ();
           h->Add (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
           if (a != nullptr && sub != nullptr) {
-            h->Add (sub, -1);
+            AddNoErrors (h, sub, -1);
             h->Divide (sub);
+            //MultiplyNoErrors (h, sub, -1);
           }
-          h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
         } // end loop over phi
 
 
         for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
           //******** Do background subtraction of phi distributions ********//
           TH1D* h = (TH1D*) h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Clone (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+          h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent] = h;
           if (a != nullptr) {
             TH1D* sub = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
             while (sub->GetNbinsX () > h->GetNbinsX ())
               sub->Rebin (2);
-            h->Add (sub, -1);
+            AddNoErrors (h, sub, -1);
           }
-          h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent] = h;
 
         } // end loop over pT^trk
       } // end loop over pT^Z
