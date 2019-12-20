@@ -26,7 +26,7 @@ int main (int argc, char** argv) {
   bool use2015conds = (string (argv[5]) == "true");
   bool doHITightVar = (string (argv[6]) == "true");
   bool doQ2Mixing   = (string (argv[7]) == "true");
-  bool doPsi2Mixing = (string (argv[7]) == "true");
+  bool doPsi2Mixing = (string (argv[8]) == "true");
 
 
   if (!doHITightVar && !doQ2Mixing && !doPsi2Mixing) {
@@ -40,13 +40,13 @@ int main (int argc, char** argv) {
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
   }
   else if (doQ2Mixing) {
-    inFileName = "Variations/Q2MixingVariation/" + inFileName;
-    mbInFileName = "Variations/Q2MixingVariation/" + mbInFileName;
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/Q2MixingVariation/" + outFileName;
   }
   else if (doPsi2Mixing) {
-    inFileName = "Variations/Psi2MixingVariation/" + inFileName;
-    mbInFileName = "Variations/Psi2MixingVariation/" + mbInFileName;
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/Psi2MixingVariation/" + outFileName;
   }
 

@@ -643,7 +643,7 @@ int GetPPCentBin (const float fcal_et) {
 }
 
 
-const short numQ2Bins = 8;
+const short numQ2Bins = 4;
 const double* q2Bins = linspace (0, 0.2, numQ2Bins);
 
 short GetQ2Bin (const float q2) {
@@ -656,7 +656,7 @@ short GetQ2Bin (const float q2) {
   return i;
 }
 
-const short numPsi2Bins = 16;
+const short numPsi2Bins = 8;
 const double* psi2Bins = linspace (-pi/2., pi/2., numPsi2Bins);
 
 //const double psi2Bins[13] = {

@@ -114,7 +114,6 @@ void Run () {
     //data_mixDownVar         = new PhysicsAnalysis ("data_mixDownVar");
     //bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
     //bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
-
     
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar");
     data_trackHItight->useHITight = true;
@@ -157,20 +156,20 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
   }
 
-  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
-  //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");  
+  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
-  //if (doSys) {
-  //  //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
-  //  //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
-  //  data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
-  //  data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
-  //  data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
-  //  data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
-  //  data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
-  //  data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-  //  data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
-  //}
+  if (doSys) {
+    //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
+    //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
+    data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
+    data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
+    data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
+    data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
+    data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
+    data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+  }
 
 
   data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
@@ -234,6 +233,7 @@ void Run () {
   //truth->SubtractBackground ();
   //truth->CalculateIAA ();
 
+  /*
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
     bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Stat.");
@@ -308,8 +308,6 @@ void Run () {
 
 
     cout << "Calculating particle composition systematic errors." << endl;
-    data_partComp->LoadHists          ("DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
-    trkEffSysWeights->GetRelativeVariations (data18, data_partComp);
     data_partCompUpVar->CopyAnalysis (data18, false);
     data_partCompDownVar->CopyAnalysis (data18, false);
     bkg_partCompUpVar->CopyAnalysis (bkg18, false);
@@ -415,6 +413,7 @@ void Run () {
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
 
   }
+  */
 
 
   SetupDirectories ("", "ZTrackAnalysis/");
