@@ -49,8 +49,6 @@ class PhysicsAnalysis {
   bool effsLoaded   = false;
   TFile* trkPurFile = nullptr;
   bool pursLoaded   = false;
-  TFile* trigEffFile = nullptr;
-  bool trigEffsLoaded = false;
   TFile* histFile   = nullptr;
   bool histsLoaded  = false;
   bool histsScaled  = false;
@@ -154,8 +152,8 @@ class PhysicsAnalysis {
     Delete1DArray (h2_num_trk_purs, numTrkCorrCentBins);
     Delete1DArray (h2_den_trk_purs, numTrkCorrCentBins);
 
-    Delete3DArray (f_z_trk_zpt_binMigration,  3, nPtZBins, numBBBCorrCentBins);
-    Delete3DArray (f_z_trk_zxzh_binMigration, 3, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_z_trk_zpt_binMigration,  2, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_z_trk_zxzh_binMigration, 2, nPtZBins, numBBBCorrCentBins);
 
     Delete4DArray (h_trk_dphi,                3, nPtZBins, maxNPtTrkBins, numCentBins);
     Delete4DArray (h_trk_dphi_sub,            3, nPtZBins, maxNPtTrkBins, numCentBins);
@@ -186,6 +184,23 @@ class PhysicsAnalysis {
     Delete4DArray (h_trk_xhz_ptz_sig_to_bkg,  3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h_trk_xhz_ptz_iaa,         3, nPtZBins, numPhiBins, numCentBins);
     //Delete4DArray (h_trk_xhz_ptz_icp,         3, nPtZBins, numPhiBins, numCentBins);
+
+    if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
+      eventWeightsFile->Close ();
+      SaferDelete (eventWeightsFile);
+    }
+    if (trkEffFile && trkEffFile->IsOpen ()) {
+      trkEffFile->Close ();
+      SaferDelete (trkEffFile);
+    }
+    if (trkPurFile && trkPurFile->IsOpen ()) {
+      trkPurFile->Close ();
+      SaferDelete (trkPurFile);
+    }
+    if (histFile && histFile->IsOpen ()) {
+      histFile->Close ();
+      SaferDelete (histFile);
+    }
   }
 
   protected:

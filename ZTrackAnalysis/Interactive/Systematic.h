@@ -15,6 +15,45 @@
 using namespace std;
 using namespace atlashi;
 
+
+/**
+ * Adds xi and xi^2 from var to g so that the standard deviation can be calculated.
+ */
+void AddToMuSigmaCalc (TGAE* g, TH1D* var) {
+  assert (g->GetN () == var->GetNbinsX ());
+  double x, y, yerr, yn;
+  for (int i = 0; i < g->GetN (); i++) {
+    g->GetPoint (i, x, y);
+    yerr = g->GetErrorY (i);
+    yn = var->GetBinContent (i+1);
+    g->SetPoint (i, x, y+yn);
+    g->SetPointEYhigh (i, yerr+yn*yn);
+    g->SetPointEYlow (i, yerr+yn*yn);
+  }
+}
+
+
+/**
+ * Completes the standard deviation calculation and stores sigma as the y errors in g.
+ */
+void FinishMuSigmaCalc (const int n, TGAE* g, TGAE* nom) {
+  assert (n > 1 && g->GetN () == nom->GetN ());
+
+  double x, y, mu, sigma;
+  for (int i = 0; i < g->GetN (); i++) {
+    nom->GetPoint (i, x, y);
+    g->GetPoint (i, x, mu);
+    mu = mu / n;
+    sigma = sqrt ((g->GetErrorY (i) - (2*n-1)*mu*mu) / (n-1));
+    g->SetPoint (i, x, y);
+    g->SetPointEYhigh (i, sigma);
+    g->SetPointEYlow (i, sigma);
+  }
+}
+
+
+
+
 class Systematic : public PhysicsAnalysis {
 
   protected:
@@ -70,6 +109,7 @@ class Systematic : public PhysicsAnalysis {
   virtual void AddSystematic (Systematic* a);
 
   virtual void AddVariations (); // variations add linearly
+  virtual void AddVariationsUsingStdDev (); // error is set to the standard deviation of several variations 
   virtual void AddSystematics (); // systematics add in quadrature
 
   virtual void PrintRelSystematics (); // print relative systematics
@@ -356,6 +396,7 @@ void Systematic :: AddSystematic (Systematic* a) {
 void Systematic :: AddVariations () {
 
   //NullifyErrors ();
+  cout << "Evaluating " << description << " systematics by taking maximum variations" << endl;
 
   for (PhysicsAnalysis* a : variations) {
 
@@ -481,6 +522,351 @@ void Systematic :: AddVariations () {
     } // end loop over species
 
   } // end loop over variations
+
+
+  if (!cancelIAA) {
+    TGAE* pp_sys, *PbPb_sys, *iaa_sys;
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+        pp_sys = GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][0]);
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          PbPb_sys = GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
+
+          iaa_sys = GetTGAE (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]);
+
+          for (int ix = 0; ix < iaa_sys->GetN (); ix++) {
+            double x, y, yhierr, yloerr;
+
+            pp_sys->GetPoint (ix, x, y);
+            yhierr = pp_sys->GetErrorYhigh (ix);
+            yloerr = pp_sys->GetErrorYlow (ix);
+            const double pp_relsys_hi = yhierr / y;
+            const double pp_relsys_lo = yloerr / y;
+
+            //if (name == "trkEffSys")
+            //  cout << pp_relsys_hi << ", " << pp_relsys_lo << endl;
+
+            PbPb_sys->GetPoint (ix, x, y);
+            yhierr = PbPb_sys->GetErrorYhigh (ix);
+            yloerr = PbPb_sys->GetErrorYlow (ix);
+            const double PbPb_relsys_hi = yhierr / y;
+            const double PbPb_relsys_lo = yloerr / y;
+
+            //if (name == "trkEffSys")
+            //  cout << PbPb_relsys_hi << ", " << PbPb_relsys_lo << endl;
+
+            const double iaa_relsys_hi = TMath::Sqrt (pow (PbPb_relsys_hi, 2) + pow (pp_relsys_hi, 2));
+            const double iaa_relsys_lo = TMath::Sqrt (pow (PbPb_relsys_lo, 2) + pow (pp_relsys_lo, 2));
+
+            iaa_sys->GetPoint (ix, x, y);
+            iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
+            iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
+          }
+        } // end loop over cents
+
+        pp_sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][0]);
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          PbPb_sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+
+          iaa_sys = GetTGAE (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
+
+          for (int ix = 0; ix < iaa_sys->GetN (); ix++) {
+            double x, y, yhierr, yloerr;
+
+            pp_sys->GetPoint (ix, x, y);
+            yhierr = pp_sys->GetErrorYhigh (ix);
+            yloerr = pp_sys->GetErrorYlow (ix);
+            const double pp_relsys_hi = yhierr / y;
+            const double pp_relsys_lo = yloerr / y;
+
+            PbPb_sys->GetPoint (ix, x, y);
+            yhierr = PbPb_sys->GetErrorYhigh (ix);
+            yloerr = PbPb_sys->GetErrorYlow (ix);
+            const double PbPb_relsys_hi = yhierr / y;
+            const double PbPb_relsys_lo = yloerr / y;
+
+            const double iaa_relsys_hi = TMath::Sqrt (pow (PbPb_relsys_hi, 2) + pow (pp_relsys_hi, 2));
+            const double iaa_relsys_lo = TMath::Sqrt (pow (PbPb_relsys_lo, 2) + pow (pp_relsys_lo, 2));
+
+            iaa_sys->GetPoint (ix, x, y);
+            iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
+            iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
+          }
+
+        } // end loop over cents
+      } // end loop over pT^Z bins
+    } // end loop over species
+  }
+
+  variations.clear ();
+  variationDirs.clear ();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets the errors in this systematic as a combination of all added variations.
+// Instead of using the maximum variation, the error is set as the standard deviation of the
+// variations.
+// Intended for systematics derived from several qualitatively different analysis procedures.
+// (e.g. editing the event mixing criteria)
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: AddVariationsUsingStdDev () {
+
+  //NullifyErrors ();
+  cout << "Evaluating " << description << " systematics by taking standard deviation of variations" << endl;
+
+  for (PhysicsAnalysis* a : variations) {
+
+    cout << "Adding variation " << a->Name () << " to systematic " << name << endl;
+
+    a->SubtractBackground ();
+    a->CalculateIAA ();
+    //a->CalculateICP ();
+  }
+
+  TGAE* sys = nullptr;
+  TH1D* var = nullptr;
+  TGAE* temp = nullptr;
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+
+      //// Hadron yield systematics, signal & signal+bkg levels
+      //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+      //  for (short iCent = 0; iCent < numCentBins; iCent++) {
+      //    sys = GetTGAE (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+      //  } // end loop over cents
+      //} // end loop over phi
+
+      for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+          temp = (TGAE*) sys->Clone ("temp");
+          for (PhysicsAnalysis* a : variations) {
+            var = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
+            if (sys && var) AddToMuSigmaCalc (sys, var);
+          } // end loop over variations
+          FinishMuSigmaCalc (variations.size (), sys, temp);
+          SaferDelete (temp);
+
+          sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+          temp = (TGAE*) sys->Clone ("temp");
+          for (PhysicsAnalysis* a : variations) {
+            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
+            if (sys && var) AddToMuSigmaCalc (sys, var);
+          } // end loop over variations
+          FinishMuSigmaCalc (variations.size (), sys, temp);
+          SaferDelete (temp);
+        } // end loop over cents
+      } // end loop over iPtTrk
+
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        sys = GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
+        temp = (TGAE*) sys->Clone ("temp");
+        for (PhysicsAnalysis* a : variations) {
+          var = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
+          if (sys && var) AddToMuSigmaCalc (sys, var);
+        } // end loop over variations
+        FinishMuSigmaCalc (variations.size (), sys, temp);
+        SaferDelete (temp);
+
+        sys = GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
+        temp = (TGAE*) sys->Clone ("temp");
+        for (PhysicsAnalysis* a : variations) {
+          var = a->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
+          if (sys && var) AddToMuSigmaCalc (sys, var);
+        } // end loop over variations
+        FinishMuSigmaCalc (variations.size (), sys, temp);
+        SaferDelete (temp);
+
+        //sys = GetTGAE (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+        //temp = (TGAE*) sys->Clone ("temp");
+        //for (PhysicsAnalysis* a : variations) {
+        //  var = a->h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent];
+        //  if (sys && var) AddToMuSigmaCalc (sys, var);
+        //} // end loop over variations
+        //FinishMuSigmaCalc (variations.size (), sys, temp);
+        //SaferDelete (temp);
+
+        sys = GetTGAE (h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+        temp = (TGAE*) sys->Clone ("temp");
+        for (PhysicsAnalysis* a : variations) {
+          var = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+          if (sys && var) AddToMuSigmaCalc (sys, var);
+        } // end loop over variations
+        FinishMuSigmaCalc (variations.size (), sys, temp);
+        SaferDelete (temp);
+
+        sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+        temp = (TGAE*) sys->Clone ("temp");
+        for (PhysicsAnalysis* a : variations) {
+          var = a->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
+          if (sys && var) AddToMuSigmaCalc (sys, var);
+        } // end loop over variations
+        FinishMuSigmaCalc (variations.size (), sys, temp);
+        SaferDelete (temp);
+
+        //sys = GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+        //temp = (TGAE*) sys->Clone ("temp");
+        //for (PhysicsAnalysis* a : variations) {
+        //  var = a->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent];
+        //  if (sys && var) AddToMuSigmaCalc (sys, var);
+        //} // end loop over variations
+        //FinishMuSigmaCalc (variations.size (), sys, temp);
+        //SaferDelete (temp);
+      } // end loop over cents
+
+
+      //// IAA, ICP systematics
+      //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+      //  for (short iCent = 1; iCent < numCentBins; iCent++) {
+      //    sys = GetTGAE (h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+
+      //    sys = GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
+      //    temp = (TGAE*) sys->Clone ("temp");
+      //    for (PhysicsAnalysis* a : variations) {
+      //      var = a->h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
+      //      if (sys && var) AddToMuSigmaCalc (sys, var);
+      //    } // end loop over variations
+      //    FinishMuSigmaCalc (variations.size (), sys, temp);
+      //    SaferDelete (temp);
+      //  } // end loop over cents
+
+      //  //for (short iCent = 2; iCent < numCentBins; iCent++) {
+      //  //  sys = GetTGAE (h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
+      //  //  temp = (TGAE*) sys->Clone ("temp");
+      //  //  for (PhysicsAnalysis* a : variations) {
+      //  //    var = a->h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent];
+      //  //    if (sys && var) AddToMuSigmaCalc (sys, var);
+      //  //  } // end loop over variations
+      //  //  FinishMuSigmaCalc (variations.size (), sys, temp);
+      //  //  SaferDelete (temp);
+
+      //  //  sys = GetTGAE (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
+      //  //  temp = (TGAE*) sys->Clone ("temp");
+      //  //  for (PhysicsAnalysis* a : variations) {
+      //  //    var = a->h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent];
+      //  //    if (sys && var) AddToMuSigmaCalc (sys, var);
+      //  //  } // end loop over variations
+      //  //  FinishMuSigmaCalc (variations.size (), sys, temp);
+      //  //  SaferDelete (temp);
+      //  //} // end loop over cents
+      //} // end loop over phi
+
+      if (cancelIAA) {
+        for (short iCent = 1; iCent < numCentBins; iCent++) {
+          sys = GetTGAE (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]);
+          temp = (TGAE*) sys->Clone ("temp");
+          for (PhysicsAnalysis* a : variations) {
+            var = a->h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent];
+            if (sys && var) AddToMuSigmaCalc (sys, var);
+          } // end loop over variations
+          FinishMuSigmaCalc (variations.size (), sys, temp);
+          SaferDelete (temp);
+
+          sys = GetTGAE (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
+          temp = (TGAE*) sys->Clone ("temp");
+          for (PhysicsAnalysis* a : variations) {
+            var = a->h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent];
+            if (sys && var) AddToMuSigmaCalc (sys, var);
+          } // end loop over variations
+          FinishMuSigmaCalc (variations.size (), sys, temp);
+          SaferDelete (temp);
+        } // end loop over cents
+      }
+
+      //for (short iCent = 1; iCent < numCentBins; iCent++) {
+      //  sys = GetTGAE (h_trk_pt_ptz_icp[iSpc][iPtZ][iCent]);
+      //  temp = (TGAE*) sys->Clone ("temp");
+      //  for (PhysicsAnalysis* a : variations) {
+      //    var = a->h_trk_pt_ptz_icp[iSpc][iPtZ][iCent];
+      //    if (sys && var) AddToMuSigmaCalc (sys, var);
+      //  } // end loop over variations
+      //  FinishMuSigmaCalc (variations.size (), sys, temp);
+      //  SaferDelete (temp);
+
+      //  sys = GetTGAE (h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
+      //  temp = (TGAE*) sys->Clone ("temp");
+      //  for (PhysicsAnalysis* a : variations) {
+      //    var = a->h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent];
+      //    if (sys && var) AddToMuSigmaCalc (sys, var);
+      //  } // end loop over variations
+      //  FinishMuSigmaCalc (variations.size (), sys, temp);
+      //  SaferDelete (temp);
+      //} // end loop over cents
+
+    } // end loop over pT^Z bins
+  } // end loop over species
 
 
   if (!cancelIAA) {

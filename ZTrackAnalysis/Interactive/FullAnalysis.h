@@ -1126,13 +1126,13 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
-    c->Divide (2, 2);
+    c->Divide (3, 3);
   }
 
   c->cd ();
 
   for (short iCent = 1; iCent < numFineCentBins; iCent++) {
-    c->cd (numCentBins-iCent);
+    c->cd (numFineCentBins-iCent);
     gPad->SetLogy ();
 
     double min = 1e30, max = 0;
@@ -1156,7 +1156,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
 
       h->Draw (!canvasExists ? "hist" : "same hist");
 
-      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
+      myText (0.61, 0.88, kBlack, Form ("%i-%i%%", (int)fineCentCuts[iCent], (int)fineCentCuts[iCent-1]), 0.06);
 
       h = h_psi2_reweighted[iCent];
 
@@ -1165,7 +1165,7 @@ void FullAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
       h->SetLineColor (colors[iCent]);
       //h->SetLineStyle (2);
 
-      h->GetXaxis ()->SetTitle ("#phi_{Z} - #Psi_{2}");
+      h->GetXaxis ()->SetTitle ("#Psi_{2}");
       h->GetYaxis ()->SetTitle ("Counts");
 
       h->Draw ("same hist");
