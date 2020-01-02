@@ -25,11 +25,16 @@ int main (int argc, char** argv) {
 
   bool use2015conds = (string (argv[5]) == "true");
   bool doHITightVar = (string (argv[6]) == "true");
-  bool doQ2Mixing   = (string (argv[7]) == "true");
-  bool doPsi2Mixing = (string (argv[8]) == "true");
+  //bool doQ2Mixing   = (string (argv[7]) == "true");
+  //bool doPsi2Mixing = (string (argv[8]) == "true");
+  bool doMixVarA    = (string (argv[7]) == "true");
+  bool doMixVarB    = (string (argv[8]) == "true");
+  bool doMixVarC    = (string (argv[9]) == "true");
+  bool doMixVarD    = (string (argv[10]) == "true");
+  bool doMixVarE    = (string (argv[11]) == "true");
 
 
-  if (!doHITightVar && !doQ2Mixing && !doPsi2Mixing) {
+  if (!doHITightVar && /*!doQ2Mixing && !doPsi2Mixing*/ !doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -39,15 +44,40 @@ int main (int argc, char** argv) {
     mbInFileName = "Variations/TrackHITightWPVariation/" + mbInFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
   }
-  else if (doQ2Mixing) {
+  //else if (doQ2Mixing) {
+  //  inFileName = "Nominal/" + inFileName;
+  //  mbInFileName = "Nominal/" + mbInFileName;
+  //  outFileName = "Variations/Q2MixingVariation/" + outFileName;
+  //}
+  //else if (doPsi2Mixing) {
+  //  inFileName = "Nominal/" + inFileName;
+  //  mbInFileName = "Nominal/" + mbInFileName;
+  //  outFileName = "Variations/Psi2MixingVariation/" + outFileName;
+  //}
+  else if (doMixVarA) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
-    outFileName = "Variations/Q2MixingVariation/" + outFileName;
+    outFileName = "Variations/MixingVariationA/" + outFileName;
   }
-  else if (doPsi2Mixing) {
+  else if (doMixVarB) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
-    outFileName = "Variations/Psi2MixingVariation/" + outFileName;
+    outFileName = "Variations/MixingVariationB/" + outFileName;
+  }
+  else if (doMixVarC) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/MixingVariationC/" + outFileName;
+  }
+  else if (doMixVarD) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/MixingVariationD/" + outFileName;
+  }
+  else if (doMixVarE) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/MixingVariationE/" + outFileName;
   }
 
 
@@ -123,18 +153,54 @@ int main (int argc, char** argv) {
     outFileName = "MinbiasAnalysis/" + outFileName;
     if (doHITightVar)
       bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-    else if (doQ2Mixing)
-      bkg = new MinbiasAnalysis ("bkg_q2mixed");
-    else if (doPsi2Mixing)
-      bkg = new MinbiasAnalysis ("bkg_psi2mixed");
+    else if (doMixVarA)
+      bkg = new MinbiasAnalysis ("bkg_mixVarA");
+    else if (doMixVarB)
+      bkg = new MinbiasAnalysis ("bkg_mixVarB");
+    else if (doMixVarC)
+      bkg = new MinbiasAnalysis ("bkg_mixVarC");
+    else if (doMixVarD)
+      bkg = new MinbiasAnalysis ("bkg_mixVarD");
+    else if (doMixVarE)
+      bkg = new MinbiasAnalysis ("bkg_mixVarE");
+    //else if (doQ2Mixing)
+    //  bkg = new MinbiasAnalysis ("bkg_q2mixed");
+    //else if (doPsi2Mixing)
+    //  bkg = new MinbiasAnalysis ("bkg_psi2mixed");
     else
       bkg = new MinbiasAnalysis ("bkg");
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
     bkg->useHITight = doHITightVar;
-    bkg->doQ2Mixing = doQ2Mixing;
-    bkg->doPsi2Mixing = doPsi2Mixing;
+    if (doMixVarA) {
+      bkg->doPsi2Mixing = false;
+      bkg->doQ2Mixing = false;
+    }
+    if (doMixVarB) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 16;
+      bkg->doQ2Mixing = false;
+    }
+    if (doMixVarC) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 16;
+      bkg->doQ2Mixing = true;
+      bkg->numQ2MixBins = 4;
+    }
+    if (doMixVarD) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 32;
+      bkg->doQ2Mixing = false;
+    }
+    if (doMixVarE) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 8;
+      bkg->doQ2Mixing = true;
+      bkg->numQ2MixBins = 8;
+    }
+    //bkg->doQ2Mixing = doQ2Mixing;
+    //bkg->doPsi2Mixing = doPsi2Mixing;
 
     //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
     bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code

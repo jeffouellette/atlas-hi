@@ -656,7 +656,7 @@ short GetQ2Bin (const float q2) {
   return i;
 }
 
-const short numPsi2Bins = 8;
+const short numPsi2Bins = 16;
 const double* psi2Bins = linspace (-pi/2., pi/2., numPsi2Bins);
 
 //const double psi2Bins[13] = {
