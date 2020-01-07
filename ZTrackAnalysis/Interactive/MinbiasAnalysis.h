@@ -563,10 +563,10 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
         const short iQ2 = GetQ2MixBin (z_q2);
-        if (iQ2 < 0 || iQ2 > numQ2Bins-1)
+        if (doQ2Mixing && iQ2 < 0 || iQ2 > numQ2MixBins-1)
           continue;
         const short iPsi2 = GetPsi2MixBin (z_psi2);
-        if (iPsi2 < 0 || iPsi2 > numPsi2Bins-1)
+        if (doPsi2Mixing && iPsi2 < 0 || iPsi2 > numPsi2MixBins-1)
           continue;
         //const short iRG = GetRunGroup (z_run_number);
         //if (iRG < 0 || iRG >= (short)runGroups.size ())
