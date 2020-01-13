@@ -32,9 +32,10 @@ int main (int argc, char** argv) {
   bool doMixVarC    = (string (argv[9]) == "true");
   bool doMixVarD    = (string (argv[10]) == "true");
   bool doMixVarE    = (string (argv[11]) == "true");
+  bool doMixVarF    = (string (argv[12]) == "true");
 
 
-  if (!doHITightVar && /*!doQ2Mixing && !doPsi2Mixing*/ !doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE) {
+  if (!doHITightVar && /*!doQ2Mixing && !doPsi2Mixing*/ !doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -78,6 +79,11 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/MixingVariationE/" + outFileName;
+  }
+  else if (doMixVarF) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/MixingVariationF/" + outFileName;
   }
 
 
@@ -163,6 +169,8 @@ int main (int argc, char** argv) {
       bkg = new MinbiasAnalysis ("bkg_mixVarD");
     else if (doMixVarE)
       bkg = new MinbiasAnalysis ("bkg_mixVarE");
+    else if (doMixVarF)
+      bkg = new MinbiasAnalysis ("bkg_mixVarF");
     //else if (doQ2Mixing)
     //  bkg = new MinbiasAnalysis ("bkg_q2mixed");
     //else if (doPsi2Mixing)
@@ -179,25 +187,33 @@ int main (int argc, char** argv) {
     }
     if (doMixVarB) {
       bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
+      bkg->numPsi2MixBins = 2;
       bkg->doQ2Mixing = false;
     }
     if (doMixVarC) {
       bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
-      bkg->doQ2Mixing = true;
-      bkg->numQ2MixBins = 4;
+      bkg->numPsi2MixBins = 4;
+      bkg->doQ2Mixing = false;
     }
     if (doMixVarD) {
       bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 32;
+      bkg->numPsi2MixBins = 8;
       bkg->doQ2Mixing = false;
     }
     if (doMixVarE) {
       bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 16;
+      bkg->doQ2Mixing = false;
+    }
+    if (doMixVarF) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 32;
+      bkg->doQ2Mixing = false;
+    }
+    if (!doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF) {
+      bkg->doPsi2Mixing = true;
       bkg->numPsi2MixBins = 8;
-      bkg->doQ2Mixing = true;
-      bkg->numQ2MixBins = 8;
+      bkg->doQ2Mixing = false;
     }
     //bkg->doQ2Mixing = doQ2Mixing;
     //bkg->doPsi2Mixing = doPsi2Mixing;
