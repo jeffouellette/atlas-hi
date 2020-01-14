@@ -77,6 +77,11 @@ OfflineAnalysis/runFiles/obj
 # 2018 5.02 TeV Pb+Pb Z-tracks analysis
 ZTrackAnalysis/rootFiles
 ZTrackAnalysis/Plots
+ZTrackAnalysis/PullStudy/output
+ZTrackAnalysis/PullStudy/bin
+ZTrackAnalysis/PullStudy/log
+ZTrackAnalysis/PullStudy/errors
+ZTrackAnalysis/PullStudy/Plots
 
 # Pythia W boson decay analysis
 pythiaPhotonJet/lib

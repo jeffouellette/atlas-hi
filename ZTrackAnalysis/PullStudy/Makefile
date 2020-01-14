@@ -2,7 +2,7 @@ CXX=clang++
 CXXFLAGS=-Ofast -g -Wall `root-config --cflags` -I$(ATLAS_PATH)/include -I$(ROOT_UTIL_PATH) -I$(PYTHIA8_DIR)/include
 LDFLAGS=-Wl,-rpath,`root-config --libdir` `root-config --glibs` -L$(ATLAS_PATH)/lib -L$(ROOT_UTIL_PATH) -L$(PYTHIA8_DIR)/lib -lGlobalParams -lUtilities -lAtlasUtils -lAtlasStyle -ldl
 
-reqdirs= bin output log errors plots
+reqdirs= bin output log errors Plots
 
 directories:
 	mkdir -p ${reqdirs}
