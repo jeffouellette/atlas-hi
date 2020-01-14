@@ -6,7 +6,7 @@
 
 int main (int argc, char** argv) {
 
-  if (argc < 7) {
+  if (argc < 13) {
     cout << "Insufficient arguments! Exiting." << endl;
     return 1;
   }
@@ -25,17 +25,16 @@ int main (int argc, char** argv) {
 
   bool use2015conds = (string (argv[5]) == "true");
   bool doHITightVar = (string (argv[6]) == "true");
-  //bool doQ2Mixing   = (string (argv[7]) == "true");
-  //bool doPsi2Mixing = (string (argv[8]) == "true");
   bool doMixVarA    = (string (argv[7]) == "true");
   bool doMixVarB    = (string (argv[8]) == "true");
   bool doMixVarC    = (string (argv[9]) == "true");
   bool doMixVarD    = (string (argv[10]) == "true");
   bool doMixVarE    = (string (argv[11]) == "true");
   bool doMixVarF    = (string (argv[12]) == "true");
+  bool doMixVarG    = (string (argv[13]) == "true");
 
 
-  if (!doHITightVar && /*!doQ2Mixing && !doPsi2Mixing*/ !doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF) {
+  if (!doHITightVar && !doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF && !doMixVarG) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -45,16 +44,6 @@ int main (int argc, char** argv) {
     mbInFileName = "Variations/TrackHITightWPVariation/" + mbInFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
   }
-  //else if (doQ2Mixing) {
-  //  inFileName = "Nominal/" + inFileName;
-  //  mbInFileName = "Nominal/" + mbInFileName;
-  //  outFileName = "Variations/Q2MixingVariation/" + outFileName;
-  //}
-  //else if (doPsi2Mixing) {
-  //  inFileName = "Nominal/" + inFileName;
-  //  mbInFileName = "Nominal/" + mbInFileName;
-  //  outFileName = "Variations/Psi2MixingVariation/" + outFileName;
-  //}
   else if (doMixVarA) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
@@ -84,6 +73,11 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/MixingVariationF/" + outFileName;
+  }
+  else if (doMixVarG) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/MixingVariationG/" + outFileName;
   }
 
 
@@ -137,6 +131,10 @@ int main (int argc, char** argv) {
 
     mc->takeNonTruthTracks = true;
 
+    mc->doPsi2Mixing = true;
+    mc->numPsi2MixBins = 16;
+    mc->doQ2Mixing = false;
+
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
   }
@@ -171,10 +169,8 @@ int main (int argc, char** argv) {
       bkg = new MinbiasAnalysis ("bkg_mixVarE");
     else if (doMixVarF)
       bkg = new MinbiasAnalysis ("bkg_mixVarF");
-    //else if (doQ2Mixing)
-    //  bkg = new MinbiasAnalysis ("bkg_q2mixed");
-    //else if (doPsi2Mixing)
-    //  bkg = new MinbiasAnalysis ("bkg_psi2mixed");
+    else if (doMixVarG)
+      bkg = new MinbiasAnalysis ("bkg_mixVarG");
     else
       bkg = new MinbiasAnalysis ("bkg");
 
@@ -210,13 +206,16 @@ int main (int argc, char** argv) {
       bkg->numPsi2MixBins = 32;
       bkg->doQ2Mixing = false;
     }
-    if (!doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF) {
+    if (doMixVarG) {
       bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 8;
+      bkg->numPsi2MixBins = 64;
       bkg->doQ2Mixing = false;
     }
-    //bkg->doQ2Mixing = doQ2Mixing;
-    //bkg->doPsi2Mixing = doPsi2Mixing;
+    if (!doMixVarA && !doMixVarB && !doMixVarC && !doMixVarD && !doMixVarE && !doMixVarF && !doMixVarG) {
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 16;
+      bkg->doQ2Mixing = false;
+    }
 
     //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
     bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code

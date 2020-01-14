@@ -17,23 +17,20 @@ using namespace atlashi;
 
 class MinbiasAnalysis : public FullAnalysis {
 
-  private:
-  TFile* zMixFile = nullptr;
-  TFile* mixedEventsFile = nullptr;
-  TTree* mixedEventsTree = nullptr;
-
-  TTree* LoadEventMixingTree (const char* _inFile, const char* _treeName);
-
   public:
 
   bool takeNonTruthTracks = false;
   bool doQ2Mixing = false;
   bool doPsi2Mixing = false;
+  bool doPsi3Mixing = false;
 
   int numQ2MixBins = 1;
   double* q2MixBins = nullptr;
   int numPsi2MixBins = 1;
   double* psi2MixBins = nullptr;
+  int numPsi3MixBins = 1;
+  double* psi3MixBins = nullptr;
+  
 
   short GetQ2MixBin (const float q2) {
     if (!q2MixBins)
@@ -53,6 +50,18 @@ class MinbiasAnalysis : public FullAnalysis {
     short i = 0;
     while (i < numPsi2MixBins) {
       if (psi2 < psi2MixBins[i+1])
+        break;
+      i++;
+    }
+    return i;
+  }
+
+  short GetPsi3MixBin (const float psi3) {
+    if (!psi3MixBins)
+      return -1;
+    short i = 0;
+    while (i < numPsi3MixBins) {
+      if (psi3 < psi3MixBins[i+1])
         break;
       i++;
     }
@@ -296,36 +305,6 @@ void MinbiasAnalysis :: LoadEventWeights () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Loads the file for mixing Z's into minimum bias events
-////////////////////////////////////////////////////////////////////////////////////////////////
-TTree* MinbiasAnalysis :: LoadEventMixingTree (const char* _inFile, const char* _treeName) {
-  if (zMixFile && zMixFile->IsOpen ())
-    zMixFile->Close ();
-
-  SetupDirectories ("", "ZTrackAnalysis/");
-
-  TString inFile = TString (_inFile);
-  if (!inFile.Contains (".root"))
-    inFile = inFile + ".root";
-  inFile.Replace (0, 7, "Data");
-
-  zMixFile = new TFile (Form ("%s/%s", rootPath.Data (), inFile.Data ()), "read");
-
-  if (!zMixFile || !zMixFile->IsOpen ()) {
-    cout << "Cannot find zMixFile! Will return null tree!" << endl;
-    return nullptr;
-  }
-
-  mixedEventsFile = new TFile (Form ("%s/%s_mixed.root", rootPath.Data (), inFile.Data ()), "recreate");
-
-  TTree* _tree = (TTree*) zMixFile->Get (_treeName);
-  return _tree;
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Main macro. Loops over minbias trees and fills histograms appropriately. (NEW VERSION)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileName, const char* outFileName) {
@@ -405,7 +384,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       mbEventOrder.push_back (i);
       mbEventsUsed.push_back (false);
     }
-    //std::srand (std::time (0));
+    std::srand (1);
     std::random_shuffle (mbEventOrder.begin (), mbEventOrder.end ());
 
     cout << "Shuffled minimum bias events randomly; first ten events are ";
@@ -418,7 +397,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
     cout << Form ("Reading Z bosons from %s/%s", rootPath.Data (), inFileName) << endl;
     TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
-    //TTree* zTree = LoadEventMixingTree (inFileName, "PbPbZTrackTree");
     TTree* zTree = (TTree*) inFile->Get ("PbPbZTrackTree");
     if (!zTree)
       cout << "Got a null Z boson tree!" << endl;
@@ -525,8 +503,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       zEventOrder.push_back (i);
       zEventsUsed.push_back (0);
     }
-    //std::srand (std::time (0));
+    std::srand (1);
     if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
+
+    if (doQ2Mixing) cout << "Attempting to mix events in q2 magnitude with " << numQ2MixBins << " bins" << endl;
+    if (doPsi2Mixing) cout << "Attemption to mix events in psi2 angle with " << numPsi2MixBins << " bins" << endl;
 
     for (int iZEvt = 0; iZEvt < mixingFraction*nZEvts; iZEvt++) {
       if (mixingFraction*nZEvts > 100 && iZEvt % (mixingFraction*nZEvts / 100) == 0)
@@ -563,14 +544,15 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
         const short iQ2 = GetQ2MixBin (z_q2);
-        if (doQ2Mixing && iQ2 < 0 || iQ2 > numQ2MixBins-1)
+        if (doQ2Mixing && (iQ2 < 0 || iQ2 > numQ2MixBins-1)) {
+          cout << "Out-of-bounds q2, skipping this Z!" << endl;
           continue;
+        }
         const short iPsi2 = GetPsi2MixBin (z_psi2);
-        if (doPsi2Mixing && iPsi2 < 0 || iPsi2 > numPsi2MixBins-1)
+        if (doPsi2Mixing && (iPsi2 < 0 || iPsi2 > numPsi2MixBins-1)) {
+          cout << "Out-of-bounds psi2, skipping this Z!" << endl;
           continue;
-        //const short iRG = GetRunGroup (z_run_number);
-        //if (iRG < 0 || iRG >= (short)runGroups.size ())
-        //  continue;
+        }
         
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
@@ -584,8 +566,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
             q2 = sqrt (qx*qx + qy*qy) / fcal_et;
             psi2 = 0.5 * atan2 (qy, qx);
           }
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
-          //goodMixEvent = (goodMixEvent && iRG == GetRunGroup (run_number));
+          goodMixEvent = (!mbEventsUsed[iMBEvt] && fabs (vz) < 150 && event_weight != 0);
           goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
           if (doQ2Mixing)
             goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2));
@@ -593,7 +574,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
             goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
-          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << "sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
           continue;
         }
         mbEventsUsed[iMBEvt] = true;
@@ -728,7 +709,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       mbEventOrder.push_back (i);
       mbEventsUsed.push_back (false);
     }
-    //std::srand (std::time (0));
+    std::srand (1);
     std::random_shuffle (mbEventOrder.begin (), mbEventOrder.end ());
 
     cout << "Shuffled minimum bias events randomly; first ten events are ";
@@ -741,7 +722,6 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
 
     TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
-    //TTree* zTree = LoadEventMixingTree (inFileName, "ppZTrackTree");
     TTree* zTree = (TTree*) inFile->Get ("ppZTrackTree");
     if (!zTree)
       cout << "Got a null Z boson tree!" << endl;
@@ -838,7 +818,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
       zEventOrder.push_back (i);
       zEventsUsed.push_back (false);
     }
-    //std::srand (std::time (0));
+    std::srand (1);
     if (doShuffle) std::random_shuffle (zEventOrder.begin (), zEventOrder.end ());
 
 
@@ -873,7 +853,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbppTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (!mbEventsUsed[mbEventOrder[iMBEvt]] && fabs (vz) < 150 && event_weight != 0);
+          goodMixEvent = (!mbEventsUsed[iMBEvt] && fabs (vz) < 150 && event_weight != 0);
           //goodMixEvent = (goodMixEvent && iFCalEt == GetPPCentBin (fcal_et+13.899132));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {

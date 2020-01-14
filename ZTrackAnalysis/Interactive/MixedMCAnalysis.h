@@ -18,6 +18,38 @@ class MixedMCAnalysis : public FullAnalysis {
   public:
 
   bool takeNonTruthTracks = false;
+  bool doQ2Mixing = false;
+  bool doPsi2Mixing = false;
+
+  int numQ2MixBins = 1;
+  double* q2MixBins = nullptr;
+  int numPsi2MixBins = 1;
+  double* psi2MixBins = nullptr;
+
+  short GetQ2MixBin (const float q2) {
+    if (!q2MixBins)
+      return -1;
+    short i = 0;
+    while (i < numQ2MixBins) {
+      if (q2 < q2MixBins[i+1])
+        break;
+      i++;
+    }
+    return i;
+  }
+
+  short GetPsi2MixBin (const float psi2) {
+    if (!psi2MixBins)
+      return -1;
+    short i = 0;
+    while (i < numPsi2MixBins) {
+      if (psi2 < psi2MixBins[i+1])
+        break;
+      i++;
+    }
+    return i;
+  }
+  
 
   MixedMCAnalysis (const char* _name = "mc_mixed") : FullAnalysis () {
     name = _name;
@@ -64,12 +96,16 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
   int event_number = 0;
   float event_weight = 1, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
   int l1_charge = 0, l2_charge = 0, ntrk = 0;
-  vector<float>* trk_pt = nullptr, *trk_eta = nullptr, *trk_phi = nullptr;
-  vector<bool>* trk_truth_matched = nullptr;
+  float trk_pt[10000], trk_eta[10000], trk_phi[10000];
+  bool trk_truth_matched[10000];
+
+  q2MixBins = linspace (0, 0.2, numQ2MixBins);
+  psi2MixBins = linspace (-pi/2, pi/2, numPsi2MixBins);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,11 +113,15 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
     int nEvts = PbPbTree->GetEntries ();
-    PbPbTree->LoadBaskets (4000000000);
+    PbPbTree->LoadBaskets (3000000000);
     PbPbTree->SetBranchAddress ("event_number", &event_number);
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("qx_a",         &qx_a);
+    PbPbTree->SetBranchAddress ("qy_a",         &qy_a);
+    PbPbTree->SetBranchAddress ("qx_c",         &qx_c);
+    PbPbTree->SetBranchAddress ("qy_c",         &qy_c);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
     PbPbTree->SetBranchAddress ("vz",           &vz);
@@ -199,9 +239,28 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
       //const float _l2_trk_eta   = l2_trk_eta;
       //const float _l2_trk_phi   = l2_trk_phi;
 
+      const short iFCalEt = GetSuperFineCentBin (fcal_et);
+      if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
+        continue;
+      const short iQ2 = GetQ2MixBin (q2);
+      if (doQ2Mixing && (iQ2 < 0 || iQ2 > numQ2MixBins-1)) {
+        cout << "Out-of-bounds q2, skipping this Z!" << endl;
+        continue;
+      }
+      const short iPsi2 = GetPsi2MixBin (psi2);
+      if (doPsi2Mixing && (iPsi2 < 0 || iPsi2 > numPsi2MixBins-1)) {
+        cout << "Out-of-bounds psi2, skipping this Z!" << endl;
+        continue;
+      }
+
       for (int iPrime = 1; iPrime <= mixingFraction; iPrime++) {
 
-        cout << "Getting entry " << (iPrime+iEvt) %nEvts << endl;
+        if ((iPrime + iEvt) % nEvts == iEvt) {
+          cout << "No more events to mix with!" << endl;
+          break;
+        }
+
+        //cout << "Getting entry " << (iPrime+iEvt) %nEvts << endl;
         PbPbTree->GetEntry ((iPrime+iEvt) % nEvts);
         
         event_weight  = _event_weight;
@@ -223,6 +282,25 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
         //l2_trk_eta    = _l2_trk_eta;
         //l2_trk_phi    = _l2_trk_phi;
 
+        bool goodMixEvent = false;
+        {
+          const float qx = qx_a + qx_c;
+          const float qy = qy_a + qy_c;
+          q2 = sqrt (qx*qx + qy*qy) / fcal_et;
+          psi2 = 0.5 * atan2 (qy, qx);
+        }
+        goodMixEvent = (fabs (vz) < 150 && event_weight != 0);
+        goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
+        if (doQ2Mixing)
+          goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2));
+        if (doPsi2Mixing)
+          goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2));
+
+        if (!goodMixEvent) {
+          iPrime--;
+          continue;
+        }
+
         h_fcal_et->Fill (fcal_et);
         h_fcal_et_reweighted->Fill (fcal_et, event_weight);
 
@@ -236,25 +314,25 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
         h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
         h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
         for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-          const float trkpt = trk_pt->at (iTrk);
+          const float trkpt = trk_pt[iTrk];
 
-          if (takeNonTruthTracks && trk_truth_matched->at (iTrk))
+          if (takeNonTruthTracks && trk_truth_matched[iTrk])
             continue;
 
           if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
             continue;
 
-          if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+          if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
             continue;
 
-          const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), true);
-          const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), true);
+          const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
+          const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
           if (trkEff == 0 || trkPur == 0)
             continue;
           const float trkWeight = event_weight * trkPur / trkEff;
 
           // Study correlations (requires dphi in -pi/2 to 3pi/2)
-          float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+          float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
           if (dphi < -pi/2)
             dphi = dphi + 2*pi;
 
@@ -264,7 +342,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
           }
 
           // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-          dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+          dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
           for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
             if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
               h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
@@ -289,7 +367,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->SetBranchAddress ("event_number", &event_number);
     ppTree->SetBranchAddress ("event_weight", &event_weight);
     ppTree->SetBranchAddress ("isEE",       &isEE);
-    ppTree->SetBranchAddress ("vz",       &vz);
+    ppTree->SetBranchAddress ("vz",         &vz);
     ppTree->SetBranchAddress ("z_pt",       &z_pt);
     ppTree->SetBranchAddress ("z_y",        &z_y);
     ppTree->SetBranchAddress ("z_phi",      &z_phi);
@@ -308,10 +386,10 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
     ppTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     ppTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     ppTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    ppTree->SetBranchAddress ("ntrk",     &ntrk);
-    ppTree->SetBranchAddress ("trk_pt",   &trk_pt);
-    ppTree->SetBranchAddress ("trk_eta",  &trk_eta);
-    ppTree->SetBranchAddress ("trk_phi",  &trk_phi);
+    ppTree->SetBranchAddress ("ntrk",       &ntrk);
+    ppTree->SetBranchAddress ("trk_pt",     &trk_pt);
+    ppTree->SetBranchAddress ("trk_eta",    &trk_eta);
+    ppTree->SetBranchAddress ("trk_phi",    &trk_phi);
     ppTree->SetBranchAddress ("trk_truth_matched", &trk_truth_matched);
 
     //cout << "Found " << nEvts << " events, assuming " << nEvts << " / " << mixingFraction << " = " << nEvts / mixingFraction << " are unique" << endl;
@@ -418,25 +496,25 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
         h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
         h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
         for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-          const float trkpt = trk_pt->at (iTrk);
+          const float trkpt = trk_pt[iTrk];
 
-          if (takeNonTruthTracks && trk_truth_matched->at (iTrk))
+          if (takeNonTruthTracks && trk_truth_matched[iTrk])
             continue;
 
           if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
             continue;
 
-          if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta->at (iTrk), l1_trk_phi, trk_phi->at (iTrk)) < 0.03 || DeltaR (l2_trk_eta, trk_eta->at (iTrk), l2_trk_phi, trk_phi->at (iTrk)) < 0.03))
+          if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
             continue;
 
-          const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta->at (iTrk), false);
-          const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta->at (iTrk), false);
+          const float trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
+          const float trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
           if (trkEff == 0 || trkPur == 0)
             continue;
           const float trkWeight = event_weight * trkPur / trkEff;
 
           // Study correlations (requires dphi in -pi/2 to 3pi/2)
-          float dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), true);
+          float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
           if (dphi < -pi/2)
             dphi = dphi + 2*pi;
 
@@ -446,7 +524,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
           }
 
           // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
-          dphi = DeltaPhi (z_phi, trk_phi->at (iTrk), false);
+          dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
           for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
             if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
               h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
