@@ -2,7 +2,7 @@
 #define __MinbiasAnalysis_h__
 
 #include "Params.h"
-#include "FullAnalysis.h"
+#include "PhysicsAnalysis.h"
 
 #include <GlobalParams.h>
 #include <Utilities.h>
@@ -15,7 +15,7 @@
 using namespace std;
 using namespace atlashi;
 
-class MinbiasAnalysis : public FullAnalysis {
+class MinbiasAnalysis : public PhysicsAnalysis {
 
   public:
 
@@ -23,6 +23,7 @@ class MinbiasAnalysis : public FullAnalysis {
   bool doQ2Mixing = false;
   bool doPsi2Mixing = false;
   bool doPsi3Mixing = false;
+  bool doPPMixingVar = false;
 
   int numQ2MixBins = 1;
   double* q2MixBins = nullptr;
@@ -68,7 +69,7 @@ class MinbiasAnalysis : public FullAnalysis {
     return i;
   }
 
-  MinbiasAnalysis (const char* _name = "bkg") : FullAnalysis () {
+  MinbiasAnalysis (const char* _name = "bkg") : PhysicsAnalysis () {
     name = _name;
     plotFill = true;
     plotSignal = false;
@@ -105,7 +106,7 @@ class MinbiasAnalysis : public FullAnalysis {
 //// Load histograms into memory, then combine channels.
 //////////////////////////////////////////////////////////////////////////////////////////////////
 void MinbiasAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
-  FullAnalysis :: LoadHists (histFileName, _finishHists);
+  PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
 
   PhysicsAnalysis :: CombineHists ();
 }
@@ -149,7 +150,7 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //void MinbiasAnalysis :: CreateHists () {
 //
-//  FullAnalysis :: CreateHists ();
+//  PhysicsAnalysis :: CreateHists ();
 //
 //  for (short iCent = 0; iCent < numCentBins; iCent++) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -204,7 +205,7 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //  if (histsScaled || !histsLoaded)
 //    return;
 //
-//  FullAnalysis :: ScaleHists ();
+//  PhysicsAnalysis :: ScaleHists ();
 //
 //  for (short iCent = 0; iCent < numCentBins; iCent++) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -233,7 +234,7 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //  if (histsLoaded)
 //    return;
 //
-//  FullAnalysis :: LoadHists (histFileName, false);
+//  PhysicsAnalysis :: LoadHists (histFileName, false);
 //
 //  if (!histFile) {
 //    SetupDirectories ("", "ZTrackAnalysis/");
@@ -276,7 +277,7 @@ void MinbiasAnalysis :: LoadEventWeights () {
 //// Save histograms
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //void MinbiasAnalysis :: SaveHists (const char* histFileName) {
-//  FullAnalysis :: SaveHists (histFileName);
+//  PhysicsAnalysis :: SaveHists (histFileName);
 //
 //  if (!histFile) {
 //    SetupDirectories ("", "ZTrackAnalysis/");
@@ -327,7 +328,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
   int run_number = 0, z_run_number = 0;
   bool isEE = false;//, passes_toroid = false;
   float event_weight = 1, z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
-  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_q2 = 0, z_psi2 = 0, z_vz = 0, z_zdcEnergy = 0;
+  float fcal_et = 0, q2 = 0, psi2 = 0, psi3 = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_q2 = 0, z_psi2 = 0, z_psi3 = 0, z_vz = 0, z_zdcEnergy = 0;
   float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0, z_qx_a = 0, z_qy_a = 0, z_qx_c = 0, z_qy_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -342,6 +343,7 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
 
   q2MixBins = linspace (0, 0.2, numQ2MixBins);
   psi2MixBins = linspace (-pi/2, pi/2, numPsi2MixBins);
+  psi3MixBins = linspace (-pi/3, pi/3, numPsi3MixBins);
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -553,6 +555,11 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
           cout << "Out-of-bounds psi2, skipping this Z!" << endl;
           continue;
         }
+        const short iPsi3 = GetPsi3MixBin (z_psi3);
+        if (doPsi3Mixing && (iPsi3 < 0 || iPsi3 > numPsi3MixBins-1)) {
+          cout << "Out-of-bounds psi3, skipping this Z!" << endl;
+          continue;
+        }
         
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
@@ -572,6 +579,8 @@ void MinbiasAnalysis :: Execute (const char* inFileName, const char* mbInFileNam
             goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2));
           if (doPsi2Mixing)
             goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2));
+          if (doPsi3Mixing)
+            goodMixEvent = (goodMixEvent && iPsi3 == GetPsi3MixBin (psi3));
         } while (!goodMixEvent && iMBEvt != _iMBEvt);
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << "sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;

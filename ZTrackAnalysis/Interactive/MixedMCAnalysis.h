@@ -94,7 +94,7 @@ void MixedMCAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   bool isEE = false;
   int event_number = 0;
-  float event_weight = 1, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
+  float event_weight = 1;//, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;

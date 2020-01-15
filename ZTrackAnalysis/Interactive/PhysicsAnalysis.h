@@ -69,7 +69,24 @@ class PhysicsAnalysis {
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
-  //// Event info distributions (for reweighting)
+  // Analysis checks
+  TH1D*   h_fcal_et               = nullptr;
+  TH1D*   h_fcal_et_reweighted    = nullptr;
+  TH1D**  h_centrality            = Get1DArray <TH1D*> (3);
+  TH1D**  h_centrality_reweighted = Get1DArray <TH1D*> (3);
+
+  TH1D**  h_q2                  = Get1DArray <TH1D*> (numFineCentBins);
+  TH1D**  h_q2_reweighted       = Get1DArray <TH1D*> (numFineCentBins);
+  TH1D**  h_psi2                = Get1DArray <TH1D*> (numFineCentBins);
+  TH1D**  h_psi2_reweighted     = Get1DArray <TH1D*> (numFineCentBins);
+  TH1D*   h_PbPb_vz             = nullptr;
+  TH1D*   h_PbPb_vz_reweighted  = nullptr;
+  TH1D*   h_pp_vz               = nullptr;
+  TH1D*   h_pp_vz_reweighted    = nullptr;
+  TH1D*   h_pp_nch              = nullptr;
+  TH1D*   h_pp_nch_reweighted   = nullptr;
+
+  // Event info distributions (for reweighting)
   TH1D*** h_PbPbFCal_weights   = Get2DArray <TH1D*> (3, nPtZBins+1);
   TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
   TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
@@ -136,6 +153,13 @@ class PhysicsAnalysis {
   }
 
   virtual ~PhysicsAnalysis () {
+    Delete1DArray (h_centrality,            3);
+    Delete1DArray (h_centrality_reweighted, 3);
+    Delete1DArray (h_q2,                    numFineCentBins);
+    Delete1DArray (h_q2_reweighted,         numFineCentBins);
+    Delete1DArray (h_psi2,                  numFineCentBins);
+    Delete1DArray (h_psi2_reweighted,       numFineCentBins);
+
     Delete2DArray (h_PbPbFCal_weights,  3, nPtZBins+1);
     Delete3DArray (h_PbPbQ2_weights,    3, numFineCentBins, nPtZBins+1);
     Delete3DArray (h_PbPbPsi2_weights,  3, numFineCentBins, nPtZBins+1);
@@ -355,6 +379,35 @@ TGAE* PhysicsAnalysis :: GetTGAE (TH1D* h) {
 // Create new histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CreateHists () {
+
+  h_fcal_et = new TH1D (Form ("h_fcal_et_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins); 
+  h_fcal_et->Sumw2 ();
+  h_fcal_et_reweighted = new TH1D (Form ("h_fcal_et_reweighted_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
+  h_fcal_et_reweighted->Sumw2 ();
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    h_centrality[iMBTrig] = new TH1D (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()), "", 80, 0, 80);
+    h_centrality[iMBTrig]->Sumw2 ();
+    h_centrality_reweighted[iMBTrig] = new TH1D (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()), "", 80, 0, 80);
+    h_centrality_reweighted[iMBTrig]->Sumw2 ();
+  }
+
+  for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+    h_q2[iFineCent]               = new TH1D (Form ("h_q2_iCent%i_%s", iFineCent, name.c_str ()), "", 20, 0, 0.3);
+    h_q2[iFineCent]->Sumw2 ();
+    h_q2_reweighted[iFineCent]    = new TH1D (Form ("h_q2_reweighted_iCent%i_%s", iFineCent, name.c_str ()), "", 20, 0, 0.3);
+    h_q2_reweighted[iFineCent]->Sumw2 ();
+    h_psi2[iFineCent]             = new TH1D (Form ("h_psi2_iCent%i_%s", iFineCent, name.c_str ()), "", 8, -pi/2, pi/2);
+    h_psi2[iFineCent]->Sumw2 ();
+    h_psi2_reweighted[iFineCent]  = new TH1D (Form ("h_psi2_reweighted_iCent%i_%s", iFineCent, name.c_str ()), "", 8, -pi/2, pi/2);
+    h_psi2_reweighted[iFineCent]->Sumw2 ();
+  }
+  h_PbPb_vz = new TH1D (Form ("h_PbPb_vz_%s", name.c_str ()), "", 50, -200, 200);
+  h_PbPb_vz_reweighted = new TH1D (Form ("h_PbPb_vz_reweighted_%s", name.c_str ()), "", 50, -200, 200);
+  h_pp_vz = new TH1D (Form ("h_pp_vz_%s", name.c_str ()), "", 50, -200, 200);
+  h_pp_vz_reweighted = new TH1D (Form ("h_pp_vz_reweighted_%s", name.c_str ()), "", 50, -200, 200);
+  h_pp_nch = new TH1D (Form ("h_pp_nch_%s", name.c_str ()), "", 80, -0.5, 160.5);
+  h_pp_nch_reweighted = new TH1D (Form ("h_pp_nch_reweighted_%s", name.c_str ()), "", 80, -0.5, 160.5);
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -395,6 +448,26 @@ void PhysicsAnalysis :: CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs) {
   ClearHists ();
 
   // Should clone these histograms
+  h_fcal_et               = (TH1D*) a->h_fcal_et->Clone (Form ("h_fcal_et_%s", name.c_str ()));
+  h_fcal_et_reweighted    = (TH1D*) a->h_fcal_et_reweighted->Clone (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    h_centrality[iMBTrig] = (TH1D*) a->h_centrality[iMBTrig]->Clone (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()));
+    h_centrality_reweighted[iMBTrig] = (TH1D*) a->h_centrality[iMBTrig]->Clone (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()));
+  }
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    h_q2[iCent]               = (TH1D*) a->h_q2[iCent]->Clone (Form ("h_q2_iCent%i_%s", iCent, name.c_str ()));
+    h_q2_reweighted[iCent]    = (TH1D*) a->h_q2_reweighted[iCent]->Clone (Form ("h_q2_reweighted_iCent%i_%s", iCent, name.c_str ()));
+    h_psi2[iCent]             = (TH1D*) a->h_psi2[iCent]->Clone (Form ("h_psi2_iCent%i_%s", iCent, name.c_str ()));
+    h_psi2_reweighted[iCent]  = (TH1D*) a->h_psi2_reweighted[iCent]->Clone (Form ("h_psi2_reweighted_iCent%i_%s", iCent, name.c_str ()));
+  }
+  h_PbPb_vz             = (TH1D*) a->h_PbPb_vz->Clone (Form ("h_PbPb_vz_%s", name.c_str ()));
+  h_PbPb_vz_reweighted  = (TH1D*) a->h_PbPb_vz_reweighted->Clone (Form ("h_PbPb_vz_reweighted_%s", name.c_str ()));
+  h_pp_vz               = (TH1D*) a->h_pp_vz->Clone (Form ("h_pp_vz_%s", name.c_str ()));
+  h_pp_vz_reweighted    = (TH1D*) a->h_pp_vz_reweighted->Clone (Form ("h_pp_vz_reweighted_%s", name.c_str ()));
+  h_pp_nch              = (TH1D*) a->h_pp_nch->Clone (Form ("h_pp_nch_%s", name.c_str ()));
+  h_pp_nch_reweighted   = (TH1D*) a->h_pp_nch_reweighted->Clone (Form ("h_pp_nch_reweighted_%s", name.c_str ()));
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -680,6 +753,27 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
     } // end loop over pT^Z
   } // end loop over species
 
+  h_fcal_et               = (TH1D*) histFile->Get (Form ("h_fcal_et_%s", name.c_str ()));
+  h_fcal_et_reweighted    = (TH1D*) histFile->Get (Form ("h_fcal_et_reweighted_%s", name.c_str ()));
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    h_centrality[iMBTrig]             = (TH1D*) histFile->Get (Form ("h_centrality_trig%i_%s", iMBTrig, name.c_str ()));
+    h_centrality_reweighted[iMBTrig]  = (TH1D*) histFile->Get (Form ("h_centrality_reweighted_trig%i_%s", iMBTrig, name.c_str ()));
+  }
+
+  for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+    h_q2[iFineCent]               = (TH1D*) histFile->Get (Form ("h_q2_iCent%i_%s", iFineCent, name.c_str ()));
+    h_q2_reweighted[iFineCent]    = (TH1D*) histFile->Get (Form ("h_q2_reweighted_iCent%i_%s", iFineCent, name.c_str ()));
+    h_psi2[iFineCent]             = (TH1D*) histFile->Get (Form ("h_psi2_iCent%i_%s", iFineCent, name.c_str ()));
+    h_psi2_reweighted[iFineCent]  = (TH1D*) histFile->Get (Form ("h_psi2_reweighted_iCent%i_%s", iFineCent, name.c_str ()));
+  }
+  h_PbPb_vz             = (TH1D*) histFile->Get (Form ("h_PbPb_vz_%s", name.c_str ()));
+  h_PbPb_vz_reweighted  = (TH1D*) histFile->Get (Form ("h_PbPb_vz_reweighted_%s", name.c_str ()));
+  h_pp_vz               = (TH1D*) histFile->Get (Form ("h_pp_vz_%s", name.c_str ()));
+  h_pp_vz_reweighted    = (TH1D*) histFile->Get (Form ("h_pp_vz_reweighted_%s", name.c_str ()));
+  h_pp_nch               = (TH1D*) histFile->Get (Form ("h_pp_nch_%s", name.c_str ()));
+  h_pp_nch_reweighted    = (TH1D*) histFile->Get (Form ("h_pp_nch_reweighted_%s", name.c_str ()));
+  
+
   if (_finishHists) {
     //PhysicsAnalysis :: CombineHists (); // deprecated function call
     PhysicsAnalysis :: ScaleHists ();
@@ -724,6 +818,26 @@ void PhysicsAnalysis :: SaveHists (const char* histFileName) {
       }
     }
   }
+
+  SafeWrite (h_fcal_et);
+  SafeWrite (h_fcal_et_reweighted);
+  for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
+    SafeWrite (h_centrality[iMBTrig]);
+    SafeWrite (h_centrality_reweighted[iMBTrig]);
+  }
+
+  for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+    SafeWrite (h_q2[iFineCent]);
+    SafeWrite (h_q2_reweighted[iFineCent]);
+    SafeWrite (h_psi2[iFineCent]);
+    SafeWrite (h_psi2_reweighted[iFineCent]);
+  }
+  SafeWrite (h_PbPb_vz);
+  SafeWrite (h_PbPb_vz_reweighted);
+  SafeWrite (h_pp_vz);
+  SafeWrite (h_pp_vz_reweighted);
+  SafeWrite (h_pp_nch);
+  SafeWrite (h_pp_nch_reweighted);
   
   histFile->Close ();
   histFile = nullptr;
@@ -1000,9 +1114,23 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
 
+      const short iFineCent = GetFineCentBin (fcal_et);
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
+        continue;
+
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
+
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+
+      h_q2[iFineCent]->Fill (q2);
+      h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
+      h_psi2[iFineCent]->Fill (psi2);
+      h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
+      h_PbPb_vz->Fill (vz);
+      h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -1095,6 +1223,12 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
+
+      h_pp_nch->Fill (ntrk);
+      h_pp_nch_reweighted->Fill (ntrk, event_weight);
+
+      h_pp_vz->Fill (vz);
+      h_pp_vz_reweighted->Fill (vz, event_weight);
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
@@ -4790,8 +4924,6 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    double xmin = 0, xmax = 0;
-
     const Style_t markerStyle = (iSpc == 0 ? kOpenCircle : kFullCircle);
 
     for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
@@ -4828,8 +4960,6 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
 
         useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
         g->GetYaxis ()->SetTitle ("I_{AA}");
-        xmin = g->GetXaxis ()->GetXmin ();
-        xmax = g->GetXaxis ()->GetXmax ();
 
         g->GetXaxis ()->SetTitleFont (43);
         g->GetXaxis ()->SetTitleSize (axisTextSize);
