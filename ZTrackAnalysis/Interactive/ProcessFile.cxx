@@ -6,7 +6,7 @@
 
 int main (int argc, char** argv) {
 
-  if (argc < 8) {
+  if (argc < 9) {
     cout << "Insufficient arguments! Exiting." << endl;
     return 1;
   }
@@ -23,18 +23,19 @@ int main (int argc, char** argv) {
     //outFileName = "Background/" + outFileName;
   }
 
-  const bool use2015conds = (string (argv[5]) == "true");
-  const bool doHITightVar = (string (argv[6]) == "true");
+  const bool isPbPb       = (string (argv[5]) == "true");
+  const bool use2015conds = (string (argv[6]) == "true");
+  const bool doHITightVar = (string (argv[7]) == "true");
 
-  const bool doMixVarA    = (string (argv[7]) == "doMixVarA");
-  const bool doMixVarB    = (string (argv[7]) == "doMixVarB");
-  const bool doMixVarC    = (string (argv[7]) == "doMixVarC");
-  const bool doMixVarD    = (string (argv[7]) == "doMixVarD");
-  const bool doMixVarE    = (string (argv[7]) == "doMixVarE");
-  const bool doMixVarF    = (string (argv[7]) == "doMixVarF");
-  const bool doMixVarG    = (string (argv[7]) == "doMixVarG");
-  const bool doMixVarH    = (string (argv[7]) == "doMixVarH");
-  const bool doPPMixVar   = (string (argv[7]) == "doPPMixVar");
+  const bool doMixVarA    = (string (argv[8]) == "doMixVarA");
+  const bool doMixVarB    = (string (argv[8]) == "doMixVarB");
+  const bool doMixVarC    = (string (argv[8]) == "doMixVarC");
+  const bool doMixVarD    = (string (argv[8]) == "doMixVarD");
+  const bool doMixVarE    = (string (argv[8]) == "doMixVarE");
+  const bool doMixVarF    = (string (argv[8]) == "doMixVarF");
+  const bool doMixVarG    = (string (argv[8]) == "doMixVarG");
+  const bool doMixVarH    = (string (argv[8]) == "doMixVarH");
+  const bool doPPMixVar   = (string (argv[8]) == "doPPMixVar");
   const bool doPbPbMixVar  = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
 
 
@@ -157,7 +158,7 @@ int main (int argc, char** argv) {
     MinbiasAnalysis* bkg = nullptr;
 
     inFileName = mixdir + inFileName;
-    mbInFileName = (doPPMixVar ? "DataAnalysis/" : "MinbiasAnalysis/") + mbInFileName;
+    mbInFileName = (doPPMixVar && !isPbPb ? "DataAnalysis/" : "MinbiasAnalysis/") + mbInFileName;
     outFileName = "MinbiasAnalysis/" + outFileName;
 
     if (doHITightVar)     bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
@@ -205,13 +206,15 @@ int main (int argc, char** argv) {
       bkg->numPsi3MixBins = 4;
     } else if (doPPMixVar) {
       bkg->doPPMixingVar = true;
+      bkg->doPsi2Mixing = true;
+      bkg->numPsi2MixBins = 16;
     } else {
       bkg->doPsi2Mixing = true;
       bkg->numPsi2MixBins = 16;
     }
 
     //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
-    bkg->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code
+    bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code
     delete bkg;
   }
 
