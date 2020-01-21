@@ -158,7 +158,7 @@ int main (int argc, char** argv) {
     MinbiasAnalysis* bkg = nullptr;
 
     inFileName = mixdir + inFileName;
-    mbInFileName = (doPPMixVar && !isPbPb ? "DataAnalysis/" : "MinbiasAnalysis/") + mbInFileName;
+    mbInFileName = ((doPPMixVar && !isPbPb) ? "DataAnalysis/" : "MinbiasAnalysis/") + mbInFileName;
     outFileName = "MinbiasAnalysis/" + outFileName;
 
     if (doHITightVar)     bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
@@ -203,7 +203,7 @@ int main (int argc, char** argv) {
       bkg->doPsi2Mixing = true;
       bkg->numPsi2MixBins = 16;
       bkg->doPsi3Mixing = true;
-      bkg->numPsi3MixBins = 4;
+      bkg->numPsi3MixBins = 3;
     } else if (doPPMixVar) {
       bkg->doPPMixingVar = true;
       bkg->doPsi2Mixing = true;

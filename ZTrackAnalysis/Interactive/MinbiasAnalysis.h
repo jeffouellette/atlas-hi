@@ -175,8 +175,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   // Get TTree with mixed event pool
   TFile* mbInFile = new TFile (Form ("%s/%s", rootPath.Data (), mbInFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), mbInFileName) << endl;
-
-  TTree* mbTree = (TTree*) mbInFile->Get (isPbPb ? "PbPbZTrackTree" : "ppZTrackTree");
+  TTree* mbTree = (TTree*) mbInFile->Get (doSameFileMixing ? (isPbPb ? "PbPbZTrackTree" : "ppZTrackTree") : (isPbPb ? "PbPbTrackTree" : "ppZTrackTree"));
   const int nMBEvts = mbTree->GetEntries ();
   cout << "N events in mixing pool = " << nMBEvts << endl;
 
@@ -211,7 +210,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
     zTree = mbTree;
   else {
     inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
-    zTree = (TTree*) inFile->Get ("PbPbZTrackTree");
+    zTree = (TTree*) inFile->Get (isPbPb ? "PbPbZTrackTree" : "ppZTrackTree");
   }
   if (!zTree)
     cout << "Got a null Z boson tree!" << endl;
@@ -262,8 +261,11 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   bool isEE = false;//, passes_toroid = false;
   bool _isEE = false;
   float event_weight = 1, z_event_weight = 1;// q2_weight = 1, psi2_weight = 1; // vz_weight = 1, nch_weight = 1;
-  float fcal_et = 0, q2 = 0, psi2 = 0, psi3 = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_q2 = 0, z_psi2 = 0, z_psi3 = 0, z_vz = 0, z_zdcEnergy = 0;
-  float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0, z_qx_a = 0, z_qy_a = 0, z_qx_c = 0, z_qy_c = 0;
+  float fcal_et = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_vz = 0, z_zdcEnergy = 0;
+  float phi_transmin = 0, phi_transmax = 0;
+  //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0, z_q2x_a = 0, z_q2y_a = 0, z_q2x_c = 0, z_q2y_c = 0;
+  float q2 = 0., q3 = 0., q4 = 0., z_q2 = 0., z_q3 = 0., z_q4 = 0.;
+  float psi2 = 0., psi3 = 0., psi4 = 0., z_psi2 = 0., z_psi3 = 0., z_psi4 = 0.;
   float _z_pt = 0, _z_y = 0, _z_phi = 0, _z_m = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -289,12 +291,16 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
     mbTree->SetBranchAddress ("event_weight", &event_weight);
     mbTree->SetBranchAddress ("fcal_et",      &fcal_et);
     mbTree->SetBranchAddress ("zdcEnergy",    &zdcEnergy);
-    mbTree->SetBranchAddress ("qx_a",         &qx_a);
-    mbTree->SetBranchAddress ("qy_a",         &qy_a);
-    mbTree->SetBranchAddress ("qx_c",         &qx_c);
-    mbTree->SetBranchAddress ("qy_c",         &qy_c);
-    //mbTree->SetBranchAddress ("q2",           &q2);
-    //mbTree->SetBranchAddress ("psi2",         &psi2);
+    //mbTree->SetBranchAddress ("q2x_a",         &q2x_a);
+    //mbTree->SetBranchAddress ("q2y_a",         &q2y_a);
+    //mbTree->SetBranchAddress ("q2x_c",         &q2x_c);
+    //mbTree->SetBranchAddress ("q2y_c",         &q2y_c);
+    mbTree->SetBranchAddress ("q2",           &q2);
+    mbTree->SetBranchAddress ("psi2",         &psi2);
+    mbTree->SetBranchAddress ("q3",           &q3);
+    mbTree->SetBranchAddress ("psi3",         &psi3);
+    mbTree->SetBranchAddress ("q4",           &q4);
+    mbTree->SetBranchAddress ("psi4",         &psi4);
     mbTree->SetBranchAddress ("vz",           &vz);
     mbTree->SetBranchAddress ("ntrk",         &ntrk);
     mbTree->SetBranchAddress ("trk_pt",       &trk_pt);
@@ -315,12 +321,16 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       zTree->SetBranchAddress ("event_weight",  &z_event_weight);
       zTree->SetBranchAddress ("fcal_et",       &z_fcal_et);
       zTree->SetBranchAddress ("zdcEnergy",     &z_zdcEnergy);
-      zTree->SetBranchAddress ("qx_a",          &z_qx_a);
-      zTree->SetBranchAddress ("qy_a",          &z_qy_a);
-      zTree->SetBranchAddress ("qx_c",          &z_qx_c);
-      zTree->SetBranchAddress ("qy_c",          &z_qy_c);
-      //zTree->SetBranchAddress ("q2",            &z_q2);
-      //zTree->SetBranchAddress ("psi2",          &z_psi2);
+      //zTree->SetBranchAddress ("q2x_a",          &z_q2x_a);
+      //zTree->SetBranchAddress ("q2y_a",          &z_q2y_a);
+      //zTree->SetBranchAddress ("q2x_c",          &z_q2x_c);
+      //zTree->SetBranchAddress ("q2y_c",          &z_q2y_c);
+      zTree->SetBranchAddress ("q2",            &z_q2);
+      zTree->SetBranchAddress ("psi2",          &z_psi2);
+      zTree->SetBranchAddress ("q3",            &z_q3);
+      zTree->SetBranchAddress ("psi3",          &z_psi3);
+      zTree->SetBranchAddress ("q4",            &z_q4);
+      zTree->SetBranchAddress ("psi4",          &z_psi4);
       zTree->SetBranchAddress ("vz",            &z_vz);
       zTree->SetBranchAddress ("ntrk",          &z_ntrk);
       zTree->SetBranchAddress ("trk_pt",        &z_trk_pt);
@@ -424,10 +434,16 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         z_event_weight = event_weight;
         z_fcal_et = fcal_et;
         z_zdcEnergy = zdcEnergy;
-        z_qx_a = qx_a;
-        z_qx_c = qx_c;
-        z_qy_a = qy_a;
-        z_qy_c = qy_c;
+        //z_q2x_a = q2x_a;
+        //z_q2x_c = q2x_c;
+        //z_q2y_a = q2y_a;
+        //z_q2y_c = q2y_c;
+        z_q2 = q2;
+        z_psi2 = psi2;
+        z_q3 = q3;
+        z_psi3 = psi3;
+        z_q4 = q4;
+        z_psi4 = psi4;
         z_vz = vz;
         z_ntrk = 0; // placeholder
       }
@@ -438,6 +454,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
       if (z_event_weight == 0)
         continue;
+      if (isnan (z_event_weight))
+        cout << "Warning: z_event_weight = NAN" << endl;
 
       const short iPtZ = GetPtZBin (z_pt);
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
@@ -446,13 +464,16 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       if (iPtZ < 2)
         continue; // skip unneeded events
 
-      {
-        //CorrectQ2Vector (z_qx_a, z_qy_a, z_qx_c, z_qy_c);
-        const float z_qx = z_qx_a + z_qx_c;
-        const float z_qy = z_qy_a + z_qy_c;
-        z_q2 = sqrt (z_qx*z_qx + z_qy*z_qy) / fcal_et;
-        z_psi2 = 0.5 * atan2 (z_qy, z_qx);
-      }
+      //{
+      //  //CorrectQ2Vector (z_q2x_a, z_q2y_a, z_q2x_c, z_q2y_c);
+      //  const float z_q2x = z_q2x_a + z_q2x_c;
+      //  const float z_q2y = z_q2y_a + z_q2y_c;
+      //  z_q2 = sqrt (z_q2x*z_q2x + z_q2y*z_q2y) / fcal_et;
+      //  z_psi2 = 0.5 * atan2 (z_q2y, z_q2x);
+      //}
+
+      if (2995.94 < z_fcal_et && z_fcal_et < 5000 && iZEvt >= 10*nZEvts) // temporary max mixing fraction of 10 in central-most bin
+        continue;
 
 
       // Find the next unused minimum bias event
@@ -481,31 +502,37 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
-          {
-            //CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
-            const float qx = qx_a + qx_c;
-            const float qy = qy_a + qy_c;
-            q2 = sqrt (qx*qx + qy*qy) / fcal_et;
-            psi2 = 0.5 * atan2 (qy, qx);
-          }
-          goodMixEvent = (fabs (vz) < 150 && event_weight != 0);
-          if (!doSameFileMixing)
-            goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]);
-          if (doPPMixingVar)
-            goodMixEvent = (goodMixEvent && iMBEvt != iZEvt);
-          goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et));
+          //{
+          //  //CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
+          //  const float q2x = q2x_a + q2x_c;
+          //  const float q2y = q2y_a + q2y_c;
+          //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
+          //  psi2 = 0.5 * atan2 (q2y, q2x);
+          //}
+          goodMixEvent = (fabs (vz) < 150 && event_weight != 0); // always require these conditions
+
+          if (!doSameFileMixing || mixingFraction == 1)
+            goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+
+          if (doSameFileMixing)
+            goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
+
+          goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et)); // always check for centrality matchiing
           if (doQ2Mixing)
-            goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2));
+            goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2)); // potentially match also in q2
           if (doPsi2Mixing)
-            goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2));
+            goodMixEvent = (goodMixEvent && DeltaPhi (psi2, z_psi2) < (pi / numPsi2MixBins));
+            //goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2)); // potentially match also in psi2
           if (doPsi3Mixing)
-            goodMixEvent = (goodMixEvent && iPsi3 == GetPsi3MixBin (psi3));
-        } while (!goodMixEvent && iMBEvt != _iMBEvt);
+            goodMixEvent = (goodMixEvent && DeltaPhi (psi3, z_psi3) < (2.*pi/3. / numPsi3MixBins));
+            //goodMixEvent = (goodMixEvent && iPsi3 == GetPsi3MixBin (psi3)); // potentially match also in psi3
+
+        } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
-          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << "sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
+          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
           continue;
         }
-        mbEventsUsed[mbEventOrder[iMBEvt]] = true;
+        mbEventsUsed[iMBEvt] = true;
       }
 
       // at this point we have a Z boson and a new (unique & random) event to mix with
@@ -514,11 +541,10 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       event_weight = z_event_weight;
 
       const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
-      const short iCent = GetCentBin (fcal_et);
+      const short iCent = GetCentBin (z_fcal_et);
       if (iCent < 1 || iCent > numCentBins-1)
         continue;
-
-      const short iFineCent = GetFineCentBin (fcal_et);
+      const short iFineCent = GetFineCentBin (z_fcal_et);
       if (iFineCent < 1 || iFineCent > numFineCentBins-1)
         continue;
 
@@ -597,7 +623,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
     } // end loop over Pb+Pb tree
 
-    cout << "Done minbias Pb+Pb loop." << endl;
+    cout << endl << "Done minbias Pb+Pb loop." << endl;
   }
 
 
@@ -638,6 +664,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
     zTree->SetBranchAddress ("z_y",           &_z_y);
     zTree->SetBranchAddress ("z_phi",         &_z_phi);
     zTree->SetBranchAddress ("z_m",           &_z_m);
+    zTree->SetBranchAddress ("phi_transmin",  &phi_transmin);
+    zTree->SetBranchAddress ("phi_transmax",  &phi_transmax);
     zTree->SetBranchAddress ("l1_pt",         &_l1_pt);
     zTree->SetBranchAddress ("l1_eta",        &_l1_eta);
     zTree->SetBranchAddress ("l1_phi",        &_l1_phi);
@@ -694,6 +722,9 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       if (mixingFraction*nZEvts > 100 && iZEvt % (mixingFraction*nZEvts / 100) == 0)
         cout << iZEvt / (mixingFraction*nZEvts / 100) << "\% done...\r" << flush;
 
+      if (doPPMixingVar && iZEvt >= nZEvts) // temporary max mixing fraction of 10 in central-most bin
+        continue;
+
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
       zEventsUsed[iZEvt % nZEvts]++;
 
@@ -722,10 +753,10 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         z_event_weight = event_weight;
         z_fcal_et = fcal_et;
         //z_zdcEnergy = zdcEnergy;
-        //z_qx_a = qx_a;
-        //z_qx_c = qx_c;
-        //z_qy_a = qy_a;
-        //z_qy_c = qy_c;
+        //z_q2x_a = q2x_a;
+        //z_q2x_c = q2x_c;
+        //z_q2y_a = q2y_a;
+        //z_q2y_c = q2y_c;
         z_vz = vz;
         z_ntrk = 0; // placeholder
       }
@@ -735,6 +766,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
       if (z_event_weight == 0)
         continue;
+      if (isnan (z_event_weight))
+        cout << "Warning: z_event_weight = NAN" << endl;
 
       const short iPtZ = GetPtZBin (z_pt);
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
@@ -751,20 +784,25 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
         bool goodMixEvent = false;
 
-        if (doPPMixingVar)
-          iMBEvt = (iZEvt + iZEvt / nZEvts) % nMBEvts;
-
         const int _iMBEvt = iMBEvt;
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (fabs (vz) < 150 && event_weight != 0);
-          if (!doSameFileMixing)
-            goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]);
-          if (doPPMixingVar)
-            goodMixEvent = (goodMixEvent && _z_pt < 7);
+          goodMixEvent = (fabs (vz) < 150 && event_weight != 0); // always require these conditions
+
+          if (!doSameFileMixing || mixingFraction == 1)
+            goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+
+          if (doSameFileMixing)
+            goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
+
+          if (doPPMixingVar) {
+            //float dphi = DeltaPhi (z_phi, _z_phi);
+            goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmax, z_phi) < pi/6.);
+            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && pi/4. < dphi && dphi < 3.*pi/4.); // variation on mixing: only mix with perpendicular, low-pT Z's
+          }
           //goodMixEvent = (goodMixEvent && iFCalEt == GetPPCentBin (fcal_et+13.899132));
-        } while (!goodMixEvent && iMBEvt != _iMBEvt);
+        } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
           continue;
@@ -824,7 +862,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
     } // end loop over pp tree
 
-    cout << "Done minbias pp loop." << endl;
+    cout << endl << "Done minbias pp loop." << endl;
   }
 
   for (int i = 0; i < nZEvts; i++) {
