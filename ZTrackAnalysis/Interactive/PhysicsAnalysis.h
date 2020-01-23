@@ -68,6 +68,7 @@ class PhysicsAnalysis {
   bool doTrackEffVar  = false; // whether to use pions-only tracking efficiency variation
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
+  bool doPPMixingVar = false;
 
   // Analysis checks
   TH1D*   h_fcal_et               = nullptr;
@@ -988,7 +989,7 @@ void PhysicsAnalysis :: ScaleHists () {
         const float counts = countsHist->GetBinContent (1);
         //const float countsErr = countsHist->GetBinError (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          const double countsdPhi = counts * (phiHighBins[iPhi]-phiLowBins[iPhi]);
+          const double countsdPhi = (!doPPMixingVar ? counts * (phiHighBins[iPhi]-phiLowBins[iPhi]) : counts * (pi/8.));
 
           if (countsdPhi > 0) {
             h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Scale  (1. / countsdPhi, "width");
@@ -997,8 +998,8 @@ void PhysicsAnalysis :: ScaleHists () {
         } // end loop over phi
 
         if (counts > 0) {
-          h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
-          h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (!doPPMixingVar ? (phiHighBins[numPhiBins-1] - phiLowBins[1]) : pi/8.)), "width");
+          h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (!doPPMixingVar ? (phiHighBins[numPhiBins-1] - phiLowBins[1]) : pi/8.)), "width");
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {

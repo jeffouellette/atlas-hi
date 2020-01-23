@@ -23,7 +23,6 @@ class MinbiasAnalysis : public PhysicsAnalysis {
   bool doQ2Mixing = false;
   bool doPsi2Mixing = false;
   bool doPsi3Mixing = false;
-  bool doPPMixingVar = false;
 
   int numQ2MixBins = 1;
   double* q2MixBins = nullptr;
@@ -797,11 +796,10 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
             goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
 
           if (doPPMixingVar) {
-            //float dphi = DeltaPhi (z_phi, _z_phi);
+            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmin, z_phi) < pi/6.);
             goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmax, z_phi) < pi/6.);
             //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && pi/4. < dphi && dphi < 3.*pi/4.); // variation on mixing: only mix with perpendicular, low-pT Z's
           }
-          //goodMixEvent = (goodMixEvent && iFCalEt == GetPPCentBin (fcal_et+13.899132));
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
@@ -852,7 +850,12 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (doPPMixingVar && idPhi == 2 && 7*pi/8 < dphi && dphi <= pi) {
+            h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
+            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
+          }
+          else if (!doPPMixingVar && phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
