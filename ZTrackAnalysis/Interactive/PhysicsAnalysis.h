@@ -930,7 +930,7 @@ void PhysicsAnalysis :: CombineHists () {
         if (countsHist->GetBinContent (1) > 0)
           spcWeight = spcWeight / countsHist->GetBinContent (1);
         else {
-          cout << "Warning: In PhysicsAnalysis :: CombineHists: Found 0 total Z bosons in this bin, weight is set to 0!" << endl;
+          cout << "Warning: In PhysicsAnalysis :: CombineHists: Found 0 total Z bosons in this bin, iCent = " << iCent << ", iPtZ = " << iPtZ << ", iSpc = " << iSpc << "; weight is set to 0!" << endl;
           spcWeight = 0;
         }
 
@@ -968,7 +968,7 @@ void PhysicsAnalysis :: CombineHists () {
     } // end loop over pT^Z
   } // end loop over centralities
 
-  InflateStatUnc (0.54);
+  //InflateStatUnc (0.54);
   return;
 }
 
@@ -989,7 +989,7 @@ void PhysicsAnalysis :: ScaleHists () {
         const float counts = countsHist->GetBinContent (1);
         //const float countsErr = countsHist->GetBinError (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          const double countsdPhi = (!doPPMixingVar ? counts * (phiHighBins[iPhi]-phiLowBins[iPhi]) : counts * (pi/8.));
+          const double countsdPhi = counts * (doPPMixingVar && iCent == 0 ? pi/8. : phiHighBins[iPhi]-phiLowBins[iPhi]);
 
           if (countsdPhi > 0) {
             h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Scale  (1. / countsdPhi, "width");
@@ -998,8 +998,8 @@ void PhysicsAnalysis :: ScaleHists () {
         } // end loop over phi
 
         if (counts > 0) {
-          h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (!doPPMixingVar ? (phiHighBins[numPhiBins-1] - phiLowBins[1]) : pi/8.)), "width");
-          h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (!doPPMixingVar ? (phiHighBins[numPhiBins-1] - phiLowBins[1]) : pi/8.)), "width");
+          h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
