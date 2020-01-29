@@ -174,6 +174,7 @@ class Systematic : public PhysicsAnalysis {
   void PlotIAASystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2) override;
+  void PlotVariationSubYieldsdPtZ (const bool useTrkPt = true, const short pSpc = 2);
   void PlotVariationIAAsdPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
 };
@@ -1298,7 +1299,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1440,7 +1441,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1577,7 +1578,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1719,7 +1720,7 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1855,7 +1856,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -2000,7 +2001,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -2193,6 +2194,143 @@ void Systematic :: WriteIAAs () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot Y_sub for all variations
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short pSpc) {
+  const char* canvasName = Form ("c_variations_ysub_dPtZ");
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 600, 600);
+    gDirectory->Add (c);
+    gPad->SetLogx ();
+    gPad->SetLogy ();
+  }
+  c->cd ();
+
+  short iVar = 0;
+  for (PhysicsAnalysis* a : variations)
+    iVar++;
+  const short nVar = iVar;
+
+  const int axisTextSize = 28;
+
+  for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      c->Clear ();
+
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? ptTrkBins[iPtZ] : xHZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      h->GetYaxis ()->SetRangeUser (1e-3, 20);
+  
+      h->GetXaxis ()->SetMoreLogLabels ();
+
+      useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / dx d#Delta#phi");
+      const double xmin = h->GetXaxis ()->GetXmin ();
+      const double xmax = h->GetXaxis ()->GetXmax ();
+
+      h->GetXaxis ()->SetTitleFont (43);
+      h->GetXaxis ()->SetTitleSize (axisTextSize);
+      h->GetXaxis ()->SetLabelFont (43);
+      h->GetXaxis ()->SetLabelSize (axisTextSize);
+
+      h->GetYaxis ()->SetTitleFont (43);
+      h->GetYaxis ()->SetTitleSize (axisTextSize);
+      h->GetYaxis ()->SetLabelFont (43);
+      h->GetYaxis ()->SetLabelSize (axisTextSize);
+
+      h->GetXaxis ()->SetTitleOffset (0.9 * h->GetXaxis ()->GetTitleOffset ());
+      //h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
+  
+      h->Draw ("");
+
+      //TGAE* nom = GetTGAE (useTrkPt ? h_trk_pt_ptz_sub[pSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[pSpc][iPtZ][iCent]);
+      //RecenterGraph (nom);
+      //ResetXErrors (nom);
+      //deltaize (nom, 1+(-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+      //nom->SetLineColor (kGray+1);
+      //nom->SetMarkerColor (kGray+1);
+      //nom->SetMarkerStyle (kFullCircle);
+      //nom->SetMarkerSize (1.2);
+      //nom->SetLineWidth (2);
+      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      //nom->GetYaxis ()->SetRangeUser (1e-3, 20);
+
+      //nom->GetXaxis ()->SetMoreLogLabels ();
+
+      //useTrkPt ? nom->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : nom->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      //nom->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / dx d#Delta#phi");
+      //const double xmin = nom->GetXaxis ()->GetXmin ();
+      //const double xmax = nom->GetXaxis ()->GetXmax ();
+
+      //nom->GetXaxis ()->SetTitleFont (43);
+      //nom->GetXaxis ()->SetTitleSize (axisTextSize);
+      //nom->GetXaxis ()->SetLabelFont (43);
+      //nom->GetXaxis ()->SetLabelSize (axisTextSize);
+
+      //nom->GetYaxis ()->SetTitleFont (43);
+      //nom->GetYaxis ()->SetTitleSize (axisTextSize);
+      //nom->GetYaxis ()->SetLabelFont (43);
+      //nom->GetYaxis ()->SetLabelSize (axisTextSize);
+
+      //nom->GetXaxis ()->SetTitleOffset (0.9 * nom->GetXaxis ()->GetTitleOffset ());
+      ////nom->GetYaxis ()->SetTitleOffset (0.9 * nom->GetYaxis ()->GetTitleOffset ());
+
+      //nom->Draw ("AP");
+
+      //myLineText (0.65, 0.92, kGray+1, 1, "Nominal", 1, 0.026);
+
+      iVar = 0;
+      for (PhysicsAnalysis* a : variations) {
+        TGAE* var = a->GetTGAE (useTrkPt ? a->h_trk_pt_ptz_sub[pSpc][iPtZ][iCent] : a->h_trk_xhz_ptz_sub[pSpc][iPtZ][iCent]);
+        RecenterGraph (var);
+        ResetXErrors (var);
+        deltaize (var, 1+(iVar+1-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+        var->SetLineColor (colors[iVar+1]);
+        var->SetMarkerColor (colors[iVar+1]);
+        var->SetMarkerStyle (kFullCircle);
+        var->SetMarkerSize (1.2);
+        var->SetLineWidth (2);
+        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+        var->GetYaxis ()->SetRangeUser (1e-3, 20);
+
+        var->Draw ("P");
+        if (variationDescriptions.find (a) != variationDescriptions.end ())
+          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, variationDescriptions[a].c_str (), 1, 0.026);
+        else
+          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, a->Name ().c_str (), 1, 0.026);
+        
+        iVar++;
+      }
+
+      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+      if (iCent == 0)
+        myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+      else {
+        myText (0.22, 0.20, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+      }
+
+      if (iPtZ == nPtZBins-1)
+        myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
+      else
+        myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+
+      const char* lo = GetPiString (phiLowBins[1]);
+      const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
+      myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+
+      c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
+    }
+  }
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot IAA for all variations
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc) {
@@ -2202,7 +2340,7 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -2220,41 +2358,68 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
   for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       c->Clear ();
-      TGAE* nom = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[pSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[pSpc][iPtZ][iCent]);
-      RecenterGraph (nom);
-      ResetXErrors (nom);
-      deltaize (nom, 1+(-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
-      nom->SetLineColor (kGray+1);
-      nom->SetMarkerColor (kGray+1);
-      nom->SetMarkerStyle (kFullCircle);
-      nom->SetMarkerSize (1.2);
-      nom->SetLineWidth (2);
-      useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-      nom->GetYaxis ()->SetRangeUser (0, max_iaa);
 
-      nom->GetXaxis ()->SetMoreLogLabels ();
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? ptTrkBins[iPtZ] : xHZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      h->GetYaxis ()->SetRangeUser (0, max_iaa);
+  
+      h->GetXaxis ()->SetMoreLogLabels ();
 
-      useTrkPt ? nom->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : nom->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-      nom->GetYaxis ()->SetTitle ("I_{AA}");
-      const double xmin = nom->GetXaxis ()->GetXmin ();
-      const double xmax = nom->GetXaxis ()->GetXmax ();
+      useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      h->GetYaxis ()->SetTitle ("I_{AA}");
+      const double xmin = h->GetXaxis ()->GetXmin ();
+      const double xmax = h->GetXaxis ()->GetXmax ();
 
-      nom->GetXaxis ()->SetTitleFont (43);
-      nom->GetXaxis ()->SetTitleSize (axisTextSize);
-      nom->GetXaxis ()->SetLabelFont (43);
-      nom->GetXaxis ()->SetLabelSize (axisTextSize);
+      h->GetXaxis ()->SetTitleFont (43);
+      h->GetXaxis ()->SetTitleSize (axisTextSize);
+      h->GetXaxis ()->SetLabelFont (43);
+      h->GetXaxis ()->SetLabelSize (axisTextSize);
 
-      nom->GetYaxis ()->SetTitleFont (43);
-      nom->GetYaxis ()->SetTitleSize (axisTextSize);
-      nom->GetYaxis ()->SetLabelFont (43);
-      nom->GetYaxis ()->SetLabelSize (axisTextSize);
+      h->GetYaxis ()->SetTitleFont (43);
+      h->GetYaxis ()->SetTitleSize (axisTextSize);
+      h->GetYaxis ()->SetLabelFont (43);
+      h->GetYaxis ()->SetLabelSize (axisTextSize);
 
-      nom->GetXaxis ()->SetTitleOffset (0.9 * nom->GetXaxis ()->GetTitleOffset ());
-      //nom->GetYaxis ()->SetTitleOffset (0.9 * nom->GetYaxis ()->GetTitleOffset ());
+      h->GetXaxis ()->SetTitleOffset (0.9 * h->GetXaxis ()->GetTitleOffset ());
+      //h->GetYaxis ()->SetTitleOffset (0.9 * h->GetYaxis ()->GetTitleOffset ());
+  
+      h->Draw ("");
 
-      nom->Draw ("AP");
+      //TGAE* nom = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[pSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[pSpc][iPtZ][iCent]);
+      //RecenterGraph (nom);
+      //ResetXErrors (nom);
+      //deltaize (nom, 1+(-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+      //nom->SetLineColor (kGray+1);
+      //nom->SetMarkerColor (kGray+1);
+      //nom->SetMarkerStyle (kFullCircle);
+      //nom->SetMarkerSize (1.2);
+      //nom->SetLineWidth (2);
+      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      //nom->GetYaxis ()->SetRangeUser (0, max_iaa);
 
-      myLineText (0.65, 0.92, kGray+1, 1, "Nominal", 1, 0.026);
+      //nom->GetXaxis ()->SetMoreLogLabels ();
+
+      //useTrkPt ? nom->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : nom->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      //nom->GetYaxis ()->SetTitle ("I_{AA}");
+      //const double xmin = nom->GetXaxis ()->GetXmin ();
+      //const double xmax = nom->GetXaxis ()->GetXmax ();
+
+      //nom->GetXaxis ()->SetTitleFont (43);
+      //nom->GetXaxis ()->SetTitleSize (axisTextSize);
+      //nom->GetXaxis ()->SetLabelFont (43);
+      //nom->GetXaxis ()->SetLabelSize (axisTextSize);
+
+      //nom->GetYaxis ()->SetTitleFont (43);
+      //nom->GetYaxis ()->SetTitleSize (axisTextSize);
+      //nom->GetYaxis ()->SetLabelFont (43);
+      //nom->GetYaxis ()->SetLabelSize (axisTextSize);
+
+      //nom->GetXaxis ()->SetTitleOffset (0.9 * nom->GetXaxis ()->GetTitleOffset ());
+      ////nom->GetYaxis ()->SetTitleOffset (0.9 * nom->GetYaxis ()->GetTitleOffset ());
+
+      //nom->Draw ("AP");
+
+      //`myLineText (0.65, 0.92, kGray+1, 1, "Nominal", 1, 0.026);
 
       iVar = 0;
       for (PhysicsAnalysis* a : variations) {
@@ -2272,9 +2437,9 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
 
         var->Draw ("P");
         if (variationDescriptions.find (a) != variationDescriptions.end ())
-          myLineText (0.65, 0.89-0.026*iVar, colors[iVar+1], iVar+2, variationDescriptions[a].c_str (), 1, 0.026);
+          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, variationDescriptions[a].c_str (), 1, 0.026);
         else
-          myLineText (0.65, 0.89-0.026*iVar, colors[iVar+1], iVar+2, a->Name ().c_str (), 1, 0.026);
+          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, a->Name ().c_str (), 1, 0.026);
         
         iVar++;
       }
@@ -2285,11 +2450,11 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
       line->SetLineColor (kPink-8);
       line->Draw ("same");
 
-      myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
       if (iCent == 0)
-        myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
+        myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
       else {
-        myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
+        myText (0.22, 0.20, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
       }
 
       if (iPtZ == nPtZBins-1)
