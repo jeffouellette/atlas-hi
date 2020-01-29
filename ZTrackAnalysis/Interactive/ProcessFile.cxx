@@ -4,6 +4,8 @@
 #include "TruthAnalysis.h"
 #include "MinbiasAnalysis.h"
 
+int mixingFraction = 40;
+
 int main (int argc, char** argv) {
 
   if (argc < 9) {
@@ -17,10 +19,16 @@ int main (int argc, char** argv) {
   string mbInFileName = (string (argv[3]) == "0" ? inFileName : argv[3]); // defaults to 1st file name if "0"
   string outFileName = argv[4];
 
-  string mixdir = "DataAnalysis/";
-  if (algo == "mcminbias") {
-    mixdir = "MCAnalysis/"; 
+  string inDir = "DataAnalysis/";
+  string histDir = "DataAnalysis/";
+  if (algo == "mcminbias" || algo == "mc") {
+    inDir = "MCAnalysis/"; 
+    histDir = "MCAnalysis/";
     //outFileName = "Background/" + outFileName;
+  }
+  if (algo == "minbias") {
+    inDir = "DataAnalysis/";
+    histDir = "MinbiasAnalysis/";
   }
 
   const bool isPbPb       = (string (argv[5]) == "true");
@@ -89,12 +97,12 @@ int main (int argc, char** argv) {
   //if (algo == "mc" || algo == "mcminbias") {
   if (algo == "mc") {
     MCAnalysis* mc = nullptr;
-    inFileName = "MCAnalysis/" + inFileName;
-    outFileName = "MCAnalysis/" + outFileName;
+    inFileName = inDir + inFileName;
+    outFileName = histDir + outFileName;
     if (doHITightVar)
       mc = new MCAnalysis ("mc_trackHITightVar");
-    else if (algo == "mcminbias")
-      mc = new MCAnalysis ("mc_bkg");
+    //else if (algo == "mcminbias")
+    //  mc = new MCAnalysis ("mc_bkg");
     else
       mc = new MCAnalysis ("mc");
 
@@ -109,40 +117,40 @@ int main (int argc, char** argv) {
     delete mc;
   }
 
-  else if (algo == "mcclosure") {
-    MCClosureAnalysis* mc = nullptr;
-    inFileName = "MCAnalysis/" + inFileName;
-    mbInFileName = "MinbiasAnalysis/" + mbInFileName;
-    outFileName = "MCAnalysis/" + outFileName;
-    mc = new MCClosureAnalysis ("mc_closure");
+  //else if (algo == "mcclosure") {
+  //  MCClosureAnalysis* mc = nullptr;
+  //  inFileName = "MCAnalysis/" + inFileName;
+  //  mbInFileName = "MinbiasAnalysis/" + mbInFileName;
+  //  outFileName = "MCAnalysis/" + outFileName;
+  //  mc = new MCClosureAnalysis ("mc_closure");
 
-    mc->is2015Conds = use2015conds;
-    mc->useHijingEffs = use2015conds;
-    mc->useHITight = doHITightVar;
+  //  mc->is2015Conds = use2015conds;
+  //  mc->useHijingEffs = use2015conds;
+  //  mc->useHITight = doHITightVar;
 
-    mc->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ());
-    delete mc;
-  }
+  //  mc->Execute (inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ());
+  //  delete mc;
+  //}
 
-  else if (algo == "mixmc") {
-    MixedMCAnalysis* mc = nullptr;
-    inFileName = "MCAnalysis/" + inFileName;
-    outFileName = "MixedMCAnalysis/" + outFileName;
-    mc = new MixedMCAnalysis ("mixed_mc");
+  //else if (algo == "mixmc") {
+  //  MixedMCAnalysis* mc = nullptr;
+  //  inFileName = "MCAnalysis/" + inFileName;
+  //  outFileName = "MixedMCAnalysis/" + outFileName;
+  //  mc = new MixedMCAnalysis ("mixed_mc");
 
-    mc->is2015Conds = use2015conds;
-    mc->useHijingEffs = use2015conds;
-    mc->useHITight = doHITightVar;
+  //  mc->is2015Conds = use2015conds;
+  //  mc->useHijingEffs = use2015conds;
+  //  mc->useHITight = doHITightVar;
 
-    mc->takeNonTruthTracks = true;
+  //  mc->takeNonTruthTracks = true;
 
-    mc->doPsi2Mixing = true;
-    mc->numPsi2MixBins = 16;
-    mc->doQ2Mixing = false;
+  //  mc->doPsi2Mixing = true;
+  //  mc->numPsi2MixBins = 16;
+  //  mc->doQ2Mixing = false;
 
-    mc->Execute (inFileName.c_str (), outFileName.c_str ());
-    delete mc;
-  }
+  //  mc->Execute (inFileName.c_str (), outFileName.c_str ());
+  //  delete mc;
+  //}
 
   else if (algo == "truth") {
     TruthAnalysis* truth = nullptr;
@@ -157,21 +165,31 @@ int main (int argc, char** argv) {
   else if (algo == "minbias" || algo == "mcminbias") {
     MinbiasAnalysis* bkg = nullptr;
 
-    inFileName = mixdir + inFileName;
-    mbInFileName = ((doPPMixVar && !isPbPb) ? "DataAnalysis/" : "MinbiasAnalysis/") + mbInFileName;
-    outFileName = "MinbiasAnalysis/" + outFileName;
+    inFileName = inDir + inFileName;
 
-    if (doHITightVar)     bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-    else if (doMixVarA)   bkg = new MinbiasAnalysis ("bkg_mixVarA");
-    else if (doMixVarB)   bkg = new MinbiasAnalysis ("bkg_mixVarB");
-    else if (doMixVarC)   bkg = new MinbiasAnalysis ("bkg_mixVarC");
-    else if (doMixVarD)   bkg = new MinbiasAnalysis ("bkg_mixVarD");
-    else if (doMixVarE)   bkg = new MinbiasAnalysis ("bkg_mixVarE");
-    else if (doMixVarF)   bkg = new MinbiasAnalysis ("bkg_mixVarF");
-    else if (doMixVarG)   bkg = new MinbiasAnalysis ("bkg_mixVarG");
-    else if (doMixVarH)   bkg = new MinbiasAnalysis ("bkg_mixVarH");
-    else if (doPPMixVar)  bkg = new MinbiasAnalysis ("bkg_ppMixVar");
-    else                  bkg = new MinbiasAnalysis ("bkg");
+    if (doPPMixVar && !isPbPb && algo == "minbias")
+      mbInFileName = "DataAnalysis/" + mbInFileName;
+    else if (doPPMixVar && !isPbPb && algo == "mcminbias")
+      mbInFileName = inFileName;
+    else
+      mbInFileName = "MinbiasAnalysis/" + mbInFileName;
+
+    outFileName = histDir + outFileName;
+
+    if (algo == "mcminbias")  bkg = new MinbiasAnalysis ("mc_bkg");
+    else if (doHITightVar)    bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
+    else if (doMixVarA)       bkg = new MinbiasAnalysis ("bkg_mixVarA");
+    else if (doMixVarB)       bkg = new MinbiasAnalysis ("bkg_mixVarB");
+    else if (doMixVarC)       bkg = new MinbiasAnalysis ("bkg_mixVarC");
+    else if (doMixVarD)       bkg = new MinbiasAnalysis ("bkg_mixVarD");
+    else if (doMixVarE)       bkg = new MinbiasAnalysis ("bkg_mixVarE");
+    else if (doMixVarF)       bkg = new MinbiasAnalysis ("bkg_mixVarF");
+    else if (doMixVarG)       bkg = new MinbiasAnalysis ("bkg_mixVarG");
+    else if (doMixVarH)       bkg = new MinbiasAnalysis ("bkg_mixVarH");
+    else if (doPPMixVar)      bkg = new MinbiasAnalysis ("bkg_ppMixVar");
+    else                      bkg = new MinbiasAnalysis ("bkg");
+
+    if ((!isPbPb && doPPMixVar) || algo == "mcminbias") mixingFraction = 1;
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
