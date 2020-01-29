@@ -39,7 +39,7 @@ float max_iaa = 3.2;
 //float max_icp = 1.4;
 float max_rel_sys = 40;
 
-const int mixingFraction = 40;
+extern int mixingFraction;
 
 const double etaTrkBins[6] = {0, 0.5, 1.0, 1.5, 2.0, 2.5};
 const int numEtaTrkBins = sizeof (etaTrkBins) / sizeof (etaTrkBins[0]) - 1;
