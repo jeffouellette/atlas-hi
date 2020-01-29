@@ -471,8 +471,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       //  z_psi2 = 0.5 * atan2 (z_q2y, z_q2x);
       //}
 
-      if (2995.94 < z_fcal_et && z_fcal_et < 5000 && iZEvt >= 10*nZEvts) // temporary max mixing fraction of 10 in central-most bin
-        continue;
+      //if (2995.94 < z_fcal_et && z_fcal_et < 5000 && iZEvt >= 10*nZEvts) // temporary max mixing fraction of 10 in central-most bin
+      //  continue;
 
 
       // Find the next unused minimum bias event
@@ -850,7 +850,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (doPPMixingVar && idPhi == 2 && 7*pi/8 < dphi && dphi <= pi) {
+          if (doPPMixingVar && idPhi == numPhiBins && 7.*pi/8. < dphi && dphi <= pi) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, trkWeight);
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);

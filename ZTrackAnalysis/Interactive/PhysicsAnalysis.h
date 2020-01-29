@@ -1547,6 +1547,7 @@ void PhysicsAnalysis :: LoadEventWeights () {
   SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
+  cout << "Loading event weights from " << rootPath.Data () << "/" << eventWeightsFileName.c_str () << endl;
   eventWeightsFile = new TFile (Form ("%s/%s", rootPath.Data (), eventWeightsFileName.c_str ()), "read");
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
@@ -1560,6 +1561,7 @@ void PhysicsAnalysis :: LoadEventWeights () {
     }
   }
 
+  cout << "Event weights loaded." << endl;
   eventWeightsLoaded = true;
 
   _gDirectory-> cd ();
