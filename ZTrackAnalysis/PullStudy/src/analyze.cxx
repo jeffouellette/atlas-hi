@@ -8,8 +8,10 @@
 #include <TProfile.h>
 #include <TLorentzVector.h>
 #include <TLatex.h>
+#include <TF1.h>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -128,12 +130,14 @@ int main () {
   TH1D* h_trk_pth_pull[3][3][6];
   TH1D* h_trk_xhz_pull[3][3][6];
 
-  for (int iPtZ : {2, 3, 4}) {
-    for (int iCent : {1, 2, 3}) {
+  for (short iPtZ : {2, 3, 4}) {
+    for (short iCent : {1, 2, 3}) {
 
-      for (int iX = 0; iX < 6; iX++) {
+      for (short iX = 0; iX < 6; iX++) {
         h_trk_pth_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_pth_pull_iPtZ%i_iCent%i_iPtTrk%i", iPtZ, iCent, iX), ";Pull;Counts", 12, -4, 4);
         h_trk_xhz_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_xhz_pull_iPtZ%i_iCent%i_iXHZ%i", iPtZ, iCent, iX), ";Pull;Counts", 12, -4, 4);
+        h_trk_pth_pull[iPtZ-2][iCent-1][iX]->Sumw2 ();
+        h_trk_xhz_pull[iPtZ-2][iCent-1][iX]->Sumw2 ();
       }
 
       const int nGroup1 = GetNumInGroup1 (iPtZ, iCent);
@@ -191,19 +195,23 @@ int main () {
             const float trkpt = part_pt[iPart];
             const float xhz = trkpt / z_pt;
 
-            if (30 <= trkpt && trkpt < 60) tracks_30to60GeV += 1.;
-            else if (15 <= trkpt) tracks_15to30GeV += 1.;
-            else if (8 <= trkpt) tracks_8to15GeV += 1.;
-            else if (4 <= trkpt) tracks_4to8GeV += 1.;
-            else if (2 <= trkpt) tracks_2to4GeV += 1.;
-            else if (1 <= trkpt) tracks_1to2GeV += 1.;
+            if (trkpt < 60) {
+              if (30 <= trkpt) tracks_30to60GeV += 1.;
+              else if (15 <= trkpt) tracks_15to30GeV += 1.;
+              else if (8 <= trkpt) tracks_8to15GeV += 1.;
+              else if (4 <= trkpt) tracks_4to8GeV += 1.;
+              else if (2 <= trkpt) tracks_2to4GeV += 1.;
+              else if (1 <= trkpt) tracks_1to2GeV += 1.;
+            }
 
-            if (1./60. <= xhz && xhz <= 1./30.) tracks_1_60to1_30 += 1.;
-            else if (xhz <= 1./15.) tracks_1_30to1_15 += 1.;
-            else if (xhz <= 1./8.) tracks_1_15to1_8 += 1.;
-            else if (xhz <= 1./4.) tracks_1_8to1_4 += 1.;
-            else if (xhz <= 1./2.) tracks_1_4to1_2 += 1.;
-            else if (xhz <= 1.) tracks_1_2to1 += 1.;
+            if (1./60. <= xhz) {
+              if (xhz <= 1./30.) tracks_1_60to1_30 += 1.;
+              else if (xhz <= 1./15.) tracks_1_30to1_15 += 1.;
+              else if (xhz <= 1./8.) tracks_1_15to1_8 += 1.;
+              else if (xhz <= 1./4.) tracks_1_8to1_4 += 1.;
+              else if (xhz <= 1./2.) tracks_1_4to1_2 += 1.;
+              else if (xhz <= 1.) tracks_1_2to1 += 1.;
+            }
           } // end loop over iPart
 
           trkPtYields[iGroup][0] += tracks_1to2GeV;
@@ -238,7 +246,7 @@ int main () {
 
         // calculate pull on per-Z yields
         float yield1, yield2, sigma1, sigma2;
-        for (int iX = 0; iX < 6; iX++) {
+        for (short iX = 0; iX < 6; iX++) {
           yield1 = trkPtYields[0][iX] / nGroup1;
           sigma1 = sqrt (trkPtYields[0][iX]) / nGroup1;
           //sigma1 = sqrt (trkPtYieldWeightsSq[0][iX]) / nGroup1;
@@ -272,7 +280,7 @@ int main () {
           h_trk_xhz_pull[iPtZ-2][iCent-1][iX]->Fill (pullX);
         }
 
-        for (int iX = 0; iX < 6; iX++) {
+        for (short iX = 0; iX < 6; iX++) {
           trkPtYields[0][iX]  = 0.;
           trkPtYields[1][iX]  = 0.;
           trkPtYieldWeightsSq[0][iX]  = 0.;
@@ -287,7 +295,7 @@ int main () {
 
       cout << "iPtZ = " << iPtZ << ", iCent = " << iCent << endl;
       float sigma1, sigma2;
-      for (int iX = 0; iX < 6; iX++) {
+      for (short iX = 0; iX < 6; iX++) {
         trkPtYieldAvg[0][iX] = trkPtYieldAvg[0][iX] / nSeeds;
         trkPtYieldAvg[1][iX] = trkPtYieldAvg[1][iX] / nSeeds;
         sigma1 = sqrt (trkPtYieldSumSq[0][iX] / nSeeds - trkPtYieldAvg[0][iX]);
@@ -304,7 +312,7 @@ int main () {
         //cout << "X covariance: " << trkPtYieldCov[iX] << endl;
       } // end loop over iX
 
-      for (int iX = 0; iX < 6; iX++) {
+      for (short iX = 0; iX < 6; iX++) {
         trkPtYieldAvg[0][iX] = 0.;
         trkPtYieldAvg[1][iX] = 0.;
         trkPtYieldSumSq[0][iX] = 0.;
@@ -335,43 +343,114 @@ int main () {
   TCanvas* c_pull_xhz_iPtZ4 = new TCanvas ("c_pull_xhz_iPtZ4", "", 1200, 600);
   c_pull_xhz_iPtZ4->Divide (6, 3);
 
-  for (int iX = 0; iX < 4; iX++) {
-    for (int iCent : {1, 2, 3}) {
+  float pthSigmaValues[3][3][6]; // iPtZ, iCent, iX
+  float pthSigmaErrors[3][3][6]; // iPtZ, iCent, iX
+  float xhzSigmaValues[3][3][6]; // iPtZ, iCent, iX
+  float xhzSigmaErrors[3][3][6]; // iPtZ, iCent, iX
+
+  for (short iX = 0; iX < 4; iX++) {
+    for (short iCent : {1, 2, 3}) {
       c_pull_pth_iPtZ2->cd (4*(iCent-1)+iX+1);
       h_trk_pth_pull[0][iCent-1][iX]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_pth_pull[0][iCent-1][iX]->GetStdDev ()), 0.1);
+      TF1* f = new TF1 (Form ("f_trk_pth_pull_iPtZ2_iCent%i_iX%i", iCent, iX), "gaus(0)", -4, 4);
+      h_trk_pth_pull[0][iCent-1][iX]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      float chi2 = f->GetChisquare ();
+      int ndf = f->GetNDF ();
+      pthSigmaValues[0][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[0][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
 
       c_pull_xhz_iPtZ2->cd (4*(iCent-1)+iX+1);
       h_trk_xhz_pull[0][iCent-1][iX+2]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_xhz_pull[0][iCent-1][iX]->GetStdDev ()), 0.1);
+      f = new TF1 (Form ("f_trk_xhz_pull_iPtZ2_iCent%i_iX%i", iCent, iX+2), "gaus(0)", -4, 4);
+      h_trk_xhz_pull[0][iCent-1][iX+2]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      chi2 = f->GetChisquare ();
+      ndf = f->GetNDF ();
+      xhzSigmaValues[0][iCent][iX] = f->GetParameter (2);
+      xhzSigmaErrors[0][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
     } // end loop over iCent
   } // end loop over x-values
-  for (int iX = 0; iX < 5; iX++) {
-    for (int iCent : {1, 2, 3}) {
+  for (short iX = 0; iX < 5; iX++) {
+    for (short iCent : {1, 2, 3}) {
       c_pull_pth_iPtZ3->cd (5*(iCent-1)+iX+1);
       h_trk_pth_pull[1][iCent-1][iX]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_pth_pull[1][iCent-1][iX]->GetStdDev ()), 0.1);
+      TF1* f = new TF1 (Form ("f_trk_pth_pull_iPtZ3_iCent%i_iX%i", iCent, iX), "gaus(0)", -4, 4);
+      h_trk_pth_pull[1][iCent-1][iX]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      float chi2 = f->GetChisquare ();
+      int ndf = f->GetNDF ();
+      pthSigmaValues[1][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[1][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
 
       c_pull_xhz_iPtZ3->cd (5*(iCent-1)+iX+1);
       h_trk_xhz_pull[1][iCent-1][iX+1]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_xhz_pull[1][iCent-1][iX]->GetStdDev ()), 0.1);
+      f = new TF1 (Form ("f_trk_xhz_pull_iPtZ3_iCent%i_iX%i", iCent, iX+1), "gaus(0)", -4, 4);
+      h_trk_xhz_pull[1][iCent-1][iX+1]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      chi2 = f->GetChisquare ();
+      ndf = f->GetNDF ();
+      xhzSigmaValues[1][iCent][iX] = f->GetParameter (2);
+      xhzSigmaErrors[1][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
     } // end loop over iCent
   } // end loop over x-values
-  for (int iX = 0; iX < 6; iX++) {
-    for (int iCent : {1, 2, 3}) {
+  for (short iX = 0; iX < 6; iX++) {
+    for (short iCent : {1, 2, 3}) {
       c_pull_pth_iPtZ4->cd (6*(iCent-1)+iX+1);
       h_trk_pth_pull[2][iCent-1][iX]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_pth_pull[2][iCent-1][iX]->GetStdDev ()), 0.1);
+      TF1* f = new TF1 (Form ("f_trk_pth_pull_iPtZ4_iCent%i_iX%i", iCent, iX), "gaus(0)", -4, 4);
+      h_trk_pth_pull[2][iCent-1][iX]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      float chi2 = f->GetChisquare ();
+      int ndf = f->GetNDF ();
+      pthSigmaValues[2][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[2][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
 
       c_pull_xhz_iPtZ4->cd (6*(iCent-1)+iX+1);
       h_trk_xhz_pull[2][iCent-1][iX]->Draw ("hist");
 
-      myText (0.5, 0.8, kBlack, Form ("#sigma = %.2f", h_trk_xhz_pull[2][iCent-1][iX]->GetStdDev ()), 0.1);
+      f = new TF1 (Form ("f_trk_xhz_pull_iPtZ4_iCent%i_iX%i", iCent, iX), "gaus(0)", -4, 4);
+      h_trk_xhz_pull[2][iCent-1][iX]->Fit (f, "RN0Q");
+      f->SetLineColor (kAzure-1);
+      f->SetLineWidth (1);
+      f->Draw ("same");
+
+      chi2 = f->GetChisquare ();
+      ndf = f->GetNDF ();
+      xhzSigmaValues[2][iCent][iX] = f->GetParameter (2);
+      xhzSigmaErrors[2][iCent][iX] = f->GetParameter (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f", f->GetParameter (2)), 0.06);
+      myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
     } // end loop over iCent
   } // end loop over x-values
 
@@ -382,6 +461,24 @@ int main () {
   c_pull_pth_iPtZ4->SaveAs ("Plots/pull_pth_iPtZ4.pdf");
   c_pull_xhz_iPtZ4->SaveAs ("Plots/pull_xhz_iPtZ4.pdf");
 
+
+  // now save extracted pull values to a file
+  ofstream correctionsFile;
+  correctionsFile.open ("pullCorrections.dat");
+  for (short iPtZ : {0, 1, 2}) {
+    for (short iCent : {1, 2, 3}) {
+      correctionsFile << "iPtZ = " << iPtZ << ", iCent = " << iCent << endl;
+      for (short iX = 0; iX < 6; iX++) {
+        correctionsFile << pthSigmaValues[iPtZ][iCent][iX] << "\t" << pthSigmaErrors[iPtZ][iCent][iX] << "\t";
+      }
+      correctionsFile << endl;
+      for (short iX = 0; iX < 6; iX++) {
+        correctionsFile << pthSigmaValues[iPtZ][iCent][iX] << "\t" << pthSigmaErrors[iPtZ][iCent][iX] << "\t";
+      }
+      correctionsFile << endl;
+    }
+  }
+  correctionsFile.close ();
 
 
   return 0;
