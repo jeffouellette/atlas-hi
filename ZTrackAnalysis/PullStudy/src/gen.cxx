@@ -11,22 +11,60 @@
 using namespace Pythia8;
 using namespace atlashi;
 
+float GetPtHatMin (int iPtZ) {
+  switch (iPtZ) {
+    case 2: return 5;
+    case 3: return 15;
+    case 4: return 30;
+    default: return 0;
+  }
+}
+
+float GetMinZPt (int iPtZ) {
+  switch (iPtZ) {
+    case 2: return 15;
+    case 3: return 30;
+    case 4: return 60;
+    default: return 0;
+  }
+}
+
+float GetMaxZPt (int iPtZ) {
+  switch (iPtZ) {
+    case 2: return 30;
+    case 3: return 60;
+    case 4: return 10000;
+    default: return 0;
+  }
+}
+
+int GetNEvents (int iPtZ, int iCent) {
+  if (iPtZ == 2 && iCent == 1) return 657;
+  if (iPtZ == 2 && iCent == 2) return 1501;
+  if (iPtZ == 2 && iCent == 3) return 1587;
+  if (iPtZ == 3 && iCent == 1) return 354;
+  if (iPtZ == 3 && iCent == 2) return 848;
+  if (iPtZ == 3 && iCent == 3) return 849;
+  if (iPtZ == 4 && iCent == 1) return 141;
+  if (iPtZ == 4 && iCent == 2) return 318;
+  if (iPtZ == 4 && iCent == 3) return 318;
+  return 0;
+}
+
 int main (int argc, char** argv) {
 
-  if (argc != 7) {
-    std::cout << " usage: ./zgen SEED PTHATMIN MINZPT MAXZPT NEVT FILENAMEOUT" << std::endl;
+  if (argc < 5) {
+    std::cout << " usage: ./zgen SEED MINZPT NEVT FILENAMEOUT" << std::endl;
     return 0;
   }
 
   // get arguments
   const int seed = atoi (argv[1]);
-  const float ptHatMin = atof (argv[2]);
-  const float minZPt = atof (argv[3]);
-  const float maxZPt = atof (argv[4]);
-  //const float minTrkPt = atof (argv[5]);
-  //const float maxTrkPt = atof (argv[6]);
-  const int nEvents = atoi (argv[5]);
-  const string outFileName = string (argv[6]);
+  const float ptHatMin = GetPtHatMin (atoi (argv[2]));
+  const float minZPt = GetMinZPt (atoi (argv[2]));
+  const float maxZPt = GetMaxZPt (atoi (argv[2]));
+  const int nEvents = GetNEvents (atoi (argv[2]), atoi (argv[3]));
+  const string outFileName = string (argv[4]);
 
   // Generator. Process selection. LHC initialization. Histogram.
   Pythia pythia;

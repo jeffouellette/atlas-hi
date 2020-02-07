@@ -88,11 +88,37 @@ int GetNumInGroup2 (short iPtZ, short iCent) {
 }
 
 
+string GetMinTrkStr (short iX, bool useTrkPt) {
+  switch (iX) {
+    case 0: return useTrkPt ? "1" : "1/60";
+    case 1: return useTrkPt ? "2" : "1/30";
+    case 2: return useTrkPt ? "4" : "1/15";
+    case 3: return useTrkPt ? "8" : "1/8";
+    case 4: return useTrkPt ? "15" : "1/4";
+    case 5: return useTrkPt ? "30" : "1/2";
+    default: return "";
+  }
+}
+
+
+string GetMaxTrkStr (short iX, bool useTrkPt) {
+  switch (iX) {
+    case 0: return useTrkPt ? "2" : "1/30";
+    case 1: return useTrkPt ? "4" : "1/15";
+    case 2: return useTrkPt ? "8" : "1/8";
+    case 3: return useTrkPt ? "15" : "1/4";
+    case 4: return useTrkPt ? "30" : "1/2";
+    case 5: return useTrkPt ? "60" : "1";
+    default: return "";
+  }
+}
+
+
 int main () {
 
   SetAtlasStyle();
 
-  const int nSeeds = 401;
+  const int nSeeds = 2001;
   TFile* inFile;
   TTree* inTree;
 
@@ -134,8 +160,8 @@ int main () {
     for (short iCent : {1, 2, 3}) {
 
       for (short iX = 0; iX < 6; iX++) {
-        h_trk_pth_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_pth_pull_iPtZ%i_iCent%i_iPtTrk%i", iPtZ, iCent, iX), ";Pull;Counts", 12, -4, 4);
-        h_trk_xhz_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_xhz_pull_iPtZ%i_iCent%i_iXHZ%i", iPtZ, iCent, iX), ";Pull;Counts", 12, -4, 4);
+        h_trk_pth_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_pth_pull_iPtZ%i_iCent%i_iPtTrk%i", iPtZ, iCent, iX), ";Pull;Counts", 24, -4, 4);
+        h_trk_xhz_pull[iPtZ-2][iCent-1][iX] = new TH1D (Form ("h_trk_xhz_pull_iPtZ%i_iCent%i_iXHZ%i", iPtZ, iCent, iX), ";Pull;Counts", 24, -4, 4);
         h_trk_pth_pull[iPtZ-2][iCent-1][iX]->Sumw2 ();
         h_trk_xhz_pull[iPtZ-2][iCent-1][iX]->Sumw2 ();
       }
@@ -145,7 +171,7 @@ int main () {
 
       for (int iSeed = 0; iSeed < nSeeds; iSeed++) {
 
-        inFile = new TFile (Form ("output/seed%i_iPtZ%i_iCent%i.root", iSeed, iPtZ, iCent), "read");
+        inFile = new TFile (Form ("rootFiles/iSeed%i_iPtZ%i_iCent%i.root", iSeed, iPtZ, iCent), "read");
         inTree = (TTree*) inFile->Get ("tree");
 
         //inTree->SetBranchAddress ("code",       &code);
@@ -205,12 +231,12 @@ int main () {
             }
 
             if (1./60. <= xhz) {
-              if (xhz <= 1./30.) tracks_1_60to1_30 += 1.;
-              else if (xhz <= 1./15.) tracks_1_30to1_15 += 1.;
-              else if (xhz <= 1./8.) tracks_1_15to1_8 += 1.;
-              else if (xhz <= 1./4.) tracks_1_8to1_4 += 1.;
-              else if (xhz <= 1./2.) tracks_1_4to1_2 += 1.;
-              else if (xhz <= 1.) tracks_1_2to1 += 1.;
+              if (xhz < 1./30.) tracks_1_60to1_30 += 1.;
+              else if (xhz < 1./15.) tracks_1_30to1_15 += 1.;
+              else if (xhz < 1./8.) tracks_1_15to1_8 += 1.;
+              else if (xhz < 1./4.) tracks_1_8to1_4 += 1.;
+              else if (xhz < 1./2.) tracks_1_4to1_2 += 1.;
+              else if (xhz < 1.) tracks_1_2to1 += 1.;
             }
           } // end loop over iPart
 
@@ -248,11 +274,11 @@ int main () {
         float yield1, yield2, sigma1, sigma2;
         for (short iX = 0; iX < 6; iX++) {
           yield1 = trkPtYields[0][iX] / nGroup1;
-          sigma1 = sqrt (trkPtYields[0][iX]) / nGroup1;
-          //sigma1 = sqrt (trkPtYieldWeightsSq[0][iX]) / nGroup1;
+          //sigma1 = sqrt (trkPtYields[0][iX]) / nGroup1;
+          sigma1 = sqrt (trkPtYieldWeightsSq[0][iX]) / nGroup1;
           yield2 = trkPtYields[1][iX] / nGroup2;
-          sigma2 = sqrt (trkPtYields[1][iX]) / nGroup2;
-          //sigma2 = sqrt (trkPtYieldWeightsSq[1][iX]) / nGroup2;
+          //sigma2 = sqrt (trkPtYields[1][iX]) / nGroup2;
+          sigma2 = sqrt (trkPtYieldWeightsSq[1][iX]) / nGroup2;
 
           trkPtYieldAvg[0][iX] += yield1;
           trkPtYieldAvg[1][iX] += yield2;
@@ -264,11 +290,11 @@ int main () {
           h_trk_pth_pull[iPtZ-2][iCent-1][iX]->Fill (pullPt);
 
           yield1 = trkXYields[0][iX] / nGroup1;
-          sigma1 = sqrt (trkXYields[0][iX]) / nGroup1;
-          //sigma1 = sqrt (trkXYieldWeightsSq[0][iX]) / nGroup1;
+          //sigma1 = sqrt (trkXYields[0][iX]) / nGroup1;
+          sigma1 = sqrt (trkXYieldWeightsSq[0][iX]) / nGroup1;
           yield2 = trkXYields[1][iX] / nGroup2;
-          sigma2 = sqrt (trkXYields[1][iX]) / nGroup2;
-          //sigma2 = sqrt (trkXYieldWeightsSq[1][iX]) / nGroup2;
+          //sigma2 = sqrt (trkXYields[1][iX]) / nGroup2;
+          sigma2 = sqrt (trkXYieldWeightsSq[1][iX]) / nGroup2;
 
           trkXYieldAvg[0][iX] += yield1;
           trkXYieldAvg[1][iX] += yield2;
@@ -293,24 +319,24 @@ int main () {
 
       } // end loop over seeds
 
-      cout << "iPtZ = " << iPtZ << ", iCent = " << iCent << endl;
-      float sigma1, sigma2;
-      for (short iX = 0; iX < 6; iX++) {
-        trkPtYieldAvg[0][iX] = trkPtYieldAvg[0][iX] / nSeeds;
-        trkPtYieldAvg[1][iX] = trkPtYieldAvg[1][iX] / nSeeds;
-        sigma1 = sqrt (trkPtYieldSumSq[0][iX] / nSeeds - trkPtYieldAvg[0][iX]);
-        sigma2 = sqrt (trkPtYieldSumSq[1][iX] / nSeeds - trkPtYieldAvg[1][iX]);
-        trkPtYieldCov[iX] = (trkPtYieldCov[iX] / nSeeds) - trkPtYieldAvg[0][iX]*trkPtYieldAvg[1][iX];
-        cout << "Pt correlation coeff.: " << trkPtYieldCov[iX]/(sigma1*sigma2) << endl;
+      //cout << "iPtZ = " << iPtZ << ", iCent = " << iCent << endl;
+      //float sigma1, sigma2;
+      //for (short iX = 0; iX < 6; iX++) {
+      //  trkPtYieldAvg[0][iX] = trkPtYieldAvg[0][iX] / nSeeds;
+      //  trkPtYieldAvg[1][iX] = trkPtYieldAvg[1][iX] / nSeeds;
+      //  sigma1 = sqrt (trkPtYieldSumSq[0][iX] / nSeeds - trkPtYieldAvg[0][iX]);
+      //  sigma2 = sqrt (trkPtYieldSumSq[1][iX] / nSeeds - trkPtYieldAvg[1][iX]);
+      //  trkPtYieldCov[iX] = (trkPtYieldCov[iX] / nSeeds) - trkPtYieldAvg[0][iX]*trkPtYieldAvg[1][iX];
+      //  cout << "Pt correlation coeff.: " << trkPtYieldCov[iX]/(sigma1*sigma2) << endl;
 
-        trkXYieldAvg[0][iX] = trkXYieldAvg[0][iX] / nSeeds;
-        trkXYieldAvg[1][iX] = trkXYieldAvg[1][iX] / nSeeds;
-        sigma1 = sqrt (trkXYieldSumSq[0][iX] / nSeeds - trkXYieldAvg[0][iX]);
-        sigma2 = sqrt (trkXYieldSumSq[1][iX] / nSeeds - trkXYieldAvg[1][iX]);
-        trkXYieldCov[iX] = (trkXYieldCov[iX] / nSeeds) - trkXYieldAvg[0][iX]*trkXYieldAvg[1][iX];
+      //  trkXYieldAvg[0][iX] = trkXYieldAvg[0][iX] / nSeeds;
+      //  trkXYieldAvg[1][iX] = trkXYieldAvg[1][iX] / nSeeds;
+      //  sigma1 = sqrt (trkXYieldSumSq[0][iX] / nSeeds - trkXYieldAvg[0][iX]);
+      //  sigma2 = sqrt (trkXYieldSumSq[1][iX] / nSeeds - trkXYieldAvg[1][iX]);
+      //  trkXYieldCov[iX] = (trkXYieldCov[iX] / nSeeds) - trkXYieldAvg[0][iX]*trkXYieldAvg[1][iX];
 
-        //cout << "X covariance: " << trkPtYieldCov[iX] << endl;
-      } // end loop over iX
+      //  //cout << "X covariance: " << trkPtYieldCov[iX] << endl;
+      //} // end loop over iX
 
       for (short iX = 0; iX < 6; iX++) {
         trkPtYieldAvg[0][iX] = 0.;
@@ -362,9 +388,10 @@ int main () {
       float chi2 = f->GetChisquare ();
       int ndf = f->GetNDF ();
       pthSigmaValues[0][iCent][iX] = f->GetParameter (2);
-      pthSigmaErrors[0][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[0][iCent][iX] = f->GetParError (2);
       myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{p}_{T}^{ch} < %s", GetMinTrkStr (iX, true).c_str (), GetMaxTrkStr (iX, true).c_str ()), 0.08);
 
       c_pull_xhz_iPtZ2->cd (4*(iCent-1)+iX+1);
       h_trk_xhz_pull[0][iCent-1][iX+2]->Draw ("hist");
@@ -378,9 +405,10 @@ int main () {
       chi2 = f->GetChisquare ();
       ndf = f->GetNDF ();
       xhzSigmaValues[0][iCent][iX] = f->GetParameter (2);
-      xhzSigmaErrors[0][iCent][iX] = f->GetParameter (2);
+      xhzSigmaErrors[0][iCent][iX] = f->GetParError (2);
       myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{x}_{hZ} < %s", GetMinTrkStr (iX+2, false).c_str (), GetMaxTrkStr (iX+2, false).c_str ()), 0.08);
     } // end loop over iCent
   } // end loop over x-values
   for (short iX = 0; iX < 5; iX++) {
@@ -397,9 +425,10 @@ int main () {
       float chi2 = f->GetChisquare ();
       int ndf = f->GetNDF ();
       pthSigmaValues[1][iCent][iX] = f->GetParameter (2);
-      pthSigmaErrors[1][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[1][iCent][iX] = f->GetParError (2);
       myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{p}_{T}^{ch} < %s", GetMinTrkStr (iX, true).c_str (), GetMaxTrkStr (iX, true).c_str ()), 0.08);
 
       c_pull_xhz_iPtZ3->cd (5*(iCent-1)+iX+1);
       h_trk_xhz_pull[1][iCent-1][iX+1]->Draw ("hist");
@@ -413,9 +442,10 @@ int main () {
       chi2 = f->GetChisquare ();
       ndf = f->GetNDF ();
       xhzSigmaValues[1][iCent][iX] = f->GetParameter (2);
-      xhzSigmaErrors[1][iCent][iX] = f->GetParameter (2);
+      xhzSigmaErrors[1][iCent][iX] = f->GetParError (2);
       myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{x}_{hZ} < %s", GetMinTrkStr (iX+1, false).c_str (), GetMaxTrkStr (iX+1, false).c_str ()), 0.08);
     } // end loop over iCent
   } // end loop over x-values
   for (short iX = 0; iX < 6; iX++) {
@@ -432,9 +462,10 @@ int main () {
       float chi2 = f->GetChisquare ();
       int ndf = f->GetNDF ();
       pthSigmaValues[2][iCent][iX] = f->GetParameter (2);
-      pthSigmaErrors[2][iCent][iX] = f->GetParameter (2);
+      pthSigmaErrors[2][iCent][iX] = f->GetParError (2);
       myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{p}_{T}^{ch} < %s", GetMinTrkStr (iX, true).c_str (), GetMaxTrkStr (iX, true).c_str ()), 0.08);
 
       c_pull_xhz_iPtZ4->cd (6*(iCent-1)+iX+1);
       h_trk_xhz_pull[2][iCent-1][iX]->Draw ("hist");
@@ -448,9 +479,10 @@ int main () {
       chi2 = f->GetChisquare ();
       ndf = f->GetNDF ();
       xhzSigmaValues[2][iCent][iX] = f->GetParameter (2);
-      xhzSigmaErrors[2][iCent][iX] = f->GetParameter (2);
-      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f", f->GetParameter (2)), 0.06);
+      xhzSigmaErrors[2][iCent][iX] = f->GetParError (2);
+      myText (0.2, 0.86, kBlack, Form ("#sigma = %.2f #pm %.2f", f->GetParameter (2), f->GetParError (2)), 0.06);
       myText (0.2, 0.8, kBlack, Form ("#chi^{2}/dof = %.2f/%i", chi2, ndf), 0.06);
+      myText (0.2, 0.25, kBlack, Form ("%s < #it{x}_{hZ} < %s", GetMinTrkStr (iX, false).c_str (), GetMaxTrkStr (iX, false).c_str ()), 0.08);
     } // end loop over iCent
   } // end loop over x-values
 
@@ -473,7 +505,7 @@ int main () {
       }
       correctionsFile << endl;
       for (short iX = 0; iX < 6; iX++) {
-        correctionsFile << pthSigmaValues[iPtZ][iCent][iX] << "\t" << pthSigmaErrors[iPtZ][iCent][iX] << "\t";
+        correctionsFile << xhzSigmaValues[iPtZ][iCent][iX] << "\t" << xhzSigmaErrors[iPtZ][iCent][iX] << "\t";
       }
       correctionsFile << endl;
     }
