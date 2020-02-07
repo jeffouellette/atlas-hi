@@ -587,8 +587,22 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
+      float trks_1to2GeV = 0;
+      float trks_2to4GeV = 0;
+      float trks_4to8GeV = 0;
+      float trks_8to15GeV = 0;
+      float trks_15to30GeV = 0;
+      float trks_30to60GeV = 0;
+      float xhzs_1_60to1_30 = 0;
+      float xhzs_1_30to1_15 = 0;
+      float xhzs_1_15to1_8 = 0;
+      float xhzs_1_8to1_4 = 0;
+      float xhzs_1_4to1_2 = 0;
+      float xhzs_1_2to1 = 0;
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
+        const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -618,7 +632,40 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
-      }
+
+        if (3*pi/4 <= dphi) {
+          if (trkpt < 60) {
+            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
+            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
+            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
+            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
+            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
+            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+          }
+   
+          if (1./60. <= xhz) {
+            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
+            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
+            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
+            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
+            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
+            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+          }
+        }
+      } // end loop over tracks
+
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
 
     } // end loop over Pb+Pb tree
 
@@ -825,8 +872,22 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
+      float trks_1to2GeV = 0;
+      float trks_2to4GeV = 0;
+      float trks_4to8GeV = 0;
+      float trks_8to15GeV = 0;
+      float trks_15to30GeV = 0;
+      float trks_30to60GeV = 0;
+      float xhzs_1_60to1_30 = 0;
+      float xhzs_1_30to1_15 = 0;
+      float xhzs_1_15to1_8 = 0;
+      float xhzs_1_8to1_4 = 0;
+      float xhzs_1_4to1_2 = 0;
+      float xhzs_1_2to1 = 0;
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
+        const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -861,7 +922,40 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
-      }
+
+        if (3*pi/4 <= dphi) {
+          if (trkpt < 60) {
+            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
+            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
+            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
+            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
+            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
+            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+          }
+   
+          if (1./60. <= xhz) {
+            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
+            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
+            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
+            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
+            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
+            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+          }
+        }
+      } // end loop over tracks
+
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
 
     } // end loop over pp tree
 

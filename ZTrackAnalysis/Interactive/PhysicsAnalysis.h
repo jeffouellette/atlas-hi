@@ -1143,8 +1143,23 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+
+      float trks_1to2GeV = 0;
+      float trks_2to4GeV = 0;
+      float trks_4to8GeV = 0;
+      float trks_8to15GeV = 0;
+      float trks_15to30GeV = 0;
+      float trks_30to60GeV = 0;
+      float xhzs_1_60to1_30 = 0;
+      float xhzs_1_30to1_15 = 0;
+      float xhzs_1_15to1_8 = 0;
+      float xhzs_1_8to1_4 = 0;
+      float xhzs_1_4to1_2 = 0;
+      float xhzs_1_2to1 = 0;
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
+        const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -1177,7 +1192,40 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
+
+        if (3*pi/4 <= dphi) {
+          if (trkpt < 60) {
+            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
+            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
+            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
+            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
+            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
+            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+          }
+ 
+          if (1./60. <= xhz) {
+            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
+            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
+            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
+            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
+            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
+            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+          }
+        }
       } // end loop over tracks
+
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
 
     } // end loop over Pb+Pb tree
     cout << "Done primary Pb+Pb loop." << endl;
@@ -1241,8 +1289,23 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+
+      float trks_1to2GeV = 0;
+      float trks_2to4GeV = 0;
+      float trks_4to8GeV = 0;
+      float trks_8to15GeV = 0;
+      float trks_15to30GeV = 0;
+      float trks_30to60GeV = 0;
+      float xhzs_1_60to1_30 = 0;
+      float xhzs_1_30to1_15 = 0;
+      float xhzs_1_15to1_8 = 0;
+      float xhzs_1_8to1_4 = 0;
+      float xhzs_1_4to1_2 = 0;
+      float xhzs_1_2to1 = 0;
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
+        const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
           continue;
@@ -1275,7 +1338,40 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, trkWeight);
           }
         }
+
+        if (3*pi/4 <= dphi) {
+          if (trkpt < 60) {
+            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
+            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
+            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
+            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
+            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
+            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+          }
+ 
+          if (1./60. <= xhz) {
+            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
+            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
+            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
+            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
+            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
+            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+          }
+        }
       } // end loop over tracks
+
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
+      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
+      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
 
     } // end loop over pp tree
     cout << "Done primary pp loop." << endl;
@@ -5324,7 +5420,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
   if (!iaaCalculated)
     CalculateIAA ();
 
-  short iPtZLo = 3;
+  short iPtZLo = 2;
   short iPtZHi = nPtZBins;
   short iCentLo = 1;
   short iCentHi = numCentBins;
@@ -5337,18 +5433,18 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 400*(numCentBins-1), 800);
-    c->Divide (numCentBins-1, 2);
+    c = new TCanvas (canvasName, "", 400*(numCentBins-1), 1200);
+    c->Divide (numCentBins-1, iPtZHi - iPtZLo);
     gDirectory->Add (c);
   }
 
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const Style_t markerStyle = (iSpc == 0 ? kOpenCircle : kFullCircle);
 
     for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+        const Style_t markerStyle = kFullCircle;
         c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
 
         gPad->SetLogx ();
@@ -5357,19 +5453,18 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         RecenterGraph (g);
 
         if (!plotAsSystematic) {
-          //deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
           ResetXErrors (g);
-          //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
-          g->SetLineColor (colors[iPtZ-iPtZLo+1]);
-          g->SetMarkerColor (colors[iPtZ-iPtZLo+1]);
+          deltaize (g, 1+iSpc*0.04-0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+          g->SetLineColor (colors[2*(iPtZ-iPtZLo)+iSpc+1]);
+          g->SetMarkerColor (colors[2*(iPtZ-iPtZLo)+iSpc+1]);
           g->SetMarkerStyle (markerStyle);
-          g->SetMarkerSize (1.2);
+          g->SetMarkerSize (1);
           g->SetLineWidth (2);
         } else {
           g->SetMarkerSize (0); 
           g->SetLineWidth (1);
-          g->SetLineColor (colors[iPtZ-iPtZLo+1]);
-          g->SetFillColorAlpha (fillColors[iPtZ-iPtZLo+1], 0.3);
+          g->SetLineColor (colors[iSpc*(iCent-iCentLo)+1]);
+          g->SetFillColorAlpha (fillColors[iSpc*(iCent-iCentLo)+1], 0.3);
         }
 
         useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -5392,7 +5487,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         g->GetYaxis ()->SetLabelFont (43);
         g->GetYaxis ()->SetLabelSize (axisTextSize);
 
-        g->GetXaxis ()->SetTitleOffset (2.0 * g->GetXaxis ()->GetTitleOffset ());
+        g->GetXaxis ()->SetTitleOffset (3.0 * g->GetXaxis ()->GetTitleOffset ());
         g->GetYaxis ()->SetTitleOffset (2.0 * g->GetYaxis ()->GetTitleOffset ());
 
         if (!plotAsSystematic) {
@@ -5410,7 +5505,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
       for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
         for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
           c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
-          if (iPtZ == iPtZHi-1)
+          if (iPtZ == iPtZLo+1)
             myText (0.65, 0.85, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
           if (iCent == iCentLo && iPtZ == iPtZLo) {
             myText (0.25, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.08);
@@ -5429,14 +5524,13 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
               myText (0.356, 0.875, kBlack, "ee", 0.06);
               myText (0.436, 0.875, kBlack, "#mu#mu", 0.06);
             }
-            myMarkerTextNoLine (0.490, 0.810-0.10*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kFullCircle, "", 1.8, 0.06);
-            myMarkerTextNoLine (0.410, 0.810-0.10*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], kOpenCircle, "", 1.8, 0.06);
+            myMarkerTextNoLine (0.490, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+1], kFullCircle, "", 1.3, 0.06);
+            myMarkerTextNoLine (0.410, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+2], kFullCircle, "", 1.3, 0.06);
             if (iPtZ == nPtZBins-1)
               myText (0.500, 0.80-0.10*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.06);
             else
               myText (0.500, 0.80-0.10*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.06);
           }
-
         } // end loop over iPtZ
       } // end loop over iCent
     }
