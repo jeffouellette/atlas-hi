@@ -8,48 +8,12 @@
 
 #include <Utilities.h>
 
+#include "header.h"
+
 using namespace Pythia8;
 using namespace atlashi;
+using namespace pullstudy;
 
-float GetPtHatMin (int iPtZ) {
-  switch (iPtZ) {
-    case 2: return 5;
-    case 3: return 15;
-    case 4: return 30;
-    default: return 0;
-  }
-}
-
-float GetMinZPt (int iPtZ) {
-  switch (iPtZ) {
-    case 2: return 15;
-    case 3: return 30;
-    case 4: return 60;
-    default: return 0;
-  }
-}
-
-float GetMaxZPt (int iPtZ) {
-  switch (iPtZ) {
-    case 2: return 30;
-    case 3: return 60;
-    case 4: return 10000;
-    default: return 0;
-  }
-}
-
-int GetNEvents (int iPtZ, int iCent) {
-  if (iPtZ == 2 && iCent == 1) return 657;
-  if (iPtZ == 2 && iCent == 2) return 1501;
-  if (iPtZ == 2 && iCent == 3) return 1587;
-  if (iPtZ == 3 && iCent == 1) return 354;
-  if (iPtZ == 3 && iCent == 2) return 848;
-  if (iPtZ == 3 && iCent == 3) return 849;
-  if (iPtZ == 4 && iCent == 1) return 141;
-  if (iPtZ == 4 && iCent == 2) return 318;
-  if (iPtZ == 4 && iCent == 3) return 318;
-  return 0;
-}
 
 int main (int argc, char** argv) {
 

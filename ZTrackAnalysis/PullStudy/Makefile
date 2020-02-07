@@ -1,6 +1,6 @@
 CXX=g++
 CXXFLAGS=-O3 -g -Wall `root-config --cflags` -I$(ATLAS_PATH)/include -I$(ROOT_UTIL_PATH) -I$(PYTHIA8_DIR)/include
-LDFLAGS=-Wl,-rpath,-rpath-link `root-config --glibs` -L$(ATLAS_PATH)/lib -L$(ROOT_UTIL_PATH) -L$(PYTHIA8_DIR)/lib -lGlobalParams -lUtilities -lAtlasUtils -lAtlasStyle -ldl
+LDFLAGS=-Wl,-rpath `root-config --libdir --glibs` -L$(ATLAS_PATH)/lib -L$(ROOT_UTIL_PATH) -L$(PYTHIA8_DIR)/lib -lGlobalParams -lUtilities -lAtlasUtils -lAtlasStyle -ldl
 
 reqdirs= bin outputs logs errors Plots
 
