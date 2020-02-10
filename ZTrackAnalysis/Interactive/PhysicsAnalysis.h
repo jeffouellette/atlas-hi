@@ -5488,7 +5488,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         g->GetYaxis ()->SetLabelSize (axisTextSize);
 
         g->GetXaxis ()->SetTitleOffset (3.0 * g->GetXaxis ()->GetTitleOffset ());
-        g->GetYaxis ()->SetTitleOffset (2.0 * g->GetYaxis ()->GetTitleOffset ());
+        g->GetYaxis ()->SetTitleOffset (3.0 * g->GetYaxis ()->GetTitleOffset ());
 
         if (!plotAsSystematic) {
           string drawString = string (!canvasExists && iSpc == 0 ? "AP" : "P");

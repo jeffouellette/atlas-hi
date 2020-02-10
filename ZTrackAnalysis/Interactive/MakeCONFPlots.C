@@ -37,8 +37,8 @@ void MakeCONFPlots () {
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Load our histograms and systematics graphs
   ////////////////////////////////////////////////////////////////////////////////////////////////
-  TFile* resultsFile = new TFile ("../rootFiles/Results/finalResults.root", "read");
-  TFile* sysFile = new TFile ("../rootFiles/Systematics/CombinedSys.root", "read");
+  TFile* resultsFile = new TFile ("../rootFiles/Results/CONFNote/finalResults.root", "read");
+  TFile* sysFile = new TFile ("../rootFiles/Results/CONFNote/CombinedSys.root", "read");
 
   TH1D*** h_ztrk_pt_iaa_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
   TH1D*** h_ztrk_xhz_iaa_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
