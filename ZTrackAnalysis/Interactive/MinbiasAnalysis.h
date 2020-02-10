@@ -168,7 +168,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
   CreateHists ();
 
-  eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
+  //eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
 
 
   // Get TTree with mixed event pool
@@ -279,6 +279,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   bool HLT_noalg_pc_L1TE50_VTE600_0ETA49 = false;
   bool HLT_noalg_cc_L1TE600_0ETA49 = false;
 
+  float** trk_counts = Get2DArray <float> (2, 6);
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Do this if TTree is PbPb
@@ -464,7 +465,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         continue; // skip unneeded events
 
       //{
-      //  //CorrectQ2Vector (z_q2x_a, z_q2y_a, z_q2x_c, z_q2y_c);
+      //  CorrectQ2Vector (z_q2x_a, z_q2y_a, z_q2x_c, z_q2y_c);
       //  const float z_q2x = z_q2x_a + z_q2x_c;
       //  const float z_q2y = z_q2y_a + z_q2y_c;
       //  z_q2 = sqrt (z_q2x*z_q2x + z_q2y*z_q2y) / fcal_et;
@@ -502,7 +503,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
           //{
-          //  //CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
+          //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
           //  const float q2x = q2x_a + q2x_c;
           //  const float q2y = q2y_a + q2y_c;
           //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
@@ -587,19 +588,6 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      float trks_1to2GeV = 0;
-      float trks_2to4GeV = 0;
-      float trks_4to8GeV = 0;
-      float trks_8to15GeV = 0;
-      float trks_15to30GeV = 0;
-      float trks_30to60GeV = 0;
-      float xhzs_1_60to1_30 = 0;
-      float xhzs_1_30to1_15 = 0;
-      float xhzs_1_15to1_8 = 0;
-      float xhzs_1_8to1_4 = 0;
-      float xhzs_1_4to1_2 = 0;
-      float xhzs_1_2to1 = 0;
-
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
@@ -635,37 +623,39 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
         if (3*pi/4 <= dphi) {
           if (trkpt < 60) {
-            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
-            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
-            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
-            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
-            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
-            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+            if (30 <= trkpt)      trk_counts[0][5] += trkWeight;
+            else if (15 <= trkpt) trk_counts[0][4] += trkWeight;
+            else if (8 <= trkpt)  trk_counts[0][3] += trkWeight;
+            else if (4 <= trkpt)  trk_counts[0][2] += trkWeight;
+            else if (2 <= trkpt)  trk_counts[0][1] += trkWeight;
+            else if (1 <= trkpt)  trk_counts[0][0] += trkWeight;
           }
-   
+ 
           if (1./60. <= xhz) {
-            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
-            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
-            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
-            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
-            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
-            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+            if (xhz <= 1./30.)      trk_counts[1][0] += trkWeight;
+            else if (xhz <= 1./15.) trk_counts[1][1] += trkWeight;
+            else if (xhz <= 1./8.)  trk_counts[1][2] += trkWeight;
+            else if (xhz <= 1./4.)  trk_counts[1][3] += trkWeight;
+            else if (xhz <= 1./2.)  trk_counts[1][4] += trkWeight;
+            else if (xhz <= 1.)     trk_counts[1][5] += trkWeight;
           }
         }
       } // end loop over tracks
 
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
+      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), trk_counts[0][i1]);
+        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), 0.5*(ptTrkBins[iPtZ][i2]+ptTrkBins[iPtZ][i2+1]), (trk_counts[0][i1])*(trk_counts[0][i2]));
+      } // end loop over i1
+      for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), trk_counts[1][i1]);
+        for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), (trk_counts[1][i1])*(trk_counts[0][i2]));
+      } // end loop over i1
+      for (int i = 0; i < 6; i++) {
+        trk_counts[0][i] = 0;
+        trk_counts[1][i] = 0;
+      } // end loop over i
 
     } // end loop over Pb+Pb tree
 
@@ -872,19 +862,6 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
 
-      float trks_1to2GeV = 0;
-      float trks_2to4GeV = 0;
-      float trks_4to8GeV = 0;
-      float trks_8to15GeV = 0;
-      float trks_15to30GeV = 0;
-      float trks_30to60GeV = 0;
-      float xhzs_1_60to1_30 = 0;
-      float xhzs_1_30to1_15 = 0;
-      float xhzs_1_15to1_8 = 0;
-      float xhzs_1_8to1_4 = 0;
-      float xhzs_1_4to1_2 = 0;
-      float xhzs_1_2to1 = 0;
-
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
@@ -923,39 +900,41 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           }
         }
 
-        if (3*pi/4 <= dphi) {
+        if ((!doPPMixingVar && 3*pi/4 <= dphi) || (doPPMixingVar && 7.*pi/8. <= dphi)) {
           if (trkpt < 60) {
-            if (30 <= trkpt)      trks_30to60GeV += trkWeight;
-            else if (15 <= trkpt) trks_15to30GeV += trkWeight;
-            else if (8 <= trkpt)  trks_8to15GeV += trkWeight;
-            else if (4 <= trkpt)  trks_4to8GeV += trkWeight;
-            else if (2 <= trkpt)  trks_2to4GeV += trkWeight;
-            else if (1 <= trkpt)  trks_1to2GeV += trkWeight;
+            if (30 <= trkpt)      trk_counts[0][5] += trkWeight;
+            else if (15 <= trkpt) trk_counts[0][4] += trkWeight;
+            else if (8 <= trkpt)  trk_counts[0][3] += trkWeight;
+            else if (4 <= trkpt)  trk_counts[0][2] += trkWeight;
+            else if (2 <= trkpt)  trk_counts[0][1] += trkWeight;
+            else if (1 <= trkpt)  trk_counts[0][0] += trkWeight;
           }
-   
+ 
           if (1./60. <= xhz) {
-            if (xhz <= 1./30.)      xhzs_1_60to1_30 += trkWeight;
-            else if (xhz <= 1./15.) xhzs_1_30to1_15 += trkWeight;
-            else if (xhz <= 1./8.)  xhzs_1_15to1_8 += trkWeight;
-            else if (xhz <= 1./4.)  xhzs_1_8to1_4 += trkWeight;
-            else if (xhz <= 1./2.)  xhzs_1_4to1_2 += trkWeight;
-            else if (xhz <= 1.)     xhzs_1_2to1 += trkWeight;
+            if (xhz <= 1./30.)      trk_counts[1][0] += trkWeight;
+            else if (xhz <= 1./15.) trk_counts[1][1] += trkWeight;
+            else if (xhz <= 1./8.)  trk_counts[1][2] += trkWeight;
+            else if (xhz <= 1./4.)  trk_counts[1][3] += trkWeight;
+            else if (xhz <= 1./2.)  trk_counts[1][4] += trkWeight;
+            else if (xhz <= 1.)     trk_counts[1][5] += trkWeight;
           }
         }
       } // end loop over tracks
 
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1+2),   trks_1to2GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(2+4),   trks_2to4GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(4+8),   trks_4to8GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(8+15),  trks_8to15GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(15+30), trks_15to30GeV);
-      h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(30+60), trks_30to60GeV);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./60.+1./30.),  xhzs_1_60to1_30);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./30.+1./15.),  xhzs_1_30to1_15);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./15.+1./8.),   xhzs_1_15to1_8);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./8.+1./4.),    xhzs_1_8to1_4);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./4.+1./2.),    xhzs_1_4to1_2);
-      h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(1./2.+1.),       xhzs_1_2to1);
+      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), trk_counts[0][i1]);
+        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), 0.5*(ptTrkBins[iPtZ][i2]+ptTrkBins[iPtZ][i2+1]), (trk_counts[0][i1])*(trk_counts[0][i2]));
+      } // end loop over i1
+      for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), trk_counts[1][i1]);
+        for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), (trk_counts[1][i1])*(trk_counts[0][i2]));
+      } // end loop over i1
+      for (int i = 0; i < 6; i++) {
+        trk_counts[0][i] = 0;
+        trk_counts[1][i] = 0;
+      } // end loop over i
 
     } // end loop over pp tree
 
@@ -975,12 +954,14 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   mixedEventsFile->Close ();
   SaferDelete (mixedEventsFile);
 
-  if (inFile) inFile->Close ();
-  SaferDelete (inFile);
+  Delete2DArray (trk_counts, 2, 6);
 
   SaveHists (outFileName);
 
-  mbInFile->Close ();
+  if (inFile) inFile->Close ();
+  SaferDelete (inFile);
+
+  if (mbInFile) mbInFile->Close ();
   SaferDelete (mbInFile);
 }
 
