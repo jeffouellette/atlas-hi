@@ -8,6 +8,7 @@
 #include <set>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 using namespace atlashi;
@@ -269,16 +270,16 @@ void LatexXHZBins () {
 
 
 // Calculates the greatest-common-denominator of a & b, for use in converting decimal to fractional representations
-long gcd (long a, long b) {
+long myGCD (long a, long b) {
   if (a == 0)
     return b;
   else if (b == 0)
     return a;
 
   if (a < b)
-    return gcd (a, b % a);
+    return myGCD (a, b % a);
   else
-    return gcd (b, a % b);
+    return myGCD (b, a % b);
 }
 
 
@@ -304,7 +305,7 @@ const char* GetPiString (double phi) {
   }
   else {
     const long precision = 1000000000;
-    long _gcd = gcd (round (fracPart * precision), precision);
+    long _gcd = myGCD (round (fracPart * precision), precision);
 
     denom = (int)(precision / _gcd);
     numer = (int)(round (fracPart * precision) / _gcd);

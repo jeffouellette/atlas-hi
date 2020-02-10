@@ -280,7 +280,7 @@ class PhysicsAnalysis {
   virtual void LoadTrackingPurities (const bool doRebin = false); // defaults to HILoose
   virtual double GetTrackingPurity (const float fcal_et, float trk_pt, const float trk_eta, const bool isPbPb = true);
 
-  void CorrectQ2Vector (float& qx_a, float& qy_a, float& qx_c, float& qy_c);
+  void CorrectQ2Vector (float& q2x_a, float& q2y_a, float& q2x_c, float& q2y_c);
 
   void PrintZYields (const int iPtZ = 2);
 
@@ -733,7 +733,6 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
 
   TDirectory* _gDirectory = gDirectory;
   histFile = new TFile (Form ("%s/%s", rootPath.Data (), histFileName), "read");
-
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -1040,15 +1039,17 @@ void PhysicsAnalysis :: ScaleHists () {
           // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
           TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
           TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+          assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            for (int iY = 1; iY <= h->GetNbinsX (); iX++)
+            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) / (pow ((doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), 2) * (h->GetBinWidth (iX)*h->GetBinWidth (iY))) - (2*counts-1)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           h2->Scale (1. / (counts-1));
 
           h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
           h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+          assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            for (int iY = 1; iY <= h->GetNbinsX (); iX++)
+            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) / (pow ((doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), 2) * (h->GetBinWidth (iX)*h->GetBinWidth (iY))) - (2*counts-1)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           h2->Scale (1. / (counts-1));
         }
@@ -1095,7 +1096,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   bool isEE = false;
   float event_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
-  float qx_a = 0, qy_a = 0, qx_c = 0, qy_c = 0;
+  //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -1111,10 +1112,10 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
     PbPbTree->SetBranchAddress ("event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",         &isEE);
     PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
-    PbPbTree->SetBranchAddress ("qx_a",         &qx_a);
-    PbPbTree->SetBranchAddress ("qy_a",         &qy_a);
-    PbPbTree->SetBranchAddress ("qx_c",         &qx_c);
-    PbPbTree->SetBranchAddress ("qy_c",         &qy_c);
+    //PbPbTree->SetBranchAddress ("q2x_a",         &q2x_a);
+    //PbPbTree->SetBranchAddress ("q2y_a",         &q2y_a);
+    //PbPbTree->SetBranchAddress ("q2x_c",         &q2x_c);
+    //PbPbTree->SetBranchAddress ("q2y_c",         &q2y_c);
     PbPbTree->SetBranchAddress ("q2",           &q2);
     PbPbTree->SetBranchAddress ("psi2",         &psi2);
     PbPbTree->SetBranchAddress ("vz",           &vz);
@@ -1154,11 +1155,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         continue;
 
       //{
-      //  CorrectQ2Vector (qx_a, qy_a, qx_c, qy_c);
-      //  const float qx = qx_a + qx_c;
-      //  const float qy = qy_a + qy_c;
-      //  q2 = sqrt (qx*qx + qy*qy) / fcal_et;
-      //  psi2 = 0.5 * atan2 (qy, qx);
+      //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
+      //  const float q2x = q2x_a + q2x_c;
+      //  const float q2y = q2y_a + q2y_c;
+      //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
+      //  psi2 = 0.5 * atan2 (q2y, q2x);
       //}
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
@@ -1929,14 +1930,14 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Takes references to the q2 vector entries in each detector side and corrects them.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: CorrectQ2Vector (float& qx_a, float& qy_a, float& qx_c, float& qy_c) {
-  float temp = eventPlaneCalibrator.CalibrateQ2XA (qx_a, qy_a);
-  qy_a = eventPlaneCalibrator.CalibrateQ2YA (qx_a, qy_a);
-  qx_a = temp;
+void PhysicsAnalysis :: CorrectQ2Vector (float& q2x_a, float& q2y_a, float& q2x_c, float& q2y_c) {
+  float temp = eventPlaneCalibrator.CalibrateQ2XA (q2x_a, q2y_a);
+  q2y_a = eventPlaneCalibrator.CalibrateQ2YA (q2x_a, q2y_a);
+  q2x_a = temp;
 
-  temp = eventPlaneCalibrator.CalibrateQ2XC (qx_c, qy_c);
-  qy_c = eventPlaneCalibrator.CalibrateQ2YC (qx_c, qy_c);
-  qx_c = temp;
+  temp = eventPlaneCalibrator.CalibrateQ2XC (q2x_c, q2y_c);
+  q2y_c = eventPlaneCalibrator.CalibrateQ2YC (q2x_c, q2y_c);
+  q2x_c = temp;
 }
 
 
