@@ -741,24 +741,24 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
           h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ())); // old name: h_z_trk_phi
         }
 
-        //h_trk_pt_ptz[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]); // old name: h_z_trk_zpt
-        //h_trk_pt_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
-        //h_trk_xhz_ptz[iSpc][iPtZ][iCent] = new TH1D (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]); // old name: h_z_trk_zxzh
-        //h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]); // old name: h_z_trk_zpt
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent] = new TH1D (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]); // old name: h_z_trk_zxzh
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
 
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]       = (TH1D*) histFile->Get (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
-        h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]  = (TH2D*) histFile->Get (Form ("h2_trk_pt_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]      = (TH1D*) histFile->Get (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
-        h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent] = (TH2D*) histFile->Get (Form ("h2_trk_xhz_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+        //h_trk_pt_ptz[iSpc][iPtZ][iCent]       = (TH1D*) histFile->Get (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]  = (TH2D*) histFile->Get (Form ("h2_trk_pt_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        //h_trk_xhz_ptz[iSpc][iPtZ][iCent]      = (TH1D*) histFile->Get (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+        //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent] = (TH2D*) histFile->Get (Form ("h2_trk_xhz_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_raw_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_raw_pt
           h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_pt
           h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_trk_xhz_dphi_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_xzh
-          //if (iSpc != 2 && iPhi != 0) {
-          //  if (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent])  h_trk_pt_ptz[iSpc][iPtZ][iCent]->Add   (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
-          //  if (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Add  (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
-          //}
+          if (iSpc != 2 && iPhi != 0) {
+            if (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent])  h_trk_pt_ptz[iSpc][iPtZ][iCent]->Add   (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
+            if (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Add  (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+          }
         }
       }  
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
@@ -1033,6 +1033,9 @@ void PhysicsAnalysis :: ScaleHists () {
         } // end loop over phi
 
         if (counts > 0) {
+          //h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
+          //h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
+
           // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
           // then use diagonals of the covariance matrix to determine statistical uncertainties
           TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];

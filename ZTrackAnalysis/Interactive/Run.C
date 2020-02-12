@@ -18,34 +18,22 @@
 
 #include "PlotHybridModel.h"
 
-const bool doSys = true;
+const bool doSys = false;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
-//PhysicsAnalysis* data18_a = nullptr;
-//PhysicsAnalysis* data18_b = nullptr;
-//PhysicsAnalysis* data18_c = nullptr;
-//PhysicsAnalysis* data18_d = nullptr;
-//PhysicsAnalysis* data18_e = nullptr;
 //FullAnalysis* data15 = nullptr;
 MinbiasAnalysis* bkg18 = nullptr;
-//MinbiasAnalysis* bkg18_a = nullptr;
-//MinbiasAnalysis* bkg18_b = nullptr;
-//MinbiasAnalysis* bkg18_c = nullptr;
-//MinbiasAnalysis* bkg18_d = nullptr;
-//MinbiasAnalysis* bkg18_e = nullptr;
 //MinbiasAnalysis* bkg15 = nullptr;
 MCAnalysis* mc = nullptr;
-MixedMCAnalysis* mc_mixed = nullptr;
-MCClosureAnalysis* mc_closure = nullptr;
-//MCAnalysis* mc_bkg = nullptr;
 MinbiasAnalysis* mc_bkg = nullptr;
 TruthAnalysis* truth = nullptr;
 
 // master systematics objects
 Systematic* combSys = nullptr;
 Systematic* bkgStatSys = nullptr;
-//Systematic* bkgMixSys = nullptr;
+Systematic* bkgMixSys = nullptr;
+Systematic* ppMixSys = nullptr;
 TrackIDSystematic* trkSys = nullptr;
 ReweightingSystematic* trkEffSysWeights = nullptr;
 Systematic* trkEffSys = nullptr;
@@ -61,8 +49,12 @@ Systematic* muonPtSys = nullptr;
 // variations for systematics
 MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
-//MinbiasAnalysis* bkg_mixUpVar = nullptr, *bkg_mixDownVar = nullptr;
-//PhysicsAnalysis* data_mixUpVar = nullptr, *data_mixDownVar = nullptr;
+
+MinbiasAnalysis* bkg_mixVarA = nullptr, *bkg_mixVarB = nullptr, *bkg_mixVarC = nullptr, *bkg_mixVarD = nullptr, *bkg_mixVarE = nullptr, *bkg_mixVarF = nullptr, *bkg_mixVarG = nullptr, *bkg_mixVarH = nullptr;
+PhysicsAnalysis* data_mixVarA = nullptr, *data_mixVarB = nullptr, *data_mixVarC = nullptr, *data_mixVarD = nullptr, *data_mixVarE = nullptr, *data_mixVarF = nullptr, *data_mixVarG = nullptr, *data_mixVarH = nullptr;
+
+MinbiasAnalysis* bkg_ppTransMinVar = nullptr, *bkg_ppTransMaxVar = nullptr;
+PhysicsAnalysis* data_ppTransMinVar = nullptr, *data_ppTransMaxVar = nullptr;
 
 PhysicsAnalysis* data_trackHItight = nullptr, *data_trkIDUpVar = nullptr, *data_trkIDDownVar = nullptr;
 MinbiasAnalysis* bkg_trkIDUpVar = nullptr, *bkg_trkIDDownVar = nullptr;
@@ -78,30 +70,20 @@ PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
+int mixingFraction = 0;
+
 
 void Run () {
   data18    = new FullAnalysis ("data18");
-  //data18_a    = new PhysicsAnalysis ("data18");
-  //data18_b    = new PhysicsAnalysis ("data18");
-  //data18_c    = new PhysicsAnalysis ("data18");
-  //data18_d    = new PhysicsAnalysis ("data18");
-  //data18_e    = new PhysicsAnalysis ("data18");
   //data15  = new FullAnalysis ("data15");
   //data15->is2015Conds = true;
   //data15->useHijingEffs = true;
   bkg18     = new MinbiasAnalysis ("bkg");
-  //bkg18_a     = new MinbiasAnalysis ("bkg");
-  //bkg18_b     = new MinbiasAnalysis ("bkg");
-  //bkg18_c     = new MinbiasAnalysis ("bkg");
-  //bkg18_d     = new MinbiasAnalysis ("bkg");
-  //bkg18_e     = new MinbiasAnalysis ("bkg");
   //bkg15->is2015Conds = true;
   //bkg15->useHijingEffs = true;
 
-  //mc      = new MCAnalysis ();
-  //mc_closure = new MCClosureAnalysis ("mc_closure");
-  //mc_bkg  = new MCAnalysis ("mc_bkg");
-  //mc_bkg  = new MinbiasAnalysis ("bkg");
+  mc      = new MCAnalysis ();
+  mc_bkg  = new MinbiasAnalysis ("mc_bkg");
   //truth   = new TruthAnalysis ();
 
   if (doSys) {
@@ -110,6 +92,8 @@ void Run () {
     bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
     bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
 
+    //data_mixVar             = new PhysicsAnalysis ("data_psi2mixed");
+    //bkg_mixVar              = new MinbiasAnalysis ("bkg_psi2mixed");
     //data_mixUpVar           = new PhysicsAnalysis ("data_mixUpVar");
     //data_mixDownVar         = new PhysicsAnalysis ("data_mixDownVar");
     //bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
@@ -156,9 +140,10 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
   }
 
-  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
+  /*
   if (doSys) {
     //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
     //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
@@ -170,51 +155,25 @@ void Run () {
     data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
     data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
   }
+  */
+
+
+  mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
+  mc_bkg->LoadHists   ("MCAnalysis/Variations/PPMixingVariation/mixedHists.root");
+  //mc_bkg->LoadHists   ("MCAnalysis/Nominal/mixedHists.root");
+  mc->SubtractBackground (mc_bkg);
+  mc->CalculateIAA ();
+  //SaferDelete (mc_bkg);
 
 
   data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
-  //data18_a->LoadHists   ("DataAnalysis/Nominal/data18hi_hists_A.root");
-  //data18_a->SetName ("data18_a");
-  //data18_b->LoadHists   ("DataAnalysis/Nominal/data18hi_hists_B.root");
-  //data18_b->SetName ("data18_b");
-  //data18_c->LoadHists   ("DataAnalysis/Nominal/data18hi_hists_C.root");
-  //data18_c->SetName ("data18_c");
-  //data18_d->LoadHists   ("DataAnalysis/Nominal/data18hi_hists_D.root");
-  //data18_d->SetName ("data18_d");
-  //data18_e->LoadHists   ("DataAnalysis/Nominal/data18hi_hists_E.root");
-  //data18_e->SetName ("data18_e");
   //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
   bkg18->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists.root");
-  //bkg18_a->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists_A.root");
-  //bkg18_a->SetName ("bkg18_a");
-  //bkg18_b->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists_B.root");
-  //bkg18_b->SetName ("bkg18_b");
-  //bkg18_c->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists_C.root");
-  //bkg18_c->SetName ("bkg18_c");
-  //bkg18_d->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists_D.root");
-  //bkg18_d->SetName ("bkg18_d");
-  //bkg18_e->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists_E.root");
-  //bkg18_e->SetName ("bkg18_e");
   //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
-  //mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
-  //mc_closure->LoadHists ("MCClosureAnalysis/Nominal/savedHists.root");
-  //mc_bkg->LoadHists   ("MCAnalysis/Nominal/mc_bkg_hists.root");
-  //mc_bkg->LoadHists   ("MinbiasAnalysis/Nominal/mc_bkg_hists.root");
-  //mc_mixed->LoadHists   ("MixedMCAnalysis/Nominal/mc_bkg_hists.root");
   //truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
 
   data18->SubtractBackground (bkg18);
   data18->CalculateIAA ();
-  //data18_a->SubtractBackground (bkg18_a);
-  //data18_a->CalculateIAA ();
-  //data18_b->SubtractBackground (bkg18_b);
-  //data18_b->CalculateIAA ();
-  //data18_c->SubtractBackground (bkg18_c);
-  //data18_c->CalculateIAA ();
-  //data18_d->SubtractBackground (bkg18_d);
-  //data18_d->CalculateIAA ();
-  //data18_e->SubtractBackground (bkg18_e);
-  //data18_e->CalculateIAA ();
 
   //data15->SubtractBackground (bkg15);
   //data15->CalculateIAA ();
@@ -225,20 +184,15 @@ void Run () {
   //data18->CalculateZMassSpectraRatio (mc);
   //data15->CalculateZMassSpectraRatio (mc);
 
-  //mc->SubtractBackground (mc_mixed);
-  //mc->SubtractBackground (mc_bkg);
-  //mc->CalculateIAA ();
-  //mc_closure->SubtractBackground (mc_bkg);
-  //mc_closure->CalculateIAA ();
   //truth->SubtractBackground ();
   //truth->CalculateIAA ();
 
-  /*
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
     bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Stat.");
     bkgStatSys->cancelIAA = false;
-    //bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
+    bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
+    ppMixSys = new Systematic (data18, "ppMixSys", "#it{pp} mixing");
     trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
     trkEffSysWeights = new ReweightingSystematic ("trkEffSysWeights");
     trkEffSys = new Systematic (data18, "trkEffSys", "Particle Composition");
@@ -257,6 +211,7 @@ void Run () {
     combSys = new Systematic (data18, "combSys", "Total");
 
 
+    /*
     cout << "Calculating bkg. stat. systematic errors." << endl;
     data_bkgStatUpVar->CopyAnalysis (data18, false);
     data_bkgStatDownVar->CopyAnalysis (data18, false);
@@ -271,25 +226,145 @@ void Run () {
     bkgStatSys->AddVariation (data_bkgStatUpVar, true);
     bkgStatSys->AddVariation (data_bkgStatDownVar, true);
     bkgStatSys->AddVariations ();
+    SaferDelete (data_bkgStatUpVar);
+    SaferDelete (data_bkgStatDownVar);
+    SaferDelete (bkg_statUpVar);
+    SaferDelete (bkg_statDownVar);
+    */
 
 
-    //cout << "Calculating mixed event systematic errors." << endl;
-    //bkg_mixUpVar->CopyAnalysis (bkg18, false);
-    //bkg_mixDownVar->CopyAnalysis (bkg18, false);
+    cout << "Calculating mixed event systematic errors." << endl;
+    data_mixVarA    = new PhysicsAnalysis ("data_mixVarA");
+    data_mixVarB    = new PhysicsAnalysis ("data_mixVarB");
+    data_mixVarC    = new PhysicsAnalysis ("data_mixVarC");
+    data_mixVarD    = new PhysicsAnalysis ("data_mixVarD");
+    data_mixVarE    = new PhysicsAnalysis ("data_mixVarE");
+    data_mixVarF    = new PhysicsAnalysis ("data_mixVarF");
+    data_mixVarG    = new PhysicsAnalysis ("data_mixVarG");
+    data_mixVarH    = new PhysicsAnalysis ("data_mixVarH");
+    data_mixVarA->CopyAnalysis (data18, false);
+    data_mixVarB->CopyAnalysis (data18, false);
+    data_mixVarC->CopyAnalysis (data18, false);
+    data_mixVarD->CopyAnalysis (data18, false);
+    data_mixVarE->CopyAnalysis (data18, false);
+    data_mixVarF->CopyAnalysis (data18, false);
+    data_mixVarG->CopyAnalysis (data18, false);
+    data_mixVarH->CopyAnalysis (data18, false);
+    bkg_mixVarA     = new MinbiasAnalysis ("bkg_mixVarA");
+    bkg_mixVarB     = new MinbiasAnalysis ("bkg_mixVarB");
+    bkg_mixVarC     = new MinbiasAnalysis ("bkg_mixVarC");
+    bkg_mixVarD     = new MinbiasAnalysis ("bkg_mixVarD");
+    bkg_mixVarE     = new MinbiasAnalysis ("bkg_mixVarE");
+    bkg_mixVarF     = new MinbiasAnalysis ("bkg_mixVarF");
+    bkg_mixVarG     = new MinbiasAnalysis ("bkg_mixVarG");
+    bkg_mixVarH     = new MinbiasAnalysis ("bkg_mixVarH");
+    bkg_mixVarA->LoadHists ("MinbiasAnalysis/Variations/MixingVariationA/data18hi_hists.root");
+    bkg_mixVarB->LoadHists ("MinbiasAnalysis/Variations/MixingVariationB/data18hi_hists.root");
+    bkg_mixVarC->LoadHists ("MinbiasAnalysis/Variations/MixingVariationC/data18hi_hists.root");
+    bkg_mixVarD->LoadHists ("MinbiasAnalysis/Variations/MixingVariationD/data18hi_hists.root");
+    bkg_mixVarE->LoadHists ("MinbiasAnalysis/Variations/MixingVariationE/data18hi_hists.root");
+    bkg_mixVarF->LoadHists ("MinbiasAnalysis/Variations/MixingVariationF/data18hi_hists.root");
+    bkg_mixVarG->LoadHists ("MinbiasAnalysis/Variations/MixingVariationG/data18hi_hists.root");
+    bkg_mixVarH->LoadHists ("MinbiasAnalysis/Variations/MixingVariationH/data18hi_hists.root");
+    data_mixVarA->SubtractBackground (bkg_mixVarA);
+    data_mixVarA->CalculateIAA ();
+    data_mixVarB->SubtractBackground (bkg_mixVarB);
+    data_mixVarB->CalculateIAA ();
+    data_mixVarC->SubtractBackground (bkg_mixVarC);
+    data_mixVarC->CalculateIAA ();
+    data_mixVarD->SubtractBackground (bkg_mixVarD);
+    data_mixVarD->CalculateIAA ();
+    data_mixVarE->SubtractBackground (bkg_mixVarE);
+    data_mixVarE->CalculateIAA ();
+    data_mixVarF->SubtractBackground (bkg_mixVarF);
+    data_mixVarF->CalculateIAA ();
+    data_mixVarG->SubtractBackground (bkg_mixVarG);
+    data_mixVarG->CalculateIAA ();
+    data_mixVarH->SubtractBackground (bkg_mixVarH);
+    data_mixVarH->CalculateIAA ();
     //data_mixUpVar->CopyAnalysis (data18, false);
     //data_mixDownVar->CopyAnalysis (data18, false);
+    //bkg_mixUpVar->CopyAnalysis (bkg18, false);
+    //bkg_mixDownVar->CopyAnalysis (bkg18, false);
     //ApplyBkgVariation (bkg_mixUpVar, 0.005);
     //ApplyBkgVariation (bkg_mixDownVar, -0.005);
     //data_mixUpVar->SubtractBackground (bkg_mixUpVar);
     //data_mixDownVar->SubtractBackground (bkg_mixDownVar);
     //bkgMixSys->AddVariation (data_mixUpVar, true);
     //bkgMixSys->AddVariation (data_mixDownVar, true);
-    //bkgMixSys->AddVariations ();
+    bkgMixSys->AddVariation (data_mixVarA);
+    bkgMixSys->AddVariation (data_mixVarB);
+    bkgMixSys->AddVariation (data_mixVarC);
+    bkgMixSys->AddVariation (data_mixVarD);
+    bkgMixSys->AddVariation (data_mixVarE);
+    bkgMixSys->AddVariation (data_mixVarF);
+    bkgMixSys->AddVariation (data_mixVarG);
+    bkgMixSys->AddVariation (data_mixVarH);
+    bkgMixSys->AddVarDesc (data_mixVarA, "1 #Psi_{2} bin");
+    bkgMixSys->AddVarDesc (data_mixVarB, "2 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarC, "4 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarD, "8 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarE, "16 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarF, "32 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarG, "64 #Psi_{2} bins");
+    bkgMixSys->AddVarDesc (data_mixVarH, "16 #Psi_{2} bins + 3 #Psi_{3} bins");
+    bkgMixSys->AddVariations ();
+    //bkgMixSys->AddVariationsUsingStdDev ();
+    //SaferDelete (data_mixUpVar);
+    //SaferDelete (bkg_mixUpVar);
+    //SaferDelete (data_mixDownVar);
+    //SaferDelete (bkg_mixDownVar);
+    //SaferDelete (data_mixVarA);
+    //SaferDelete (data_mixVarB);
+    //SaferDelete (data_mixVarC);
+    //SaferDelete (data_mixVarD);
+    //SaferDelete (data_mixVarE);
+    //SaferDelete (data_mixVarF);
+    //SaferDelete (data_mixVarF);
+    //SaferDelete (data_mixVarH);
+    SaferDelete (bkg_mixVarA);
+    SaferDelete (bkg_mixVarB);
+    SaferDelete (bkg_mixVarC);
+    SaferDelete (bkg_mixVarD);
+    SaferDelete (bkg_mixVarE);
+    SaferDelete (bkg_mixVarF);
+    SaferDelete (bkg_mixVarG);
+    SaferDelete (bkg_mixVarH);
 
 
+    cout << "Calculating pp mixing systematic errors" << endl;
+    data_ppTransMinVar = new PhysicsAnalysis ("data_ppTransMinVar");
+    data_ppTransMinVar->CopyAnalysis (data18, false);
+    bkg_ppTransMinVar = new MinbiasAnalysis ("bkg_ppMixVar");
+    bkg_ppTransMinVar->doPPMixingVar = true;
+    bkg_ppTransMinVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMinVariation/data18hi_hists.root");
+    data_ppTransMinVar->SubtractBackground (bkg_ppTransMinVar);
+    data_ppTransMinVar->CalculateIAA ();
+    SaferDelete (bkg_ppTransMinVar);
 
+    data_ppTransMaxVar = new PhysicsAnalysis ("data_ppTransMaxVar");
+    data_ppTransMaxVar->CopyAnalysis (data18, false);
+    bkg_ppTransMaxVar = new MinbiasAnalysis ("bkg_ppMixVar");
+    bkg_ppTransMaxVar->doPPMixingVar = true;
+    bkg_ppTransMaxVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMaxVariation/data18hi_hists.root");
+    data_ppTransMaxVar->SubtractBackground (bkg_ppTransMaxVar);
+    data_ppTransMaxVar->CalculateIAA ();
+    SaferDelete (bkg_ppTransMaxVar);
+
+    ppMixSys->AddVariation (data_ppTransMinVar);
+    ppMixSys->AddVariation (data_ppTransMaxVar);
+    ppMixSys->AddVariation (data18);
+    ppMixSys->AddVarDesc (data_ppTransMinVar, "Z-Z #it{pp} mixing (trans-min)");
+    ppMixSys->AddVarDesc (data_ppTransMaxVar, "Z-Z #it{pp} mixing (trans-max)");
+    ppMixSys->AddVarDesc (data18, "Z-MinBias #it{pp} mixing");
+    ppMixSys->AddVariations ();
+    //SaferDelete (data_ppTransMinVar);
+    //SaferDelete (data_ppTransMaxVar);
+
+
+    /*
     cout << "Calculating track ID relative systematic errors." << endl;
-    data_trackHItight->LoadHists      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
+    data_trackHItight->LoadHists ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
     trkSys->GetRelativeVariation (data18, data_trackHItight);
     cout << "Applying track ID systematic errors." << endl;
     data_trkIDUpVar->CopyAnalysis (data18, false);
@@ -305,9 +380,16 @@ void Run () {
     trkSys->AddVariation (data_trkIDUpVar, true);
     trkSys->AddVariation (data_trkIDDownVar, true);
     trkSys->AddVariations ();
+    SaferDelete (data_trackHItight);
+    SaferDelete (data_trkIDUpVar);
+    SaferDelete (data_trkIDDownVar);
+    SaferDelete (bkg_trkIDUpVar);
+    SaferDelete (bkg_trkIDDownVar);
 
 
     cout << "Calculating particle composition systematic errors." << endl;
+    data_partComp->LoadHists ("DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
+    trkEffSysWeights->GetRelativeVariations (data18, data_partComp);
     data_partCompUpVar->CopyAnalysis (data18, false);
     data_partCompDownVar->CopyAnalysis (data18, false);
     bkg_partCompUpVar->CopyAnalysis (bkg18, false);
@@ -323,11 +405,15 @@ void Run () {
     trkEffSys->AddVariation (data_partCompUpVar);
     trkEffSys->AddVariation (data_partCompDownVar);
     trkEffSys->AddVariations ();
+    SaferDelete (data_partCompUpVar);
+    SaferDelete (data_partCompDownVar);
+    SaferDelete (bkg_partCompUpVar);
+    SaferDelete (bkg_partCompDownVar);
 
 
     cout << "Calculating track purity systematic errors." << endl;
-    data_trkPurUpVar->LoadHists         ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->LoadHists       ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+    data_trkPurUpVar->LoadHists ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    data_trkPurDownVar->LoadHists ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurUpVar);
     data_trkPurUpVar->CopyAnalysis (data18, false);
@@ -337,7 +423,7 @@ void Run () {
     delete trkPurSysWeights;
     data_trkPurUpVar->SubtractBackground (bkg_trkPurUpVar);
 
-    data_trkPurDownVar->LoadHists       ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+    data_trkPurDownVar->LoadHists ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurDownVar);
     data_trkPurDownVar->CopyAnalysis (data18, false);
@@ -350,17 +436,22 @@ void Run () {
     trkPurSys->AddVariation (data_trkPurUpVar);
     trkPurSys->AddVariation (data_trkPurDownVar);
     trkPurSys->AddVariations ();
+    SaferDelete (data_trkPurUpVar);
+    SaferDelete (data_trkPurDownVar);
+    SaferDelete (bkg_trkPurUpVar);
+    SaferDelete (bkg_trkPurDownVar);
 
 
     cout << "Calculating lepton rejection systematic errors." << endl;
-    data_leptonRejVar->LoadHists      ("DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
+    data_leptonRejVar->LoadHists ("DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
     data_leptonRejVar->SubtractBackground (bkg18);
     leptonRejSys->AddVariation (data_leptonRejVar, -1);
     leptonRejSys->AddVariations ();
+    SaferDelete (data_leptonRejVar);
 
 
     cout << "Calculating electron ES systematic errors." << endl;
-    ElectronSystematicTable* electronPtSysTable = new ElectronSystematicTable ("data18_electronPtSysTable");
+    ElectronSystematicTable* electronPtSysTable = new ElectronSystematicTable ("data_mixVarElectronPtSysTable");
     electronPtSysTable->GetRelativeVariations ("DataAnalysis/Variations/ElectronPtVariation/systematics_electron_scale.root");
     data_electronPtUp->CopyAnalysis (data18, true);
     data_electronPtDown->CopyAnalysis (data18, true);
@@ -369,16 +460,18 @@ void Run () {
     electronPtSys->AddVariation (data_electronPtUp);
     electronPtSys->AddVariation (data_electronPtDown);
     electronPtSys->AddVariations ();
+    SaferDelete (data_electronPtUp);
+    SaferDelete (data_electronPtDown);
 
 
     cout << "Calculating muon ES systematic errors." << endl;
-    data_muonPtUp->LoadHists          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
+    data_muonPtUp->LoadHists ("DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
     data_muonPtUp->SubtractBackground (bkg18);
     data_muonPtUpSysFits->GetRelativeVariations (data18, data_muonPtUp);
     data_muonPtUp->CopyAnalysis (data18, true);
     data_muonPtUpSysFits->ApplyRelativeVariations (data_muonPtUp, true);
 
-    data_muonPtDown->LoadHists        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
+    data_muonPtDown->LoadHists ("DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
     data_muonPtDown->SubtractBackground (bkg18);
     data_muonPtDownSysFits->GetRelativeVariations (data18, data_muonPtDown);
     data_muonPtDown->CopyAnalysis (data18, true);
@@ -389,6 +482,8 @@ void Run () {
     muonPtSys->AddVariation (data_muonPtUp);
     muonPtSys->AddVariation (data_muonPtDown);
     muonPtSys->AddVariations ();
+    SaferDelete (data_muonPtUp);
+    SaferDelete (data_muonPtDown);
 
 
     cout << "Adding errors in quadrature." << endl;
@@ -399,21 +494,21 @@ void Run () {
     combSys->AddSystematic (electronPtSys);
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematic (bkgStatSys);
-    //combSys->AddSystematic (bkgMixSys);
+    combSys->AddSystematic (bkgMixSys);
     combSys->AddSystematics ();
 
     trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
     trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
     trkPurSys->SaveGraphs ("Systematics/TrackPurSys.root");
     bkgStatSys->SaveGraphs ("Systematics/BkgStatSys.root");
-    //bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
+    bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
     leptonRejSys->SaveGraphs ("Systematics/LeptonRejSys.root");
     electronPtSys->SaveGraphs ("Systematics/ElectronPtSys.root");
     muonPtSys->SaveGraphs ("Systematics/MuonPtSys.root");
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
+    */
 
   }
-  */
 
 
   SetupDirectories ("", "ZTrackAnalysis/");
