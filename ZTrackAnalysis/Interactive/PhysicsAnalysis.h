@@ -1051,11 +1051,11 @@ void PhysicsAnalysis :: ScaleHists () {
           h2->Scale (1. / (counts-1));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
 
-          h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+          h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
           h->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
-          h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+          h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
           h2->Scale (1./ pow (doPPMixingVar && iCent == 0 ? pi/8. : pi/4., 2), "width");
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
@@ -1065,7 +1065,7 @@ void PhysicsAnalysis :: ScaleHists () {
           h2->Scale (1. / (counts-1));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
