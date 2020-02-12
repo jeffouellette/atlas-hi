@@ -472,9 +472,6 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       //  z_psi2 = 0.5 * atan2 (z_q2y, z_q2x);
       //}
 
-      //if (2995.94 < z_fcal_et && z_fcal_et < 5000 && iZEvt >= 10*nZEvts) // temporary max mixing fraction of 10 in central-most bin
-      //  continue;
-
 
       // Find the next unused minimum bias event
       {
@@ -496,6 +493,11 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           cout << "Out-of-bounds psi3, skipping this Z!" << endl;
           continue;
         }
+
+        // disable big branches during event mixing
+        mbTree->SetBranchStatus ("trk_pt", 0);
+        mbTree->SetBranchStatus ("trk_eta", 0);
+        mbTree->SetBranchStatus ("trk_phi", 0);
         
         bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
@@ -533,6 +535,12 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           continue;
         }
         mbEventsUsed[iMBEvt] = true;
+
+        // reenable big branches after finding a suitable event
+        mbTree->SetBranchStatus ("trk_pt", 1);
+        mbTree->SetBranchStatus ("trk_eta", 1);
+        mbTree->SetBranchStatus ("trk_phi", 1);
+        mbTree->GetEntry (mbEventOrder[iMBEvt]);
       }
 
       // at this point we have a Z boson and a new (unique & random) event to mix with
@@ -822,8 +830,12 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         //if (iFCalEt < 0 || iFCalEt > numppCentBins)
         //  continue;
 
-        bool goodMixEvent = false;
+        // disable big branches during event mixing
+        mbTree->SetBranchStatus ("trk_pt", 0);
+        mbTree->SetBranchStatus ("trk_eta", 0);
+        mbTree->SetBranchStatus ("trk_phi", 0);
 
+        bool goodMixEvent = false;
         const int _iMBEvt = iMBEvt;
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
@@ -847,6 +859,12 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           continue;
         }
         mbEventsUsed[iMBEvt] = true;
+
+        // reenable big branches after finding a suitable event
+        mbTree->SetBranchStatus ("trk_pt", 1);
+        mbTree->SetBranchStatus ("trk_eta", 1);
+        mbTree->SetBranchStatus ("trk_phi", 1);
+        mbTree->GetEntry (mbEventOrder[iMBEvt]);
       }
 
       // at this point we have a Z boson and a new (unique & random) event to mix with
