@@ -305,6 +305,7 @@ class PhysicsAnalysis {
   virtual void PlotTrkYield (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotTrkYieldZPt (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
   virtual void PlotTrkYieldZPtSpcComp (const bool useTrkPt = true, const bool plotAsSystematic = false);
+  virtual void PlotCovMatrix (const bool useTrkPt = true, const short pSpc = 0, const short pPtZ = nPtZBins-1, const short pCent = numCentBins-1);
   virtual void PlotIAAdPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotIAAdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotIAAdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
@@ -741,24 +742,24 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
           h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ())); // old name: h_z_trk_phi
         }
 
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]); // old name: h_z_trk_zpt
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent] = new TH1D (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]); // old name: h_z_trk_zxzh
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
+        //h_trk_pt_ptz[iSpc][iPtZ][iCent]  = new TH1D (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]); // old name: h_z_trk_zpt
+        //h_trk_pt_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
+        //h_trk_xhz_ptz[iSpc][iPtZ][iCent] = new TH1D (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ]); // old name: h_z_trk_zxzh
+        //h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Sumw2 ();
 
-        //h_trk_pt_ptz[iSpc][iPtZ][iCent]       = (TH1D*) histFile->Get (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
-        //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]  = (TH2D*) histFile->Get (Form ("h2_trk_pt_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
-        //h_trk_xhz_ptz[iSpc][iPtZ][iCent]      = (TH1D*) histFile->Get (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
-        //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent] = (TH2D*) histFile->Get (Form ("h2_trk_xhz_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]       = (TH1D*) histFile->Get (Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]  = (TH2D*) histFile->Get (Form ("h2_trk_pt_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]      = (TH1D*) histFile->Get (Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+        h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent] = (TH2D*) histFile->Get (Form ("h2_trk_xhz_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_raw_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_raw_pt
           h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]     = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_pt
           h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]    = (TH1D*) histFile->Get (Form ("h_trk_xhz_dphi_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())); // old name: h_z_trk_xzh
-          if (iSpc != 2 && iPhi != 0) {
-            if (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent])  h_trk_pt_ptz[iSpc][iPtZ][iCent]->Add   (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
-            if (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Add  (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
-          }
+          //if (iSpc != 2 && iPhi != 0) {
+          //  if (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent])  h_trk_pt_ptz[iSpc][iPtZ][iCent]->Add   (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
+          //  if (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Add  (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+          //}
         }
       }  
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
@@ -1046,7 +1047,8 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1. / (counts*counts-counts));
+          //h2->Scale (1. / (counts*counts-counts));
+          h2->Scale (1. / (counts-1));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1059,7 +1061,8 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1. / (counts*counts-counts));
+          //h2->Scale (1. / (counts*counts-counts));
+          h2->Scale (1. / (counts-1));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1267,7 +1270,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[0][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -1406,7 +1409,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[0][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -4756,6 +4759,48 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
   } // end loop over cents
   
   c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_SpcComp.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh"));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots the track yield covariance matrix.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt = true, const short pSpc = 0, const short pPtZ = nPtZBins-1, const short pCent = numCentBins-1) {
+  const char* canvasName = Form ("c_CovMatrix_%s_iSpc%i_iPtZ%i_iCent%i", useTrkPt ? "pttrk" : "xhz", pSpc, pPtZ, pCent);
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 600);
+    FormatTH2Canvas (c, true);
+    gDirectory->Add (c);
+  }
+
+  c->cd ();
+
+  gPad->SetLogx ();
+  gPad->SetLogy ();
+  gPad->SetLogz ();
+
+  TH2D* h2 = useTrkPt ? h2_trk_pt_ptz_cov[pSpc][pPtZ][pCent] : h2_trk_xhz_ptz_cov[pSpc][pPtZ][pCent];
+
+  //for (int iX = 1; iX < h2->GetNbinsX (); iX++) {
+  //  for (int iY = 1; iY < h2->GetNbinsY (); iY++) {
+  //    h2->SetBinContent (iX, iY, sqrt (h2->GetBinContent (iX, iY)));
+  //  }
+  //}
+
+  h2->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+  h2->GetYaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+  h2->GetZaxis ()->SetTitle (useTrkPt ? "cov (x, y) [GeV^{-2}]" : "cov (x, y)");
+
+  h2->GetZaxis ()->SetTitleOffset (1.2 * h2->GetZaxis ()->GetTitleOffset ());
+
+  h2->GetZaxis ()->SetRangeUser (0.5 * h2->GetMinimum (0), 2 * h2->GetMaximum ());
+  h2->Draw ("colz");
 }
 
 

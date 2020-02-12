@@ -700,7 +700,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[0][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -894,7 +894,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[0][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
