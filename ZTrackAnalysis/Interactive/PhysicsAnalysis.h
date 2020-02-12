@@ -112,8 +112,8 @@ class PhysicsAnalysis {
   TH2D** h2_den_trk_purs      = Get1DArray <TH2D*> (numTrkCorrCentBins);
 
   // Bin migration factors
-  TF1**** f_z_trk_zpt_binMigration  = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
-  TF1**** f_z_trk_zxzh_binMigration = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
+  TF1**** f_trk_pt_ptz_binMigration  = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
+  TF1**** f_trk_xhz_ptz_binMigration = Get3DArray <TF1*> (2, nPtZBins, numBBBCorrCentBins); // iSpc, iPtZ, iCent
 
   // Physics plots
   TH1D*****   h_trk_dphi        = Get4DArray <TH1D*> (3, nPtZBins, maxNPtTrkBins, numCentBins); // iSpc, iPtZ, iPtTrk, iCent
@@ -179,8 +179,8 @@ class PhysicsAnalysis {
     Delete1DArray (h2_num_trk_purs, numTrkCorrCentBins);
     Delete1DArray (h2_den_trk_purs, numTrkCorrCentBins);
 
-    Delete3DArray (f_z_trk_zpt_binMigration,  2, nPtZBins, numBBBCorrCentBins);
-    Delete3DArray (f_z_trk_zxzh_binMigration, 2, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_trk_pt_ptz_binMigration,  2, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_trk_xhz_ptz_binMigration, 2, nPtZBins, numBBBCorrCentBins);
 
     Delete4DArray (h_trk_dphi,                3, nPtZBins, maxNPtTrkBins, numCentBins);
     Delete4DArray (h_trk_dphi_sub,            3, nPtZBins, maxNPtTrkBins, numCentBins);
@@ -3264,7 +3264,7 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
           h->SetBinError (ix, yerr);
         }
 
-        f = f_z_trk_zxzh_binMigration[iSpc][iPtZ][iCent] = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_xh_ZPT%i_%s", spc, iPtZ-2, cent));
+        f = f_trk_xhz_ptz_binMigration[iSpc][iPtZ][iCent] = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_xh_ZPT%i_%s", spc, iPtZ-2, cent));
         h = h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
         for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
           const float x = h->GetBinCenter (ix);
@@ -4496,7 +4496,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       }
     } // end loop over cents
     
-    c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc));
+    c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc));
   } // end loop over species
 }
 
@@ -4758,7 +4758,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
     }
   } // end loop over cents
   
-  c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_SpcComp.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh"));
+  c->SaveAs (Form ("%s/TrkYields/%s_dists_zPt_SpcComp.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz"));
 }
 
 
@@ -4768,6 +4768,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 // Plots the track yield covariance matrix.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, const short pPtZ, const short pCent) {
+  assert (0 <= pCent && pCent < numCentBins);
+  assert (0 <= pPtZ && pPtZ < nPtZBins);
+  assert (0 <= pSpc && pSpc < 3);
+
   const char* canvasName = Form ("c_CovMatrix_%s_iSpc%i_iPtZ%i_iCent%i", useTrkPt ? "pttrk" : "xhz", pSpc, pPtZ, pCent);
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -4793,14 +4797,22 @@ void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, co
   //  }
   //}
 
-  h2->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-  h2->GetYaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-  h2->GetZaxis ()->SetTitle (useTrkPt ? "cov (x, y) [GeV^{-2}]" : "cov (x, y)");
+  h2->GetXaxis ()->SetTitle (useTrkPt ? "x = #it{p}_{T}^{ch} [GeV]" : "x = #it{x}_{hZ}");
+  h2->GetYaxis ()->SetTitle (useTrkPt ? "y = #it{p}_{T}^{ch} [GeV]" : "y = #it{x}_{hZ}");
+  h2->GetZaxis ()->SetTitle (useTrkPt ? "16 Cov(Y(x), Y(y)) / #pi^{2}#Deltax#Deltay [GeV^{-2}]" : "cov (x, y)");
 
   h2->GetZaxis ()->SetTitleOffset (1.2 * h2->GetZaxis ()->GetTitleOffset ());
 
   h2->GetZaxis ()->SetRangeUser (0.5 * h2->GetMinimum (0), 2 * h2->GetMaximum ());
   h2->Draw ("colz");
+
+  myText (0.23, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+  if (pCent == 0) myText (0.23, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.04);
+  else            myText (0.23, 0.80, kBlack, Form ("Pb+Pb, 5.02 TeV, %i-%i%%", (int)centCuts[pCent], (int)centCuts[pCent-1]), 0.04);
+  if (pPtZ == nPtZBins-1) myText (0.23, 0.75, kBlack, Form ("Z #rightarrow %s, #it{p}_{T}^{Z} > %g GeV", (pSpc == 0 ? "ee" : (pSpc == 1 ? "#mu#mu" : "ll")), zPtBins[pPtZ]), 0.04);
+  else                    myText (0.23, 0.75, kBlack, Form ("Z #rightarrow %s, %g < #it{p}_{T}^{Z} < %g GeV", (pSpc == 0 ? "ee" : (pSpc == 1 ? "#mu#mu" : "ll")), zPtBins[pPtZ], zPtBins[pPtZ+1]), 0.04);
+
+  c->SaveAs (Form ("%s/CovMatrices/covMatrix_%s_iSpc%i_iPtZ%i_iCent%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk" : "xhz", pSpc, pPtZ, pCent));
 }
 
 
@@ -4876,7 +4888,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_iaa_dPhi_%s_iPtZ%i", useTrkPt ? "pttrk" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_iaa_dPhi_%s_iPtZ%i", useTrkPt ? "pttrk" : "xhz", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -5002,7 +5014,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
         l->Draw ("same");
       } // end loop over cents
 
-      c->SaveAs (Form ("%s/IAA/iaa_%s_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc, iPtZ));
+      c->SaveAs (Form ("%s/IAA/iaa_%s_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
 }
@@ -5071,7 +5083,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_iaa_dCent_%s_iPtZ%i", useTrkPt ? "pttrk" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_iaa_dCent_%s_iPtZ%i", useTrkPt ? "pttrk" : "xhz", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -5201,7 +5213,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
         l->Draw ("same");
       } // end loop over cents
 
-      c->SaveAs (Form ("%s/IAA/iaa_%s_dCent_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc, iPtZ));
+      c->SaveAs (Form ("%s/IAA/iaa_%s_dCent_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
 }
@@ -5755,7 +5767,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_icp_dPhi_%s_iPtZ%i", useTrkPt ? "pt" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_icp_dPhi_%s_iPtZ%i", useTrkPt ? "pt" : "xhz", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -5881,7 +5893,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
         l->Draw ("same");
       } // end loop over cents
 
-      c->SaveAs (Form ("%s/ICP/icp_%s_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc, iPtZ));
+      c->SaveAs (Form ("%s/ICP/icp_%s_dPhi_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
 }
@@ -5951,7 +5963,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
       if (pPtZ != -1 && iPtZ != pPtZ)
         continue; // allows user to define which plots should be made
 
-      const char* canvasName = Form ("c_z_trk_%s_icp_dCent_%s_iPtZ%i", useTrkPt ? "pt" : "xzh", spc, iPtZ);
+      const char* canvasName = Form ("c_z_trk_%s_icp_dCent_%s_iPtZ%i", useTrkPt ? "pt" : "xhz", spc, iPtZ);
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
@@ -6078,7 +6090,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
         l->Draw ("same");
       } // end loop over cents
 
-      c->SaveAs (Form ("%s/ICP/icp_%s_dCent_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc, iPtZ));
+      c->SaveAs (Form ("%s/ICP/icp_%s_dCent_%s_iPtZ%i.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc, iPtZ));
     } // end loop over pT^Z bins
   } // end loop over species
 }
@@ -6134,7 +6146,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_z_trk_%s_icp_dPtZ_%s", useTrkPt ? "pttrk" : "xzh", spc);
+    const char* canvasName = Form ("c_z_trk_%s_icp_dPtZ_%s", useTrkPt ? "pttrk" : "xhz", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -6259,7 +6271,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
       l->Draw ("same");
     } // end loop over cents
 
-    c->SaveAs (Form ("%s/ICP/icp_%s_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xzh", spc));
+    c->SaveAs (Form ("%s/ICP/icp_%s_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", spc));
   } // end loop over species
 }
 */
@@ -6299,30 +6311,30 @@ void PhysicsAnalysis :: WriteIAAs () {
   const char* outFileName = "DataAnalysis/Nominal/data18hi_iaa_fits.root"; 
   TFile* outFile = new TFile (Form ("%s/%s", rootPath.Data (), outFileName), "recreate");
 
-  TF1**** f_z_trk_zpt_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
-  TF1**** f_z_trk_zxzh_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+  TF1**** f_trk_pt_ptz_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
+  TF1**** f_trk_xhz_ptz_iaa = Get3DArray <TF1*> (3, nPtZBins, numCentBins);
 
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
-        h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zpt_iaa[iSpc][iPtZ][iCent], "RN0Q");
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_trk_pt_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent], "RN0Q");
 
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
-        h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent], "RN0Q");
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_trk_xhz_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
+        h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent], "RN0Q");
 
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->Write ();
+        f_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Write ();
         h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Write ();
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->Write ();
+        f_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->Write ();
         h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]->Write ();
       }
     }
@@ -6330,8 +6342,8 @@ void PhysicsAnalysis :: WriteIAAs () {
 
   outFile->Close ();
 
-  Delete3DArray (f_z_trk_zpt_iaa, 3, nPtZBins, numCentBins);
-  Delete3DArray (f_z_trk_zxzh_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (f_trk_pt_ptz_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (f_trk_xhz_ptz_iaa, 3, nPtZBins, numCentBins);
 
   _gDirectory->cd ();
 }
