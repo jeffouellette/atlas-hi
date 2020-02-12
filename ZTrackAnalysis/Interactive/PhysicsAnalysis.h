@@ -447,7 +447,7 @@ void PhysicsAnalysis :: CreateHists () {
         h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent] = new TH2D (Form ("h2_trk_xhz_ptz_cov_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", nXHZBins[iPtZ], xHZBins[iPtZ], nXHZBins[iPtZ], xHZBins[iPtZ]);
         h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Sumw2 ();
 
-        h_z_counts[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 2, 0, 2);
+        h_z_counts[iSpc][iPtZ][iCent] = new TH1D (Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "", 3, 0, 3);
         h_z_counts[iSpc][iPtZ][iCent]->Sumw2 ();
       }
     }
@@ -960,10 +960,10 @@ void PhysicsAnalysis :: CombineHists () {
         // the per-Z yield should be weighted by 2/3 in the muon
         // channel and 1/3 in the electron channel.
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        float spcWeight = countsHist->GetBinContent (1);
+        float spcWeight = countsHist->GetBinContent (2);
         countsHist = h_z_counts[2][iPtZ][iCent];
-        if (countsHist->GetBinContent (1) > 0)
-          spcWeight = spcWeight / countsHist->GetBinContent (1);
+        if (countsHist->GetBinContent (2) > 0)
+          spcWeight = spcWeight / countsHist->GetBinContent (2);
         else {
           cout << "Warning: In PhysicsAnalysis :: CombineHists: Found 0 total Z bosons in this bin, iCent = " << iCent << ", iPtZ = " << iPtZ << ", iSpc = " << iSpc << "; weight is set to 0!" << endl;
           spcWeight = 0;
@@ -1021,7 +1021,7 @@ void PhysicsAnalysis :: ScaleHists () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        const float counts = countsHist->GetBinContent (1);
+        const float counts = countsHist->GetBinContent (2);
         //const float countsErr = countsHist->GetBinError (1);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           const double countsdPhi = counts * (doPPMixingVar && iCent == 0 ? pi/8. : phiHighBins[iPhi]-phiLowBins[iPhi]);
@@ -1033,25 +1033,33 @@ void PhysicsAnalysis :: ScaleHists () {
         } // end loop over phi
 
         if (counts > 0) {
-          h_trk_pt_ptz[iSpc][iPtZ][iCent]->Scale   (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
-          h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
-
           // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
+          // then use diagonals of the covariance matrix to determine statistical uncertainties
           TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+          h->Scale (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
           TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+          h2->Scale (1./ pow (doPPMixingVar && iCent == 0 ? pi/8. : pi/4., 2), "width");
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) / (pow ((doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), 2) * (h->GetBinWidth (iX)*h->GetBinWidth (iY))) - (2*counts-1)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1. / (counts-1));
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          h2->Scale (1. / (counts*counts-counts));
+
+          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
           h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+          h->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
           h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+          h2->Scale (1./ pow (doPPMixingVar && iCent == 0 ? pi/8. : pi/4., 2), "width");
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) / (pow ((doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), 2) * (h->GetBinWidth (iX)*h->GetBinWidth (iY))) - (2*counts-1)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1. / (counts-1));
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          h2->Scale (1. / (counts*counts-counts));
+
+          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
@@ -1186,8 +1194,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -1324,8 +1333,9 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -3306,7 +3316,7 @@ void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 
           TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-          const float bkgCountsOverObsCounts = (a->h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1)) / (h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1));
+          const float bkgCountsOverObsCounts = (a->h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2)) / (h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2));
           if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
             cout << bkgCountsOverObsCounts << endl;
             cout << "2nd to last bin before: " << h->GetBinContent (6) << endl;

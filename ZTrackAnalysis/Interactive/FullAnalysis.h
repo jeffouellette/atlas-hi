@@ -395,7 +395,7 @@ void FullAnalysis :: ScaleHists () {
 
       double normFactor = 0;
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
-        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
+        normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
 
       if (h_lepton_pt[iCent][iSpc]) {
         h_lepton_pt[iCent][iSpc]->Rebin (5);
@@ -610,8 +610,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -801,8 +802,9 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       //if (iPtZ < 2)
       //  continue;
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       float** trk_counts = Get2DArray <float> (2, 6);
 
@@ -1373,7 +1375,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
       int nEvt = 0;
       for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        nEvt += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
+        nEvt += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
       }
       h->Scale (1./nEvt);
       
@@ -1603,7 +1605,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
 //  for (short iSpc = 0; iSpc < 3; iSpc++) {
 //    const char* spc = (iSpc == 0 ? "Z->ee" : (iSpc == 1 ? "Z->mumu" : "Z->ll"));
 //    for (short iCent = 0; iCent < numCentBins; iCent++) {
-//      float yield = h_z_counts[iSpc][2][iCent]->GetBinContent (2);
+//      float yield = h_z_counts[iSpc][2][iCent]->GetBinContent (1);
 //      if (iCent == 0) 
 //        cout << "pp " << spc << " # Z's > 25 GeV  =  " << yield << endl;
 //      else

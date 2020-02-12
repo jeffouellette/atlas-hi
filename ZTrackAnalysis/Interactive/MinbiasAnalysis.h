@@ -585,8 +585,9 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         h_PbPb_vz_reweighted->Fill (vz, event_weight);
       }
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -862,8 +863,9 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];

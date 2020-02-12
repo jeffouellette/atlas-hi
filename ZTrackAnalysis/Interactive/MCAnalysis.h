@@ -175,8 +175,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -366,8 +367,9 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
