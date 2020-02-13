@@ -671,36 +671,29 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (trkpt < 60) {
-            if (30 <= trkpt)      trk_counts[0][5] += trkWeight;
-            else if (15 <= trkpt) trk_counts[0][4] += trkWeight;
-            else if (8 <= trkpt)  trk_counts[0][3] += trkWeight;
-            else if (4 <= trkpt)  trk_counts[0][2] += trkWeight;
-            else if (2 <= trkpt)  trk_counts[0][1] += trkWeight;
-            else if (1 <= trkpt)  trk_counts[0][0] += trkWeight;
+          if (ptTrkBins[iPtZ][0] <= trkpt) {
+            short iPt = 0;
+            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            if (iPt < 6) trk_counts[0][iPt] += trkWeight;
           }
- 
-          if (1./60. <= xhz) {
-            if (xhz <= 1./30.)      trk_counts[1][0] += trkWeight;
-            else if (xhz <= 1./15.) trk_counts[1][1] += trkWeight;
-            else if (xhz <= 1./8.)  trk_counts[1][2] += trkWeight;
-            else if (xhz <= 1./4.)  trk_counts[1][3] += trkWeight;
-            else if (xhz <= 1./2.)  trk_counts[1][4] += trkWeight;
-            else if (xhz <= 1.)     trk_counts[1][5] += trkWeight;
+          if (xHZBins[iPtZ][0] <= xhz) {
+            short iX = 0;
+            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            if (iX < 6) trk_counts[1][iX] += trkWeight;
           }
         }
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), event_weight*trk_counts[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[0][i1]);
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
-          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), 0.5*(ptTrkBins[iPtZ][i2]+ptTrkBins[iPtZ][i2+1]), event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -865,36 +858,29 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (trkpt < 60) {
-            if (30 <= trkpt)      trk_counts[0][5] += trkWeight;
-            else if (15 <= trkpt) trk_counts[0][4] += trkWeight;
-            else if (8 <= trkpt)  trk_counts[0][3] += trkWeight;
-            else if (4 <= trkpt)  trk_counts[0][2] += trkWeight;
-            else if (2 <= trkpt)  trk_counts[0][1] += trkWeight;
-            else if (1 <= trkpt)  trk_counts[0][0] += trkWeight;
+          if (ptTrkBins[iPtZ][0] <= trkpt) {
+            short iPt = 0;
+            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            if (iPt < 6) trk_counts[0][iPt] += trkWeight;
           }
- 
-          if (1./60. <= xhz) {
-            if (xhz <= 1./30.)      trk_counts[1][0] += trkWeight;
-            else if (xhz <= 1./15.) trk_counts[1][1] += trkWeight;
-            else if (xhz <= 1./8.)  trk_counts[1][2] += trkWeight;
-            else if (xhz <= 1./4.)  trk_counts[1][3] += trkWeight;
-            else if (xhz <= 1./2.)  trk_counts[1][4] += trkWeight;
-            else if (xhz <= 1.)     trk_counts[1][5] += trkWeight;
+          if (xHZBins[iPtZ][0] <= xhz) {
+            short iX = 0;
+            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            if (iX < 6) trk_counts[1][iX] += trkWeight;
           }
         }
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), event_weight*trk_counts[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[0][i1]);
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
-          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(ptTrkBins[iPtZ][i1]+ptTrkBins[iPtZ][i1+1]), 0.5*(ptTrkBins[iPtZ][i2]+ptTrkBins[iPtZ][i2+1]), event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), event_weight*trk_counts[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->Fill (0.5*(xHZBins[iPtZ][i1]+xHZBins[iPtZ][i1+1]), 0.5*(xHZBins[iPtZ][i2]+xHZBins[iPtZ][i2+1]), event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
