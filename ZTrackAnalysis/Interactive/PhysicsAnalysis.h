@@ -315,7 +315,7 @@ class PhysicsAnalysis {
   //virtual void PlotICPdCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICPdPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
   virtual void PlotSignalToBkg (const bool useTrkPt = true, const short iSpc = 2);
-  //virtual void PlotPullDist (const bool useTrkPt = true);
+  virtual void PlotPullDist (const bool useTrkPt = true);
 
   virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
@@ -1048,10 +1048,14 @@ void PhysicsAnalysis :: ScaleHists () {
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           //h2->Scale (1. / (counts*counts-counts));
+          //h2->Scale (1. / (countsHist->GetBinContent (1) -1));
           h2->Scale (1. / (counts-1));
+          //h2->Scale (countsHist->GetBinContent (2) / (pow (countsHist->GetBinContent (2), 2) - countsHist->GetBinContent (3)));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            //if (h->GetBinContent (iX) >= 1) h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
+            //h->SetBinError (iX, fmax (h->GetBinError (iX), sqrt (h2->GetBinContent (iX, iX) / counts)));
 
           h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
           h->Scale  (1./ (counts * (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.)), "width");
@@ -1062,10 +1066,14 @@ void PhysicsAnalysis :: ScaleHists () {
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           //h2->Scale (1. / (counts*counts-counts));
+          //h2->Scale (1. / (countsHist->GetBinContent (1) -1));
           h2->Scale (1. / (counts-1));
+          //h2->Scale (countsHist->GetBinContent (2) / (pow (countsHist->GetBinContent (2), 2) - countsHist->GetBinContent (3)));
 
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            //if (h->GetBinContent (iX) >= 1) h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX) / counts));
+            //h->SetBinError (iX, fmax (h->GetBinError (iX), sqrt (h2->GetBinContent (iX, iX) / counts)));
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
@@ -1968,7 +1976,7 @@ void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
       cout << Form ("& Pb+Pb / %i-%i\\%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]);
 
     for (short iSpc = 0; iSpc < 3; iSpc++)
-      cout << Form ("& %g ", h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2));
+      cout << Form ("& %g ", h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1));
     cout << "\\\\";
 
     if (iCent == numCentBins-1)
@@ -4754,10 +4762,6 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 // Plots the track yield covariance matrix.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, const short pPtZ, const short pCent) {
-  assert (0 <= pCent && pCent < numCentBins);
-  assert (0 <= pPtZ && pPtZ < nPtZBins);
-  assert (0 <= pSpc && pSpc < 3);
-
   const char* canvasName = Form ("c_CovMatrix_%s_iSpc%i_iPtZ%i_iCent%i", useTrkPt ? "pttrk" : "xhz", pSpc, pPtZ, pCent);
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -4783,9 +4787,9 @@ void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, co
   //  }
   //}
 
-  h2->GetXaxis ()->SetTitle (useTrkPt ? "x = #it{p}_{T}^{ch} [GeV]" : "x = #it{x}_{hZ}");
-  h2->GetYaxis ()->SetTitle (useTrkPt ? "y = #it{p}_{T}^{ch} [GeV]" : "y = #it{x}_{hZ}");
-  h2->GetZaxis ()->SetTitle (useTrkPt ? "16 Cov(Y(x), Y(y)) / #pi^{2}#Deltax#Deltay [GeV^{-2}]" : "cov (x, y)");
+  h2->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+  h2->GetYaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+  h2->GetZaxis ()->SetTitle (useTrkPt ? "cov (x, y) [GeV^{-2}]" : "cov (x, y)");
 
   h2->GetZaxis ()->SetTitleOffset (1.2 * h2->GetZaxis ()->GetTitleOffset ());
 
@@ -5548,9 +5552,9 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
           g->SetLineWidth (2);
         } else {
           g->SetMarkerSize (0); 
-          g->SetLineWidth (1);
-          g->SetLineColor (colors[iSpc*(iCent-iCentLo)+1]);
-          g->SetFillColorAlpha (fillColors[iSpc*(iCent-iCentLo)+1], 0.3);
+          g->SetLineWidth (0);
+          g->SetLineColor (colors[2*(iPtZ-iPtZLo)+iSpc+1]);
+          g->SetFillColorAlpha (fillColors[2*(iPtZ-iPtZLo)+iSpc+1], 0.3);
         }
 
         useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
@@ -6398,13 +6402,69 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots pull between electron & muon channels
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//void PhysicsAnalysis :: PlotPullDist (const bool useTrkPt = true) {
-//  TCanvas* c = new TCanvas ("c_pull", "", 800, 600);
-//  TH1D* h_pull = new TH1D ("h_pull", ";#Delta#it{I}_{AA}
-//}
+void PhysicsAnalysis :: PlotPullDist (const bool useTrkPt) {
+  TCanvas* c = new TCanvas ("c_pull", "", 800, 600);
+  TH1D* h_pull = new TH1D ("h_pull", Form (";Pull = #DeltaY (%s)/#sigma;Entries", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}"), 20, -5, 5);
+
+  int nPoints = 0;
+  for (short iCent = 1; iCent < numCentBins; iCent++) {
+  //for (short iCent = 0; iCent < 1; iCent++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      TH1D* h_ee = (useTrkPt ? h_trk_pt_ptz[0][iPtZ][iCent] : h_trk_xhz_ptz[0][iPtZ][iCent]);
+      TH1D* h_mumu = (useTrkPt ? h_trk_pt_ptz[1][iPtZ][iCent] : h_trk_xhz_ptz[1][iPtZ][iCent]);
+      const int nBinsX = h_ee->GetNbinsX ();
+      for (short iX = 1; iX <= nBinsX; iX++) {
+        const float pull = (h_ee->GetBinContent (iX) - h_mumu->GetBinContent (iX)) / sqrt (pow (h_ee->GetBinError (iX), 2) + pow (h_mumu->GetBinError (iX), 2));
+        h_pull->Fill (pull);
+        nPoints++;
+      } // end loop over iX
+    } // end loop over iPtZ
+  } // end loop over iCent
+
+  TH1D* h_pull_expected = new TH1D ("h_pull_expected", Form (";Pull = #DeltaY (%s)/#sigma;Entries", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}"), 20, -5, 5);
+  TF1* gaus = new TF1 ("gaus", "gaus(0)", -5, 5);
+  gaus->SetParameter (0, 1);
+  gaus->FixParameter (1, 0);
+  gaus->FixParameter (2, 1);
+  for (short i = 0; i < 2000; i++) {
+    h_pull_expected->Fill (gaus->GetRandom ());
+  }
+  SaferDelete (gaus);
+  h_pull_expected->Scale (nPoints/2000.);
+  h_pull_expected->SetLineColorAlpha (kRed, 0.35);
+  h_pull_expected->SetLineStyle (2);
+  h_pull_expected->SetLineWidth (3);
+ 
+  h_pull->GetYaxis ()->SetRangeUser (0, 10);
+  h_pull->Draw ("hist");
+  h_pull_expected->Draw ("hist same");
+
+  TF1* fit = new TF1 ("fit", "gaus(0)", -5, 5);
+  fit->SetParameter (0, 1);
+  fit->SetParameter (1, 0);
+  fit->SetParameter (2, 0);
+  h_pull->Fit (fit, "RN0Q");
+
+  const float mu = fit->GetParameter (1);
+  const float muErr = fit->GetParError (1);
+  const float sigma = fit->GetParameter (2);
+  const float sigmaErr = fit->GetParError (2);
+  myText (0.20, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
+  myText (0.20, 0.80, kBlack, "Observed", 0.045);
+  myText (0.25, 0.75, kBlack, Form ("#mu = %.2f #pm %.2f", mu, muErr), 0.045);
+  myText (0.25, 0.70, kBlack, Form ("#sigma = %.2f #pm %.2f", sigma, sigmaErr), 0.045);
+  myText (0.25, 0.65, kBlack, Form ("#chi^{2}/dof = %.2f / %i", fit->GetChisquare (), fit->GetNDF ()), 0.045);
+  myText (0.20, 0.60, kRed, "Expected", 0.045);
+  myText (0.25, 0.55, kRed, "#mu = 0", 0.045);
+  myText (0.25, 0.50, kRed, "#sigma = 1", 0.045);
+}
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Prints IAA values for the bin specified
+////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PrintIAA (const bool printErrs, const bool useTrkPt, const short iCent, const short iPtZ, const short iSpc) {
   TH1D* h = nullptr;
   if (useTrkPt)
