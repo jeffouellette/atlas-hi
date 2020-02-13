@@ -675,13 +675,11 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             short iPt = 0;
             while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
             if (iPt < 6) trk_counts[0][iPt] += trkWeight;
-            cout << "pT = " << trkpt << ", iPt = " << iPt << "\t; ";
           }
           if (xHZBins[iPtZ][0] <= xhz) {
             short iX = 0;
             while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
             if (iX < 6) trk_counts[1][iX] += trkWeight;
-            cout << "xhZ = " << xhz << ", iX = " << iX << endl;
           }
         }
       } // end loop over tracks
