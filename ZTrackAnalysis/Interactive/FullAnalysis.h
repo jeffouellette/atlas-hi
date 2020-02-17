@@ -495,7 +495,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   int**   trks_counts  = Get2DArray <int> (2, 6);
   float** trks_weights1 = Get2DArray <float> (2, 6);
-  float** trks_weights2 = Get2DArray <float> (2, 6);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
@@ -679,7 +678,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
-              trks_weights2[0][iPt] += pow (trkWeight, 2);
             }
           }
           if (xHZBins[iPtZ][0] <= xhz) {
@@ -688,7 +686,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
-              trks_weights2[1][iX] += pow (trkWeight, 2);
             }
           }
         }
@@ -696,18 +693,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[0][i1]);
-        h_trk_pt_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt(trks_weights2[0][i1]));
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
-          //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[0][i1])*(trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[1][i1]);
-        h_trk_xhz_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt (trks_weights2[1][i1]));
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
-          //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[1][i1])*(trks_weights1[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -715,7 +708,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
           trks_weights1[i][j] = 0.;
-          trks_weights2[i][j] = 0.;
         } // end loop over j
       } // end loop over i
 
@@ -816,8 +808,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
-      float** trks_weights1 = Get2DArray <float> (2, 6);
-
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
@@ -881,7 +871,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
-              trks_weights2[0][iPt] += pow (trkWeight, 2);
             }
           }
           if (xHZBins[iPtZ][0] <= xhz) {
@@ -890,7 +879,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
-              trks_weights2[1][iX] += pow (trkWeight, 2);
             }
           }
         }
@@ -898,18 +886,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[0][i1]);
-        h_trk_pt_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt(trks_weights2[0][i1]));
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
-          //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[0][i1])*(trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[1][i1]);
-        h_trk_xhz_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt (trks_weights2[1][i1]));
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
-          //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[1][i1])*(trks_weights1[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
@@ -917,7 +901,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
           trks_weights1[i][j] = 0.;
-          trks_weights2[i][j] = 0.;
         } // end loop over j
       } // end loop over i
 
@@ -927,7 +910,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   Delete2DArray (trks_counts, 2, 6);
   Delete2DArray (trks_weights1, 2, 6);
-  Delete2DArray (trks_weights2, 2, 6);
 
   SaveHists (outFileName);
 
