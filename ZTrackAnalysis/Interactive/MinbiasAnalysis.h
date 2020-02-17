@@ -279,7 +279,9 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   bool HLT_noalg_pc_L1TE50_VTE600_0ETA49 = false;
   bool HLT_noalg_cc_L1TE600_0ETA49 = false;
 
-  float** trk_counts = Get2DArray <float> (2, 6);
+  int**   trks_counts   = Get2DArray <int> (2, 6);
+  float** trks_weights1 = Get2DArray <float> (2, 6);
+  float** trks_weights2 = Get2DArray <float> (2, 6);
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Do this if TTree is PbPb
@@ -634,32 +636,49 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (ptTrkBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
             while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
-            if (iPt < 6) trk_counts[0][iPt] += trkWeight;
+            if (iPt < 6) {
+              trks_counts[0][iPt]   += 1;
+              trks_weights1[0][iPt] += trkWeight;
+              trks_weights2[0][iPt] += pow (trkWeight, 2);
+            }
           }
           if (xHZBins[iPtZ][0] <= xhz) {
             short iX = 0;
             while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
-            if (iX < 6) trk_counts[1][iX] += trkWeight;
+            if (iX < 6) {
+              trks_counts[1][iX]   += 1;
+              trks_weights1[1][iX] += trkWeight;
+              trks_weights2[1][iX] += pow (trkWeight, 2);
+            }
           }
         }
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1) + event_weight*trks_weights1[0][i1]);
+        //h_trk_pt_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt(trks_weights2[0][i1]));
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
-          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
+          //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[0][i1])*(trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1) + event_weight*trks_weights1[1][i1]);
+        //h_trk_xhz_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt (trks_weights2[1][i1]));
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
+          //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[1][i1])*(trks_weights1[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
-      for (int i = 0; i < 6; i++) {
-        trk_counts[0][i] = 0;
-        trk_counts[1][i] = 0;
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 6; j++) {
+          trks_counts[i][j] = 0;
+          trks_weights1[i][j] = 0.;
+          trks_weights2[i][j] = 0.;
+        } // end loop over j
       } // end loop over i
 
     } // end loop over Pb+Pb tree
@@ -916,36 +935,53 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           }
         }
 
-        if (3*pi/4 <= dphi) {
+        if ((doPPMixingVar && 7.*pi/8. < dphi && dphi <= pi) || (!doPPMixingVar && 3*pi/4 <= dphi)) {
           if (ptTrkBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
             while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
-            if (iPt < 6) trk_counts[0][iPt] += trkWeight;
+            if (iPt < 6) {
+              trks_counts[0][iPt]   += 1;
+              trks_weights1[0][iPt] += trkWeight;
+              trks_weights2[0][iPt] += pow (trkWeight, 2);
+            }
           }
           if (xHZBins[iPtZ][0] <= xhz) {
             short iX = 0;
             while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
-            if (iX < 6) trk_counts[1][iX] += trkWeight;
+            if (iX < 6) {
+              trks_counts[1][iX]   += 1;
+              trks_weights1[1][iX] += trkWeight;
+              trks_weights2[1][iX] += pow (trkWeight, 2);
+            }
           }
         }
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
-        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[0][i1]);
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1) + event_weight*trks_weights1[0][i1]);
+        //h_trk_pt_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt(trks_weights2[0][i1]));
         for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
-          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[0][i1])*(trk_counts[0][i2]));
+          h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
+          //h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[0][i1])*(trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
-        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trk_counts[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*trks_weights1[1][i1]);
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1) + event_weight*trks_weights1[1][i1]);
+        //h_trk_xhz_ptz_wgts[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*sqrt (trks_weights2[1][i1]));
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
-          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trk_counts[1][i1])*(trk_counts[1][i2]));
+          h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
+          //h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight*(trks_weights1[1][i1])*(trks_weights1[1][i2]));
       } // end loop over i1
 
       // reset trk count measurements for next event
-      for (int i = 0; i < 6; i++) {
-        trk_counts[0][i] = 0;
-        trk_counts[1][i] = 0;
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 6; j++) {
+          trks_counts[i][j] = 0;
+          trks_weights1[i][j] = 0.;
+          trks_weights2[i][j] = 0.;
+        } // end loop over j
       } // end loop over i
 
     } // end loop over pp tree
@@ -966,7 +1002,9 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   mixedEventsFile->Close ();
   SaferDelete (mixedEventsFile);
 
-  Delete2DArray (trk_counts, 2, 6);
+  Delete2DArray (trks_counts, 2, 6);
+  Delete2DArray (trks_weights1, 2, 6);
+  Delete2DArray (trks_weights2, 2, 6);
 
   SaveHists (outFileName);
 
