@@ -266,7 +266,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
-        g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
       } // end loop over i1
@@ -461,7 +461,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
-        g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
       } // end loop over i1
