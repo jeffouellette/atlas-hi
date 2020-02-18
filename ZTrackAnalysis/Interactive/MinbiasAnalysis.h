@@ -920,7 +920,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           }
         }
 
-        if (3.*pi/4. <= dphi) {
+        if ((doPPTransMinMixing && 7.*pi/8. <= dphi) || (!doPPTransMinMixing && 3.*pi/4. <= dphi)) {
           if (ptTrkBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
             while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
