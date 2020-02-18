@@ -68,7 +68,7 @@ class PhysicsAnalysis {
   bool doTrackEffVar  = false; // whether to use pions-only tracking efficiency variation
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
-  bool doPPMixingVar = false;
+  bool doPPTransMinMixing = true;
 
   // Analysis checks
   TH1D*   h_fcal_et               = nullptr;
@@ -1020,7 +1020,7 @@ void PhysicsAnalysis :: ScaleHists () {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
         const float counts = countsHist->GetBinContent (2);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          const double countsdPhi = counts * (doPPMixingVar && iCent == 0 ? pi/8. : phiHighBins[iPhi]-phiLowBins[iPhi]);
+          const double countsdPhi = counts * (doPPTransMinMixing && iCent == 0 ? pi/4. : phiHighBins[iPhi]-phiLowBins[iPhi]);
 
           if (countsdPhi > 0) {
             h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Scale  (1. / countsdPhi, "width");
@@ -1043,8 +1043,8 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-          h->Scale (1./ (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), "width");
-          h2->Scale (1./ pow (doPPMixingVar && iCent == 0 ? pi/8. : pi/4., 2), "width");
+          h->Scale (1./ (pi/4.), "width");
+          h2->Scale (1./ pow (pi/4., 2), "width");
 
           h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
           h->Scale (1./counts);
@@ -1058,8 +1058,8 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-          h->Scale (1./ (doPPMixingVar && iCent == 0 ? pi/8. : pi/4.), "width");
-          h2->Scale (1./ pow (doPPMixingVar && iCent == 0 ? pi/8. : pi/4., 2), "width");
+          h->Scale (1./ (pi/4.), "width");
+          h2->Scale (1./ pow (pi/4., 2), "width");
         }
         
         for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {

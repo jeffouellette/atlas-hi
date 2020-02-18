@@ -681,7 +681,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   // Do this if TTree is pp
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (!isPbPb) {
-    assert (doSameFileMixing == doPPMixingVar);
+    assert (doSameFileMixing == doPPTransMinMixing);
 
     mbTree->LoadBaskets (3000000000);
     mbTree->SetBranchAddress ("run_number",   &run_number);
@@ -772,7 +772,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       if (mixingFraction*nZEvts > 100 && iZEvt % (mixingFraction*nZEvts / 100) == 0)
         cout << iZEvt / (mixingFraction*nZEvts / 100) << "\% done...\r" << flush;
 
-      if (doPPMixingVar && iZEvt >= nZEvts) // temporary max mixing fraction of 10 in central-most bin
+      if (doPPTransMinMixing && iZEvt >= nZEvts) // temporary max mixing fraction of 10 in central-most bin
         continue;
 
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
@@ -850,7 +850,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (doSameFileMixing)
             goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
 
-          if (doPPMixingVar) {
+          if (doPPTransMinMixing) {
             //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmin, z_phi) < pi/6.);
             goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmax, z_phi) < pi/6.);
             //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && pi/4. < dphi && dphi < 3.*pi/4.); // variation on mixing: only mix with perpendicular, low-pT Z's
@@ -913,19 +913,14 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dphi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
-          if (doPPMixingVar && idPhi == numPhiBins && 7.*pi/8. < dphi && dphi <= pi) {
-            h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
-            h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
-            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
-          }
-          else if (!doPPMixingVar && phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
+          if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
             h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
           }
         }
 
-        if ((doPPMixingVar && 7.*pi/8. < dphi && dphi <= pi) || (!doPPMixingVar && 3*pi/4 <= dphi)) {
+        if (3.*pi/4. <= dphi) {
           if (ptTrkBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
             while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;

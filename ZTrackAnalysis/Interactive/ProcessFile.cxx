@@ -167,9 +167,9 @@ int main (int argc, char** argv) {
 
     inFileName = inDir + inFileName;
 
-    if (doPPMixVar && !isPbPb && algo == "minbias")
+    if (!doPPMixVar && !isPbPb && algo == "minbias")
       mbInFileName = "DataAnalysis/" + mbInFileName;
-    else if (doPPMixVar && !isPbPb && algo == "mcminbias")
+    else if (!doPPMixVar && !isPbPb && algo == "mcminbias")
       mbInFileName = inFileName;
     else
       mbInFileName = "MinbiasAnalysis/" + mbInFileName;
@@ -223,7 +223,7 @@ int main (int argc, char** argv) {
       bkg->doPsi3Mixing = true;
       bkg->numPsi3MixBins = 3;
     } else if (doPPMixVar) {
-      bkg->doPPMixingVar = true;
+      bkg->doPPTransMinMixing = false;
       bkg->doPsi2Mixing = true;
       bkg->numPsi2MixBins = 16;
     } else {
