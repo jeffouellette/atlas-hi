@@ -308,6 +308,7 @@ class PhysicsAnalysis {
   virtual void PlotRawTrkYield (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotTrkYield (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   virtual void PlotTrkYieldZPt (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
+  virtual void PlotTrkYieldZPtDist (const bool useTrkPt = true, const short pSpc = 2);
   virtual void PlotTrkYieldZPtSpcComp (const bool useTrkPt = true, const bool plotAsSystematic = false);
   virtual void PlotAllCovMatrices ();
   virtual void PlotCovMatrix (const bool useTrkPt = true, const short pSpc = 0, const short pPtZ = nPtZBins-1, const short pCent = numCentBins-1);
@@ -2028,7 +2029,7 @@ void PhysicsAnalysis :: PlotFCalDists (const bool _treatAsData) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
@@ -2074,7 +2075,7 @@ void PhysicsAnalysis :: PlotQ2Dists (const bool _treatAsData) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
@@ -2140,7 +2141,7 @@ void PhysicsAnalysis :: PlotQ2Weights (PhysicsAnalysis* a) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
@@ -2193,7 +2194,7 @@ void PhysicsAnalysis :: PlotPsi2Dists (const bool _treatAsData) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
@@ -2259,7 +2260,7 @@ void PhysicsAnalysis :: PlotPsi2Weights (PhysicsAnalysis* a) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1200, 1200);
     gDirectory->Add (c);
@@ -2313,7 +2314,7 @@ void PhysicsAnalysis :: PlotVZDists (const bool _treatAsData) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1600, 600);
     gDirectory->Add (c);
@@ -2389,7 +2390,7 @@ void PhysicsAnalysis :: PlotNchDists (const bool _treatAsData) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
@@ -2449,7 +2450,7 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 800, 250*numCentBins);
         gDirectory->Add (c);
@@ -2644,7 +2645,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1800, 800);
     //c = new TCanvas (canvasName, "", 1800, 400);
@@ -2838,7 +2839,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1800, 400);
     FormatTH2Canvas (c, true);
@@ -2915,7 +2916,7 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1800, 800);
     //c = new TCanvas (canvasName, "", 1800, 400);
@@ -3043,7 +3044,7 @@ void PhysicsAnalysis :: PlotTrackingPurities2D () {
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 1800, 400);
     FormatTH2Canvas (c, true);
@@ -3456,7 +3457,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 400*numCentBins, 400);
         gDirectory->Add (c);
@@ -3492,7 +3493,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+          TH1D* h = (useTrkPt ? h_trk_pt_dphi_raw : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent];
           min = fmin (min, h->GetMinimum (0));
           max = fmax (max, h->GetMaximum ());
         } // end loop over phi
@@ -3503,7 +3504,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
         if (plotFill) {
           for (int iPhi = 0; iPhi < 1; iPhi++) {
           //for (int iPhi = numPhiBins-1; iPhi >= 0; iPhi--) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_raw : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent];
 
             h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
             h->SetMarkerSize (0);
@@ -3515,8 +3516,8 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? h->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)") : h->GetYaxis ()->SetTitle ("Y (#it{x}_{hZ}, #Delta#phi)");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            h->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}, #Delta#phi)" : "Y (#it{x}_{hZ}, #Delta#phi)");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3540,7 +3541,7 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
           for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           //for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_raw : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -3562,8 +3563,8 @@ void PhysicsAnalysis :: PlotRawTrkYield (const bool useTrkPt, const bool plotAsS
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? g->GetYaxis ()->SetTitle ("Y (#it{p}_{T}, #Delta#phi)") : g->GetYaxis ()->SetTitle ("Y (#it{x}_{hZ}, #Delta#phi)");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            g->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}, #Delta#phi)" : "Y (#it{x}_{hZ}, #Delta#phi)");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3652,7 +3653,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 395*numCentBins, 985);
         gDirectory->Add (c);
@@ -3706,7 +3707,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         double min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+          TH1D* h = (useTrkPt ? h_trk_pt_dphi : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent];
           min = fmin (min, h->GetMinimum (0));
           max = fmax (max, h->GetMaximum ());
         } // end loop over phi
@@ -3717,7 +3718,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         if (plotFill) {
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
           //for (int iPhi = numPhiBins-1; iPhi >= 0; iPhi--) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent];
 
             //h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
             //h->SetMarkerSize (0);
@@ -3730,8 +3731,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x}_{hZ} d#Delta#phi");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ} d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3755,7 +3756,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -3777,8 +3778,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3819,7 +3820,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = useTrkPt ? h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent];
+          TH1D* h = (useTrkPt ? h_trk_pt_dphi_sub : h_trk_xhz_dphi_sub)[iSpc][iPtZ][iPhi][iCent];
           min = fmin (min, h->GetMinimum (0));
           max = fmax (max, h->GetMaximum ());
         } // end loop over phi
@@ -3830,7 +3831,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
         if (plotFill) {
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_sub : h_trk_xhz_dphi_sub)[iSpc][iPtZ][iPhi][iCent];
 
             if (!h) continue;
 
@@ -3845,8 +3846,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
 
             h->GetXaxis ()->SetTitleFont (43);
             h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3870,7 +3871,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
 
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_sub : h_trk_xhz_dphi_sub)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -3892,8 +3893,8 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-            useTrkPt ? g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+            g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
 
             g->GetXaxis ()->SetTitleFont (43);
             g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -3931,7 +3932,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         min = 1e30, max = 0;
         GetMinAndMax (min, max, true);
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = (useTrkPt ? h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+          TH1D* h = ((useTrkPt ? h_trk_pt_dphi_sig_to_bkg : h_trk_xhz_dphi_sig_to_bkg)[iSpc][iPtZ][iPhi][iCent]);
           min = fmin (min, h->GetMinimum (0));
           max = fmax (max, h->GetMaximum ());
         } // end loop over phi
@@ -3945,7 +3946,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
         if (plotFill) {
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_sig_to_bkg : h_trk_xhz_dphi_sig_to_bkg)[iSpc][iPtZ][iPhi][iCent];
 
             if (!h) continue;
 
@@ -3960,7 +3961,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             h->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
             h->GetYaxis ()->CenterTitle ();
 
@@ -3985,7 +3986,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
         } else {
           for (int iPhi = numPhiBins-1; iPhi >= 1; iPhi--) {
             const Style_t markerStyle = (useAltMarker ? (iPhi == 0 ? kOpenSquare : kOpenCircle) : (iPhi == 0 ? kFullSquare : kFullCircle));
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_sig_to_bkg : h_trk_xhz_dphi_sig_to_bkg)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -4007,7 +4008,7 @@ void PhysicsAnalysis :: PlotTrkYield (const bool useTrkPt, const bool plotAsSyst
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             g->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
             g->GetYaxis ()->CenterTitle ();
 
@@ -4114,7 +4115,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
     else {
       c = new TCanvas (canvasName, "", 395*numCentBins, 985);
       gDirectory->Add (c);
@@ -4152,8 +4153,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
         topPad->Draw ();
         middlePad->Draw ();
         bottomPad->Draw ();
-      }
-      else {
+     }
+     else {
         topPad = dynamic_cast<TPad*> (gDirectory->Get (topPadName));
         middlePad = dynamic_cast<TPad*> (gDirectory->Get (middlePadName));
         bottomPad = dynamic_cast<TPad*> (gDirectory->Get (bottomPadName));
@@ -4180,7 +4181,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       }
       //GetMinAndMax (min, max, true);
       //for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-      //  TH1D* h = (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] : h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+      //  TH1D* h = (useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent];
       //  min = fmin (min, h->GetMinimum (0));
       //  max = fmax (max, h->GetMaximum ());
       //} // end loop over phi
@@ -4190,7 +4191,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
       if (plotFill) {
         for (int iPtZ = nPtZBins-1; iPtZ >= 2; iPtZ--) {
-          TH1D* h = (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] :  h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+          TH1D* h = (useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent];
 
           //h->SetFillColorAlpha (fillColors[iPtZ-2], fillAlpha);
           //h->SetMarkerSize (0);
@@ -4203,8 +4204,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           h->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-          useTrkPt ? h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x} d#Delta#phi");
+          h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+          h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
           h->GetXaxis ()->SetTitleFont (43);
           h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -4227,7 +4228,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       } else {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           const Style_t markerStyle = markerStyles[iPtZ-2];
-          TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] : h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+          TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
@@ -4249,8 +4250,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           g->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-          useTrkPt ? g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x} d#Delta#phi");
+          g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+          g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
           g->GetXaxis ()->SetTitleFont (43);
           g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -4300,7 +4301,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       //min = 1e30, max = 0;
       //GetMinAndMax (min, max, true);
       //for (int iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-      //  TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+      //  TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent];
       //  min = fmin (min, h->GetMinimum (0));
       //  max = fmax (max, h->GetMaximum ());
       //} // end loop over phi
@@ -4311,7 +4312,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
       if (plotFill) {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-          TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+          TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent];
 
           if (!h) continue;
 
@@ -4326,8 +4327,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           h->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-          useTrkPt ? h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x} d#Delta#phi");
+          h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+          h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
           h->GetXaxis ()->SetTitleFont (43);
           h->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -4351,7 +4352,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           const Style_t markerStyle = markerStyles[iPtZ-2];
 
-          TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+          TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent]);
           //if (iCent == 3)
           //  g->Print ("ALL");
           RecenterGraph (g);
@@ -4375,8 +4376,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           g->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-          useTrkPt ? g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x} d#Delta#phi");
+          g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+          g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
           g->GetXaxis ()->SetTitleFont (43);
           g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -4417,7 +4418,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       min = 1e30, max = 0;
       GetMinAndMax (min, max, true);
       for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+        TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg : h_trk_xhz_ptz_sig_to_bkg)[iSpc][iPtZ][iCent];
         min = fmin (min, h->GetMinimum (0));
         max = fmax (max, h->GetMaximum ());
       } // end loop over phi
@@ -4431,7 +4432,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
       if (plotFill) {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-          TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+          TH1D* h = (useTrkPt ? h_trk_pt_ptz_sig_to_bkg : h_trk_xhz_ptz_sig_to_bkg)[iSpc][iPtZ][iCent];
 
           if (!h) continue;
 
@@ -4446,7 +4447,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           h->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+          h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
           h->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
           h->GetYaxis ()->CenterTitle ();
 
@@ -4471,7 +4472,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
       } else {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           const Style_t markerStyle = markerStyles[iPtZ-2];
-          TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+          TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sig_to_bkg : h_trk_xhz_ptz_sig_to_bkg)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
@@ -4493,7 +4494,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPt (const bool useTrkPt, const bool plotAsS
 
           g->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+          g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
           g->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
           g->GetYaxis ()->CenterTitle ();
 
@@ -4569,6 +4570,80 @@ void PhysicsAnalysis :: LabelTrkYieldZPt (const short iCent, const short iPtZ, c
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot distribution of Y(pT or xZh) for each event, binned in Z Pt
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+
+    const char* canvasName = Form ("c_TrkYield_zpt_%s", useTrkPt ? "pttrk" : "xhz");
+    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+    TCanvas* c = nullptr;
+    if (canvasExists)
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+    else {
+      c = new TCanvas (canvasName, "", 400*numCentBins, 400);
+      gDirectory->Add (c);
+      c->Divide (4, 1);
+    }
+
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      c->cd (iCent+1);
+
+      gPad->SetLogx ();
+      gPad->SetLogy ();
+
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[nPtZBins-1] : nXHZBins[nPtZBins-1], useTrkPt ? ptTrkBins[nPtZBins-1] : xHZBins[nPtZBins-1]);
+      h->GetXaxis ()->SetRangeUser (useTrkPt ? ptTrkBins[nPtZBins-1][0] : xHZBins[nPtZBins-1][0], useTrkPt ? ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]] : xHZBins[nPtZBins-1][nXHZBins[nPtZBins-1]]);
+      useTrkPt ? h->GetYaxis ()->SetRangeUser (8e-1, 1e3) : h->GetYaxis ()->SetRangeUser (8e-1, 1e3);
+
+      //h->GetXaxis ()->SetMoreLogLabels ();
+
+      h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+      h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
+
+      h->GetXaxis ()->SetTitleFont (43);
+      h->GetYaxis ()->SetTitleFont (43);
+      h->GetXaxis ()->SetLabelFont (43);
+      h->GetYaxis ()->SetLabelFont (43);
+
+      h->GetXaxis ()->SetTitleSize (30);
+      h->GetYaxis ()->SetTitleSize (30);
+      h->GetXaxis ()->SetTitleOffset (2.35);
+      h->GetYaxis ()->SetTitleOffset (2.5);
+      //h->GetXaxis ()->SetLabelSize (0);
+      h->GetXaxis ()->SetLabelSize (0);
+      h->GetYaxis ()->SetLabelSize (27);
+
+      h->Draw ();
+
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        TGraph* g = (useTrkPt ? g_trk_pt_ptz : g_trk_xhz_ptz)[iSpc][iPtZ][iCent];
+
+        double x, y;
+        for (int i = 0; i < g->GetN (); i++) {
+          g->GetPoint (i, x, y);
+          g->SetPoint (i, (1.+0.07*(iPtZ-3))*x, y);
+        }
+
+        const Style_t markerStyle = markerStyles[iPtZ-2];
+        g->SetMarkerStyle (kOpenCircle);
+        g->SetMarkerColor (colors[iPtZ-1]);
+        g->SetMarkerSize (0.3);
+        g->Draw ("P");
+        
+      }
+
+    }
+  }
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Y(pT or xZh) binned in Z Pt
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool plotAsSystematic) {
@@ -4583,7 +4658,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 395*numCentBins, 685);
     gDirectory->Add (c);
@@ -4628,8 +4703,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
     double min = 1e30, max = 0;
     GetMinAndMax (min, max, true);
     for (short iSpc = 0; iSpc < 2; iSpc++) {
-      for (int iPtZ = 2; iPtZ < 3; iPtZ++) {
-        TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+      for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent];
         min = fmin (min, h->GetMinimum (0));
         max = fmax (max, h->GetMaximum ());
       } // end loop over phi
@@ -4640,10 +4715,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
     SetMinAndMax (min, max);
 
     for (short iSpc = 0; iSpc < 2; iSpc++) {
-      for (int iPtZ = 2; iPtZ < 3; iPtZ++) {
+      for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         const Style_t markerStyle = (iSpc == 1 ? kOpenCircle : kFullCircle);
 
-        TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
+        TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent]);
         //if (iCent == 3)
         //  g->Print ("ALL");
         RecenterGraph (g);
@@ -4667,8 +4742,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 
         g->GetXaxis ()->SetMoreLogLabels ();
 
-        useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-        useTrkPt ? g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]") : g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{x} d#Delta#phi");
+        g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+        g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
         g->GetXaxis ()->SetTitleFont (43);
         g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -4699,10 +4774,10 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
     //plotNewAxes = (drawnHists.size () == 0 && drawnGraphs.size () == 0);
     gPad->SetLogx ();
 
-    for (int iPtZ = 2; iPtZ < 3; iPtZ++) {
+    for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
 
-      TH1D* h = useTrkPt ? h_trk_pt_ptz_sub[0][iPtZ][iCent] : h_trk_xhz_ptz_sub[0][iPtZ][iCent];
-      h->Divide (useTrkPt ? h_trk_pt_ptz_sub[1][iPtZ][iCent] : h_trk_xhz_ptz_sub[1][iPtZ][iCent]);
+      TH1D* h = (useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[0][iPtZ][iCent];
+      h->Divide ((useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[1][iPtZ][iCent]);
 
       TGAE* g = GetTGAE (h);
       delete h;
@@ -4728,7 +4803,7 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
 
       g->GetXaxis ()->SetMoreLogLabels ();
 
-      useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
       g->GetYaxis ()->SetTitle ("Electrons / Muons");
 
       g->GetXaxis ()->SetTitleFont (43);
@@ -4768,8 +4843,8 @@ void PhysicsAnalysis :: PlotTrkYieldZPtSpcComp (const bool useTrkPt, const bool 
       myText (0.485, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.06);
     }
 
-    for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
-    //for (short iPtZ = 2; iPtZ < 3; iPtZ++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+    //for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (iPtZ == 3) {
         myText (0.34, 0.91, kBlack, "ee", 0.06);
         myText (0.47, 0.91, kBlack, "#mu#mu", 0.06);
@@ -4812,7 +4887,7 @@ void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, co
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 800, 600);
     FormatTH2Canvas (c, true);
@@ -4931,7 +5006,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 500*(numCentBins-1), 502);
         c->Divide (numCentBins-1, 1);
@@ -4945,7 +5020,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
 
         if (plotFill) {
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent];
 
             h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
             h->SetMarkerSize (0);
@@ -4959,7 +5034,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -4986,7 +5061,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -5009,7 +5084,7 @@ void PhysicsAnalysis :: PlotIAAdPhi (const bool useTrkPt, const bool plotAsSyste
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
             xmin = g->GetXaxis ()->GetXmin ();
             xmax = g->GetXaxis ()->GetXmax ();
@@ -5126,7 +5201,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 500*(numPhiBins-1), 500);
         c->Divide (numPhiBins-1, 1);
@@ -5140,7 +5215,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
 
         if (plotFill) {
           for (int iCent = 1; iCent < numCentBins; iCent++) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent];
 
             h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
             h->SetMarkerSize (0);
@@ -5154,7 +5229,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             h->GetYaxis ()->SetTitle ("I_{AA}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -5183,7 +5258,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
           for (int iCent = 1; iCent < numCentBins; iCent++) {
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
 
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -5208,7 +5283,7 @@ void PhysicsAnalysis :: PlotIAAdCent (const bool useTrkPt, const bool plotAsSyst
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             g->GetYaxis ()->SetTitle ("I_{AA}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -5310,7 +5385,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
     else {
       c = new TCanvas (canvasName, "", 500*(numCentBins-1), 502);
       c->Divide (numCentBins-1, 1);
@@ -5325,7 +5400,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         const Style_t markerStyle = markerStyles[iPtZ-2];
 
-        TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
+        TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
         if (!plotAsSystematic) {
@@ -5348,7 +5423,7 @@ void PhysicsAnalysis :: PlotIAAdPtZ (const bool useTrkPt, const bool plotAsSyste
 
         g->GetXaxis ()->SetMoreLogLabels ();
 
-        useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+        g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
         g->GetYaxis ()->SetTitle ("I_{AA}");
         xmin = g->GetXaxis ()->GetXmin ();
         xmax = g->GetXaxis ()->GetXmax ();
@@ -5453,7 +5528,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
     else {
       c = new TCanvas (canvasName, "", 800, 800);
       gDirectory->Add (c);
@@ -5466,7 +5541,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
     for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
       const Style_t markerStyle = markerStyles[iPtZ-3];
 
-      TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
+      TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
       RecenterGraph (g);
 
       if (!plotAsSystematic) {
@@ -5492,7 +5567,7 @@ void PhysicsAnalysis :: PlotSingleIAAdPtZ (const bool useTrkPt, const bool plotA
       g->GetXaxis ()->SetMoreLogLabels ();
       g->GetYaxis ()->SetMoreLogLabels ();
 
-      useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+      g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
       g->GetYaxis ()->SetTitle ("I_{AA}");
       xmin = g->GetXaxis ()->GetXmin ();
       xmax = g->GetXaxis ()->GetXmax ();
@@ -5570,7 +5645,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
   if (canvasExists)
-    c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
     c = new TCanvas (canvasName, "", 400*(numCentBins-1), 1200);
     c->Divide (numCentBins-1, iPtZHi - iPtZLo);
@@ -5588,7 +5663,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
 
         gPad->SetLogx ();
 
-        TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
+        TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
         if (!plotAsSystematic) {
@@ -5613,7 +5688,7 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         g->GetXaxis ()->SetMoreLogLabels ();
         g->GetYaxis ()->SetMoreLogLabels ();
 
-        useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+        g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
         g->GetYaxis ()->SetTitle ("I_{AA}");
 
         g->GetXaxis ()->SetTitleFont (43);
@@ -5694,8 +5769,8 @@ void PhysicsAnalysis :: PlotIAASpcComp (const bool useTrkPt, const bool plotAsSy
         c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
 
         for (short iSpc = 0; iSpc < 2; iSpc++) {
-          TGAE* g1 = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[0][iPtZ][iCent] : h_trk_xhz_ptz_iaa[0][iPtZ][iCent]);
-          TGAE* g2 = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[1][iPtZ][iCent] : h_trk_xhz_ptz_iaa[1][iPtZ][iCent]);
+          TGAE* g1 = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[0][iPtZ][iCent]);
+          TGAE* g2 = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[1][iPtZ][iCent]);
 
           double chisq = 0;
           double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -5810,7 +5885,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 500*(numCentBins-2), 500);
         c->Divide (numCentBins-2, 1);
@@ -5824,7 +5899,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 
         if (plotFill) {
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent];
 
             h->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
             h->SetMarkerSize (0);
@@ -5838,7 +5913,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -5865,7 +5940,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
           for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
             
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -5890,7 +5965,7 @@ void PhysicsAnalysis :: PlotICPdPhi (const bool useTrkPt, const bool plotAsSyste
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -6006,7 +6081,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
       const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
       TCanvas* c = nullptr;
       if (canvasExists)
-        c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+        c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
       else {
         c = new TCanvas (canvasName, "", 500*(numPhiBins-1), 500);
         c->Divide (numPhiBins-1, 1);
@@ -6020,7 +6095,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
 
         if (plotFill) {
           for (int iCent = 2; iCent < numCentBins; iCent++) {
-            TH1D* h = useTrkPt ? h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent];
+            TH1D* h = (useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent];
 
             h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
             h->SetMarkerSize (0);
@@ -6034,7 +6109,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
 
             h->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             h->GetYaxis ()->SetTitle ("I_{CP}");
 
             h->GetXaxis ()->SetTitleFont (43);
@@ -6061,7 +6136,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
           for (int iCent = 2; iCent < numCentBins; iCent++) {
             const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
             
-            TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent] : h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
+            TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
             if (!plotAsSystematic) {
@@ -6086,7 +6161,7 @@ void PhysicsAnalysis :: PlotICPdCent (const bool useTrkPt, const bool plotAsSyst
 
             g->GetXaxis ()->SetMoreLogLabels ();
 
-            useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+            g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
             g->GetYaxis ()->SetTitle ("I_{CP}");
 
             g->GetXaxis ()->SetTitleFont (43);
@@ -6189,7 +6264,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
-      c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
     else {
       c = new TCanvas (canvasName, "", 500*(numCentBins-2), 500);
       c->Divide (numCentBins-2, 1);
@@ -6203,7 +6278,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
 
       if (plotFill) {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-          TH1D* h = useTrkPt ? h_trk_pt_ptz_icp[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent];
+          TH1D* h = (useTrkPt ? h_trk_pt_ptz_icp : h_trk_xhz_ptz_icp)[iSpc][iPtZ][iCent];
 
           h->SetFillColorAlpha (fillColors[iPtZ-1], fillAlpha);
           h->SetMarkerSize (0);
@@ -6217,7 +6292,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
 
           h->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+          h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
           h->GetYaxis ()->SetTitle ("I_{CP}");
 
           h->GetXaxis ()->SetTitleFont (43);
@@ -6244,7 +6319,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
           const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
           
-          TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_icp[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
+          TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_icp : h_trk_xhz_ptz_icp)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
           if (!plotAsSystematic) {
@@ -6269,7 +6344,7 @@ void PhysicsAnalysis :: PlotICPdPtZ (const bool useTrkPt, const bool plotAsSyste
 
           g->GetXaxis ()->SetMoreLogLabels ();
 
-          useTrkPt ? g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : g->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+          g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
           g->GetYaxis ()->SetTitle ("I_{CP}");
 
           g->GetXaxis ()->SetTitleFont (43);
@@ -6412,7 +6487,7 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
     htemp->Draw ();
 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      TGAE* g = GetTGAE (useTrkPt ? h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
+      TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sig_to_bkg : h_trk_xhz_ptz_sig_to_bkg)[iSpc][iPtZ][iCent]);
       RecenterGraph (g);
       ResetXErrors (g);
       deltaize (g, 1 + 0.01*(iCent - (numCentBins-1)), true);
