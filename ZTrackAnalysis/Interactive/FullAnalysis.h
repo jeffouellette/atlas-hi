@@ -2526,7 +2526,7 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
       //h->GetXaxis ()->SetMoreLogLabels ();
 
       h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
-      h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
+      h->GetYaxis ()->SetTitle (useTrkPt ? "Y (#it{p}_{T}^{ ch})" : "Y (#it{x}_{hZ})");
 
       h->Draw ();
 
