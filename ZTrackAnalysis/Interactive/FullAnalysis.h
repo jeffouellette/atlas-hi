@@ -2528,19 +2528,6 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
       h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
       h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
 
-      h->GetXaxis ()->SetTitleFont (43);
-      h->GetYaxis ()->SetTitleFont (43);
-      h->GetXaxis ()->SetLabelFont (43);
-      h->GetYaxis ()->SetLabelFont (43);
-
-      h->GetXaxis ()->SetTitleSize (30);
-      h->GetYaxis ()->SetTitleSize (30);
-      h->GetXaxis ()->SetTitleOffset (2.35);
-      h->GetYaxis ()->SetTitleOffset (2.5);
-      //h->GetXaxis ()->SetLabelSize (0);
-      h->GetXaxis ()->SetLabelSize (0);
-      h->GetYaxis ()->SetLabelSize (27);
-
       h->Draw ();
 
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
@@ -2559,6 +2546,13 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
         
       } // end loop over iPtZ
 
+      if (iCent == 0) {
+        myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+        myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.06);
+        myText (0.22, 0.74, kBlack, Form ("Z #rightarrow %s", iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll")), 0.06);
+      }
+      else
+        myText (0.55, 0.87, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
     } // end loop over iCent
   } // end loop over iSpc
 }
