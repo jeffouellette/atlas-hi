@@ -169,7 +169,101 @@ class PhysicsAnalysis {
 
     ClearHists ();
 
-    ScaleHists ();
+    Delete2DArray (h_trk_effs,      numTrkCorrCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_effs,     numTrkCorrCentBins);
+    Delete1DArray (h2_num_trk_effs, numTrkCorrCentBins);
+    Delete1DArray (h2_den_trk_effs, numTrkCorrCentBins);
+
+    Delete2DArray (h_trk_purs,      numTrkCorrCentBins, numEtaTrkBins);
+    Delete1DArray (h2_trk_purs,     numTrkCorrCentBins);
+    Delete1DArray (h2_num_trk_purs, numTrkCorrCentBins);
+    Delete1DArray (h2_den_trk_purs, numTrkCorrCentBins);
+
+    Delete3DArray (f_trk_pt_ptz_binMigration,  2, nPtZBins, numBBBCorrCentBins);
+    Delete3DArray (f_trk_xhz_ptz_binMigration, 2, nPtZBins, numBBBCorrCentBins);
+
+    Delete4DArray (h_trk_dphi,                3, nPtZBins, maxNPtTrkBins, numCentBins);
+    Delete4DArray (h_trk_dphi_sub,            3, nPtZBins, maxNPtTrkBins, numCentBins);
+
+    Delete4DArray (h_trk_pt_dphi_raw,         3, nPtZBins, numPhiBins, numCentBins);
+    Delete3DArray (h_z_counts,                3, nPtZBins, numCentBins);
+
+    Delete4DArray (h_trk_pt_dphi,             3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_pt_dphi_sub,         3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_pt_dphi_sig_to_bkg,  3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_pt_dphi_iaa,         3, nPtZBins, numPhiBins, numCentBins);
+    //Delete4DArray (h_trk_pt_dphi_icp,         3, nPtZBins, numPhiBins, numCentBins);
+
+    Delete3DArray (h_trk_pt_ptz,              3, nPtZBins, numCentBins);
+    Delete3DArray (h2_trk_pt_ptz_cov,         3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_pt_ptz_sub,          3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_pt_ptz_sig_to_bkg,   3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_pt_ptz_iaa,          3, nPtZBins, numCentBins);
+    //Delete3DArray (h_trk_pt_ptz_icp,          3, nPtZBins, numCentBins);
+
+    Delete4DArray (h_trk_xhz_dphi,            3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_xhz_dphi_sub,        3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_xhz_dphi_sig_to_bkg, 3, nPtZBins, numPhiBins, numCentBins);
+    Delete4DArray (h_trk_xhz_dphi_iaa,        3, nPtZBins, numPhiBins, numCentBins);
+    //Delete4DArray (h_trk_xhz_dphi_icp,        3, nPtZBins, numPhiBins, numCentBins);
+
+    Delete3DArray (h_trk_xhz_ptz,             3, nPtZBins, numCentBins);
+    Delete3DArray (h2_trk_xhz_ptz_cov,        3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_xhz_ptz_sub,         3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_xhz_ptz_sig_to_bkg,  3, nPtZBins, numCentBins);
+    Delete3DArray (h_trk_xhz_ptz_iaa,         3, nPtZBins, numCentBins);
+    //Delete3DArray (h_trk_xhz_ptz_icp,         3, nPtZBins, numCentBins);
+
+    if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
+      eventWeightsFile->Close ();
+      SaferDelete (eventWeightsFile);
+    }
+    if (trkEffFile && trkEffFile->IsOpen ()) {
+      trkEffFile->Close ();
+      SaferDelete (trkEffFile);
+    }
+    if (trkPurFile && trkPurFile->IsOpen ()) {
+      trkPurFile->Close ();
+      SaferDelete (trkPurFile);
+    }
+    if (histFile && histFile->IsOpen ()) {
+      histFile->Close ();
+      SaferDelete (histFile);
+    }
+  }
+
+
+  protected:
+  void LabelTrackingEfficiencies (const short iCent, const short iEta);
+  void LabelTrackingPurities (const short iCent, const short iEta);
+  void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent, const bool subBkg);
+  void LabelTrkYield (const short iCent, const short iPhi, const short iPtZ, const short iSpc);
+  void LabelTrkYieldZPt (const short iCent, const short iPtZ, const short iSpc);
+  void LabelIAAdPhi (const short iCent, const short iPhi, const short iPtZ);
+  void LabelIAAdCent (const short iCent, const short iPhi, const short iPtZ);
+  void LabelIAAdPtZ (const short iCent, const short iPtZ);
+  //void LabelICPdPhi (const short iCent, const short iPhi, const short iPtZ);
+  //void LabelICPdCent (const short iCent, const short iPhi, const short iPtZ);
+  //void LabelICPdPtZ (const short iCent, const short iPtZ);
+
+  void GetDrawnObjects ();
+  void GetMinAndMax (double &min, double &max, const bool log = false);
+  void SetMinAndMax (double min, double max);
+
+  public:
+  string Name () { return name; }
+  void SetName (string _name) { name = _name; }
+
+  virtual TGAE* GetTGAE (TH1D* h);
+
+  virtual void CreateHists ();
+  virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
+  virtual void ClearHists ();
+  virtual void CombineHists ();
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true);
+  virtual void SaveHists (const char* histFileName = "savedHists.root");
+  virtual void SaveResults (const char* saveFileName = "resultsHists.root");
+  virtual void ScaleHists ();
   virtual void Execute (const char* inFileName, const char* outFileName);
   virtual void GenerateWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName);
   virtual void LoadEventWeights ();
