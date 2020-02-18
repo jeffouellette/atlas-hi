@@ -393,6 +393,10 @@ void FullAnalysis :: CombineHists () {
           g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetPoint (i, x, y);
           g_trk_pt_ptz[2][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[2][iPtZ][iCent]->GetN (), x, y);
         } // end loop over i
+        for (int i = 0; i < g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (); i++) {
+          g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetPoint (i, x, y);
+          g_trk_xhz_ptz[2][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[2][iPtZ][iCent]->GetN (), x, y);
+        } // end loop over i
       } // end loop over iPtZ
       for (short iReg = 0; iReg < 2; iReg++) {
         if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][2][iReg]->Add (h_z_m[iCent][iSpc][iReg]);
