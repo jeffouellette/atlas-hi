@@ -89,7 +89,7 @@ class FullAnalysis : public PhysicsAnalysis {
 
   virtual void CreateHists () override;
   virtual void CopyAnalysis (FullAnalysis* a, const bool copyBkgs = false);
-  virtual void ClearHists ();
+  virtual void ClearHists () override;
   virtual void CombineHists () override;
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   virtual void SaveHists (const char* histFileName = "savedHists.root") override;
@@ -2548,7 +2548,6 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
           g->SetPoint (i, (1.+0.07*(iPtZ-3))*x, y);
         }
 
-        const Style_t markerStyle = markerStyles[iPtZ-2];
         g->SetMarkerStyle (kOpenCircle);
         g->SetMarkerColor (colors[iPtZ-1]);
         g->SetMarkerSize (0.3);
