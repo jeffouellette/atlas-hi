@@ -46,6 +46,9 @@ class FullAnalysis : public PhysicsAnalysis {
   TH1D*** h_trk_pt          = Get2DArray <TH1D*> (numCentBins, 3);             // iCent, iSpc
   TH2D*** h_lepton_trk_dr   = Get2DArray <TH2D*> (numCentBins, 3);             // iCent, iSpc
 
+  TGraph**** g_trk_pt_ptz             = Get3DArray <TGraph*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  TGraph**** g_trk_xhz_ptz            = Get3DArray <TGraph*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+
 
   FullAnalysis () { }
 
@@ -73,6 +76,9 @@ class FullAnalysis : public PhysicsAnalysis {
     Delete2DArray (h_lepton_trk_pt, numCentBins, 3);
     Delete2DArray (h_trk_pt,        numCentBins, 3);
     Delete2DArray (h_lepton_trk_dr, numCentBins, 3);
+
+    Delete3DArray (g_trk_pt_ptz,    3, nPtZBins, numCentBins);
+    Delete3DArray (g_trk_xhz_ptz,   3, nPtZBins, numCentBins);
   }
 
 
@@ -83,6 +89,7 @@ class FullAnalysis : public PhysicsAnalysis {
 
   virtual void CreateHists () override;
   virtual void CopyAnalysis (FullAnalysis* a, const bool copyBkgs = false);
+  virtual void ClearHists ();
   virtual void CombineHists () override;
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   virtual void SaveHists (const char* histFileName = "savedHists.root") override;
@@ -104,11 +111,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotZMassSpectra (FullAnalysis* a = nullptr);
   void PlotZPhiYield (const short pSpc = 2);
   void PlotZLeptonDPhi ();
-
-  //void CalculateZPtDistRatio (FullAnalysis* a);
-  //void CalculateZEtaDistRatio (FullAnalysis* a);
-  //void CalculateZYDistRatio (FullAnalysis* a);
-  //void CalculateZMassSpectraRatio (FullAnalysis* a);
+  void PlotTrkYieldZPtDist (const bool useTrkPt = true, const short pSpc = 2);
 
 };
 
@@ -128,11 +131,16 @@ void FullAnalysis :: CreateHists () {
         h_z_y_phi[iCent][iSpc][iPtZ]  = new TH2D (Form ("h_z_y_phi_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 20, -2.5, 2.5, 20, 0, 2*pi);
         h_z_eta[iCent][iSpc][iPtZ]    = new TH1D (Form ("h_z_eta_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 16, -5.0, 5.0);
         h_z_y[iCent][iSpc][iPtZ]      = new TH1D (Form ("h_z_y_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 16, -2.5, 2.5);
-      }
+
+        g_trk_pt_ptz[iSpc][iPtZ][iCent] = new TGraph ();
+        g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetName (Form ("g_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent] = new TGraph ();
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetName (Form ("g_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+      } // end loop over iPtZ
       for (short iReg = 0; iReg < 3; iReg++) {
         h_z_m[iCent][iSpc][iReg]    = new TH1D (Form ("h_z_m_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()), "", 40, 76, 106);
         h_z_m[iCent][iSpc][iReg]->Sumw2 ();
-      }
+      } // end loop over iReg
       h_z_lepton_dphi[iCent][iSpc]  = new TH1D (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 45, 0, pi);
       h_lepton_pt[iCent][iSpc]      = new TH1D (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
       h_lepton_eta[iCent][iSpc]     = new TH1D (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 50, -2.5, 2.5);
@@ -153,9 +161,8 @@ void FullAnalysis :: CreateHists () {
       h_lepton_trk_pt[iCent][iSpc]->Sumw2 ();
       h_trk_pt[iCent][iSpc]->Sumw2 ();
       h_lepton_trk_dr[iCent][iSpc]->Sumw2 ();
-
-    }
-  }
+    } // end loop over iSpc
+  } // end loop over iCent
 
   histsLoaded = true;
   return;
@@ -173,7 +180,6 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
 
   PhysicsAnalysis :: CopyAnalysis ((PhysicsAnalysis*)a, copyBkgs);
 
-  // Should clone these histograms
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
@@ -189,13 +195,15 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
         h_z_y[iCent][iSpc][iPtZ]            = (TH1D*) a->h_z_y[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
         if (a->h_z_y_ratio[iCent][iSpc][iPtZ])
           h_z_y_ratio[iCent][iSpc][iPtZ]    = (TH1D*) a->h_z_y_ratio[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-      }
+        g_trk_pt_ptz[iSpc][iPtZ][iCent]     = (TGraph*) a->g_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("g_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent]    = (TGraph*) a->g_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("g_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+      } // end loop over iPtZ
 
       for (short iReg = 0; iReg < 3; iReg++) {
         h_z_m[iCent][iSpc][iReg]    = (TH1D*) a->h_z_m[iCent][iSpc][iReg]->Clone (Form ("h_z_m_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
         if (a->h_z_m_ratio[iCent][iSpc][iReg])
           h_z_m_ratio[iCent][iSpc][iReg] = (TH1D*) a->h_z_m_ratio[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
-      }
+      } // end loop over iReg
 
       if (a->h_z_lepton_dphi[iCent][iSpc])  h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) a->h_z_lepton_dphi[iCent][iSpc]->Clone (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       if (a->h_lepton_pt[iCent][iSpc])      h_lepton_pt[iCent][iSpc]      = (TH1D*) a->h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -210,6 +218,26 @@ void FullAnalysis :: CopyAnalysis (FullAnalysis* a, const bool copyBkgs) {
   histsLoaded = true;
   histsScaled = true;
   return;    
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Clears histograms from memory (allows them to be overwritten).
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: ClearHists () {
+
+  PhysicsAnalysis :: ClearHists ();
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        if (g_trk_pt_ptz[iSpc][iPtZ][iCent])        SaferDelete (g_trk_pt_ptz[iSpc][iPtZ][iCent]);
+        if (g_trk_xhz_ptz[iSpc][iPtZ][iCent])       SaferDelete (g_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+      } // end loop over iPtZ
+    } // end loop over iSpc
+  } // end loop over iCent
 }
 
 
@@ -236,23 +264,21 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       h_z_phi[iCent][iSpc]          = (TH1D*) histFile->Get (Form ("h_z_phi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_z_pt[iCent][iSpc]           = (TH1D*) histFile->Get (Form ("h_z_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-      //h_z_pt_ratio[iCent][iSpc]     = (TH1D*) histFile->Get (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_y_phi[iCent][iSpc][nPtZBins]    = new TH2D (Form ("h_z_y_phi_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 20, -2.5, 2.5, 20, 0, 2*pi);
         h_z_y_phi[iCent][iSpc][iPtZ]        = (TH2D*) histFile->Get (Form ("h_z_y_phi_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
         h_z_eta[iCent][iSpc][nPtZBins]      = new TH1D (Form ("h_z_eta_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 16, -5.0, 5.0);
         h_z_eta[iCent][iSpc][iPtZ]          = (TH1D*) histFile->Get (Form ("h_z_eta_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        //h_z_eta_ratio[iCent][iSpc][iPtZ]    = (TH1D*) histFile->Get (Form ("h_z_eta_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
         h_z_y[iCent][iSpc][nPtZBins]        = new TH1D (Form ("h_z_y_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 16, -2.5, 2.5);
         h_z_y[iCent][iSpc][iPtZ]            = (TH1D*) histFile->Get (Form ("h_z_y_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-        //h_z_y_ratio[iCent][iSpc][iPtZ]      = (TH1D*) histFile->Get (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-      }
+        g_trk_pt_ptz[iSpc][iPtZ][iCent]       = (TGraph*) histFile->Get (Form ("g_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zpt
+        g_trk_xhz_ptz[iSpc][iPtZ][iCent]      = (TGraph*) histFile->Get (Form ("g_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())); // old name: h_z_trk_zxzh
+      } // end loop over iPtZ
 
       for (short iReg = 0; iReg < 3; iReg++) {
         h_z_m[iCent][iSpc][iReg]        = (TH1D*) histFile->Get (Form ("h_z_m_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
-        //h_z_m_ratio[iCent][iSpc][iReg]  = (TH1D*) histFile->Get (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
-      }
+      } // end loop over iReg
       h_z_lepton_dphi[iCent][iSpc]  = (TH1D*) histFile->Get (Form ("h_z_lepton_dphi_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_pt[iCent][iSpc]      = (TH1D*) histFile->Get (Form ("h_lepton_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_eta[iCent][iSpc]     = (TH1D*) histFile->Get (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -260,8 +286,8 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
       h_trk_pt[iCent][iSpc]         = (TH1D*) histFile->Get (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h_lepton_trk_dr[iCent][iSpc]  = (TH2D*) histFile->Get (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
-    }
-  }
+    } // end loop over iSpc
+  } // end loop over iCent
   
   histsLoaded = true;
 
@@ -303,19 +329,21 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
         SafeWrite (h_z_eta_ratio[iCent][iSpc][iPtZ]);
         SafeWrite (h_z_y[iCent][iSpc][iPtZ]);
         SafeWrite (h_z_y_ratio[iCent][iSpc][iPtZ]);
-      }
+        SafeWrite (g_trk_pt_ptz[iSpc][iPtZ][iCent]);
+        SafeWrite (g_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+      } // end loop over iPtZ
       for (short iReg = 0; iReg < 3; iReg++) {
         SafeWrite (h_z_m[iCent][iSpc][iReg]);
         SafeWrite (h_z_m_ratio[iCent][iSpc][iReg]);
-      }
+      } // end loop over iReg
       SafeWrite (h_z_lepton_dphi[iCent][iSpc]);
       SafeWrite (h_lepton_pt[iCent][iSpc]);
       SafeWrite (h_lepton_eta[iCent][iSpc]);
       SafeWrite (h_lepton_trk_pt[iCent][iSpc]);
       SafeWrite (h_trk_pt[iCent][iSpc]);
       SafeWrite (h_lepton_trk_dr[iCent][iSpc]);
-    }
-  }
+    } // end loop over iSpc
+  } // end loop over iCent
   
   histFile->Close ();
   histFile = nullptr;
@@ -332,8 +360,6 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: CombineHists () {
-
-  //PhysicsAnalysis :: CombineHists ();
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {
@@ -361,20 +387,28 @@ void FullAnalysis :: CombineHists () {
             h_z_y[iCent][2][nPtZBins]->Add (h_z_y[iCent][iSpc][iPtZ]);
           }
         }
-      }
+
+        double x, y;
+        for (int i = 0; i < g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (); i++) {
+          g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetPoint (i, x, y);
+          g_trk_pt_ptz[2][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[2][iPtZ][iCent]->GetN (), x, y);
+        } // end loop over i
+      } // end loop over iPtZ
       for (short iReg = 0; iReg < 2; iReg++) {
         if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][2][iReg]->Add (h_z_m[iCent][iSpc][iReg]);
         if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][iSpc][2]->Add (h_z_m[iCent][iSpc][iReg]);
         if (h_z_m[iCent][iSpc][iReg]) h_z_m[iCent][2][2]->Add (h_z_m[iCent][iSpc][iReg]);
-      }
+      } // end loop over iReg
       if (h_lepton_pt[iCent][iSpc]) h_lepton_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
       if (h_lepton_eta[iCent][iSpc]) h_lepton_eta[iCent][2]->Add (h_lepton_eta[iCent][iSpc]);
       if (h_lepton_pt[iCent][iSpc]) h_lepton_trk_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
       if (h_trk_pt[iCent][iSpc]) h_trk_pt[iCent][2]->Add (h_trk_pt[iCent][iSpc]);
       if (h_lepton_trk_dr[iCent][iSpc]) h_lepton_trk_dr[iCent][2]->Add (h_lepton_trk_dr[iCent][iSpc]);
 
-    } // end loop over species
-  } // end loop over centralities
+      
+
+    } // end loop over iSpc
+  } // end loop over iCent
   return;
 }
 
@@ -435,7 +469,7 @@ void FullAnalysis :: ScaleHists () {
           if (h_z_m[iCent][iSpc][iReg]->Integral () > 0)
             h_z_m[iCent][iSpc][iReg]->Scale (1. / h_z_m[iCent][iSpc][iReg]->Integral ());
         }
-      }
+      } // end loop over iReg
 
       for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
         if (h_z_eta[iCent][iSpc][iPtZ]) {
@@ -448,15 +482,15 @@ void FullAnalysis :: ScaleHists () {
           if (h_z_y[iCent][iSpc][iPtZ]->Integral () > 0)
             h_z_y[iCent][iSpc][iPtZ]->Scale (1. / h_z_y[iCent][iSpc][iPtZ]->Integral (), "width");
         }
-      }
+      } // end loop over iPtZ
 
       if (h_z_phi[iCent][iSpc]) {
         h_z_phi[iCent][iSpc]->Rebin (8);
         if (h_z_phi[iCent][iSpc]->Integral () > 0)
           h_z_phi[iCent][iSpc]->Scale (1. / h_z_phi[iCent][iSpc]->Integral (), "width");
       }
-    } // end loop over centralities
-  } // end loop over species
+    } // end loop over iCent
+  } // end loop over iSpc
 
   histsScaled = true;
   return;
@@ -1439,22 +1473,6 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates ratio of Z pT distributions between data and MC
-////////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: CalculateZPtDistRatio (FullAnalysis* a) {
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (short iCent = 0; iCent < numCentBins; iCent++) {
-//      h_z_pt_ratio[iCent][iSpc] = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
-//      h_z_pt_ratio[iCent][iSpc]->Divide (a->h_z_pt[iCent][iSpc]);
-//    }
-//  }
-//}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z Pt spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
@@ -1675,26 +1693,6 @@ void FullAnalysis :: PlotZYPhiMap () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates ratio of Z eta distributions between central Pb+Pb to pp
-////////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: CalculateZEtaDistRatio (FullAnalysis* a) {
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (short iCent = 0; iCent < numCentBins; iCent++) {
-//      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
-//        h_z_eta_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_eta[iCent][iSpc][iPtZ]->Clone (Form ("h_z_eta_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-//        TH1D* temp = (TH1D*) a->h_z_eta[iCent][iSpc][iPtZ]->Clone ("temp");
-//        h_z_eta_ratio[iCent][iSpc][iPtZ]->Divide (temp);
-//        delete temp;
-//      }
-//    }
-//  }
-//}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots the PSEUDORAPIDITY distribution of reconstructed Z bosons
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
@@ -1846,26 +1844,6 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
   }
   
 }
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-//alculates ratio of Z y distributions between central Pb+Pb to pp
-//////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: CalculateZYDistRatio (FullAnalysis* a) {
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (short iCent = 0; iCent < numCentBins; iCent++) {
-//      for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
-//        h_z_y_ratio[iCent][iSpc][iPtZ] = (TH1D*) h_z_y[iCent][iSpc][iPtZ]->Clone (Form ("h_z_y_ratio_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()));
-//        TH1D* temp = (TH1D*)a->h_z_y[iCent][iSpc][iPtZ]->Clone ("temp");
-//        h_z_y_ratio[iCent][iSpc][iPtZ]->Divide (temp);
-//        delete temp;
-//      }
-//    }
-//  }
-//}
 
 
 
@@ -2203,32 +2181,6 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Calculates ratio of Z mass spectra
-////////////////////////////////////////////////////////////////////////////////////////////////
-//void FullAnalysis :: CalculateZMassSpectraRatio (FullAnalysis* a) {
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (short iCent = 0; iCent < numCentBins; iCent++) {
-//      //if (iCent > 0) {
-//      //  h_z_m[iCent][iSpc]->Rebin (2);
-//      //  h_z_m[iCent][iSpc]->Scale (0.5);
-//      //  a->h_z_m[iCent][iSpc]->Rebin (2);
-//      //  a->h_z_m[iCent][iSpc]->Scale (0.5);
-//      //}
-//
-//      for (short iReg = 0; iReg < 3; iReg++) {
-//
-//        h_z_m_ratio[iCent][iSpc][iReg] = (TH1D*) h_z_m[iCent][iSpc][iReg]->Clone (Form ("h_z_m_ratio_%s_iCent%i_iReg%i_%s", spc, iCent, iReg, name.c_str ()));
-//        h_z_m_ratio[iCent][iSpc][iReg]->Divide (a->h_z_m[iCent][iSpc][iReg]);
-//      }
-//    }
-//  }
-//}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Z mass spectra
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
@@ -2533,6 +2485,81 @@ void FullAnalysis :: PlotZLeptonDPhi () {
     c->SaveAs (Form ("%s/ZLeptonDPhi_iCent%i.pdf", plotPath.Data (), iCent));
   }
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plot distribution of Y(pT or xZh) for each event, binned in Z Pt
+////////////////////////////////////////////////////////////////////////////////////////////////
+void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    if (pSpc != -1 && iSpc != pSpc)
+      continue; // allows user to define which plots should be made
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+
+    const char* canvasName = Form ("c_TrkYield_zpt_%s", useTrkPt ? "pttrk" : "xhz");
+    const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+    TCanvas* c = nullptr;
+    if (canvasExists)
+      c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+    else {
+      c = new TCanvas (canvasName, "", 400*numCentBins, 400);
+      gDirectory->Add (c);
+      c->Divide (4, 1);
+    }
+
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      c->cd (iCent+1);
+
+      gPad->SetLogx ();
+      gPad->SetLogy ();
+
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[nPtZBins-1] : nXHZBins[nPtZBins-1], useTrkPt ? ptTrkBins[nPtZBins-1] : xHZBins[nPtZBins-1]);
+      h->GetXaxis ()->SetRangeUser (useTrkPt ? ptTrkBins[nPtZBins-1][0] : xHZBins[nPtZBins-1][0], useTrkPt ? ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]] : xHZBins[nPtZBins-1][nXHZBins[nPtZBins-1]]);
+      useTrkPt ? h->GetYaxis ()->SetRangeUser (8e-1, 1e3) : h->GetYaxis ()->SetRangeUser (8e-1, 1e3);
+
+      //h->GetXaxis ()->SetMoreLogLabels ();
+
+      h->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+      h->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x} d#Delta#phi");
+
+      h->GetXaxis ()->SetTitleFont (43);
+      h->GetYaxis ()->SetTitleFont (43);
+      h->GetXaxis ()->SetLabelFont (43);
+      h->GetYaxis ()->SetLabelFont (43);
+
+      h->GetXaxis ()->SetTitleSize (30);
+      h->GetYaxis ()->SetTitleSize (30);
+      h->GetXaxis ()->SetTitleOffset (2.35);
+      h->GetYaxis ()->SetTitleOffset (2.5);
+      //h->GetXaxis ()->SetLabelSize (0);
+      h->GetXaxis ()->SetLabelSize (0);
+      h->GetYaxis ()->SetLabelSize (27);
+
+      h->Draw ();
+
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        TGraph* g = (useTrkPt ? g_trk_pt_ptz : g_trk_xhz_ptz)[iSpc][iPtZ][iCent];
+
+        double x, y;
+        for (int i = 0; i < g->GetN (); i++) {
+          g->GetPoint (i, x, y);
+          g->SetPoint (i, (1.+0.07*(iPtZ-3))*x, y);
+        }
+
+        const Style_t markerStyle = markerStyles[iPtZ-2];
+        g->SetMarkerStyle (kOpenCircle);
+        g->SetMarkerColor (colors[iPtZ-1]);
+        g->SetMarkerSize (0.3);
+        g->Draw ("P");
+        
+      } // end loop over iPtZ
+
+    } // end loop over iCent
+  } // end loop over iSpc
+}
+
 
 
 #endif
