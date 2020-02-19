@@ -1085,12 +1085,9 @@ void PhysicsAnalysis :: ScaleHists () {
           h->Scale (1./counts);
           TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
-          for (int iX = 1; iX <= h2->GetNbinsX (); iX++) {
-            for (int iY = 1; iY <= h2->GetNbinsY (); iY++) {
-              h2_trk_pt_ptz_cov[2][iPtZ][iCent]->SetBinContent (iX, iY, h2_trk_pt_ptz_cov[2][iPtZ][iCent]->GetBinContent (iX, iY) + h2->GetBinContent (iX, iY));
+          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-            }
-          }
           h2->Scale (1. / (countsHist->GetBinContent (1)*(counts-1)));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
@@ -1103,12 +1100,9 @@ void PhysicsAnalysis :: ScaleHists () {
           h->Scale (1./counts);
           h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
-          for (int iX = 1; iX <= h2->GetNbinsX (); iX++) {
-            for (int iY = 1; iY <= h2->GetNbinsY (); iY++) {
-              h2_trk_xhz_ptz_cov[2][iPtZ][iCent]->SetBinContent (iX, iY, h2_trk_xhz_ptz_cov[2][iPtZ][iCent]->GetBinContent (iX, iY) + h2->GetBinContent (iX, iY));
+          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-            }
-          }
           h2->Scale (1. / (countsHist->GetBinContent (1)*(counts-1)));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)

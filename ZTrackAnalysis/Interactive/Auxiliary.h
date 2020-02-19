@@ -21,11 +21,11 @@ void PlotPullDist (const PhysicsAnalysis* a, Systematic* sys = nullptr, const bo
   int nPoints = 0;
   for (short iCent = 0; iCent < numCentBins; iCent++) {
   //for (short iCent = 0; iCent < 1; iCent++) {
-    for (short iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-      TH1D* h_ee = (useTrkPt ? a->h_trk_pt_ptz_sub[0][iPtZ][iCent] : a->h_trk_xhz_ptz_sub[0][iPtZ][iCent]);
-      TH1D* h_mumu = (useTrkPt ? a->h_trk_pt_ptz_sub[1][iPtZ][iCent] : a->h_trk_xhz_ptz_sub[1][iPtZ][iCent]);
-      TGAE* g_ee_sys = (!sys ? nullptr : sys->GetTGAE (useTrkPt ? sys->h_trk_pt_ptz_sub[0][iPtZ][iCent] : sys->h_trk_xhz_ptz_sub[0][iPtZ][iCent]));
-      TGAE* g_mumu_sys = (!sys ? nullptr : sys->GetTGAE (useTrkPt ? sys->h_trk_pt_ptz_sub[1][iPtZ][iCent] : sys->h_trk_xhz_ptz_sub[1][iPtZ][iCent]));
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      TH1D* h_ee = (useTrkPt ? a->h_trk_pt_ptz_sub : a->h_trk_xhz_ptz_sub)[0][iPtZ][iCent];
+      TH1D* h_mumu = (useTrkPt ? a->h_trk_pt_ptz_sub : a->h_trk_xhz_ptz_sub)[1][iPtZ][iCent];
+      TGAE* g_ee_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_sub : sys->h_trk_xhz_ptz_sub)[0][iPtZ][iCent]) : nullptr);
+      TGAE* g_mumu_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_sub : sys->h_trk_xhz_ptz_sub)[1][iPtZ][iCent]) : nullptr);
       const int nBinsX = h_ee->GetNbinsX ();
       for (short iX = 1; iX <= nBinsX; iX++) {
         float variance = pow (h_ee->GetBinError (iX), 2) + pow (h_mumu->GetBinError (iX), 2);
