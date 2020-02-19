@@ -145,7 +145,7 @@ int main (int argc, char** argv) {
   //  mc->takeNonTruthTracks = true;
 
   //  mc->doPsi2Mixing = true;
-  //  mc->numPsi2MixBins = 16;
+  //  mc->nPsi2MixBins = 16;
   //  mc->doQ2Mixing = false;
 
   //  mc->Execute (inFileName.c_str (), outFileName.c_str ());
@@ -189,7 +189,7 @@ int main (int argc, char** argv) {
     else if (doPPMixVar)      bkg = new MinbiasAnalysis ("bkg_ppMixVar");
     else                      bkg = new MinbiasAnalysis ("bkg");
 
-    if ((!isPbPb && doPPMixVar) || algo == "mcminbias") mixingFraction = 1;
+    if ((!isPbPb && !doPPMixVar) || algo == "mcminbias") mixingFraction = 1;
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;
@@ -197,38 +197,27 @@ int main (int argc, char** argv) {
 
     if (doMixVarA) {
       bkg->doPsi2Mixing = false;
+      bkg->nPsi2MixBins = 1;
       bkg->doPsi3Mixing = false;
       bkg->doQ2Mixing = false;
     } else if (doMixVarB) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 2;
+      bkg->nPsi2MixBins = 2;
     } else if (doMixVarC) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 4;
+      bkg->nPsi2MixBins = 4;
     } else if (doMixVarD) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 8;
+      bkg->nPsi2MixBins = 8;
     } else if (doMixVarE) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
+      bkg->nPsi2MixBins = 16;
     } else if (doMixVarF) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 32;
+      bkg->nPsi2MixBins = 32;
     } else if (doMixVarG) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 64;
+      bkg->nPsi2MixBins = 64;
     } else if (doMixVarH) {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
+      bkg->nPsi2MixBins = 16;
       bkg->doPsi3Mixing = true;
-      bkg->numPsi3MixBins = 3;
+      bkg->nPsi3MixBins = 3;
     } else if (doPPMixVar) {
       bkg->doPPTransMinMixing = false;
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
-    } else {
-      bkg->doPsi2Mixing = true;
-      bkg->numPsi2MixBins = 16;
     }
 
     //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code

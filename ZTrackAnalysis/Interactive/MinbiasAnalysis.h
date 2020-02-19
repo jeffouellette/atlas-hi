@@ -20,15 +20,16 @@ class MinbiasAnalysis : public PhysicsAnalysis {
   public:
 
   bool takeNonTruthTracks = false;
+  bool doCentMixing = true;
   bool doQ2Mixing = false;
-  bool doPsi2Mixing = false;
+  bool doPsi2Mixing = true;
   bool doPsi3Mixing = false;
 
-  int numQ2MixBins = 1;
+  int nQ2MixBins = 1;
   double* q2MixBins = nullptr;
-  int numPsi2MixBins = 1;
+  int nPsi2MixBins = 16;
   double* psi2MixBins = nullptr;
-  int numPsi3MixBins = 1;
+  int nPsi3MixBins = 1;
   double* psi3MixBins = nullptr;
   
 
@@ -36,7 +37,7 @@ class MinbiasAnalysis : public PhysicsAnalysis {
     if (!q2MixBins)
       return -1;
     short i = 0;
-    while (i < numQ2MixBins) {
+    while (i < nQ2MixBins) {
       if (q2 < q2MixBins[i+1])
         break;
       i++;
@@ -48,7 +49,7 @@ class MinbiasAnalysis : public PhysicsAnalysis {
     if (!psi2MixBins)
       return -1;
     short i = 0;
-    while (i < numPsi2MixBins) {
+    while (i < nPsi2MixBins) {
       if (psi2 < psi2MixBins[i+1])
         break;
       i++;
@@ -60,7 +61,7 @@ class MinbiasAnalysis : public PhysicsAnalysis {
     if (!psi3MixBins)
       return -1;
     short i = 0;
-    while (i < numPsi3MixBins) {
+    while (i < nPsi3MixBins) {
       if (psi3 < psi3MixBins[i+1])
         break;
       i++;
@@ -158,12 +159,34 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
     cout << "Attempting to mix events within the same file!" << endl;
   }
 
-  if (doQ2Mixing) cout << "Attempting to mix events in q2 magnitude with " << numQ2MixBins << " bins" << endl;
-  if (doPsi2Mixing) cout << "Attempting to mix events in psi2 angle with " << numPsi2MixBins << " bins" << endl;
-  if (doPsi3Mixing) cout << "Attempting to mix events in psi3 angle with " << numPsi3MixBins << " bins" << endl;
-  q2MixBins = linspace (0, 0.2, numQ2MixBins);
-  psi2MixBins = linspace (-pi/2, pi/2, numPsi2MixBins);
-  psi3MixBins = linspace (-pi/3, pi/3, numPsi3MixBins);
+  if (doQ2Mixing != (nQ2MixBins > 1)) {
+    cout << "|q2| mixing strategy inconsistent, please check nQ2MixBins is consistent with doQ2Mixing." << endl;
+    nQ2MixBins = 1;
+    doQ2Mixing = false;
+  }
+  if (doPsi2Mixing != (nPsi2MixBins > 1)) {
+    cout << "Psi2 angle mixing strategy inconsistent, please check nPsi2MixBins is consistent with doPsi2Mixing." << endl;
+    nPsi2MixBins = 1;
+    doPsi2Mixing = false;
+  }
+  if (doPsi3Mixing != (nPsi3MixBins > 1)) {
+    cout << "Psi3 angle mixing strategy inconsistent, please check nPsi3MixBins is consistent with doPsi3Mixing." << endl;
+    nPsi3MixBins = 1;
+    doPsi3Mixing = false;
+  }
+
+  if (doQ2Mixing) {
+    cout << "Attempting to mix events in |q2| with " << nQ2MixBins << " bins" << endl;
+    q2MixBins = linspace (0, 0.2, nQ2MixBins);
+  }
+  if (doPsi2Mixing) {
+    cout << "Attempting to mix events in psi2 angle with " << nPsi2MixBins << " bins" << endl;
+    psi2MixBins = linspace (-pi/2, pi/2, nPsi2MixBins);
+  }
+  if (doPsi3Mixing) {
+    cout << "Attempting to mix events in psi3 angle with " << nPsi3MixBins << " bins" << endl;
+    psi3MixBins = linspace (-pi/3, pi/3, nPsi3MixBins);
+  }
 
 
   CreateHists ();
@@ -480,18 +503,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)
           continue;
         const short iQ2 = GetQ2MixBin (z_q2);
-        if (doQ2Mixing && (iQ2 < 0 || iQ2 > numQ2MixBins-1)) {
+        if (doQ2Mixing && (iQ2 < 0 || iQ2 > nQ2MixBins-1)) {
           cout << "Out-of-bounds q2, skipping this Z!" << endl;
-          continue;
-        }
-        const short iPsi2 = GetPsi2MixBin (z_psi2);
-        if (doPsi2Mixing && (iPsi2 < 0 || iPsi2 > numPsi2MixBins-1)) {
-          cout << "Out-of-bounds psi2, skipping this Z!" << endl;
-          continue;
-        }
-        const short iPsi3 = GetPsi3MixBin (z_psi3);
-        if (doPsi3Mixing && (iPsi3 < 0 || iPsi3 > numPsi3MixBins-1)) {
-          cout << "Out-of-bounds psi3, skipping this Z!" << endl;
           continue;
         }
 
@@ -520,15 +533,10 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (doSameFileMixing)
             goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
 
-          goodMixEvent = (goodMixEvent && iFCalEt == GetSuperFineCentBin (fcal_et)); // always check for centrality matchiing
-          if (doQ2Mixing)
-            goodMixEvent = (goodMixEvent && iQ2 == GetQ2MixBin (q2)); // potentially match also in q2
-          if (doPsi2Mixing)
-            goodMixEvent = (goodMixEvent && DeltaPhi (psi2, z_psi2) < (pi / numPsi2MixBins));
-            //goodMixEvent = (goodMixEvent && iPsi2 == GetPsi2MixBin (psi2)); // potentially match also in psi2
-          if (doPsi3Mixing)
-            goodMixEvent = (goodMixEvent && DeltaPhi (psi3, z_psi3) < (2.*pi/3. / numPsi3MixBins));
-            //goodMixEvent = (goodMixEvent && iPsi3 == GetPsi3MixBin (psi3)); // potentially match also in psi3
+          goodMixEvent = (goodMixEvent && (!doCentMixing || iFCalEt == GetSuperFineCentBin (fcal_et))); // do centrality matching
+          goodMixEvent = (goodMixEvent && (!doQ2Mixing   || iQ2 == GetQ2MixBin (q2))); // do q2 matching
+          goodMixEvent = (goodMixEvent && (!doPsi2Mixing || DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins))); // do psi2 matching
+          goodMixEvent = (goodMixEvent && (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins))); // do psi3 matching
 
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
@@ -627,7 +635,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
-            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (xhz, event_weight * trkWeight);
           }
         }
 
@@ -851,8 +859,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
             goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
 
           if (doPPTransMinMixing) {
-            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmin, z_phi) < pi/6.);
-            goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && DeltaPhi (phi_transmax, z_phi) < pi/6.);
+            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 10 && DeltaPhi (phi_transmin, z_phi) < pi/8.);
+            goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 10 && DeltaPhi (phi_transmax, z_phi) < pi/8.);
             //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && pi/4. < dphi && dphi < 3.*pi/4.); // variation on mixing: only mix with perpendicular, low-pT Z's
           }
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
@@ -872,7 +880,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       // at this point we have a Z boson and a new (unique & random) event to mix with
       mixedEventsTree->Fill ();
 
-      event_weight *= z_event_weight;
+      event_weight = z_event_weight;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
@@ -916,7 +924,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
-            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (xhz, event_weight * trkWeight);
           }
         }
 

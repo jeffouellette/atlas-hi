@@ -1287,7 +1287,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
-            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (xhz, event_weight * trkWeight);
           }
         }
 
@@ -1427,7 +1427,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
           if (phiLowBins[idPhi] <= dphi && dphi <= phiHighBins[idPhi]) {
             h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt);
             h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt, event_weight * trkWeight);
-            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (trkpt / z_pt, event_weight * trkWeight);
+            h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->Fill (xhz, event_weight * trkWeight);
           }
         }
 
