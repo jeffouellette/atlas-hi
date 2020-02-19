@@ -327,8 +327,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 
@@ -512,8 +512,8 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight);
         }
 

@@ -74,7 +74,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       //  for (short iCent = 0; iCent < numCentBins; iCent++) {
       //    hn = (TH1D*) var->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
       //    hn->Divide (nominal->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
-      //    f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+      //    f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
       //    hn->Fit (f, "RN0Q");
@@ -83,7 +83,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
   
       //    hn = (TH1D*) var->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
       //    hn->Divide (nominal->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
-      //    f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+      //    f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", xhZBins[iPtZ][0], xhZBins[iPtZ][nXHZBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
       //    hn->Fit (f, "RN0Q");
@@ -103,7 +103,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
-        f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+        f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
         f->SetParameter (0, 1);
         f->SetParameter (1, 0);
         hn->Fit (f, "RN0Q");
@@ -120,7 +120,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
-        f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+        f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", xhZBins[iPtZ][0], xhZBins[iPtZ][nXHZBins[iPtZ]]);
         f->SetParameter (0, 1);
         f->SetParameter (1, 0);
         hn->Fit (f, "RN0Q");

@@ -4,10 +4,11 @@
 #include "PhysicsAnalysis.h"
 #include "FullAnalysis.h"
 #include "MCAnalysis.h"
-#include "MCClosureAnalysis.h"
-#include "MixedMCAnalysis.h"
+//#include "MCClosureAnalysis.h"
+//#include "MixedMCAnalysis.h"
 #include "MinbiasAnalysis.h"
 #include "TruthAnalysis.h"
+#include "Auxiliary.h"
 
 #include "Systematic.h"
 #include "MixingVariation.h"
@@ -18,7 +19,8 @@
 
 #include "PlotHybridModel.h"
 
-const bool doSys = false;
+const bool doSys = true;
+int mixingFraction = 0;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
@@ -70,7 +72,6 @@ PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
-int mixingFraction = 0;
 
 
 void Run () {
@@ -83,7 +84,7 @@ void Run () {
   //bkg15->useHijingEffs = true;
 
   mc      = new MCAnalysis ();
-  mc_bkg  = new MinbiasAnalysis ("mc_bkg");
+  //mc_bkg  = new MinbiasAnalysis ("mc_bkg");
   //truth   = new TruthAnalysis ();
 
   if (doSys) {
@@ -158,19 +159,19 @@ void Run () {
   */
 
 
-  mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
-  mc_bkg->LoadHists   ("MCAnalysis/Variations/PPMixingVariation/mixedHists.root");
-  //mc_bkg->LoadHists   ("MCAnalysis/Nominal/mixedHists.root");
-  mc->SubtractBackground (mc_bkg);
-  mc->CalculateIAA ();
-  //SaferDelete (mc_bkg);
+  //mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
+  //mc_bkg->LoadHists   ("MCAnalysis/Variations/PPMixingVariation/mixedHists.root");
+  ////mc_bkg->LoadHists   ("MCAnalysis/Nominal/mixedHists.root");
+  //mc->SubtractBackground (mc_bkg);
+  //mc->CalculateIAA ();
+  ////SaferDelete (mc_bkg);
 
 
-  data18->LoadHists   ("DataAnalysis/Nominal/data18hi_hists.root");
-  //data15->LoadHists   ("DataAnalysis/Nominal/data15hi_hists.root");
-  bkg18->LoadHists      ("MinbiasAnalysis/Nominal/data18hi_hists.root");
-  //bkg15->LoadHists      ("MinbiasAnalysis/Nominal/data15hi_hists.root");
-  //truth->LoadHists  ("TruthAnalysis/Nominal/savedHists.root");
+  data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
+  //data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
+  bkg18->LoadHists ("MinbiasAnalysis/Nominal/data18hi_hists.root");
+  //bkg15->LoadHists ("MinbiasAnalysis/Nominal/data15hi_hists.root");
+  //truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
 
   data18->SubtractBackground (bkg18);
   data18->CalculateIAA ();
@@ -189,30 +190,11 @@ void Run () {
 
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
+
+
+    cout << "Calculating bkg. stat. systematic errors." << endl;
     bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Stat.");
     bkgStatSys->cancelIAA = false;
-    bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
-    ppMixSys = new Systematic (data18, "ppMixSys", "#it{pp} mixing");
-    trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
-    trkEffSysWeights = new ReweightingSystematic ("trkEffSysWeights");
-    trkEffSys = new Systematic (data18, "trkEffSys", "Particle Composition");
-    trkEffSys->cancelIAA = false;
-    trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
-    trkPurSys = new Systematic (data18, "trkPurSys", "Purity Corr.");
-    leptonRejSys = new Systematic (data18, "leptonRejSys", "Lepton Rejection");
-    electronPtSys = new Systematic (data18, "electronPtSys", "Electron ES");
-    //electronPtSys->cancelIAA = false;
-    data_muonPtUpSysFits = new SystematicFits ("data_muonPtUpSysFit");
-    data_muonPtDownSysFits = new SystematicFits ("data_muonPtDownSysFit");
-    //bkg_muonPtUpSysFits = new SystematicFits ("bkg_muonPtUpSysFit");
-    //bkg_muonPtDownSysFits = new SystematicFits ("bkg_muonPtDownSysFit");
-    muonPtSys = new Systematic (data18, "muonPtSys", "Muon ES");
-    //muonPtSys->cancelIAA = false;
-    combSys = new Systematic (data18, "combSys", "Total");
-
-
-    /*
-    cout << "Calculating bkg. stat. systematic errors." << endl;
     data_bkgStatUpVar->CopyAnalysis (data18, false);
     data_bkgStatDownVar->CopyAnalysis (data18, false);
     bkg_statUpVar->CopyAnalysis (bkg18, false);
@@ -230,10 +212,11 @@ void Run () {
     SaferDelete (data_bkgStatDownVar);
     SaferDelete (bkg_statUpVar);
     SaferDelete (bkg_statDownVar);
-    */
 
 
+    /*
     cout << "Calculating mixed event systematic errors." << endl;
+    bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
     data_mixVarA    = new PhysicsAnalysis ("data_mixVarA");
     data_mixVarB    = new PhysicsAnalysis ("data_mixVarB");
     data_mixVarC    = new PhysicsAnalysis ("data_mixVarC");
@@ -330,32 +313,36 @@ void Run () {
     SaferDelete (bkg_mixVarF);
     SaferDelete (bkg_mixVarG);
     SaferDelete (bkg_mixVarH);
+    */
 
 
     cout << "Calculating pp mixing systematic errors" << endl;
+    ppMixSys = new Systematic (data18, "ppMixSys", "#it{pp} mixing");
     data_ppTransMinVar = new PhysicsAnalysis ("data_ppTransMinVar");
     data_ppTransMinVar->CopyAnalysis (data18, false);
     bkg_ppTransMinVar = new MinbiasAnalysis ("bkg_ppMixVar");
-    bkg_ppTransMinVar->doPPMixingVar = true;
+    bkg_ppTransMinVar->doPPTransMinMixing = false;
     bkg_ppTransMinVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMinVariation/data18hi_hists.root");
     data_ppTransMinVar->SubtractBackground (bkg_ppTransMinVar);
     data_ppTransMinVar->CalculateIAA ();
+    ppMixSys->AddVariation (data_ppTransMinVar);
+    ppMixSys->AddVarDesc (data_ppTransMinVar, "Z-Z #it{pp} mixing (trans-min)");
     SaferDelete (bkg_ppTransMinVar);
 
+    /*
     data_ppTransMaxVar = new PhysicsAnalysis ("data_ppTransMaxVar");
     data_ppTransMaxVar->CopyAnalysis (data18, false);
     bkg_ppTransMaxVar = new MinbiasAnalysis ("bkg_ppMixVar");
-    bkg_ppTransMaxVar->doPPMixingVar = true;
+    bkg_ppTransMaxVar->doPPTransMinMixing = false;
     bkg_ppTransMaxVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMaxVariation/data18hi_hists.root");
     data_ppTransMaxVar->SubtractBackground (bkg_ppTransMaxVar);
     data_ppTransMaxVar->CalculateIAA ();
-    SaferDelete (bkg_ppTransMaxVar);
-
-    ppMixSys->AddVariation (data_ppTransMinVar);
     ppMixSys->AddVariation (data_ppTransMaxVar);
-    ppMixSys->AddVariation (data18);
-    ppMixSys->AddVarDesc (data_ppTransMinVar, "Z-Z #it{pp} mixing (trans-min)");
     ppMixSys->AddVarDesc (data_ppTransMaxVar, "Z-Z #it{pp} mixing (trans-max)");
+    SaferDelete (bkg_ppTransMaxVar);
+    */
+
+    ppMixSys->AddVariation (data18);
     ppMixSys->AddVarDesc (data18, "Z-MinBias #it{pp} mixing");
     ppMixSys->AddVariations ();
     //SaferDelete (data_ppTransMinVar);
@@ -364,6 +351,7 @@ void Run () {
 
     /*
     cout << "Calculating track ID relative systematic errors." << endl;
+    trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
     data_trackHItight->LoadHists ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
     trkSys->GetRelativeVariation (data18, data_trackHItight);
     cout << "Applying track ID systematic errors." << endl;
@@ -388,6 +376,9 @@ void Run () {
 
 
     cout << "Calculating particle composition systematic errors." << endl;
+    trkEffSysWeights = new ReweightingSystematic ("trkEffSysWeights");
+    trkEffSys = new Systematic (data18, "trkEffSys", "Particle Composition");
+    trkEffSys->cancelIAA = false;
     data_partComp->LoadHists ("DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
     trkEffSysWeights->GetRelativeVariations (data18, data_partComp);
     data_partCompUpVar->CopyAnalysis (data18, false);
@@ -412,16 +403,15 @@ void Run () {
 
 
     cout << "Calculating track purity systematic errors." << endl;
+    trkPurSys = new Systematic (data18, "trkPurSys", "Purity Corr.");
     data_trkPurUpVar->LoadHists ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->LoadHists ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurUpVar);
     data_trkPurUpVar->CopyAnalysis (data18, false);
     bkg_trkPurUpVar->CopyAnalysis (bkg18, false);
     trkPurSysWeights->ApplyRelativeVariations (data_trkPurUpVar, true);
     trkPurSysWeights->ApplyRelativeVariations (bkg_trkPurUpVar, true);
-    delete trkPurSysWeights;
-    data_trkPurUpVar->SubtractBackground (bkg_trkPurUpVar);
+    SaferDelete (trkPurSysWeights);
 
     data_trkPurDownVar->LoadHists ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingSystematic ("trkPurSysWeights");
@@ -430,7 +420,9 @@ void Run () {
     bkg_trkPurDownVar->CopyAnalysis (bkg18, false);
     trkPurSysWeights->ApplyRelativeVariations (data_trkPurDownVar, false);
     trkPurSysWeights->ApplyRelativeVariations (bkg_trkPurDownVar, false);
-    delete trkPurSysWeights;
+    SaferDelete (trkPurSysWeights);
+
+    data_trkPurUpVar->SubtractBackground (bkg_trkPurUpVar);
     data_trkPurDownVar->SubtractBackground (bkg_trkPurDownVar);
 
     trkPurSys->AddVariation (data_trkPurUpVar);
@@ -443,6 +435,7 @@ void Run () {
 
 
     cout << "Calculating lepton rejection systematic errors." << endl;
+    leptonRejSys = new Systematic (data18, "leptonRejSys", "Lepton Rejection");
     data_leptonRejVar->LoadHists ("DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
     data_leptonRejVar->SubtractBackground (bkg18);
     leptonRejSys->AddVariation (data_leptonRejVar, -1);
@@ -451,6 +444,8 @@ void Run () {
 
 
     cout << "Calculating electron ES systematic errors." << endl;
+    electronPtSys = new Systematic (data18, "electronPtSys", "Electron ES");
+    //electronPtSys->cancelIAA = false;
     ElectronSystematicTable* electronPtSysTable = new ElectronSystematicTable ("data_mixVarElectronPtSysTable");
     electronPtSysTable->GetRelativeVariations ("DataAnalysis/Variations/ElectronPtVariation/systematics_electron_scale.root");
     data_electronPtUp->CopyAnalysis (data18, true);
@@ -465,6 +460,10 @@ void Run () {
 
 
     cout << "Calculating muon ES systematic errors." << endl;
+    data_muonPtUpSysFits = new SystematicFits ("data_muonPtUpSysFit");
+    data_muonPtDownSysFits = new SystematicFits ("data_muonPtDownSysFit");
+    muonPtSys = new Systematic (data18, "muonPtSys", "Muon ES");
+    //muonPtSys->cancelIAA = false;
     data_muonPtUp->LoadHists ("DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
     data_muonPtUp->SubtractBackground (bkg18);
     data_muonPtUpSysFits->GetRelativeVariations (data18, data_muonPtUp);
@@ -487,6 +486,7 @@ void Run () {
 
 
     cout << "Adding errors in quadrature." << endl;
+    combSys = new Systematic (data18, "combSys", "Total");
     combSys->AddSystematic (trkSys);
     combSys->AddSystematic (trkEffSys);
     combSys->AddSystematic (trkPurSys);
@@ -494,19 +494,19 @@ void Run () {
     combSys->AddSystematic (electronPtSys);
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematic (bkgStatSys);
-    combSys->AddSystematic (bkgMixSys);
+    //combSys->AddSystematic (bkgMixSys);
     combSys->AddSystematics ();
-
-    trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
-    trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
-    trkPurSys->SaveGraphs ("Systematics/TrackPurSys.root");
-    bkgStatSys->SaveGraphs ("Systematics/BkgStatSys.root");
-    bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
-    leptonRejSys->SaveGraphs ("Systematics/LeptonRejSys.root");
-    electronPtSys->SaveGraphs ("Systematics/ElectronPtSys.root");
-    muonPtSys->SaveGraphs ("Systematics/MuonPtSys.root");
-    combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
     */
+
+    //trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
+    //trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
+    //trkPurSys->SaveGraphs ("Systematics/TrackPurSys.root");
+    //leptonRejSys->SaveGraphs ("Systematics/LeptonRejSys.root");
+    //electronPtSys->SaveGraphs ("Systematics/ElectronPtSys.root");
+    //muonPtSys->SaveGraphs ("Systematics/MuonPtSys.root");
+    //bkgStatSys->SaveGraphs ("Systematics/BkgStatSys.root");
+    //bkgMixSys->SaveGraphs ("Systematics/MixingSys.root");
+    //combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
 
   }
 
@@ -520,38 +520,35 @@ void Run () {
 
 void MakePhysicsPlots () {
 
-  data18->PlotTrkYield (1, 0, 2, 4);
-  combSys->PlotTrkYield (1, 1, 2, 4);
-  bkg18->PlotTrkYield (1, 0, 2, 4);
-  data18->PlotTrkYield (1, 0, 2, 4);
+  data18->PlotAllYields_dPhi (1, 0, 2, 4);
+  combSys->PlotAllYields_dPhi (1, 1, 2, 4);
+  bkg18->PlotAllYields_dPhi (1, 0, 2, 4);
+  data18->PlotAllYields_dPhi (1, 0, 2, 4);
 
   max_iaa=4.4;
-  combSys->PlotIAAdPhi (1, 1, 2, 4);
-  data18->PlotIAAdPhi (1, 0, 2, 4);
-  //max_icp=3.;
-  //combSys->PlotICPdPhi (1, 1, 2, 4);
-  //data18->PlotICPdPhi (1, 0, 2, 4);
+  combSys->PlotIAA_dPhi (1, 1, 2, 4);
+  data18->PlotIAA_dPhi (1, 0, 2, 4);
   
-  combSys->PlotTrkYieldZPt (1, 1, 2);
-  data18->PlotTrkYieldZPt (1, 0, 2);
+  combSys->PlotAllYields_dPtZ (1, 1, 2);
+  data18->PlotAllYields_dPtZ (1, 0, 2);
 
-  combSys->PlotTrkYieldZPt (0, 1, 2);
-  data18->PlotTrkYieldZPt (0, 0, 2);
+  combSys->PlotAllYields_dPtZ (0, 1, 2);
+  data18->PlotAllYields_dPtZ (0, 0, 2);
 
   max_iaa = 10;
-  combSys->PlotSingleIAAdPtZ (1, 1);
-  data18->PlotSingleIAAdPtZ (1, 0);
+  combSys->PlotSingleIAA_dPtZ (1, 1);
+  data18->PlotSingleIAA_dPtZ (1, 0);
 
-  combSys->PlotSingleIAAdPtZ (0, 1);
-  data18->PlotSingleIAAdPtZ (0, 0);
-
-  max_iaa = 3.2;
-  combSys->PlotIAAdPtZ (1, 1);
-  data18->PlotIAAdPtZ (1, 0);
+  combSys->PlotSingleIAA_dPtZ (0, 1);
+  data18->PlotSingleIAA_dPtZ (0, 0);
 
   max_iaa = 3.2;
-  combSys->PlotIAAdPtZ (0, 1);
-  data18->PlotIAAdPtZ (0, 0);
+  combSys->PlotIAA_dPtZ (1, 1);
+  data18->PlotIAA_dPtZ (1, 0);
+
+  max_iaa = 3.2;
+  combSys->PlotIAA_dPtZ (0, 1);
+  data18->PlotIAA_dPtZ (0, 0);
 
 }
 
@@ -648,7 +645,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   luPad->cd ();
   luPad->SetLogx ();
   luPad->SetLogy ();
-  TH1D* h = new TH1D ("h", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+  TH1D* h = new TH1D ("h", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
   h->GetYaxis ()->SetRangeUser (3e-5, 200);
   h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
   h->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T} d#Delta#phi");
@@ -687,7 +684,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
 
   ldPad->cd ();
   ldPad->SetLogx ();
-  h = new TH1D ("h", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+  h = new TH1D ("h", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
   h->GetYaxis ()->SetRangeUser (0, 2);
   h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
   h->GetYaxis ()->SetTitle ("Electrons / muons");
@@ -718,7 +715,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   h_rat->Draw ("E1 same");
   h_rat_bkg->Draw ("hist ][ same");
 
-  TLine* l = new TLine (ptTrkBins[iPtZ][0], 1, ptTrkBins[iPtZ][nPtTrkBins[iPtZ]], 1);
+  TLine* l = new TLine (pTchBins[iPtZ][0], 1, pTchBins[iPtZ][nPtchBins[iPtZ]], 1);
   l->SetLineColor (kPink-8);
   l->SetLineStyle (2);
   l->Draw ("same");
@@ -727,7 +724,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   ruPad->cd ();
   ruPad->SetLogx ();
   ruPad->SetLogy ();
-  h = new TH1D ("h", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+  h = new TH1D ("h", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
   h->GetYaxis ()->SetRangeUser (3e-5, 20);
   h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
   h->GetYaxis ()->SetTitle ("d^{2}Y_{sub} / d#it{p}_{T} d#Delta#phi");
@@ -751,7 +748,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
 
   rdPad->cd ();
   rdPad->SetLogx ();
-  h = new TH1D ("h", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+  h = new TH1D ("h", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
   h->GetYaxis ()->SetRangeUser (0, 2);
   h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
   h->GetYaxis ()->SetTitle ("d^{2}Y_{sub} / d#it{p}_{T} d#Delta#phi");
@@ -777,7 +774,7 @@ void CompareTrkYieldSpcComp (const short iCent = 1, const short iPtZ = nPtZBins-
   h_rat_sub->SetLineColor (kBlack);
   h_rat_sub->Draw ("E1 same");
 
-  l = new TLine (ptTrkBins[iPtZ][0], 1, ptTrkBins[iPtZ][nPtTrkBins[iPtZ]], 1);
+  l = new TLine (pTchBins[iPtZ][0], 1, pTchBins[iPtZ][nPtchBins[iPtZ]], 1);
   l->SetLineColor (kPink-8);
   l->SetLineStyle (2);
   l->Draw ("same");

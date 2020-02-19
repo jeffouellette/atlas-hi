@@ -283,7 +283,7 @@ void MakeCONFPlots () {
     luPad->cd ();
     luPad->SetLogx ();
 
-    TH1D* h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+    TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], ptTrkBins[iPtZ]);
     h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.1);
 
@@ -374,7 +374,7 @@ void MakeCONFPlots () {
     ldPad->cd ();
     ldPad->SetLogx ();
 
-    h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
+    h = new TH1D ("", "", nPtchBins[iPtZ], ptTrkBins[iPtZ]);
     h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.8);
 
@@ -461,8 +461,8 @@ void MakeCONFPlots () {
     ruPad->cd ();
     ruPad->SetLogx ();
 
-    h = new TH1D ("", "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-    h->GetXaxis ()->SetRangeUser (xHZBins[iPtZ][0], 1.);
+    h = new TH1D ("", "", nXHZBins[iPtZ], xhZBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.1);
     h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 5.);
 
@@ -542,8 +542,8 @@ void MakeCONFPlots () {
     rdPad->cd ();
     rdPad->SetLogx ();
 
-    h = new TH1D ("", "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-    h->GetXaxis ()->SetRangeUser (xHZBins[iPtZ][0], 1.);
+    h = new TH1D ("", "", nXHZBins[iPtZ], xhZBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0, 3.8);
     h->GetYaxis ()->SetLabelOffset (h->GetYaxis ()->GetLabelOffset () * 5.);
 
@@ -766,8 +766,8 @@ void MakeCONFPlots () {
     for (iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
       pads[iPtZ-3]->cd ();
 
-      TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-      h->GetXaxis ()->SetRangeUser (xHZBins[iPtZ][0], 1.);
+      TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xhZBins[iPtZ]);
+      h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], 1.);
       h->GetYaxis ()->SetRangeUser (0, 2.5);
 
       h->GetXaxis ()->SetMoreLogLabels ();
@@ -987,8 +987,8 @@ void MakeCONFPlots () {
     short iPtZ = nPtZBins-1;
     const short iCent = 3;
 
-    TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-    h->GetXaxis ()->SetRangeUser (xHZBins[iPtZ][0], 1.);
+    TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xhZBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], 1.);
     h->GetYaxis ()->SetRangeUser (0.1, 5.8);
     //h->GetYaxis ()->SetRangeUser (0.0, 2.5);
 
@@ -1150,8 +1150,8 @@ void MakeCONFPlots () {
       gPad->SetLogx ();
       gPad->SetLogy ();
 
-      TH1D* h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-      h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+      TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], ptTrkBins[iPtZ]);
+      h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtchBins[iPtZ]]);
       h->GetYaxis ()->SetRangeUser (6e-4, 20);
 
       //if (gPad == ruPad)
@@ -1254,8 +1254,8 @@ void MakeCONFPlots () {
       gPad->SetLogx ();
       gPad->SetLogy ();
 
-      TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xHZBins[iPtZ]);
-      h->GetXaxis ()->SetRangeUser (xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+      TH1D* h = new TH1D ("", "", nXHZBins[iPtZ], xhZBins[iPtZ]);
+      h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], xhZBins[iPtZ][nXHZBins[iPtZ]]);
       h->GetYaxis ()->SetRangeUser (5e-3, 1e3);
 
       if (gPad == rdPad)
@@ -1454,8 +1454,8 @@ void MakeCONFPlots () {
 
     //const Color_t vitevColor = kCyan+3;
 
-    TH1D* h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-    h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+    TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], ptTrkBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtchBins[iPtZ]]);
     h->GetYaxis ()->SetRangeUser (0, 3.8);
 
     h->GetXaxis ()->SetMoreLogLabels ();
@@ -1521,7 +1521,7 @@ void MakeCONFPlots () {
     myMarkerTextNoLine (0.05-0.050+0.54,   -0.08+0.74+0.0001, colors[2], markerStyles[1], "", 1.3 * 1.5, 0.036);
     myMarkerTextNoLine (0.05-0.133+0.54,   -0.08+0.74+0.0001, colors[1], markerStyles[0], "", 1.3 * 1.5, 0.036);
 
-    TLine* l = new TLine (ptTrkBins[nPtZBins-1][0], 1, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]], 1);
+    TLine* l = new TLine (ptTrkBins[nPtZBins-1][0], 1, ptTrkBins[nPtZBins-1][nPtchBins[nPtZBins-1]], 1);
     l->SetLineStyle (2);
     l->SetLineWidth (2);
     //l->SetLineColor (kPink-8);
@@ -1541,8 +1541,8 @@ void MakeCONFPlots () {
 
     //const Color_t vitevColor = kCyan+3;
 
-    TH1D* h = new TH1D ("", "", nPtTrkBins[iPtZ], ptTrkBins[iPtZ]);
-    h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+    TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], ptTrkBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtchBins[iPtZ]]);
     h->GetYaxis ()->SetRangeUser (0, 3.8);
 
     h->GetXaxis ()->SetMoreLogLabels ();
@@ -1608,7 +1608,7 @@ void MakeCONFPlots () {
     myMarkerTextNoLine (0.05-0.050+0.54,   -0.08+0.74+0.0001, colors[2], markerStyles[1], "", 1.3 * 1.5, 0.036);
     myMarkerTextNoLine (0.05-0.133+0.54,   -0.08+0.74+0.0001, colors[1], markerStyles[0], "", 1.3 * 1.5, 0.036);
 
-    TLine* l = new TLine (ptTrkBins[nPtZBins-1][0], 1, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]], 1);
+    TLine* l = new TLine (ptTrkBins[nPtZBins-1][0], 1, ptTrkBins[nPtZBins-1][nPtchBins[nPtZBins-1]], 1);
     l->SetLineStyle (2);
     l->SetLineWidth (2);
     //l->SetLineColor (kPink-8);

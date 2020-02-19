@@ -222,8 +222,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight * trkWeight);
         }
 
@@ -238,17 +238,17 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (ptTrkBins[iPtZ][0] <= trkpt) {
+          if (pTchBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
-            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            while (iPt < nPtchBins[iPtZ] && pTchBins[iPtZ][iPt+1] < trkpt) iPt++;
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
             }
           }
-          if (xHZBins[iPtZ][0] <= xhz) {
+          if (xhZBins[iPtZ][0] <= xhz) {
             short iX = 0;
-            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            while (iX < nXHZBins[iPtZ] && xhZBins[iPtZ][iX+1] < xhz) iX++;
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
@@ -258,10 +258,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
-      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+      for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
-        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+        for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
@@ -417,8 +417,8 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight * trkWeight);
         }
 
@@ -433,17 +433,17 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (ptTrkBins[iPtZ][0] <= trkpt) {
+          if (pTchBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
-            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            while (iPt < nPtchBins[iPtZ] && pTchBins[iPtZ][iPt+1] < trkpt) iPt++;
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
             }
           }
-          if (xHZBins[iPtZ][0] <= xhz) {
+          if (xhZBins[iPtZ][0] <= xhz) {
             short iX = 0;
-            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            while (iX < nXHZBins[iPtZ] && xhZBins[iPtZ][iX+1] < xhz) iX++;
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
@@ -453,10 +453,10 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
-      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+      for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
-        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+        for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {

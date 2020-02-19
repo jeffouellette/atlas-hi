@@ -12,7 +12,7 @@ void ApplyBkgVariation (PhysicsAnalysis* a, const float relErr) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+      for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Scale (1+relErr);
         } // end loop over cents

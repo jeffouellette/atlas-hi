@@ -154,29 +154,29 @@ const double trk_max_pt = 60;
 // essentially just a set-of-a-set of bin edges where the highest bin edge is min (Z pT)
 const int maxNPtTrkBins = 6;
 double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
-int* nPtTrkBins = Get1DArray <int> (nPtZBins);
+int* nPtchBins = Get1DArray <int> (nPtZBins);
 
-double** init_ptTrkBins () {
-  double** _ptTrkBins = Get1DArray <double*> (nPtZBins);
+double** init_pTchBins () {
+  double** _pTchBins = Get1DArray <double*> (nPtZBins);
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    nPtTrkBins[iPtZ] = 0;
-    while (nPtTrkBins[iPtZ] < maxNPtTrkBins && allPtTrkBins[nPtTrkBins[iPtZ]] < zPtBins[iPtZ])
-      nPtTrkBins[iPtZ]++;
+    nPtchBins[iPtZ] = 0;
+    while (nPtchBins[iPtZ] < maxNPtTrkBins && allPtTrkBins[nPtchBins[iPtZ]] < zPtBins[iPtZ])
+      nPtchBins[iPtZ]++;
 
-    if (nPtTrkBins[iPtZ] == 0)
-      nPtTrkBins[iPtZ] = 1;
+    if (nPtchBins[iPtZ] == 0)
+      nPtchBins[iPtZ] = 1;
   }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _ptTrkBins[iPtZ] = Get1DArray<double> (nPtTrkBins[iPtZ]+1);
-    for (int iPtTrk = 0; iPtTrk <= nPtTrkBins[iPtZ]; iPtTrk++) {
-      _ptTrkBins[iPtZ][iPtTrk] = allPtTrkBins[iPtTrk];
+    _pTchBins[iPtZ] = Get1DArray<double> (nPtchBins[iPtZ]+1);
+    for (int iPtTrk = 0; iPtTrk <= nPtchBins[iPtZ]; iPtTrk++) {
+      _pTchBins[iPtZ][iPtTrk] = allPtTrkBins[iPtTrk];
     }
   }
 
-  return _ptTrkBins;
+  return _pTchBins;
 }
-double** ptTrkBins = init_ptTrkBins (); // iPtZ, iPtTrk
+double** pTchBins = init_pTchBins (); // iPtZ, iPtTrk
 
 // code that instantiates bins in track pT / Z pT.
 // essentially just a set-of-a-set of bin edges where the lowest bin is min (track pT) / min (Z pT)
@@ -184,8 +184,8 @@ const int maxNXHZBins = 6;
 double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
 int* nXHZBins = Get1DArray <int> (nPtZBins);
 
-double** init_xHZBins () {
-  double** _xHZBins = Get1DArray <double*> (nPtZBins);
+double** init_xhZBins () {
+  double** _xhZBins = Get1DArray <double*> (nPtZBins);
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     nXHZBins[iPtZ] = maxNXHZBins;
@@ -197,21 +197,21 @@ double** init_xHZBins () {
   }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _xHZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]+1);
+    _xhZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]+1);
     for (int iXHZ = 0; iXHZ <= nXHZBins[iPtZ]; iXHZ++) {
-      _xHZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(maxNXHZBins-nXHZBins[iPtZ])];
+      _xhZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(maxNXHZBins-nXHZBins[iPtZ])];
     }
   }
 
-  return _xHZBins;
+  return _xhZBins;
 }
-double** xHZBins = init_xHZBins ();
+double** xhZBins = init_xhZBins ();
 
 // Returns which bin corresponds to this value of zH for this Z boson pT bin number
 short GetiZH (const float zH, const int iPtZ) {
   short iZH = 0;
   while (iZH < nXHZBins[iPtZ]) {
-    if (xHZBins[iPtZ][iZH+1] < zH)
+    if (xhZBins[iPtZ][iZH+1] < zH)
       iZH++;
     else
       break;
@@ -222,15 +222,15 @@ short GetiZH (const float zH, const int iPtZ) {
 
 // Prints track pT bins for this Z pT bin
 void PrintPtBins (const short iPtZ) {
-  for (int i = 0; i <= nPtTrkBins[iPtZ]; i++) {
-    cout << ptTrkBins[iPtZ][i] << endl;
+  for (int i = 0; i <= nPtchBins[iPtZ]; i++) {
+    cout << pTchBins[iPtZ][i] << endl;
   }
 }
 
 // Prints track pT / Z pT bins for this Z pT bin
 void PrintXHZBins (const short iPtZ) {
   for (int i = 0; i <= nXHZBins[iPtZ]; i++) {
-    cout << xHZBins[iPtZ][i] << endl;
+    cout << xhZBins[iPtZ][i] << endl;
   }
 }
 
@@ -257,7 +257,7 @@ void LatexXHZBins () {
   for (int i = 0; i <= maxNXHZBins; i++) {
     for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       if (i < nXHZBins[iPtZ])
-        cout << xHZBins[iPtZ][i] << " & " << xHZBins[iPtZ][i] * zPtBins[iPtZ] << " ";
+        cout << xhZBins[iPtZ][i] << " & " << xhZBins[iPtZ][i] * zPtBins[iPtZ] << " ";
       if (iPtZ != nPtZBins-1)
         cout << "& ";
     }

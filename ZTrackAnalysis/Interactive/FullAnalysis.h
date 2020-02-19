@@ -111,7 +111,7 @@ class FullAnalysis : public PhysicsAnalysis {
   void PlotZMassSpectra (FullAnalysis* a = nullptr);
   void PlotZPhiYield (const short pSpc = 2);
   void PlotZLeptonDPhi ();
-  void PlotTrkYieldZPtDist (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotAllYields_Scatter_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
 };
 
@@ -694,8 +694,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight * trkWeight);
         }
 
@@ -710,17 +710,17 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (ptTrkBins[iPtZ][0] <= trkpt) {
+          if (pTchBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
-            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            while (iPt < nPtchBins[iPtZ] && pTchBins[iPtZ][iPt+1] < trkpt) iPt++;
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
             }
           }
-          if (xHZBins[iPtZ][0] <= xhz) {
+          if (xhZBins[iPtZ][0] <= xhz) {
             short iX = 0;
-            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            while (iX < nXHZBins[iPtZ] && xhZBins[iPtZ][iX+1] < xhz) iX++;
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
@@ -730,10 +730,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
-      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+      for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
-        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+        for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
@@ -889,8 +889,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         if (dphi < -pi/2)
           dphi = dphi + 2*pi;
 
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
-          if (ptTrkBins[iPtZ][iPtTrk] <= trkpt && trkpt < ptTrkBins[iPtZ][iPtTrk+1])
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+          if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
             h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]->Fill (dphi, event_weight * trkWeight);
         }
 
@@ -905,17 +905,17 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         }
 
         if (3*pi/4 <= dphi) {
-          if (ptTrkBins[iPtZ][0] <= trkpt) {
+          if (pTchBins[iPtZ][0] <= trkpt) {
             short iPt = 0;
-            while (iPt < nPtTrkBins[iPtZ] && ptTrkBins[iPtZ][iPt+1] < trkpt) iPt++;
+            while (iPt < nPtchBins[iPtZ] && pTchBins[iPtZ][iPt+1] < trkpt) iPt++;
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
             }
           }
-          if (xHZBins[iPtZ][0] <= xhz) {
+          if (xhZBins[iPtZ][0] <= xhz) {
             short iX = 0;
-            while (iX < nXHZBins[iPtZ] && xHZBins[iPtZ][iX+1] < xhz) iX++;
+            while (iX < nXHZBins[iPtZ] && xhZBins[iPtZ][iX+1] < xhz) iX++;
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
@@ -925,10 +925,10 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill yield histograms and covariance matrices
-      for (int i1 = 0; i1 < nPtTrkBins[iPtZ]; i1++) {
+      for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
-        for (int i2 = 0 ; i2 < nPtTrkBins[iPtZ]; i2++)
+        for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
@@ -2496,13 +2496,13 @@ void FullAnalysis :: PlotZLeptonDPhi () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot distribution of Y(pT or xZh) for each event, binned in Z Pt
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc) {
+void FullAnalysis :: PlotAllYields_Scatter_dPtZ (const bool useTrkPt, const short pSpc) {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     if (pSpc != -1 && iSpc != pSpc)
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_TrkYield_zpt_%s", useTrkPt ? "pttrk" : "xhz");
+    const char* canvasName = Form ("c_TrkYield_zpt_%s", useTrkPt ? "pTch" : "xhZ");
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -2519,8 +2519,8 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
       gPad->SetLogx ();
       gPad->SetLogy ();
 
-      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[nPtZBins-1] : nXHZBins[nPtZBins-1], useTrkPt ? ptTrkBins[nPtZBins-1] : xHZBins[nPtZBins-1]);
-      h->GetXaxis ()->SetRangeUser (useTrkPt ? ptTrkBins[nPtZBins-1][0] : xHZBins[nPtZBins-1][0], useTrkPt ? ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]] : xHZBins[nPtZBins-1][nXHZBins[nPtZBins-1]]);
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[nPtZBins-1] : nXHZBins[nPtZBins-1], useTrkPt ? pTchBins[nPtZBins-1] : xhZBins[nPtZBins-1]);
+      h->GetXaxis ()->SetRangeUser (useTrkPt ? pTchBins[nPtZBins-1][0] : xhZBins[nPtZBins-1][0], useTrkPt ? pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]] : xhZBins[nPtZBins-1][nXHZBins[nPtZBins-1]]);
       useTrkPt ? h->GetYaxis ()->SetRangeUser (8e-1, 1e3) : h->GetYaxis ()->SetRangeUser (8e-1, 1e3);
 
       //h->GetXaxis ()->SetMoreLogLabels ();
@@ -2554,6 +2554,8 @@ void FullAnalysis :: PlotTrkYieldZPtDist (const bool useTrkPt, const short pSpc)
       else
         myText (0.55, 0.87, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
     } // end loop over iCent
+
+    c->SaveAs (Form ("%s/TrkYields/ScatterPlots/%s_dists_%s.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", spc));
   } // end loop over iSpc
 }
 

@@ -166,16 +166,16 @@ class Systematic : public PhysicsAnalysis {
 
   virtual void PrintRelSystematics (); // print relative systematics
 
-  void PlotTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  void PlotTrkYieldSystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
-  void PlotSignalTrkYieldSystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  void PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
-  void PlotIAASystematics (const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  void PlotIAASystematicsPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotTotalTrkYieldRelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotSignalTrkYieldRelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotIAARelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  void PlotIAARelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2) override;
-  void PlotVariationSubYieldsdPtZ (const bool useTrkPt = true, const short pSpc = 2);
-  void PlotVariationIAAsdPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotVarSignalTrkYields_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotVarSignalIAAs_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
 
 };
 
@@ -217,7 +217,7 @@ void Systematic :: CreateSysGraphs () {
         //  //AddGraphPair (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //} // end loop over iPhi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           AddGraphPair (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
           AddGraphPair (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
         } // end loop over iPtTrk
@@ -268,7 +268,7 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+//        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
 //          h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -309,7 +309,7 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+//        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
 //          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -349,7 +349,7 @@ void Systematic :: LoadGraphs (const char* graphFileName) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        for (short iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           h = h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
           g = (TGAE*) graphFile->Get (Form ("g_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
           graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
@@ -505,7 +505,7 @@ void Systematic :: AddVariations () {
         //  } // end loop over cents
         //} // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
             sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
             var = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
@@ -793,7 +793,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  } // end loop over cents
       //} // end loop over phi
 
-      for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+      for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
           temp = (TGAE*) sys->Clone ("temp");
@@ -1152,7 +1152,7 @@ void Systematic :: AddSystematics () {
         //  } // end loop over cents
         //} // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtTrkBins[iPtZ]; iPtTrk++) {
+        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
             master = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
             sys = s->GetTGAE (s->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
@@ -1292,7 +1292,7 @@ void Systematic :: PrintRelSystematics () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) {
+void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short pPtZ) {
   const char* canvasName = Form ("c_TrkYieldSys");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1434,7 +1434,7 @@ void Systematic :: PlotTrkYieldSystematics (const short pSpc, const short pPtZ) 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const short pSpc) {
   const char* canvasName = Form ("c_TrkYieldSys");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1556,7 +1556,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
         myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
-        c->SaveAs (Form ("%s/TrkYieldSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTTrk":"xHZ", iPtZ, iCent));
+        c->SaveAs (Form ("%s/TrkYieldSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
       } // end loop over centralities
 
@@ -1571,7 +1571,7 @@ void Systematic :: PlotTrkYieldSystematicsPtZ (const bool useTrkPt, const short 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on the signal track yield
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short pPtZ) {
+void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short pPtZ) {
   const char* canvasName = Form ("c_SignalTrkYieldSysPtZ");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1713,7 +1713,7 @@ void Systematic :: PlotSignalTrkYieldSystematics (const short pSpc, const short 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on the signal track yield
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const short pSpc) {
   const char* canvasName = Form ("c_SignalTrkYieldSys");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1834,7 +1834,7 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
         myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
-        c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTTrk":"xHZ", iPtZ, iCent));
+        c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
       } // end loop over centralities
 
@@ -1849,7 +1849,7 @@ void Systematic :: PlotSignalTrkYieldSystematicsPtZ (const bool useTrkPt, const 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on the signal track yield
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
+void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   const char* canvasName = Form ("c_iaasys");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -1994,7 +1994,7 @@ void Systematic :: PlotIAASystematics (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on the signal track yield
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
   const char* canvasName = Form ("c_iaasys");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -2113,7 +2113,7 @@ void Systematic :: PlotIAASystematicsPtZ (const bool useTrkPt, const short pSpc)
         const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
         myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
-        c->SaveAs (Form ("%s/IAASystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTTrk":"xHZ", iPtZ, iCent));
+        c->SaveAs (Form ("%s/IAASystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
       } // end loop over centralities
 
@@ -2160,14 +2160,14 @@ void Systematic :: WriteIAAs () {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
-        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", ptTrkBins[iPtZ][0], ptTrkBins[iPtZ][nPtTrkBins[iPtZ]]);
+        f_z_trk_zpt_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zpt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
         f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
         f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
         f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
         f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
         h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zpt_iaa[iSpc][iPtZ][iCent], "RN0Q");
 
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xHZBins[iPtZ][0], xHZBins[iPtZ][nXHZBins[iPtZ]]);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xhZBins[iPtZ][0], xhZBins[iPtZ][nXHZBins[iPtZ]]);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
@@ -2196,7 +2196,7 @@ void Systematic :: WriteIAAs () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Y_sub for all variations
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short pSpc) {
   const char* canvasName = Form ("c_variations_ysub_dPtZ");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -2221,8 +2221,8 @@ void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short 
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       c->Clear ();
 
-      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? ptTrkBins[iPtZ] : xHZBins[iPtZ]);
-      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
       h->GetYaxis ()->SetRangeUser (1e-3, 20);
   
       h->GetXaxis ()->SetMoreLogLabels ();
@@ -2256,7 +2256,7 @@ void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short 
       //nom->SetMarkerStyle (kFullCircle);
       //nom->SetMarkerSize (1.2);
       //nom->SetLineWidth (2);
-      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
       //nom->GetYaxis ()->SetRangeUser (1e-3, 20);
 
       //nom->GetXaxis ()->SetMoreLogLabels ();
@@ -2294,7 +2294,7 @@ void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short 
         var->SetMarkerStyle (kFullCircle);
         var->SetMarkerSize (1.2);
         var->SetLineWidth (2);
-        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
         var->GetYaxis ()->SetRangeUser (1e-3, 20);
 
         var->Draw ("P");
@@ -2322,7 +2322,7 @@ void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short 
       const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
       myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
-      c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
+      c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
   }
 }
@@ -2333,7 +2333,7 @@ void Systematic :: PlotVariationSubYieldsdPtZ (const bool useTrkPt, const short 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot IAA for all variations
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc) {
   const char* canvasName = Form ("c_variations_iaa_dPtZ");
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -2359,8 +2359,8 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       c->Clear ();
 
-      TH1D* h = new TH1D ("", "", useTrkPt ? nPtTrkBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? ptTrkBins[iPtZ] : xHZBins[iPtZ]);
-      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
       h->GetYaxis ()->SetRangeUser (0, max_iaa);
   
       h->GetXaxis ()->SetMoreLogLabels ();
@@ -2394,7 +2394,7 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
       //nom->SetMarkerStyle (kFullCircle);
       //nom->SetMarkerSize (1.2);
       //nom->SetLineWidth (2);
-      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
       //nom->GetYaxis ()->SetRangeUser (0, max_iaa);
 
       //nom->GetXaxis ()->SetMoreLogLabels ();
@@ -2432,7 +2432,7 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
         var->SetMarkerStyle (kFullCircle);
         var->SetMarkerSize (1.2);
         var->SetLineWidth (2);
-        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, ptTrkBins[nPtZBins-1][nPtTrkBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
         var->GetYaxis ()->SetRangeUser (0, max_iaa);
 
         var->Draw ("P");
@@ -2466,7 +2466,7 @@ void Systematic :: PlotVariationIAAsdPtZ (const bool useTrkPt, const short pSpc)
       const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
       myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
 
-      c->SaveAs (Form ("%s/IAA/SystematicTrends/iaa_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTTrk":"xhz", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
+      c->SaveAs (Form ("%s/IAA/SystematicTrends/iaa_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
   }
 }
