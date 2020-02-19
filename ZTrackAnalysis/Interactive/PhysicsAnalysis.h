@@ -3630,9 +3630,9 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         c->cd ();
 
-        const char* topPadName = Form ("p_TrkYield_%s_top_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
-        const char* middlePadName = Form ("p_TrkYield_%s_middle_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
-        const char* bottomPadName = Form ("p_TrkYield_%s_bottom_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
+        const char* topPadName = Form ("p_AllYields_top_%s_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
+        const char* middlePadName = Form ("p_AllYields_middle_%s_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
+        const char* bottomPadName = Form ("p_AllYields_bottom_%s_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iPtZ, iCent, spc);
 
         TPad* topPad = nullptr, *middlePad = nullptr, *bottomPad = nullptr;
         if (!canvasExists) {
@@ -4102,7 +4102,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
       continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_AllYields_%s_dPtZ", useTrkPt ? "pTch" : "xhZ");
+    const char* canvasName = Form ("c_AllYields_%s_dPtZ_%s", useTrkPt ? "pTch" : "xhZ", spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -4115,9 +4115,9 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       c->cd ();
 
-      const char* topPadName = Form ("p_AllYields_top_dPtZ_iCent%i", iCent);
-      const char* middlePadName = Form ("p_AllYields_middle_dPtZ_iCent%i", iCent);
-      const char* bottomPadName = Form ("p_AllYields_bottom_dPtZ_iCent%i", iCent);
+      const char* topPadName = Form ("p_AllYields_top_%s_dPtZ_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iCent, spc);
+      const char* middlePadName = Form ("p_AllYields_middle_%s_dPtZ_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iCent, spc);
+      const char* bottomPadName = Form ("p_AllYields_bottom_%s_dPtZ_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", iCent, spc);
 
       TPad* topPad = nullptr, *middlePad = nullptr, *bottomPad = nullptr;
       if (!canvasExists) {
@@ -4530,18 +4530,13 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
 void PhysicsAnalysis :: LabelAllYields_dPtZ (const short iCent, const short iPtZ, const short iSpc) {
   //const Style_t markerStyle = (iPhi == 0 ? kFullSquare : kFullCircle);
 
-  if (iCent == 0)
-    myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.06);
-  else
-    myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
+  if (iCent == 0) myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.06);
+  else myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
-  if (iCent == 2 && iSpc == 0)
-    myText (0.72, 0.88, kBlack, "Z#rightarrow ee", 0.06);
-  else if (iCent == 2 && iSpc == 1)
-    myText (0.72, 0.88, kBlack, "Z#rightarrow#mu#mu", 0.06);
+  if (iCent == 2 && iSpc == 0) myText (0.72, 0.88, kBlack, "Z#rightarrow ee", 0.06);
+  else if (iCent == 2 && iSpc == 1) myText (0.72, 0.88, kBlack, "Z#rightarrow#mu#mu", 0.06);
 
-  if (iCent == 0)
-    myText (0.485, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
+  if (iCent == 0) myText (0.485, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
   else if (iCent == 1) {
     const char* lo = GetPiString (phiLowBins[1]);
     const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
@@ -4553,10 +4548,8 @@ void PhysicsAnalysis :: LabelAllYields_dPtZ (const short iCent, const short iPtZ
     myLineText (0.47, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], iPtZ, "", 2.0, 0.054) ;
     myMarkerTextNoLine (0.54, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", 1.5, 0.054); // for plotting data vs bkg.
 
-    if (iPtZ == nPtZBins-1)
-      myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
-    else
-      myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
+    if (iPtZ == nPtZBins-1) myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
+    else myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
   }
 }
 
@@ -4756,8 +4749,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
       myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.06);
       myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
     }
-    else
-      myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
+    else myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
     if (iCent == 1) {
       const char* lo = GetPiString (phiLowBins[1]);
@@ -4774,10 +4766,8 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
       myMarkerTextNoLine (0.42, 0.852-0.06*(iPtZ-2), colors[iPtZ-1], kFullCircle, "", 1.5, 0.054); // for plotting MC reco vs truth
       myMarkerTextNoLine (0.52, 0.852-0.06*(iPtZ-2), colors[iPtZ-1], kOpenCircle, "", 1.5, 0.054);
 
-      if (iPtZ == nPtZBins-1)
-        myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
-      else
-        myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
+      if (iPtZ == nPtZBins-1) myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
+      else myText (0.56, 0.85-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
     }
   } // end loop over iCent
   
@@ -5237,7 +5227,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
           g->SetLineColor (colors[iPtZ-1]);
           g->SetMarkerColor (colors[iPtZ-1]);
           g->SetMarkerStyle (markerStyle);
-          g->SetMarkerSize (1.2);
+          g->SetMarkerSize ((markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.0 : 1.2);
           g->SetLineWidth (3);
         } else {
           g->SetMarkerSize (0); 
@@ -5306,23 +5296,19 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: LabelIAA_dPtZ (const short iCent, const short iPtZ) {
 
-  if (iCent == 1) {
+  if (iCent == 1 && iPtZ == 2) {
     myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.065);
     myText (0.22, 0.78, kBlack, "Pb+Pb, 5.02 TeV", 0.05);
   }
-  else if (iCent == 2) {
+  else if (iCent == 2 && iPtZ == 2) {
     const char* lo = GetPiString (phiLowBins[1]);
     const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
     myText (0.50, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.05);
   }
   else if (iCent == numCentBins-1) {
-    myMarkerTextNoLine (0.55, 0.894-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", 1.4, 0.05);
-    if (iPtZ == nPtZBins-1) {
-      myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
-    }
-    else {
-      myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
-    }
+    myMarkerTextNoLine (0.55, 0.900-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", (markerStyles[iPtZ-2] == kOpenDiamond || markerStyles[iPtZ-2] == kFullDiamond) ? 2.0 : 1.2, 0.05);
+    if (iPtZ == nPtZBins-1) myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
+    else myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
   }
 }
 
@@ -5379,7 +5365,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
         g->SetLineColor (colors[iPtZ-iPtZLo+1]);
         g->SetMarkerColor (colors[iPtZ-iPtZLo+1]);
         g->SetMarkerStyle (markerStyle);
-        g->SetMarkerSize (1.2);
+        g->SetMarkerSize ((markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.0 : 1.2);
         g->SetLineWidth (2);
       } else {
         g->SetMarkerSize (0); 
@@ -5432,11 +5418,9 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
       myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
       myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-        myMarkerTextNoLine (0.674, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], markerStyles[iPtZ-3], "", 2.0, 0.04);
-        if (iPtZ == nPtZBins-1)
-          myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.032);
-        else
-          myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.032);
+        myMarkerTextNoLine (0.674, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], markerStyles[iPtZ-3], "", (markerStyles[iPtZ-3] == kOpenDiamond || markerStyles[iPtZ-3] == kFullDiamond) ? 3.2 : 2.0, 0.04);
+        if (iPtZ == nPtZBins-1) myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.032);
+        else myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.032);
       }
 
       TLine* l = new TLine (xmin, 1, xmax, 1);
@@ -6197,7 +6181,7 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
       deltaize (g, 1 + 0.01*(iCent - (numCentBins-1)), true);
       
       g->SetMarkerStyle (markerStyles[iCent]);
-      g->SetMarkerSize (markerStyles[iCent] == kFullDiamond ? 1.9 : 1.4);
+      g->SetMarkerSize ((markerStyles[iCent] == kOpenDiamond || markerStyles[iCent] == kFullDiamond) ? 2.0 : 1.2);
       g->SetMarkerColor (colors[iCent]);
       g->SetLineColor (colors[iCent]);
       g->SetLineWidth (2);
@@ -6213,10 +6197,10 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
       myText (0.56, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.04);
     }
     else if (iPtZ == 4) {
-      myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}, 258 pb^{-1}", 1.4, 0.04);
-      myMarkerTextNoLine (0.25, 0.83, colors[1], markerStyles[1], "30-80%", 1.4, 0.04);
-      myMarkerTextNoLine (0.25, 0.78, colors[2], markerStyles[2], "10-30%", 1.9, 0.04);
-      myMarkerTextNoLine (0.25, 0.73, colors[3], markerStyles[3], "0-10%", 1.4, 0.04);
+      myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}, 258 pb^{-1}", 1.2, 0.04);
+      myMarkerTextNoLine (0.25, 0.83, colors[1], markerStyles[1], "30-80%", 1.2, 0.04);
+      myMarkerTextNoLine (0.25, 0.78, colors[2], markerStyles[2], "10-30%", 2.0, 0.04);
+      myMarkerTextNoLine (0.25, 0.73, colors[3], markerStyles[3], "0-10%", 1.2, 0.04);
       myText (0.56, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.04);
     }
   }
