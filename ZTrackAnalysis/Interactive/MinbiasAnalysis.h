@@ -859,11 +859,8 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           if (doSameFileMixing)
             goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
 
-          if (doPPTransMinMixing) {
-            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 10 && DeltaPhi (phi_transmin, z_phi) < pi/8.);
-            goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 10 && DeltaPhi (phi_transmax, z_phi) < pi/8.);
-            //goodMixEvent = (goodMixEvent && 1 < _z_pt && _z_pt < 8 && pi/4. < dphi && dphi < 3.*pi/4.); // variation on mixing: only mix with perpendicular, low-pT Z's
-          }
+          goodMixEvent = (goodMixEvent && (!doPPTransMinMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmin, z_phi) >= 7.*pi/8.)));
+          //goodMixEvent = (goodMixEvent && (!doPPTransMinMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmax, z_phi) >= 7.*pi/8.))); // alternatively mix with trans-max region
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
