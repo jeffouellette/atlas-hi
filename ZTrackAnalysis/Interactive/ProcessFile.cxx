@@ -189,7 +189,10 @@ int main (int argc, char** argv) {
     else if (doPPMixVar)      bkg = new MinbiasAnalysis ("bkg_ppMixVar");
     else                      bkg = new MinbiasAnalysis ("bkg");
 
-    if ((!isPbPb && !doPPMixVar) || algo == "mcminbias") mixingFraction = 1;
+    if ((!isPbPb && !doPPMixVar))
+      mixingFraction = 1;
+    else if (algo == "mcminbias")
+      mixingFraction = 40;
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds;

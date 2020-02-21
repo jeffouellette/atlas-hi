@@ -503,13 +503,11 @@ const float superFineCentBins[157] = {
     4263.72,  //  1%
     0.9*4263.72+0.1*5000,     // middle bin
     0.8*4263.72+0.2*5000,     // middle bin
-    //0.75*4263.72+0.25*5000,     // middle bin
     0.7*4263.72+0.3*5000,     // middle bin
     0.6*4263.72+0.4*5000,     // middle bin
     0.5*4263.72+0.5*5000,     // middle bin
     0.4*4263.72+0.6*5000,     // middle bin
     0.3*4263.72+0.7*5000,     // middle bin
-    //0.25*4263.72+0.75*5000,     // middle bin
     0.2*4263.72+0.8*5000,     // middle bin
     0.1*4263.72+0.9*5000,     // middle bin
     5000      //  0%,   entry in array is numSuperFineCentBins-1

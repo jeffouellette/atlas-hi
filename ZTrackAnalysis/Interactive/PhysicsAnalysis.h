@@ -60,6 +60,9 @@ class PhysicsAnalysis {
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
   bool isMC           = false;
+  bool useCentWgts    = false; // whether to reweight this analysis to the data centrality distribution (important for getting correct tracking efficiencies)
+  bool useQ2Wgts      = false; // whether to reweight this analysis to the data |q2| distribution
+  bool usePsi2Wgts    = false; // whether to reweight this analysis to the data psi2 distribution
   bool is2015Conds    = false; // whether this analysis uses 2015 data (different conditions)
   bool useHITight     = false; // whether to use HITight tracking efficiencies
   bool useHijingEffs  = false; // whether to use tracking efficiencies derived from Hijing
@@ -88,10 +91,9 @@ class PhysicsAnalysis {
   TH1D*   h_pp_nch_reweighted   = nullptr;
 
   // Event info distributions (for reweighting)
-  TH1D*** h_PbPbFCal_weights   = Get2DArray <TH1D*> (3, nPtZBins+1);
-  TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
-  TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1);
-  //TH1D* h_ppNch_weights        = nullptr;
+  TH1D*** h_PbPbFCal_weights   = Get2DArray <TH1D*> (3, nPtZBins+1);                  // iSpc, iPtZ
+  TH1D**** h_PbPbQ2_weights    = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1); // iSpc, iFineCent, iPtZ
+  TH1D**** h_PbPbPsi2_weights  = Get3DArray <TH1D*> (3, numFineCentBins, nPtZBins+1); // iSpc, iFineCent, iPtZ
 
   // Event plane calibration information
   EventPlaneCalibrator eventPlaneCalibrator;
@@ -265,7 +267,7 @@ class PhysicsAnalysis {
   virtual void SaveResults (const char* saveFileName = "resultsHists.root");
   virtual void ScaleHists ();
   virtual void Execute (const char* inFileName, const char* outFileName);
-  virtual void GenerateWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName);
+  virtual void GenerateEventWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName);
   virtual void LoadEventWeights ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void UnfoldSubtractedYield ();
@@ -1088,9 +1090,14 @@ void PhysicsAnalysis :: ScaleHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  SetupDirectories ("", "ZTrackAnalysis/");
+  cout << "Arguments provided: " << endl;
+  cout << "inFileName = " << inFileName << endl;
+  cout << "outFileName = " << outFileName << endl;
 
+  LoadEventWeights ();
   //eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
+
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
@@ -1101,7 +1108,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1;
+  float event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0;
   float z_pt = 0, z_y = 0, z_phi = 0, z_m = 0;
@@ -1156,11 +1163,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
-
-      if (event_weight == 0)
-        continue;
+      if (fabs (vz) > 150) continue;
 
       //{
       //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
@@ -1173,16 +1176,26 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       const short iCent = GetCentBin (fcal_et);
-      if (iCent < 1 || iCent > numCentBins-1)
-        continue;
+      if (iCent < 1 || iCent > numCentBins-1) continue;
 
       const short iFineCent = GetFineCentBin (fcal_et);
-      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
-        continue;
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
+      if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
+
+      // do a reweighting procedure
+      {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)  dphi = pi - dphi;
+        if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
+        if (useQ2Wgts)    q2_weight   = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
+        if (usePsi2Wgts)  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
+
+        event_weight *= fcal_weight * q2_weight * psi2_weight;
+      }
+
+      if (event_weight == 0) continue;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -1202,16 +1215,13 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
 
-        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-          continue;
+        if (trkpt < trk_min_pt) continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
-          continue;
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03)) continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
-        if (trkEff == 0 || trkPur == 0)
-          continue;
+        if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -1315,18 +1325,15 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
+      if (fabs (vz) > 150) continue;
 
-      if (event_weight == 0)
-        continue;
+      if (event_weight == 0) continue;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
+      if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
@@ -1342,16 +1349,13 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
 
-        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-          continue;
+        if (trkpt < trk_min_pt) continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
-          continue;
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03)) continue;
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
-        if (trkEff == 0 || trkPur == 0)
-          continue;
+        if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
@@ -1433,7 +1437,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Generates weights between a weighted sample and a matched sample.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: GenerateWeights (const char* weightedSampleInFilePattern, const char* matchedSampleInFilePattern, const char* outFileName) {
+void PhysicsAnalysis :: GenerateEventWeights (const char* weightedSampleInFilePattern, const char* matchedSampleInFilePattern, const char* outFileName) {
 
   const int nQ2Bins = 20;
   const double* q2Bins = linspace (0, 0.3, nQ2Bins);
@@ -1684,6 +1688,9 @@ void PhysicsAnalysis :: LoadEventWeights () {
   if (eventWeightsLoaded)
     return;
 
+  if (!useCentWgts && !useQ2Wgts && !usePsi2Wgts)
+    return;
+
   SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
@@ -1693,10 +1700,10 @@ void PhysicsAnalysis :: LoadEventWeights () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      h_PbPbFCal_weights[iSpc][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()));
+      if (useCentWgts)  h_PbPbFCal_weights[iSpc][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()));
       for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-        h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-        h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+        if (useQ2Wgts)    h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+        if (usePsi2Wgts)  h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
       }
     }
   }

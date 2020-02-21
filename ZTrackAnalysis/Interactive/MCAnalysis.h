@@ -38,7 +38,12 @@ class MCAnalysis : public FullAnalysis {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
+  cout << "Arguments provided: " << endl;
+  cout << "inFileName = " << inFileName << endl;
+  cout << "outFileName = " << outFileName << endl;
+
   LoadEventWeights ();
+  //eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
 
   SetupDirectories ("", "ZTrackAnalysis/");
 
@@ -55,7 +60,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1;//, fcal_weight = 1;//, q2_weight = 1, psi2_weight = 1;//, vz_weight = 1, nch_weight = 1;
+  float event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -107,46 +112,39 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 150)
-      //  continue; // vertex cut
+      if (fabs (vz) > 150) continue; // vertex cut
+
+      //{
+      //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
+      //  const float q2x = q2x_a + q2x_c;
+      //  const float q2y = q2y_a + q2y_c;
+      //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
+      //  psi2 = 0.5 * atan2 (q2y, q2x);
+      //}
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
       const short iCent = GetCentBin (fcal_et);
-      if (iCent < 1 || iCent > numCentBins-1)
-        continue;
+      if (iCent < 1 || iCent > numCentBins-1) continue;
 
       const short iFineCent = GetFineCentBin (fcal_et);
-      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
-        continue;
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
+      if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
 
-      //{
-      //  float dphi = DeltaPhi (z_phi, psi2, false);
-      //  if (dphi > pi/2)
-      //    dphi = pi - dphi;
-      //  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
-      //  //q2_weight = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
-      //  //psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
+      // do a reweighting procedure
+      {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)  dphi = pi - dphi;
+        if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
+        if (useQ2Wgts)    q2_weight   = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
+        if (usePsi2Wgts)  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
 
-      //  event_weight *= fcal_weight;// * psi2_weight;
-      //}
+        event_weight *= fcal_weight * q2_weight * psi2_weight;
+      }
 
-      if (event_weight == 0)
-        continue;
-
-      h_fcal_et->Fill (fcal_et);
-      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
-
-      h_q2[iFineCent]->Fill (q2);
-      h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
-      h_psi2[iFineCent]->Fill (psi2);
-      h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
-      h_PbPb_vz->Fill (vz);
-      h_PbPb_vz_reweighted->Fill (vz, event_weight);
+      if (event_weight == 0) continue;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
@@ -168,8 +166,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
+        if (dphi > pi/2) dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
@@ -180,18 +177,27 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
+      if (iPtZ < 2) continue;
+
+      h_fcal_et->Fill (fcal_et);
+      h_fcal_et_reweighted->Fill (fcal_et, event_weight);
+
+      h_q2[iFineCent]->Fill (q2);
+      h_q2_reweighted[iFineCent]->Fill (q2, event_weight);
+      h_psi2[iFineCent]->Fill (psi2);
+      h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
+      h_PbPb_vz->Fill (vz);
+      h_PbPb_vz_reweighted->Fill (vz, event_weight);
+
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
 
-        if (takeNonTruthTracks && trk_truth_matched[iTrk])
-          continue;
+        if (takeNonTruthTracks && trk_truth_matched[iTrk]) continue;
 
-        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-          continue;
+        if (trkpt < trk_min_pt) continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
-          continue;
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03)) continue;
 
         {
           float mindr = pi;
@@ -211,16 +217,14 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
-        if (trkEff == 0 || trkPur == 0)
-          continue;
+        if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight * trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
-        if (dphi < -pi/2)
-          dphi = dphi + 2*pi;
+        if (dphi < -pi/2) dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])
@@ -321,21 +325,15 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      //if (fabs (vz) > 150)
-      //  continue; // vertex cut
+      if (fabs (vz) > 150) continue; // vertex cut
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
+      if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
 
-      //nch_weight = h_ppNch_weights->GetBinContent (h_ppNch_weights->FindBin (ntrk));
-
-      //event_weight = event_weight * vz_weight * nch_weight;
-      if (event_weight == 0)
-        continue;
+      if (event_weight == 0) continue;
 
       h_pp_vz->Fill (vz);
       h_pp_vz_reweighted->Fill (vz, event_weight);
@@ -363,8 +361,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
+        if (dphi > pi/2) dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
@@ -379,14 +376,11 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
 
-        if (takeNonTruthTracks && trk_truth_matched[iTrk])
-          continue;
+        if (takeNonTruthTracks && trk_truth_matched[iTrk]) continue;
 
-        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-          continue;
+        if (trkpt < trk_min_pt) continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
-          continue;
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03)) continue;
 
         {
           float mindr = pi;
@@ -406,16 +400,14 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
-        if (trkEff == 0 || trkPur == 0)
-          continue;
+        if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight * trkWeight);
 
         // Study correlations (requires dphi in -pi/2 to 3pi/2)
         float dphi = DeltaPhi (z_phi, trk_phi[iTrk], true);
-        if (dphi < -pi/2)
-          dphi = dphi + 2*pi;
+        if (dphi < -pi/2) dphi = dphi + 2*pi;
 
         for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
           if (pTchBins[iPtZ][iPtTrk] <= trkpt && trkpt < pTchBins[iPtZ][iPtTrk+1])

@@ -509,9 +509,14 @@ void FullAnalysis :: ScaleHists () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
-  SetupDirectories ("", "ZTrackAnalysis/");
+  cout << "Arguments provided: " << endl;
+  cout << "inFileName = " << inFileName << endl;
+  cout << "outFileName = " << outFileName << endl;
 
+  LoadEventWeights ();
   //eventPlaneCalibrator = EventPlaneCalibrator (Form ("%s/FCalCalibration/Nominal/data18hi.root", rootPath.Data ()));
+
+  SetupDirectories ("", "ZTrackAnalysis/");
 
   TFile* inFile = new TFile (Form ("%s/%s", rootPath.Data (), inFileName), "read");
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
@@ -522,7 +527,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1;
+  float event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
@@ -577,14 +582,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
-
-      //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, true);
-      //event_weight = 1;
-
-      if (event_weight == 0)
-        continue;
+      if (fabs (vz) > 150) continue;
 
       //{
       //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
@@ -608,6 +606,19 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       if (iPtZ < 0 || iPtZ > nPtZBins-1)
         continue;
 
+      // do a reweighting procedure
+      {
+        float dphi = DeltaPhi (z_phi, psi2, false);
+        if (dphi > pi/2)  dphi = pi - dphi;
+        if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
+        if (useQ2Wgts)    q2_weight   = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
+        if (usePsi2Wgts)  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
+
+        event_weight *= fcal_weight * q2_weight * psi2_weight;
+      }
+
+      if (event_weight == 0) continue;
+
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));
       z_eta = zvec.Eta ();
@@ -628,13 +639,16 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
+        if (dphi > pi/2) dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
+
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       //if (iPtZ < 2)
       //  continue;
@@ -648,10 +662,6 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_psi2_reweighted[iFineCent]->Fill (psi2, event_weight);
       h_PbPb_vz->Fill (vz);
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
-
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -792,20 +802,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
-      if (fabs (vz) > 150)
-        continue;
+      if (fabs (vz) > 150) continue;
 
-      //event_weight = event_weight * GetEventWeight (fcal_et, z_pt, z_y, isEE, false);
-      //event_weight = 1;
-
-      if (event_weight == 0)
-        continue;
+      if (event_weight == 0) continue;
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
       const short iCent = 0; // iCent = 0 for pp
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
+      if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
 
       h_pp_nch->Fill (ntrk);
       h_pp_nch_reweighted->Fill (ntrk, event_weight);
@@ -833,32 +837,26 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
       if (z_pt > 5) {
         float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)
-          dphi = pi - dphi;
+        if (dphi > pi/2) dphi = pi - dphi;
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
       h_lepton_trk_pt[iCent][iSpc]->Fill (l1_trk_pt, event_weight);
       h_lepton_trk_pt[iCent][iSpc]->Fill (l2_trk_pt, event_weight);
 
-      //if (iPtZ < 2)
-      //  continue;
-
       h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
+
+      //if (iPtZ < 2) continue;
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
         const float xhz = trkpt / z_pt;
 
-        if (trkpt < trk_min_pt)// || trk_max_pt < trkpt)
-          continue;
-        //if (trk_eta[iTrk] < 0)
-        //  continue;
+        if (trkpt < trk_min_pt) continue;
 
-        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03))
-          continue;
+        if (doLeptonRejVar && (DeltaR (l1_trk_eta, trk_eta[iTrk], l1_trk_phi, trk_phi[iTrk]) < 0.03 || DeltaR (l2_trk_eta, trk_eta[iTrk], l2_trk_phi, trk_phi[iTrk]) < 0.03)) continue;
 
         {
           float mindr = pi;
@@ -878,8 +876,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
-        if (trkEff == 0 || trkPur == 0)
-          continue;
+        if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight * trkWeight);
