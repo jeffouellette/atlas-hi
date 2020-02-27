@@ -31,7 +31,10 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
 
   unsigned int event_number = 0, run_number = 0, lumi_block = 0;
   bool passes_toroid = false, isOOTPU = false, BlayerDesyn = false;
-  float fcalA_et = 0, fcalC_et = 0, fcalA_et_Cos = 0, fcalC_et_Cos = 0, fcalA_et_Sin = 0, fcalC_et_Sin = 0;
+  float fcalA_et = 0, fcalC_et = 0;
+  float fcalA_et_Cos2 = 0, fcalC_et_Cos2 = 0, fcalA_et_Sin2 = 0, fcalC_et_Sin2 = 0;
+  float fcalA_et_Cos3 = 0, fcalC_et_Cos3 = 0, fcalA_et_Sin3 = 0, fcalC_et_Sin3 = 0;
+  float fcalA_et_Cos4 = 0, fcalC_et_Cos4 = 0, fcalA_et_Sin4 = 0, fcalC_et_Sin4 = 0;
   vector<float>* mcEventWeights = nullptr;
   int ntrk = 0;
   float trk_pt[10000];
@@ -47,10 +50,18 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
   inTree->SetBranchAddress ("mcEventWeights", &mcEventWeights);
   inTree->SetBranchAddress ("fcalA_et", &fcalA_et);
   inTree->SetBranchAddress ("fcalC_et", &fcalC_et);
-  inTree->SetBranchAddress ("fcalA_et_Cos", &fcalA_et_Cos);
-  inTree->SetBranchAddress ("fcalC_et_Cos", &fcalC_et_Cos);
-  inTree->SetBranchAddress ("fcalA_et_Sin", &fcalA_et_Sin);
-  inTree->SetBranchAddress ("fcalC_et_Sin", &fcalC_et_Sin);
+  inTree->SetBranchAddress ("fcalA_et_Cos2", &fcalA_et_Cos2);
+  inTree->SetBranchAddress ("fcalC_et_Cos2", &fcalC_et_Cos2);
+  inTree->SetBranchAddress ("fcalA_et_Sin2", &fcalA_et_Sin2);
+  inTree->SetBranchAddress ("fcalC_et_Sin2", &fcalC_et_Sin2);
+  inTree->SetBranchAddress ("fcalA_et_Cos3", &fcalA_et_Cos3);
+  inTree->SetBranchAddress ("fcalC_et_Cos3", &fcalC_et_Cos3);
+  inTree->SetBranchAddress ("fcalA_et_Sin3", &fcalA_et_Sin3);
+  inTree->SetBranchAddress ("fcalC_et_Sin3", &fcalC_et_Sin3);
+  inTree->SetBranchAddress ("fcalA_et_Cos4", &fcalA_et_Cos4);
+  inTree->SetBranchAddress ("fcalC_et_Cos4", &fcalC_et_Cos4);
+  inTree->SetBranchAddress ("fcalA_et_Sin4", &fcalA_et_Sin4);
+  inTree->SetBranchAddress ("fcalC_et_Sin4", &fcalC_et_Sin4);
   inTree->SetBranchAddress ("ntrk", &ntrk);
   inTree->SetBranchAddress ("trk_pt", &trk_pt);
   inTree->SetBranchAddress ("trk_HIloose", trk_HIloose);
@@ -59,7 +70,7 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
   outFile->cd ();
   TTree* outTree = new TTree ("PbPbZTrackTree", "PbPbZTrackTree");
 
-  float fcal_et = 0, q2 = 0, psi2 = 0, event_weight = 1;
+  float fcal_et = 0, q2 = 0, psi2 = 0, q3 = 0, psi3 = 0, q4 = 0, psi4 = 0, event_weight = 1;
   int ntrk_cut = 0;
 
   outTree->Branch ("event_number", &event_number);
@@ -68,11 +79,17 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
   outTree->Branch ("fcal_et", &fcal_et);
   outTree->Branch ("q2", &q2);
   outTree->Branch ("psi2", &psi2);
+  outTree->Branch ("q3", &q3);
+  outTree->Branch ("psi3", &psi3);
+  outTree->Branch ("q4", &q4);
+  outTree->Branch ("psi4", &psi4);
   outTree->Branch ("event_weight", &event_weight);
   outTree->Branch ("ntrk_cut", &ntrk_cut);
   outTree->Branch ("ntrk_all", &ntrk);
 
   for (int iEntry = 0; iEntry < inTree->GetEntries (); iEntry++) {
+    if (inTree->GetEntries () > 100 && iEntry % (inTree->GetEntries () / 100) == 0)
+      cout << iEntry / (inTree->GetEntries () / 100) << "\% done...\r" << flush;
     inTree->GetEntry (iEntry);
     if (BlayerDesyn)
       continue;
@@ -80,8 +97,12 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
       continue;
 
     fcal_et = fcalA_et+fcalC_et;
-    q2 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos+fcalC_et_Cos, 2) + pow (fcalA_et_Sin+fcalC_et_Sin, 2)) : 0);
-    psi2 = atan2 (fcalA_et_Sin+fcalC_et_Sin, fcalA_et_Cos+fcalC_et_Cos);
+    q2 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos2+fcalC_et_Cos2, 2) + pow (fcalA_et_Sin2+fcalC_et_Sin2, 2)) / (fcal_et) : 0);
+    psi2 = atan2 (fcalA_et_Sin2+fcalC_et_Sin2, fcalA_et_Cos2+fcalC_et_Cos2) / 2.;
+    q3 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos3+fcalC_et_Cos3, 2) + pow (fcalA_et_Sin3+fcalC_et_Sin3, 2)) / (fcal_et) : 0);
+    psi3 = atan2 (fcalA_et_Sin3+fcalC_et_Sin3, fcalA_et_Cos3+fcalC_et_Cos3) / 3.;
+    q4 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos4+fcalC_et_Cos4, 2) + pow (fcalA_et_Sin4+fcalC_et_Sin4, 2)) / (fcal_et) : 0);
+    psi4 = atan2 (fcalA_et_Sin4+fcalC_et_Sin4, fcalA_et_Cos4+fcalC_et_Cos4) / 4.;
 
     if (mcEventWeights)
       event_weight = mcEventWeights->at (0);
@@ -95,6 +116,7 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
     }
     outTree->Fill ();
   }
+  cout << "Done loop #1" << endl;
 
   outTree->SetDirectory (outFile);
   outTree->Write ("", TObject :: kOverwrite);
@@ -121,10 +143,18 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
   inTree->SetBranchAddress ("mcEventWeights", &mcEventWeights);
   inTree->SetBranchAddress ("fcalA_et", &fcalA_et);
   inTree->SetBranchAddress ("fcalC_et", &fcalC_et);
-  inTree->SetBranchAddress ("fcalA_et_Cos", &fcalA_et_Cos);
-  inTree->SetBranchAddress ("fcalC_et_Cos", &fcalC_et_Cos);
-  inTree->SetBranchAddress ("fcalA_et_Sin", &fcalA_et_Sin);
-  inTree->SetBranchAddress ("fcalC_et_Sin", &fcalC_et_Sin);
+  inTree->SetBranchAddress ("fcalA_et_Cos2", &fcalA_et_Cos2);
+  inTree->SetBranchAddress ("fcalC_et_Cos2", &fcalC_et_Cos2);
+  inTree->SetBranchAddress ("fcalA_et_Sin2", &fcalA_et_Sin2);
+  inTree->SetBranchAddress ("fcalC_et_Sin2", &fcalC_et_Sin2);
+  inTree->SetBranchAddress ("fcalA_et_Cos3", &fcalA_et_Cos3);
+  inTree->SetBranchAddress ("fcalC_et_Cos3", &fcalC_et_Cos3);
+  inTree->SetBranchAddress ("fcalA_et_Sin3", &fcalA_et_Sin3);
+  inTree->SetBranchAddress ("fcalC_et_Sin3", &fcalC_et_Sin3);
+  inTree->SetBranchAddress ("fcalA_et_Cos4", &fcalA_et_Cos4);
+  inTree->SetBranchAddress ("fcalC_et_Cos4", &fcalC_et_Cos4);
+  inTree->SetBranchAddress ("fcalA_et_Sin4", &fcalA_et_Sin4);
+  inTree->SetBranchAddress ("fcalC_et_Sin4", &fcalC_et_Sin4);
   inTree->SetBranchAddress ("ntrk", &ntrk);
   inTree->SetBranchAddress ("trk_pt", &trk_pt);
   inTree->SetBranchAddress ("trk_HIloose", trk_HIloose);
@@ -139,11 +169,17 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
   outTree->Branch ("fcal_et", &fcal_et);
   outTree->Branch ("q2", &q2);
   outTree->Branch ("psi2", &psi2);
+  outTree->Branch ("q3", &q3);
+  outTree->Branch ("psi3", &psi3);
+  outTree->Branch ("q4", &q4);
+  outTree->Branch ("psi4", &psi4);
   outTree->Branch ("event_weight", &event_weight);
   outTree->Branch ("ntrk_cut", &ntrk_cut);
   outTree->Branch ("ntrk_all", &ntrk);
 
   for (int iEntry = 0; iEntry < inTree->GetEntries (); iEntry++) {
+    if (inTree->GetEntries () > 100 && iEntry % (inTree->GetEntries () / 100) == 0)
+      cout << iEntry / (inTree->GetEntries () / 100) << "\% done...\r" << flush;
     inTree->GetEntry (iEntry);
     if (BlayerDesyn)
       continue;
@@ -151,8 +187,12 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
       continue;
 
     fcal_et = fcalA_et+fcalC_et;
-    q2 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos+fcalC_et_Cos, 2) + pow (fcalA_et_Sin+fcalC_et_Sin, 2)) : 0);
-    psi2 = atan2 (fcalA_et_Sin+fcalC_et_Sin, fcalA_et_Cos+fcalC_et_Cos);
+    q2 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos2+fcalC_et_Cos2, 2) + pow (fcalA_et_Sin2+fcalC_et_Sin2, 2)) / (fcal_et) : 0);
+    psi2 = atan2 (fcalA_et_Sin2+fcalC_et_Sin2, fcalA_et_Cos2+fcalC_et_Cos2) / 2.;
+    q3 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos3+fcalC_et_Cos3, 2) + pow (fcalA_et_Sin3+fcalC_et_Sin3, 2)) / (fcal_et) : 0);
+    psi3 = atan2 (fcalA_et_Sin3+fcalC_et_Sin3, fcalA_et_Cos3+fcalC_et_Cos3) / 3.;
+    q4 = (fcal_et > 0 ? sqrt (pow (fcalA_et_Cos4+fcalC_et_Cos4, 2) + pow (fcalA_et_Sin4+fcalC_et_Sin4, 2)) / (fcal_et) : 0);
+    psi4 = atan2 (fcalA_et_Sin4+fcalC_et_Sin4, fcalA_et_Cos4+fcalC_et_Cos4) / 4.;
 
     if (mcEventWeights)
       event_weight = mcEventWeights->at (0);
@@ -166,26 +206,28 @@ void MakeWeightsTree (const char* path, const char* PbPbFilePattern, const char*
     }
     outTree->Fill ();
   }
+  cout << "Done loop #2" << endl;
 
   outTree->SetDirectory (outFile);
   outTree->Write ("", TObject :: kOverwrite);
 
   outFile->Close ();
 }
+  
 
 
 void MakeppMCWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000", ".PbPb.", ".pp.", "ppEventWeightsTree.root");
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_100", ".PbPb.", ".pp.", "ppEventWeightsTree.root");
 }
 
 void MakePbPbMCWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_dvp_000", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_100", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
 }
 
 void Make2015HijingWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037", "user.jeouelle.21.2.82.minbias.037.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a884_s3136_r11318_myOutput.root", "*.pp.*", "hijing2015_eventWeightsTree.root");
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a884_s3136_r11318_myOutput.root", "*.pp.*", "hijing2015_eventWeightsTree.root");
 }
 
 void Make2018HijingWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_037", "user.jeouelle.21.2.82.minbias.037.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a882_s3136_r11157_myOutput.root", "*.pp.*", "hijing2018_eventWeightsTree.root");
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a882_s3136_r11157_myOutput.root", "*.pp.*", "hijing2018_eventWeightsTree.root");
 }

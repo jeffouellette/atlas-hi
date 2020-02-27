@@ -60,7 +60,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
@@ -279,7 +279,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
-          trks_weights1[i][j] = 0.;
+          trks_weights1[i][j] = 0;
         } // end loop over j
       } // end loop over i
 
@@ -462,7 +462,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
-          trks_weights1[i][j] = 0.;
+          trks_weights1[i][j] = 0;
         } // end loop over j
       } // end loop over i
 

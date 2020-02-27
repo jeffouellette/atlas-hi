@@ -18,6 +18,8 @@ int main (int argc, char** argv) {
   string inFileName = argv[2];
   string mbInFileName = (string (argv[3]) == "0" ? inFileName : argv[3]); // defaults to 1st file name if "0"
   string outFileName = argv[4];
+  string mixedFileName = (string (argv[5]) == "0" ? "" : string ("MixedEvents/") + string (argv[5]));
+  
 
   string inDir = "DataAnalysis/";
   string histDir = "DataAnalysis/";
@@ -31,19 +33,19 @@ int main (int argc, char** argv) {
     histDir = "MinbiasAnalysis/";
   }
 
-  const bool isPbPb       = (string (argv[5]) == "true");
-  const bool use2015conds = (string (argv[6]) == "true");
-  const bool doHITightVar = (string (argv[7]) == "true");
+  const bool isPbPb       = (string (argv[6]) == "true");
+  const bool use2015conds = (string (argv[7]) == "true");
+  const bool doHITightVar = (string (argv[8]) == "true");
 
-  const bool doMixVarA    = (string (argv[8]) == "doMixVarA");
-  const bool doMixVarB    = (string (argv[8]) == "doMixVarB");
-  const bool doMixVarC    = (string (argv[8]) == "doMixVarC");
-  const bool doMixVarD    = (string (argv[8]) == "doMixVarD");
-  const bool doMixVarE    = (string (argv[8]) == "doMixVarE");
-  const bool doMixVarF    = (string (argv[8]) == "doMixVarF");
-  const bool doMixVarG    = (string (argv[8]) == "doMixVarG");
-  const bool doMixVarH    = (string (argv[8]) == "doMixVarH");
-  const bool doPPMixVar   = (string (argv[8]) == "doPPMixVar");
+  const bool doMixVarA    = (string (argv[9]) == "doMixVarA");
+  const bool doMixVarB    = (string (argv[9]) == "doMixVarB");
+  const bool doMixVarC    = (string (argv[9]) == "doMixVarC");
+  const bool doMixVarD    = (string (argv[9]) == "doMixVarD");
+  const bool doMixVarE    = (string (argv[9]) == "doMixVarE");
+  const bool doMixVarF    = (string (argv[9]) == "doMixVarF");
+  const bool doMixVarG    = (string (argv[9]) == "doMixVarG");
+  const bool doMixVarH    = (string (argv[9]) == "doMixVarH");
+  const bool doPPMixVar   = (string (argv[9]) == "doPPMixVar");
   const bool doPbPbMixVar  = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
 
 
@@ -192,10 +194,10 @@ int main (int argc, char** argv) {
     if ((!isPbPb && !doPPMixVar))
       mixingFraction = 1;
     else if (algo == "mcminbias")
-      mixingFraction = 40;
+      mixingFraction = 10;
 
     bkg->is2015Conds = use2015conds;
-    bkg->useHijingEffs = use2015conds;
+    bkg->useHijingEffs = use2015conds; // for now
     bkg->useHITight = doHITightVar;
 
     if (doMixVarA) {
@@ -223,8 +225,7 @@ int main (int argc, char** argv) {
       bkg->doPPTransMinMixing = false;
     }
 
-    //bkg->Execute (mbInFileName.c_str (), outFileName.c_str ()); // old code
-    bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str ()); // new code
+    bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code
     delete bkg;
   }
 

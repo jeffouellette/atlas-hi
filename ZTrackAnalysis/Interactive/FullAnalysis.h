@@ -146,7 +146,7 @@ void FullAnalysis :: CreateHists () {
       h_lepton_eta[iCent][iSpc]     = new TH1D (Form ("h_lepton_eta_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 50, -2.5, 2.5);
       h_lepton_trk_pt[iCent][iSpc]  = new TH1D (Form ("h_lepton_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 250, 0, 250);
       h_trk_pt[iCent][iSpc]         = new TH1D (Form ("h_trk_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0, 100);
-      h_lepton_trk_dr[iCent][iSpc]  = new TH2D (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0., 1., 40, 0, 2);
+      h_lepton_trk_dr[iCent][iSpc]  = new TH2D (Form ("h_lepton_trk_dr_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 100, 0, 1, 40, 0, 2);
       
       h_z_phi[iCent][iSpc]->Sumw2 ();
       h_z_pt[iCent][iSpc]->Sumw2 ();
@@ -438,60 +438,60 @@ void FullAnalysis :: ScaleHists () {
       if (h_lepton_pt[iCent][iSpc]) {
         h_lepton_pt[iCent][iSpc]->Rebin (5);
         if (normFactor > 0)
-          h_lepton_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+          h_lepton_pt[iCent][iSpc]->Scale (1 / normFactor, "width");
       }
 
       if (h_lepton_eta[iCent][iSpc]) {
         h_lepton_eta[iCent][iSpc]->Rebin (2);
         if (normFactor > 0)
-          h_lepton_eta[iCent][iSpc]->Scale (1. / normFactor, "width");
+          h_lepton_eta[iCent][iSpc]->Scale (1 / normFactor, "width");
       }
 
       if (h_lepton_trk_pt[iCent][iSpc]) {
         h_lepton_trk_pt[iCent][iSpc]->Rebin (5);
         if (normFactor > 0)
-          h_lepton_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+          h_lepton_trk_pt[iCent][iSpc]->Scale (1 / normFactor, "width");
       }
 
       if (h_trk_pt[iCent][iSpc]) {
         h_trk_pt[iCent][iSpc]->Rebin (5);
         if (normFactor > 0)
-          h_trk_pt[iCent][iSpc]->Scale (1. / normFactor, "width");
+          h_trk_pt[iCent][iSpc]->Scale (1 / normFactor, "width");
       }
 
       if ( h_z_pt[iCent][iSpc]) {
         h_z_pt[iCent][iSpc]->Rebin (10);
         h_z_pt[iCent][iSpc]->Scale (0.1);
         if (h_z_pt[iCent][iSpc]->Integral () > 0)
-          h_z_pt[iCent][iSpc]->Scale (1. / h_z_pt[iCent][iSpc]->Integral (), "width");
+          h_z_pt[iCent][iSpc]->Scale (1 / h_z_pt[iCent][iSpc]->Integral (), "width");
       }
 
       for (short iReg = 0; iReg < 3; iReg++) {
         //if (h_z_m[iCent][iSpc]->GetMaximum () > 0)
-        //  h_z_m[iCent][iSpc]->Scale (1. / (h_z_m[iCent][iSpc]->GetMaximum ()));
+        //  h_z_m[iCent][iSpc]->Scale (1 / (h_z_m[iCent][iSpc]->GetMaximum ()));
         if (h_z_m[iCent][iSpc][iReg]) {
           if (h_z_m[iCent][iSpc][iReg]->Integral () > 0)
-            h_z_m[iCent][iSpc][iReg]->Scale (1. / h_z_m[iCent][iSpc][iReg]->Integral ());
+            h_z_m[iCent][iSpc][iReg]->Scale (1 / h_z_m[iCent][iSpc][iReg]->Integral ());
         }
       } // end loop over iReg
 
       for (short iPtZ = 0; iPtZ <= nPtZBins; iPtZ++) {
         if (h_z_eta[iCent][iSpc][iPtZ]) {
           if (h_z_eta[iCent][iSpc][iPtZ]->Integral () > 0)
-            h_z_eta[iCent][iSpc][iPtZ]->Scale (1. / h_z_eta[iCent][iSpc][iPtZ]->Integral (), "width");
+            h_z_eta[iCent][iSpc][iPtZ]->Scale (1 / h_z_eta[iCent][iSpc][iPtZ]->Integral (), "width");
         }
 
         if (h_z_y[iCent][iSpc][iPtZ]) {
           //h_z_y[iCent][iSpc][iPtZ]->Rebin (2);
           if (h_z_y[iCent][iSpc][iPtZ]->Integral () > 0)
-            h_z_y[iCent][iSpc][iPtZ]->Scale (1. / h_z_y[iCent][iSpc][iPtZ]->Integral (), "width");
+            h_z_y[iCent][iSpc][iPtZ]->Scale (1 / h_z_y[iCent][iSpc][iPtZ]->Integral (), "width");
         }
       } // end loop over iPtZ
 
       if (h_z_phi[iCent][iSpc]) {
         h_z_phi[iCent][iSpc]->Rebin (8);
         if (h_z_phi[iCent][iSpc]->Integral () > 0)
-          h_z_phi[iCent][iSpc]->Scale (1. / h_z_phi[iCent][iSpc]->Integral (), "width");
+          h_z_phi[iCent][iSpc]->Scale (1 / h_z_phi[iCent][iSpc]->Integral (), "width");
       }
     } // end loop over iCent
   } // end loop over iSpc
@@ -527,7 +527,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
   CreateHists ();
 
   bool isEE = false;
-  float event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
+  float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1;
   float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
   //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
@@ -538,6 +538,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
   int**   trks_counts  = Get2DArray <int> (2, 6);
   float** trks_weights1 = Get2DArray <float> (2, 6);
+  float** trks_weights2 = Get2DArray <float> (2, 6);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Loop over PbPb tree
@@ -650,8 +651,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
-      //if (iPtZ < 2)
-      //  continue;
+      if (iPtZ < 2) continue;
 
       h_fcal_et->Fill (fcal_et);
       h_fcal_et_reweighted->Fill (fcal_et, event_weight);
@@ -726,6 +726,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
+              trks_weights2[0][iPt] += pow (trkWeight, 2);
             }
           }
           if (xhZBins[iPtZ][0] <= xhz) {
@@ -734,6 +735,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
+              trks_weights2[1][iX] += pow (trkWeight, 2);
             }
           }
         }
@@ -742,12 +744,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError   (i1+1, sqrt (pow (h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1), 2) + pow (event_weight, 2)*(trks_weights2[0][i1])));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
         for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError   (i1+1, sqrt (pow (h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1), 2) + pow (event_weight, 2)*(trks_weights2[1][i1])));
         g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
@@ -757,7 +761,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
-          trks_weights1[i][j] = 0.;
+          trks_weights1[i][j] = 0;
+          trks_weights2[i][j] = 0;
         } // end loop over j
       } // end loop over i
 
@@ -848,7 +853,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
-      //if (iPtZ < 2) continue;
+      if (iPtZ < 2) continue;
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -908,6 +913,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iPt < 6) {
               trks_counts[0][iPt]   += 1;
               trks_weights1[0][iPt] += trkWeight;
+              trks_weights2[0][iPt] += pow (trkWeight, 2);
             }
           }
           if (xhZBins[iPtZ][0] <= xhz) {
@@ -916,6 +922,7 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
             if (iX < 6) {
               trks_counts[1][iX]   += 1;
               trks_weights1[1][iX] += trkWeight;
+              trks_weights2[1][iX] += pow (trkWeight, 2);
             }
           }
         }
@@ -924,12 +931,14 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       // fill yield histograms and covariance matrices
       for (int i1 = 0; i1 < nPtchBins[iPtZ]; i1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[0][i1]));
+        h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError   (i1+1, sqrt (pow (h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1), 2) + pow (event_weight, 2)*(trks_weights2[0][i1])));
         g_trk_pt_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_pt_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[0][i1]);
         for (int i2 = 0 ; i2 < nPtchBins[iPtZ]; i2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[0][i1]) * (trks_weights1[0][i2]));
       } // end loop over i1
       for (int i1 = 0; i1 < nXHZBins[iPtZ]; i1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (i1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (i1+1) + event_weight*(trks_weights1[1][i1]));
+        h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError   (i1+1, sqrt (pow (h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (i1+1), 2) + pow (event_weight, 2)*(trks_weights2[1][i1])));
         g_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetPoint (g_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetN (), h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinCenter (i1+1), trks_weights1[1][i1]);
         for (int i2 = 0 ; i2 < nXHZBins[iPtZ]; i2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (i1+1, i2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (i1+1, i2+1) + event_weight * (trks_weights1[1][i1]) * (trks_weights1[1][i2]));
@@ -939,7 +948,8 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 6; j++) {
           trks_counts[i][j] = 0;
-          trks_weights1[i][j] = 0.;
+          trks_weights1[i][j] = 0;
+          trks_weights2[i][j] = 0;
         } // end loop over j
       } // end loop over i
 
