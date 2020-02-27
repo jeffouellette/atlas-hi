@@ -1148,7 +1148,7 @@ void MinbiasAnalysis :: PlotCentralityDists () {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
     c->cd ();
   }
@@ -1160,19 +1160,20 @@ void MinbiasAnalysis :: PlotCentralityDists () {
   for (short iMBTrig = 0; iMBTrig < 3; iMBTrig++) {
     h_centrality[iMBTrig]->Scale (1., "width");
 
+    h_centrality[iMBTrig]->GetYaxis ()->SetRangeUser (0.5, 1e5);
     h_centrality[iMBTrig]->SetLineColor (colors[iMBTrig+1]);
 
-    h_centrality[iMBTrig]->GetXaxis ()->SetTitle ("#Sigma#it{E}_{T}^{FCal} [GeV]");
-    h_centrality[iMBTrig]->GetYaxis ()->SetTitle ("dN_{evt} / d#Sigma#it{E}_{T} [GeV^{-1}]");
+    h_centrality[iMBTrig]->GetXaxis ()->SetTitle ("Centrality [%]");
+    h_centrality[iMBTrig]->GetYaxis ()->SetTitle ("N_{evt}");
 
 //    h_centrality[iMBTrig]->GetYaxis ()->SetRangeUser (5e-2, 2e3);
 
     h_centrality[iMBTrig]->Draw (!canvasExists && iMBTrig == 0 ? "hist" : "same hist");
   }
 
-  myMarkerTextNoLine (0.67, 0.81, colors[1], kFullCircle, "HLT_mb_sptrk_L1ZDC_A_C_VTE50 (PC)", 1.25, 0.04);
-  myMarkerTextNoLine (0.67, 0.76, colors[2], kFullCircle, "HLT_noalg_pc_L1TE50_VTE600_0ETA49 (PC)", 1.25, 0.04);
-  myMarkerTextNoLine (0.67, 0.71, colors[3], kFullCircle, "HLT_noalg_cc_L1TE600_0ETA49 (CC)", 1.25, 0.04);
+  myMarkerTextNoLine (0.22, 0.35, colors[1], kFullCircle, "HLT_mb_sptrk_L1ZDC_A_C_VTE50 (PC)", 1.25, 0.04);
+  myMarkerTextNoLine (0.22, 0.30, colors[2], kFullCircle, "HLT_noalg_pc_L1TE50_VTE600_0ETA49 (PC)", 1.25, 0.04);
+  myMarkerTextNoLine (0.22, 0.25, colors[3], kFullCircle, "HLT_noalg_cc_L1TE600_0ETA49 (CC)", 1.25, 0.04);
 
   myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.22, 0.81, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV", 0.04);

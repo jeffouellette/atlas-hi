@@ -515,6 +515,22 @@ const float superFineCentBins[157] = {
 
 const short numSuperFineCentBins = sizeof (superFineCentBins) / sizeof (superFineCentBins[0]);
 
+void PrintSuperFineCentBins () {
+  cout << "\\multicolumn{8}{|c|}{$\\sumet^\\mathrm{FCal}$ bin edges (TeV)} \\\\ \\hline" << endl;
+  int iSFCBin = 0;
+  for (; iSFCBin < numSuperFineCentBins; iSFCBin++) {
+    if (iSFCBin % 8 == 0) cout << "\t\t\t";
+    cout << superFineCentBins[iSFCBin]*1e-3;
+    if (iSFCBin % 8 == 7) cout << " \\\\" << endl;
+    else cout << " & ";
+  }
+  while (iSFCBin % 8 != 7) {
+    cout << "& ";
+    iSFCBin++;
+  }
+  cout << "\\\\ \\hline" << endl;
+}
+
 // Returns which "super fine" centrality bin number corresponds to this sum fcal et.
 short GetSuperFineCentBin (const float fcal_et) {
   short i = 0;

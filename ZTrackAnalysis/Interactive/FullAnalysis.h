@@ -2395,7 +2395,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 800, 600);
+    c = new TCanvas (canvasName, "", 600, 600);
     gDirectory->Add (c);
   }
   c->cd ();
@@ -2451,11 +2451,11 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   } // end loop over cents
 
   //myText (0.66, 0.88, colors[0], "#it{pp}", 0.04);
-  myText (0.25, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
-  myText (0.25, 0.80, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.05);
+  myText (0.22, 0.81, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
   if (pSpc != 2)
-    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.05);
+    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.04);
 
   c->SaveAs (Form ("%s/q2_Mixing/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
