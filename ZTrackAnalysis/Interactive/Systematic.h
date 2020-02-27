@@ -1299,7 +1299,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1316,6 +1316,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
         for (short iCent = 0; iCent < numCentBins; iCent++) {
 
           TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+          TGraph* g_highs = nullptr, *g_lows = nullptr;
           centralVals = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
 
           if (!centralVals) continue;
@@ -1327,42 +1328,39 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kGray+1);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy ("][ hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kGray+1);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
+    
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+    
+          g_highs->GetXaxis ()->SetMoreLogLabels ();
+          g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+    
+          g_highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          g_highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
+    
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (kGray+1);
+          g_highs->SetLineStyle (1);
+          g_highs->SetLineWidth (3);
+    
+          g_highs->Draw ("AL");
+  
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (kGray+1);
+          g_lows->SetLineStyle (1);
+          g_lows->SetLineWidth (3);
+    
+          g_lows->Draw ("L");
+
+          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
           short iSys = 0;
           for (Systematic* sys : systematics) {
 
-            if (HasUnsubSys (sys->Name ()))
-              continue;
+            if (HasUnsubSys (sys->Name ())) continue;
 
             TH1D* h = sys->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
             highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
@@ -1373,49 +1371,39 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
             highs->Scale (100.);
             lows->Scale (100.);
 
-            highs->GetXaxis ()->SetMoreLogLabels ();
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            highs->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-            highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (iSys+2);
-
-            highs->DrawCopy ("][ hist same");
-
-            lows->GetXaxis ()->SetMoreLogLabels ();
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            lows->GetYaxis ()->SetTitle ("#deltaY / Y (#it{p}_{T}^{ch}) [%]");
-
-            lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (iSys+2);
-
-            lows->DrawCopy ("][ same hist");
+            g_highs = new TGraph (highs);
+            g_lows = new TGraph (lows);
+  
+            delete highs, lows;
+            highs = nullptr, lows = nullptr;
+  
+            g_highs->SetMarkerSize (0);
+            g_highs->SetLineColor (colors[iSys+1]);
+            g_highs->SetLineStyle (iSys+2);
+  
+            g_highs->Draw ("L");
+  
+            g_lows->SetMarkerSize (0);
+            g_lows->SetLineColor (colors[iSys+1]);
+            g_lows->SetLineStyle (iSys+2);
+  
+            g_lows->Draw ("L");
 
             myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
-
-            delete highs, lows;
             iSys++;
-          }
+          } // end loop over systematics
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-          if (iCent == 0)
-            myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-          else {
-            myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-          }
+          myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+          if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-          if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-          else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+          else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
+          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/TrkYieldSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -1441,7 +1429,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1455,6 +1443,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
       for (short iCent = 0; iCent < numCentBins; iCent++) {
 
         TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+        TGraph* g_highs = nullptr, *g_lows = nullptr;
         centralVals = (useTrkPt ? h_trk_pt_ptz[iSpc][iPtZ][iCent] : h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
 
         if (!centralVals) continue;
@@ -1466,42 +1455,39 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
         highs->Scale (100.);
         lows->Scale (100.);
 
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kGray+1);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy ("][ hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kGray+1);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
-
+        g_highs = new TGraph (highs);
+        g_lows = new TGraph (lows);
+  
         delete highs, lows;
+        highs = nullptr, lows = nullptr;
+  
+        g_highs->GetXaxis ()->SetMoreLogLabels ();
+        g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+  
+        g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        g_highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
+  
+        g_highs->SetMarkerSize (0);
+        g_highs->SetLineColor (kGray+1);
+        g_highs->SetLineStyle (1);
+        g_highs->SetLineWidth (3);
+  
+        g_highs->Draw ("AL");
+
+        g_lows->SetMarkerSize (0);
+        g_lows->SetLineColor (kGray+1);
+        g_lows->SetLineStyle (1);
+        g_lows->SetLineWidth (3);
+  
+        g_lows->Draw ("L");
+
+        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
 
-          if (HasUnsubSys (sys->Name ()))
-            continue;
+          if (HasUnsubSys (sys->Name ())) continue;
 
           TH1D* h = (useTrkPt ? sys->h_trk_pt_ptz[iSpc][iPtZ][iCent] : sys->h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
           highs = (TH1D*) h->Clone ((string (h->GetName ()) + "_relSysHigh").c_str ());
@@ -1512,49 +1498,37 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-          highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (iSys+2);
-
-          highs->DrawCopy ("][ hist same");
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY / Y (#it{p}_{T}^{ch}) [%]" : "#deltaY / Y (#it{x}_{hZ}) [%]");
-
-          lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (iSys+2);
-
-          lows->DrawCopy ("][ same hist");
-
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
 
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (colors[iSys+1]);
+          g_highs->SetLineStyle (iSys+2);
+
+          g_highs->Draw ("L");
+
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (colors[iSys+1]);
+          g_lows->SetLineStyle (iSys+2);
+
+          g_lows->Draw ("L");
+
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
-        }
+        } // end loop over systematics
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-        if (iCent == 0)
-          myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-        else {
-          myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-        }
+        myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+        if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-        if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-        else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+        if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+        else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-        const char* lo = GetPiString (phiLowBins[1]);
-        const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-        myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+        myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/TrkYieldSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -1578,7 +1552,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1597,6 +1571,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
           gPad->Clear ();
 
           TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+          TGraph* g_highs = nullptr, *g_lows = nullptr;
           centralVals = h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent];
 
           if (!centralVals) continue;
@@ -1608,37 +1583,34 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kGray+1);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy ("][ hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("Y_{sub} (#it{p}_{T}^{ch}) Relative error");
-          lows->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kGray+1);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
+  
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+  
+          g_highs->GetXaxis ()->SetMoreLogLabels ();
+          g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+  
+          g_highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          g_highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
+  
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (kGray+1);
+          g_highs->SetLineStyle (1);
+          g_highs->SetLineWidth (3);
+  
+          g_highs->Draw ("AL");
+
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (kGray+1);
+          g_lows->SetLineStyle (1);
+          g_lows->SetLineWidth (3);
+  
+          g_lows->Draw ("L");
+
+          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
           short iSys = 0;
           for (Systematic* sys : systematics) {
@@ -1652,49 +1624,39 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
             highs->Scale (100.);
             lows->Scale (100.);
 
-            highs->GetXaxis ()->SetMoreLogLabels ();
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-            highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (iSys+2);
-
-            highs->DrawCopy ("][ hist same");
-
-            lows->GetXaxis ()->SetMoreLogLabels ();
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            lows->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
-
-            lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (iSys+2);
-
-            lows->DrawCopy ("][ same hist");
+            g_highs = new TGraph (highs);
+            g_lows = new TGraph (lows);
+  
+            delete highs, lows;
+            highs = nullptr, lows = nullptr;
+  
+            g_highs->SetMarkerSize (0);
+            g_highs->SetLineColor (colors[iSys+1]);
+            g_highs->SetLineStyle (iSys+2);
+  
+            g_highs->Draw ("L");
+  
+            g_lows->SetMarkerSize (0);
+            g_lows->SetLineColor (colors[iSys+1]);
+            g_lows->SetLineStyle (iSys+2);
+  
+            g_lows->Draw ("L");
 
             myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
-
-            delete highs, lows;
             iSys++;
-          }
+          } // end loop over systematics
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-          if (iCent == 0)
-            myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-          else {
-            myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-          }
+          myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+          if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-          if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-          else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+          else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
+          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -1720,7 +1682,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1736,6 +1698,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
         gPad->Clear ();
 
         TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+        TGraph* g_highs = nullptr, *g_lows = nullptr;
         centralVals = (useTrkPt ? h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
 
         if (!centralVals) continue;
@@ -1747,36 +1710,34 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
         highs->Scale (100.);
         lows->Scale (100.);
 
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kGray+1);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy ("][ hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kGray+1);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
-
+        g_highs = new TGraph (highs);
+        g_lows = new TGraph (lows);
+  
         delete highs, lows;
+        highs = nullptr, lows = nullptr;
+  
+        g_highs->GetXaxis ()->SetMoreLogLabels ();
+        g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+  
+        g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        g_highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
+  
+        g_highs->SetMarkerSize (0);
+        g_highs->SetLineColor (kGray+1);
+        g_highs->SetLineStyle (1);
+        g_highs->SetLineWidth (3);
+  
+        g_highs->Draw ("AL");
+
+        g_lows->SetMarkerSize (0);
+        g_lows->SetLineColor (kGray+1);
+        g_lows->SetLineStyle (1);
+        g_lows->SetLineWidth (3);
+  
+        g_lows->Draw ("L");
+
+        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
@@ -1790,49 +1751,37 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-          highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (iSys+2);
-
-          highs->DrawCopy ("][ hist same");
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]" : "#deltaY_{sub} / Y_{sub} (#it{x}_{hZ}) [%]");
-
-          lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (iSys+2);
-
-          lows->DrawCopy ("][ same hist");
-
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
 
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (colors[iSys+1]);
+          g_highs->SetLineStyle (iSys+2);
+
+          g_highs->Draw ("L");
+
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (colors[iSys+1]);
+          g_lows->SetLineStyle (iSys+2);
+
+          g_lows->Draw ("L");
+
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
-        }
+        } // end loop over systematics
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-        if (iCent == 0)
-          myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-        else {
-          myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-        }
+        myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+        if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-        if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-        else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+        if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+        else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-        const char* lo = GetPiString (phiLowBins[1]);
-        const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-        myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+        myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -1856,7 +1805,7 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -1873,6 +1822,7 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
         for (short iCent = 1; iCent < numCentBins; iCent++) {
 
           TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+          TGraph* g_highs = nullptr, *g_lows = nullptr;
           centralVals = h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
 
           if (!centralVals) continue;
@@ -1884,38 +1834,35 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          highs->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-          highs->SetLineColor (kGray+1);
-          highs->SetLineStyle (1);
-          highs->SetLineWidth (3);
-
-          highs->DrawCopy ("][ hist");
-
-          if (systematics.size () == 0)
-            myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else
-            myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-          lows->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-          lows->SetLineColor (kGray+1);
-          lows->SetLineStyle (1);
-          lows->SetLineWidth (3);
-
-          lows->DrawCopy ("][ same hist");
-
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
+  
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+  
+          g_highs->GetXaxis ()->SetMoreLogLabels ();
+          g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+  
+          g_highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+          g_highs->GetYaxis ()->SetTitle ("#deltaY_{sub} / Y_{sub} (#it{p}_{T}^{ch}) [%]");
+  
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (kGray+1);
+          g_highs->SetLineStyle (1);
+          g_highs->SetLineWidth (3);
+  
+          g_highs->Draw ("AL");
 
-          bool drawn = false;
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (kGray+1);
+          g_lows->SetLineStyle (1);
+          g_lows->SetLineWidth (3);
+  
+          g_lows->Draw ("L");
+
+          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+
           short iSys = 0;
           for (Systematic* sys : systematics) {
 
@@ -1928,54 +1875,39 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
             highs->Scale (100.);
             lows->Scale (100.);
 
-            highs->GetXaxis ()->SetMoreLogLabels ();
-            highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            highs->GetYaxis ()->SetTitle ("I_{AA} (#it{p}_{T}^{ch}) Relative error");
-            highs->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-            highs->SetLineColor (colors[iSys+1]);
-            highs->SetLineStyle (iSys+2);
-
-            if (!drawn)
-              highs->DrawCopy ("][ hist");
-            else
-              highs->DrawCopy ("][ hist same");
-            drawn = true;
-
-            lows->GetXaxis ()->SetMoreLogLabels ();
-            lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-            lows->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
-            lows->GetYaxis ()->SetTitle ("#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]");
-
-            lows->SetLineColor (colors[iSys+1]);
-            lows->SetLineStyle (iSys+2);
-
-            lows->DrawCopy ("][ same hist");
+            g_highs = new TGraph (highs);
+            g_lows = new TGraph (lows);
+  
+            delete highs, lows;
+            highs = nullptr, lows = nullptr;
+  
+            g_highs->SetMarkerSize (0);
+            g_highs->SetLineColor (colors[iSys+1]);
+            g_highs->SetLineStyle (iSys+2);
+  
+            g_highs->Draw ("L");
+  
+            g_lows->SetMarkerSize (0);
+            g_lows->SetLineColor (colors[iSys+1]);
+            g_lows->SetLineStyle (iSys+2);
+  
+            g_lows->Draw ("L");
 
             myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
-
-            delete highs, lows;
             iSys++;
-          }
+          } // end loop over systematics
 
-          myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-          if (iCent == 0)
-            myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-          else {
-            myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-          }
+          myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+          myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+          myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
-          if (iPtZ == nPtZBins-1)
-            myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-          else
-            myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+          if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+          else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
-          myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+          myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
+          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -2001,7 +1933,7 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
   if (canvasExists)
     c = dynamic_cast<TCanvas*>(gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 600, 600);
+    c = new TCanvas (canvasName, "", 800, 600);
     gDirectory->Add (c);
     gPad->SetLogx ();
   }
@@ -2015,6 +1947,7 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
       for (short iCent = 1; iCent < numCentBins; iCent++) {
 
         TH1D* centralVals = nullptr, *highs = nullptr, *lows = nullptr;
+        TGraph* g_highs = nullptr, *g_lows = nullptr;
         centralVals = (useTrkPt ? h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
 
         if (!centralVals) continue;
@@ -2026,36 +1959,34 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
         highs->Scale (100.);
         lows->Scale (100.);
 
-        highs->GetXaxis ()->SetMoreLogLabels ();
-        highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-        highs->SetLineColor (kGray+1);
-        highs->SetLineStyle (1);
-        highs->SetLineWidth (3);
-
-        highs->DrawCopy ("][ hist");
-
-        if (systematics.size () == 0)
-          myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else
-          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
-
-        lows->GetXaxis ()->SetMoreLogLabels ();
-        lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-        lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-        lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-        lows->SetLineColor (kGray+1);
-        lows->SetLineStyle (1);
-        lows->SetLineWidth (3);
-
-        lows->DrawCopy ("][ same hist");
+        g_highs = new TGraph (highs);
+        g_lows = new TGraph (lows);
 
         delete highs, lows;
+        highs = nullptr, lows = nullptr;
+
+        g_highs->GetXaxis ()->SetMoreLogLabels ();
+        g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
+
+        g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+        g_highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
+
+        g_highs->SetMarkerSize (0);
+        g_highs->SetLineColor (kGray+1);
+        g_highs->SetLineStyle (1);
+        g_highs->SetLineWidth (3);
+
+        g_highs->Draw ("AL");
+
+        g_lows->SetMarkerSize (0);
+        g_lows->SetLineColor (kGray+1);
+        g_lows->SetLineStyle (1);
+        g_lows->SetLineWidth (3);
+
+        g_lows->Draw ("L");
+
+        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
@@ -2069,49 +2000,37 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
           highs->Scale (100.);
           lows->Scale (100.);
 
-          highs->GetXaxis ()->SetMoreLogLabels ();
-          highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          highs->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-          highs->SetLineColor (colors[iSys+1]);
-          highs->SetLineStyle (iSys+2);
-
-          highs->DrawCopy ("][ hist same");
-
-          lows->GetXaxis ()->SetMoreLogLabels ();
-          lows->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
-
-          lows->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
-          lows->GetYaxis ()->SetTitle (useTrkPt ? "#deltaI_{AA} / I_{AA} (#it{p}_{T}^{ch}) [%]" : "#deltaI_{AA} / I_{AA} (#it{x}_{hZ}) [%]");
-
-          lows->SetLineColor (colors[iSys+1]);
-          lows->SetLineStyle (iSys+2);
-
-          lows->DrawCopy ("][ same hist");
-
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          g_highs = new TGraph (highs);
+          g_lows = new TGraph (lows);
 
           delete highs, lows;
+          highs = nullptr, lows = nullptr;
+
+          g_highs->SetMarkerSize (0);
+          g_highs->SetLineColor (colors[iSys+1]);
+          g_highs->SetLineStyle (iSys+2);
+
+          g_highs->Draw ("L");
+
+          g_lows->SetMarkerSize (0);
+          g_lows->SetLineColor (colors[iSys+1]);
+          g_lows->SetLineStyle (iSys+2);
+
+          g_lows->Draw ("L");
+
+          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
-        }
+        } // end loop over systematics
 
-        myText (0.24, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-        if (iCent == 0)
-          myText (0.24, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-        else {
-          myText (0.24, 0.22, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-        }
+        myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+        myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+        myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
-        if (iPtZ == nPtZBins-1)
-          myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-        else
-          myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+        if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+        else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-        const char* lo = GetPiString (phiLowBins[1]);
-        const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-        myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+        myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/IAASystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -2247,42 +2166,6 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
   
       h->Draw ("");
 
-      //TGAE* nom = GetTGAE (useTrkPt ? h_trk_pt_ptz_sub[pSpc][iPtZ][iCent] : h_trk_xhz_ptz_sub[pSpc][iPtZ][iCent]);
-      //RecenterGraph (nom);
-      //ResetXErrors (nom);
-      //deltaize (nom, 1+(-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
-      //nom->SetLineColor (kGray+1);
-      //nom->SetMarkerColor (kGray+1);
-      //nom->SetMarkerStyle (kFullCircle);
-      //nom->SetMarkerSize (1.2);
-      //nom->SetLineWidth (2);
-      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-      //nom->GetYaxis ()->SetRangeUser (1e-3, 20);
-
-      //nom->GetXaxis ()->SetMoreLogLabels ();
-
-      //useTrkPt ? nom->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : nom->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-      //nom->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T} d#Delta#phi [GeV^{-1}]" : "d^{2}Y / dx d#Delta#phi");
-      //const double xmin = nom->GetXaxis ()->GetXmin ();
-      //const double xmax = nom->GetXaxis ()->GetXmax ();
-
-      //nom->GetXaxis ()->SetTitleFont (43);
-      //nom->GetXaxis ()->SetTitleSize (axisTextSize);
-      //nom->GetXaxis ()->SetLabelFont (43);
-      //nom->GetXaxis ()->SetLabelSize (axisTextSize);
-
-      //nom->GetYaxis ()->SetTitleFont (43);
-      //nom->GetYaxis ()->SetTitleSize (axisTextSize);
-      //nom->GetYaxis ()->SetLabelFont (43);
-      //nom->GetYaxis ()->SetLabelSize (axisTextSize);
-
-      //nom->GetXaxis ()->SetTitleOffset (0.9 * nom->GetXaxis ()->GetTitleOffset ());
-      ////nom->GetYaxis ()->SetTitleOffset (0.9 * nom->GetYaxis ()->GetTitleOffset ());
-
-      //nom->Draw ("AP");
-
-      //myLineText (0.65, 0.92, kGray+1, 1, "Nominal", 1, 0.026);
-
       iVar = 0;
       for (PhysicsAnalysis* a : variations) {
         TGAE* var = a->GetTGAE (useTrkPt ? a->h_trk_pt_ptz_sub[pSpc][iPtZ][iCent] : a->h_trk_xhz_ptz_sub[pSpc][iPtZ][iCent]);
@@ -2306,21 +2189,15 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
         iVar++;
       }
 
-      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-      if (iCent == 0)
-        myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-      else {
-        myText (0.22, 0.20, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-      }
+      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      if (iCent == 0) myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+      else            myText (0.22, 0.20, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-      if (iPtZ == nPtZBins-1)
-        myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-      else
-        myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+      if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+      else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-      const char* lo = GetPiString (phiLowBins[1]);
-      const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-      myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+      myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+      myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
@@ -2385,42 +2262,6 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
   
       h->Draw ("");
 
-      //TGAE* nom = GetTGAE (useTrkPt ? h_trk_pt_ptz_iaa[pSpc][iPtZ][iCent] : h_trk_xhz_ptz_iaa[pSpc][iPtZ][iCent]);
-      //RecenterGraph (nom);
-      //ResetXErrors (nom);
-      //deltaize (nom, 1+(-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
-      //nom->SetLineColor (kGray+1);
-      //nom->SetMarkerColor (kGray+1);
-      //nom->SetMarkerStyle (kFullCircle);
-      //nom->SetMarkerSize (1.2);
-      //nom->SetLineWidth (2);
-      //useTrkPt ? nom->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : nom->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-      //nom->GetYaxis ()->SetRangeUser (0, max_iaa);
-
-      //nom->GetXaxis ()->SetMoreLogLabels ();
-
-      //useTrkPt ? nom->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]") : nom->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
-      //nom->GetYaxis ()->SetTitle ("I_{AA}");
-      //const double xmin = nom->GetXaxis ()->GetXmin ();
-      //const double xmax = nom->GetXaxis ()->GetXmax ();
-
-      //nom->GetXaxis ()->SetTitleFont (43);
-      //nom->GetXaxis ()->SetTitleSize (axisTextSize);
-      //nom->GetXaxis ()->SetLabelFont (43);
-      //nom->GetXaxis ()->SetLabelSize (axisTextSize);
-
-      //nom->GetYaxis ()->SetTitleFont (43);
-      //nom->GetYaxis ()->SetTitleSize (axisTextSize);
-      //nom->GetYaxis ()->SetLabelFont (43);
-      //nom->GetYaxis ()->SetLabelSize (axisTextSize);
-
-      //nom->GetXaxis ()->SetTitleOffset (0.9 * nom->GetXaxis ()->GetTitleOffset ());
-      ////nom->GetYaxis ()->SetTitleOffset (0.9 * nom->GetYaxis ()->GetTitleOffset ());
-
-      //nom->Draw ("AP");
-
-      //`myLineText (0.65, 0.92, kGray+1, 1, "Nominal", 1, 0.026);
-
       iVar = 0;
       for (PhysicsAnalysis* a : variations) {
         TGAE* var = a->GetTGAE (useTrkPt ? a->h_trk_pt_ptz_iaa[pSpc][iPtZ][iCent] : a->h_trk_xhz_ptz_iaa[pSpc][iPtZ][iCent]);
@@ -2450,21 +2291,15 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
       line->SetLineColor (kPink-8);
       line->Draw ("same");
 
-      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-      if (iCent == 0)
-        myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV", 0.04);
-      else {
-        myText (0.22, 0.20, kBlack, Form ("Pb+Pb 5.02 TeV, %i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.04);
-      }
+      myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
-      if (iPtZ == nPtZBins-1)
-        myText (0.24, 0.86, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04);
-      else
-        myText (0.24, 0.86, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04);
+      if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+      else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-      const char* lo = GetPiString (phiLowBins[1]);
-      const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-      myText (0.24, 0.80, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.04);
+      myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+      myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/IAA/SystematicTrends/iaa_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
