@@ -236,8 +236,6 @@ class PhysicsAnalysis {
 
 
   protected:
-  void LabelTrackingEfficiencies (const short iCent, const short iEta);
-  void LabelTrackingPurities (const short iCent, const short iEta);
   void LabelCorrelations (const short iPtZ, const short iPtTrk, const short iCent, const bool subBkg);
   void LabelAllYields_dPhi (const short iCent, const short iPhi, const short iPtZ, const short iSpc);
   void LabelAllYields_dPtZ (const short iCent, const short iPtZ, const short iSpc);
@@ -296,9 +294,11 @@ class PhysicsAnalysis {
   void PlotNchDists (const bool _treatAsData = true);
 
   void PlotCorrelations (const short pSpc = 2, const short pPtZ = nPtZBins-1, const bool _subBkg = false);
-  void PlotTrackingEfficiencies (PhysicsAnalysis* a = nullptr);
+  void PlotTrackingEfficiencies ();
+  void PlotTrackingEfficienciesComparison (PhysicsAnalysis* a = nullptr);
   void PlotTrackingEfficiencies2D ();
-  void PlotTrackingPurities (PhysicsAnalysis* a = nullptr);
+  void PlotTrackingPurities ();
+  void PlotTrackingPuritiesComparison (PhysicsAnalysis* a = nullptr);
   void PlotTrackingPurities2D ();
 
   void CalculateIAA ();
@@ -2654,9 +2654,8 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtTrk,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking efficiencies
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
-  if (!effsLoaded)
-    LoadTrackingEfficiencies ();
+void PhysicsAnalysis :: PlotTrackingEfficiencies () {
+  if (!effsLoaded) LoadTrackingEfficiencies ();
 
   const char* canvasName = "c_trk_effs";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
@@ -2664,12 +2663,10 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
   if (canvasExists)
     c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1800, 800);
-    //c = new TCanvas (canvasName, "", 1800, 400);
+    c = new TCanvas (canvasName, "", 1800, 400);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (4, 2);
-    //c->Divide (4, 1);
+    c->Divide (4, 1);
   }
   c->cd ();
 
@@ -2680,7 +2677,6 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
     c->cd (iCent+1);
-//    if (iCent > 0) continue;
     gPad->SetLogx ();
 
     //g0[iCent] = new TGraphErrors (numEtaTrkBins);
@@ -2746,7 +2742,91 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
       //confInts->DrawCopy ("e3 same");
       //delete confInts;
 
-      LabelTrackingEfficiencies (iCent, iEta);
+      if (iCent == 0) {
+        myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+        myMarkerTextNoLine (0.5, 0.50-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
+      }
+      else myText (0.22, 0.86, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
+    }
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
+  }
+
+  c->SaveAs (Form ("%s/TrackingEfficiencies/TrackingEfficiencies.pdf", plotPath.Data ()));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots tracking efficiencies with comparison to some alternative
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrackingEfficienciesComparison (PhysicsAnalysis* a) {
+  if (!effsLoaded) LoadTrackingEfficiencies ();
+
+  const char* canvasName = "c_trk_effs_comp";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1800, 800);
+    gDirectory->Add (c);
+    c->cd ();
+    c->Divide (4, 2);
+  }
+  c->cd ();
+
+  //TGraphErrors* g0[numCentBins];
+  //TGraphErrors* g1[numCentBins];
+  //TGraphErrors* g2[numCentBins];
+  //TGraphErrors* g3[numCentBins];
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    c->cd (iCent+1);
+    gPad->SetLogx ();
+
+    //g0[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g1[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g2[iCent] = new TGraphErrors (numEtaTrkBins);
+    //g3[iCent] = new TGraphErrors (numEtaTrkBins);
+
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      //TEfficiency* eff = h_trk_effs[iCent][iEta];
+      TGAE* eff = GetTGAE (h_trk_effs[iCent][iEta]);
+
+      eff->SetLineColor (colors[iEta]);
+      eff->SetMarkerColor (colors[iEta]);
+      eff->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
+      eff->SetMarkerSize (0.5);
+
+      eff->SetTitle (";#it{p}_{T} [GeV];Weighted Reco. Eff.");
+      eff->GetXaxis ()->SetRangeUser (0.5, 60);
+      eff->GetYaxis ()->SetRangeUser (0.3, 1.12);
+
+      eff->GetXaxis ()->SetTitleSize (0.07);
+      eff->GetYaxis ()->SetTitleSize (0.07);
+      eff->GetXaxis ()->SetTitleOffset (0.7 * eff->GetXaxis ()->GetTitleOffset ());
+      eff->GetYaxis ()->SetTitleOffset (0.7 * eff->GetYaxis ()->GetTitleOffset ());
+
+      eff->GetXaxis ()->SetMoreLogLabels ();
+
+      eff->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
+
+      if (iEta == 0) {
+        if (iCent == 0) myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+        else            myText (0.22, 0.86, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
+        if (iCent == 1) {
+          //myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "HILoose tracks", 1.2, 0.06);
+          //myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "HITight tracks", 1.2, 0.06);
+          myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "Inclusive hadrons", 1.2, 0.06);
+          myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "Pions only", 1.2, 0.06);
+        }
+      }
+      if (iCent == 0) myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
     }
     TLine* l = new TLine (0.5, 1, 60, 1);
     l->SetLineStyle (2);
@@ -2754,10 +2834,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
     l->SetLineColor (kPink-8);
     l->Draw ("same");
 
-    if (!a)
-      continue;
-    else
-      a->LoadTrackingEfficiencies ();
+    if (!a) continue;
+    else    a->LoadTrackingEfficiencies ();
 
     gPad->SetBottomMargin (0);
     c->cd (iCent+5);
@@ -2775,11 +2853,11 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
       eff->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
       eff->SetMarkerSize (0.5);
 
-      //eff->SetTitle (";#it{p}_{T} [GeV];Pions / Inclusive hadrons");
-      eff->SetTitle (";#it{p}_{T} [GeV];HITight / HILoose");
+      eff->SetTitle (";#it{p}_{T} [GeV];Pions / Inclusive hadrons");
+      //eff->SetTitle (";#it{p}_{T} [GeV];HITight / HILoose");
       eff->GetXaxis ()->SetRangeUser (0.5, 60);
-      //eff->GetYaxis ()->SetRangeUser (0.89, 1.11);
-      eff->GetYaxis ()->SetRangeUser (0.7, 1.11);
+      eff->GetYaxis ()->SetRangeUser (0.89, 1.11);
+      //eff->GetYaxis ()->SetRangeUser (0.7, 1.11);
 
       eff->GetXaxis ()->SetTitleSize (0.07);
       eff->GetYaxis ()->SetTitleSize (0.07);
@@ -2791,17 +2869,6 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
       eff->GetXaxis ()->SetMoreLogLabels ();
 
       eff->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
-
-      //TF1* fit = new TF1 ("fit", "[0]+[1]*log(x)+[2]*(log(x))^2", 0.7, 15);//+[3]*(log(x))^3+[4]*(log(x))^4", 0.7, 15);
-      //fit->SetParameter (0, 1);
-      //fit->SetParameter (1, 0);
-      //fit->SetParameter (2, 0);
-      ////fit->SetParameter (3, 0);
-      ////fit->SetParameter (4, 0);
-      //eff->Fit (fit, "RN0Q");
-      //fit->SetLineColor (colors[iEta]);
-      //fit->SetLineStyle (2);
-      //fit->Draw ("same");
     }
 
     l->Draw ("same");
@@ -2810,36 +2877,10 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
   if (a) {
     bool temp = a->useAltMarker;
     a->useAltMarker = true;
-    a->PlotTrackingEfficiencies ();
+    a->PlotTrackingEfficienciesComparison ();
     a->useAltMarker = temp;
   }
-  else
-    c->SaveAs (Form ("%s/TrackingEfficiencies/TrackingEfficiencies.pdf", plotPath.Data ()));
-
-  //for (int iCent = 0; iCent < numCentBins; iCent++) {
-  //  g0[iCent]->SetLineColor (colors[iCent]);
-  //  g1[iCent]->SetLineColor (colors[iCent]);
-  //  g2[iCent]->SetLineColor (colors[iCent]);
-  //  g3[iCent]->SetLineColor (colors[iCent]);
-  //  g0[iCent]->SetMarkerColor (colors[iCent]);
-  //  g1[iCent]->SetMarkerColor (colors[iCent]);
-  //  g2[iCent]->SetMarkerColor (colors[iCent]);
-  //  g3[iCent]->SetMarkerColor (colors[iCent]);
-
-  //  c->cd (1);
-  //  gPad->SetLogx (false);
-  //  g0[iCent]->Draw (iCent == 0 ? "AP" : "P");
-  //  c->cd (2);
-  //  gPad->SetLogx (false);
-  //  g1[iCent]->Draw (iCent == 0 ? "AP" : "P");
-  //  c->cd (3);
-  //  gPad->SetLogx (false);
-  //  g2[iCent]->Draw (iCent == 0 ? "AP" : "P");
-  //  c->cd (4);
-  //  gPad->SetLogx (false);
-  //  g3[iCent]->Draw (iCent == 0 ? "AP" : "P");
-  //}
-  //c->SaveAs (Form ("%s/TrackingEfficienciesEtaDep.pdf", plotPath.Data ()));
+  else c->SaveAs (Form ("%s/TrackingEfficiencies/TrackingEfficienciesComparison.pdf", plotPath.Data ()));
 }
 
 
@@ -2849,8 +2890,7 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies (PhysicsAnalysis* a) {
 // Plots tracking efficiencies as a 2D histogram
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
-  if (!effsLoaded)
-    LoadTrackingEfficiencies ();
+  if (!effsLoaded) LoadTrackingEfficiencies ();
 
   const char* canvasName = "c_trk_effs_2d";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
@@ -2883,10 +2923,8 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
     //eff->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);
     gPad->Update ();
 
-    if (iCent == 0)
-      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-    else
-      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+    if (iCent == 0) myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+    else            myText (0.22, 0.86, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
   }
 
   c->SaveAs (Form ("%s/TrackingEfficiencies/TrackingEfficiencies2D.pdf", plotPath.Data ()));
@@ -2896,38 +2934,10 @@ void PhysicsAnalysis :: PlotTrackingEfficiencies2D () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary (non-virtual) plot labelling for track efficiency plots
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelTrackingEfficiencies (const short iCent, const short iEta) {
-  if (iEta == 0) {
-    if (iCent == 0)
-      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-    else
-      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
-  }
-
-  if (iCent == 0) {
-  //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
-  //  myMarkerTextNoLine (0.5, 0.50-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
-  }
-  else if (iCent == 1 && iEta == 0) {
-    myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "HILoose tracks", 1.2, 0.06);
-    myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "HITight tracks", 1.2, 0.06);
-    //myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "Inclusive hadrons", 1.2, 0.06);
-    //myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "Pions only", 1.2, 0.06);
-  }
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots tracking purities
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
-  if (!pursLoaded)
-    LoadTrackingPurities ();
+void PhysicsAnalysis :: PlotTrackingPurities () {
+  if (!pursLoaded) LoadTrackingPurities ();
 
   const char* canvasName = "c_trk_purs";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
@@ -2935,11 +2945,10 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
   if (canvasExists)
     c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
   else {
-    c = new TCanvas (canvasName, "", 1800, 800);
-    //c = new TCanvas (canvasName, "", 1800, 400);
+    c = new TCanvas (canvasName, "", 1800, 400);
     gDirectory->Add (c);
     c->cd ();
-    c->Divide (4, 2);
+    c->Divide (4, 1);
     c->Draw ();
   }
   c->cd ();
@@ -2989,7 +2998,79 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
       //confInts->DrawCopy ("e3 same");
       //delete confInts;
 
-      LabelTrackingPurities (iCent, iEta);
+      if (iCent == 0) {
+        myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+        myMarkerTextNoLine (0.5, 0.50-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
+      }
+      else myText (0.22, 0.86, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
+    }
+    TLine* l = new TLine (0.5, 1, 60, 1);
+    l->SetLineStyle (2);
+    l->SetLineWidth (2);
+    l->SetLineColor (kPink-8);
+    l->Draw ("same");
+  }
+
+  c->SaveAs (Form ("%s/TrackingPurities/TrackingPurities.pdf", plotPath.Data ()));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots tracking purities with comparison to some alternative
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrackingPuritiesComparison (PhysicsAnalysis* a) {
+  if (!pursLoaded) LoadTrackingPurities ();
+
+  const char* canvasName = "c_trk_purs_comp";
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1800, 800);
+    gDirectory->Add (c);
+    c->cd ();
+    c->Divide (4, 2);
+    c->Draw ();
+  }
+  c->cd ();
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    c->cd (iCent+1);
+    gPad->SetLogx ();
+
+    for (int iEta = 0; iEta < numEtaTrkBins; iEta++) {
+      TGAE* pur = GetTGAE (h_trk_purs[iCent][iEta]);
+
+      pur->SetLineColor (colors[iEta]);
+      pur->SetMarkerColor (colors[iEta]);
+      pur->SetMarkerStyle (useAltMarker ? kOpenCircle : kFullCircle);
+      pur->SetMarkerSize (0.5);
+
+      pur->SetTitle (";#it{p}_{T} [GeV];Primary Track Fraction");
+      pur->GetXaxis ()->SetRangeUser (0.5, 60);
+      pur->GetYaxis ()->SetRangeUser (0.94, 1.010);
+
+      pur->GetXaxis ()->SetTitleSize (0.07);
+      pur->GetYaxis ()->SetTitleSize (0.07);
+      pur->GetXaxis ()->SetTitleOffset (0.7 * pur->GetXaxis ()->GetTitleOffset ());
+      pur->GetYaxis ()->SetTitleOffset (0.7 * pur->GetYaxis ()->GetTitleOffset ());
+
+      pur->GetXaxis ()->SetMoreLogLabels ();
+
+      pur->Draw (!canvasExists && iEta == 0 ? "AP" : "P");
+
+      if (iEta == 0) {
+        if (iCent == 0) myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+        else            myText (0.22, 0.86, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
+        if (iCent == 1) {
+          myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "HILoose tracks", 1.2, 0.06);
+          myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "HITight tracks", 1.2, 0.06);
+        }
+      }
+      if (iCent == 0) myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
     }
     TLine* l = new TLine (0.5, 1, 60, 1);
     l->SetLineStyle (2);
@@ -2997,10 +3078,8 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
     l->SetLineColor (kPink-8);
     l->Draw ("same");
 
-    if (!a)
-      continue;
-    else
-      a->LoadTrackingPurities ();
+    if (!a) continue;
+    else    a->LoadTrackingPurities ();
 
     gPad->SetBottomMargin (0);
     c->cd (iCent+5);
@@ -3040,11 +3119,10 @@ void PhysicsAnalysis :: PlotTrackingPurities (PhysicsAnalysis* a) {
   if (a) {
     bool temp = a->useAltMarker;
     a->useAltMarker = true;
-    a->PlotTrackingPurities ();
+    a->PlotTrackingPuritiesComparison ();
     a->useAltMarker = temp;
   }
-  else
-    c->SaveAs (Form ("%s/TrackingPurities/TrackingPurities.pdf", plotPath.Data ()));
+  else c->SaveAs (Form ("%s/TrackingPurities/TrackingPuritiesComparison.pdf", plotPath.Data ()));
 }
 
 
@@ -3088,38 +3166,11 @@ void PhysicsAnalysis :: PlotTrackingPurities2D () {
     //pur->GetPaintedHistogram ()->GetYaxis ()->SetRangeUser (2, 10);
     gPad->Update ();
 
-    if (iCent == 0)
-      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-    else
-      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+    if (iCent == 0) myText (0.22, 0.86, kBlack, "#it{pp}", 0.072);
+    else            myText (0.22, 0.86, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.072);
   }
 
   c->SaveAs (Form ("%s/TrackingPurities/TrackingPurities2D.pdf", plotPath.Data ()));
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary (non-virtual) plot labelling for track purity plots
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelTrackingPurities (const short iCent, const short iEta) {
-  if (iEta == 0) {
-    if (iCent == 0)
-      myText (0.22, 0.88, kBlack, "#it{pp}", 0.08);
-    else
-      myText (0.22, 0.88, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
-  }
-
-  if (iCent == 0) {
-  //  myText (0.485, 0.903, kBlack, "#bf{#it{ATLAS}} Internal", 0.068);
-    myMarkerTextNoLine (0.5, 0.34-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
-  //  myMarkerTextNoLine (0.5, 0.50-0.06*iEta, colors[iEta], kFullCircle, Form ("%g < |#eta| < %g", etaTrkBins[iEta], etaTrkBins[iEta+1]), 1.2, 0.06);
-  }
-  else if (iCent == 1 && iEta == 0) {
-    myMarkerTextNoLine (0.36, 0.16, kBlack, kFullCircle, "HILoose tracks", 1.2, 0.06);
-    myMarkerTextNoLine (0.36, 0.10, kBlack, kOpenCircle, "HITight tracks", 1.2, 0.06);
-  }
 }
 
 
