@@ -6223,6 +6223,9 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
     htemp->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
     htemp->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
 
+    htemp->SetMarkerSize (0);
+    htemp->SetLineWidth (0);
+
     htemp->GetXaxis ()->SetMoreLogLabels ();
 
     htemp->GetYaxis ()->SetRangeUser (8e-4, 2e4);
