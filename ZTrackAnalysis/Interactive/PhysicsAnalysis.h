@@ -1450,6 +1450,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
   Delete2DArray (trks_counts, 2, 6);
   Delete2DArray (trks_weights1, 2, 6);
+  Delete2DArray (trks_weights2, 2, 6);
 
   SaveHists (outFileName);
 
