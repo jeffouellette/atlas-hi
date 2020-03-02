@@ -129,6 +129,14 @@ short GetidPhi (const float dphi) {
   return idPhi;
 }
 
+// Returns how many bins should be used in the dPhi correlation plot for this bin
+short GetNdPhiBins (const short iPtch, const short iCent) {
+  short nBins = 40;
+  if (iPtch > 3) nBins /= 2;
+  if (iCent > 0) nBins /= 2;
+  return nBins;
+}
+
 
 // Z boson pT bins used in analysis
 const double zPtBins[6] = {0, 5, 15, 30, 60, 10000};
