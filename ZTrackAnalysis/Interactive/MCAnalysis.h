@@ -282,7 +282,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill phi correlation histograms and covariance matrices
-      for (int iPtch = 0; iPtch < 6; iPtch++) {
+      for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
         for (int idPhi = 0; idPhi < GetNdPhiBins (iPtch, iCent); idPhi++) {
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]));
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi]));
@@ -519,7 +519,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
       } // end loop over tracks
 
       // fill phi correlation histograms and covariance matrices
-      for (int iPtch = 0; iPtch < 6; iPtch++) {
+      for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
         for (int idPhi = 0; idPhi < GetNdPhiBins (iPtch, iCent); idPhi++) {
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]));
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi]));
