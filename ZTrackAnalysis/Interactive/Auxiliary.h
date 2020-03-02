@@ -138,7 +138,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->SetLineColor (colors[2]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -173,7 +173,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -189,7 +189,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->SetLineColor (colors[3]);
 
     g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    //g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -243,7 +243,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -272,9 +272,9 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
 
     g->Draw ("AP");
 
-    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
     g->Fit (fit1, "RQN0");
@@ -284,9 +284,9 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     fit1->SetLineWidth (1);
     fit1->Draw ("same");
 
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
 
@@ -320,7 +320,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->SetLineColor (colors[3]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -328,7 +328,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     g->Draw ("P");
 
     //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
     g->Fit (fit2, "RQN0");
@@ -340,8 +340,8 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtTrkBins]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtchBins]);
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
 
@@ -350,7 +350,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     inv_fit2->SetLineWidth (1);
     inv_fit2->Draw ("same");
 
-    TLine* l = new TLine (allPtTrkBins[0], 1, allPtTrkBins[maxNPtTrkBins], 1);
+    TLine* l = new TLine (allPtchBins[0], 1, allPtchBins[maxNPtchBins], 1);
     l->SetLineColor (kBlack);
     l->SetLineStyle (2);
     l->Draw ("same");
@@ -447,7 +447,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->SetLineColor (colors[2]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -482,7 +482,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -498,7 +498,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->SetLineColor (colors[3]);
 
     g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    //g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -608,7 +608,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -637,9 +637,9 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
 
     g->Draw ("AP");
 
-    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
     g->Fit (fit1, "RQN0");
@@ -649,9 +649,9 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     fit1->SetLineWidth (1);
     fit1->Draw ("same");
 
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
 
@@ -720,7 +720,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->SetLineColor (colors[3]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -728,7 +728,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->Draw ("P");
 
     //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
     g->Fit (fit2, "RQN0");
@@ -740,8 +740,8 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtTrkBins]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtchBins]);
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
 
@@ -750,7 +750,7 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     inv_fit2->SetLineWidth (1);
     inv_fit2->Draw ("same");
 
-    TLine* l = new TLine (allPtTrkBins[0], 1, allPtTrkBins[maxNPtTrkBins], 1);
+    TLine* l = new TLine (allPtchBins[0], 1, allPtchBins[maxNPtchBins], 1);
     l->SetLineColor (kBlack);
     l->SetLineStyle (2);
     l->Draw ("same");
