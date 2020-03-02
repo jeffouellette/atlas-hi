@@ -60,6 +60,8 @@ class PhysicsAnalysis {
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
 
   bool isMC           = false;
+  bool isBkg          = false; // whether analysis represents a background (UE) track yield.
+  bool doPPMBMixing   = false; // whether analysis uses Minimum Bias mixing in pp collisions
   bool useCentWgts    = false; // whether to reweight this analysis to the data centrality distribution (important for getting correct tracking efficiencies)
   bool useQ2Wgts      = false; // whether to reweight this analysis to the data |q2| distribution
   bool usePsi2Wgts    = false; // whether to reweight this analysis to the data psi2 distribution
@@ -71,7 +73,6 @@ class PhysicsAnalysis {
   bool doTrackEffVar  = false; // whether to use pions-only tracking efficiency variation
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
-  bool doPPTransMinMixing = false; // by default analyses are not performing trans-min mixing. Only really applies to pp bkg.
 
   // Analysis checks
   TH1D*   h_fcal_et               = nullptr;
@@ -1066,9 +1067,9 @@ void PhysicsAnalysis :: ScaleHists () {
             for (int iX = 1; iX <= h->GetNbinsX (); iX++)
               h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-            h2->Scale (1. / pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+            h2->Scale (1. / pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
           }
-          h->Scale (1. / (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
+          h->Scale (1. / (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
 
           h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
           h->Scale (1/counts);
@@ -1083,9 +1084,9 @@ void PhysicsAnalysis :: ScaleHists () {
             for (int iX = 1; iX <= h->GetNbinsX (); iX++)
               h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-            h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+            h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
           }
-          h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
+          h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
         } // end loop over iPhi
 
 
@@ -1104,9 +1105,9 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-          h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
         }
-        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
 
         h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
         h->Scale (1/counts);
@@ -1121,9 +1122,9 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
-          h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
         }
-        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
         
         
         for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
@@ -3345,6 +3346,11 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     return;
   }
 
+  if (a == nullptr) {
+    cout << "No background provided! Will not do subtraction." << endl;
+    return;
+  }
+
   //cout << "Subtracting bkg. " << a->Name () << " from " << Name () << endl;
 
   //**** Create empty subtracted histograms for combined channel yield measurement ****//
@@ -3385,91 +3391,62 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
-        //******** Do subtraction of integrated dPhi plot ********//
+        //******** Do subtraction of integrated dPhi plots ********//
         TH1D* h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] = h;
-        TH1D* sub = nullptr;
-        if (a != nullptr) {
-          sub = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
-          AddNoErrors (h, sub, -1);
-        }
+        TH1D* sub = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
+        if (!isBkg) AddNoErrors (h, sub, -1);
+        else        h->Reset ();
 
         h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
-        if (a != nullptr && sub != nullptr) {
-          AddNoErrors (h, sub, -1);
-          h->Divide (sub);
-          //MultiplyNoErrors (h, sub, -1);
-        }
+        if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
+        else        h->Reset ();
 
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent] = h;
-        if (a != nullptr) {
-          sub = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-          AddNoErrors (h, sub, -1);
-        }
+        sub = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+        if (!isBkg) AddNoErrors (h, sub, -1);
 
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
-        if (a != nullptr && sub != nullptr) {
-          AddNoErrors (h, sub, -1);
-          h->Divide (sub);
-          //MultiplyNoErrors (h, sub, -1);
-        }
+        if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
+        else        h->Reset ();
 
 
+        //******** Do subtraction of binned dPhi plots ********//
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-
-          //******** Do subtraction of pT ********//
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
-          if (a != nullptr) {
-            sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-            AddNoErrors (h, sub, -1);
-          }
+          sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+          if (!isBkg) AddNoErrors (h, sub, -1);
+          else        h->Reset ();
 
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
-          if (a != nullptr && sub != nullptr) {
-            AddNoErrors (h, sub, -1);
-            h->Divide (sub);
-            //MultiplyNoErrors (h, sub, -1);
-          }
+          if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
+          else        h->Reset ();
 
-
-          //******** Do subtraction of z_h ********//
-          h = new TH1D (Form ("h_trk_xhz_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
+          h = (TH1D*) h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
-          h->Sumw2 ();
-          h->Add (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
-          if (a != nullptr) {
-            sub = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
-            AddNoErrors (h, sub, -1);
-          }
+          sub = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+          if (!isBkg) AddNoErrors (h, sub, -1);
+          else        h->Reset ();
 
-          h = new TH1D (Form ("h_trk_xhz_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
+          h = (TH1D*) h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
-          h->Sumw2 ();
-          h->Add (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
-          if (a != nullptr && sub != nullptr) {
-            AddNoErrors (h, sub, -1);
-            h->Divide (sub);
-            //MultiplyNoErrors (h, sub, -1);
-          }
+          if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
+          else        h->Reset ();
         } // end loop over iPhi
 
 
+        //******** Do background subtraction of phi distributions ********//
         for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-          //******** Do background subtraction of phi distributions ********//
-          TH1D* h = (TH1D*) h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->Clone (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
+          h = (TH1D*) h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->Clone (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
           h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent] = h;
-          if (a != nullptr) {
-            TH1D* sub = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
-            //while (sub->GetNbinsX () > h->GetNbinsX ())
-            //  sub->Rebin (2);
-            AddNoErrors (h, sub, -1);
-          }
-
+          sub = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
+          if (!isBkg) AddNoErrors (h, sub, -1);
+          else        h->Reset ();
         } // end loop over iPtch
 
       } // end loop over iPtZ

@@ -33,20 +33,22 @@ int main (int argc, char** argv) {
     histDir = "MinbiasAnalysis/";
   }
 
-  const bool isPbPb       = (string (argv[6]) == "true");
-  const bool use2015conds = (string (argv[7]) == "true");
-  const bool doHITightVar = (string (argv[8]) == "true");
+  const bool isPbPb           = (string (argv[6]) == "true");
+  const bool use2015conds     = (string (argv[7]) == "true");
+  const bool doHITightVar     = (string (argv[8]) == "true");
 
-  const bool doMixVarA    = (string (argv[9]) == "doMixVarA");
-  const bool doMixVarB    = (string (argv[9]) == "doMixVarB");
-  const bool doMixVarC    = (string (argv[9]) == "doMixVarC");
-  const bool doMixVarD    = (string (argv[9]) == "doMixVarD");
-  const bool doMixVarE    = (string (argv[9]) == "doMixVarE");
-  const bool doMixVarF    = (string (argv[9]) == "doMixVarF");
-  const bool doMixVarG    = (string (argv[9]) == "doMixVarG");
-  const bool doMixVarH    = (string (argv[9]) == "doMixVarH");
-  const bool doPPMixVar   = (string (argv[9]) == "doPPMixVar");
-  const bool doPbPbMixVar  = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
+  const bool doMixVarA        = (string (argv[9]) == "doMixVarA");
+  const bool doMixVarB        = (string (argv[9]) == "doMixVarB");
+  const bool doMixVarC        = (string (argv[9]) == "doMixVarC");
+  const bool doMixVarD        = (string (argv[9]) == "doMixVarD");
+  const bool doMixVarE        = (string (argv[9]) == "doMixVarE");
+  const bool doMixVarF        = (string (argv[9]) == "doMixVarF");
+  const bool doMixVarG        = (string (argv[9]) == "doMixVarG");
+  const bool doMixVarH        = (string (argv[9]) == "doMixVarH");
+  const bool doPPMBMixVar     = (string (argv[9]) == "doPPMBVar");
+  const bool doPPTransMaxVar  = (string (argv[9]) == "doPPTransMaxVar");
+  const bool doPPMixVar       = (doPPMBMixVar || doPPTransMaxVar);
+  const bool doPbPbMixVar     = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
 
 
   if (!doHITightVar && !doPbPbMixVar && !doPPMixVar) {
@@ -89,10 +91,14 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/MixingVariationH/" + outFileName;
+  } else if (doPPMBMixVar) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/PPMinBiasVariation/" + outFileName;
   } else if (doPPMixVar) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
-    outFileName = "Variations/PPMixingVariation/" + outFileName;
+    outFileName = "Variations/PPTransMaxVariation/" + outFileName;
   }
 
 
@@ -169,9 +175,9 @@ int main (int argc, char** argv) {
 
     inFileName = inDir + inFileName;
 
-    if (!doPPMixVar && !isPbPb && algo == "minbias")
+    if (!doPPMBMixVar && !isPbPb && algo == "minbias")
       mbInFileName = "DataAnalysis/" + mbInFileName;
-    else if (!doPPMixVar && !isPbPb && algo == "mcminbias")
+    else if (!doPPMBMixVar && !isPbPb && algo == "mcminbias")
       mbInFileName = inFileName;
     else
       mbInFileName = "MinbiasAnalysis/" + mbInFileName;
@@ -188,7 +194,8 @@ int main (int argc, char** argv) {
     else if (doMixVarF)       bkg = new MinbiasAnalysis ("bkg_mixVarF");
     else if (doMixVarG)       bkg = new MinbiasAnalysis ("bkg_mixVarG");
     else if (doMixVarH)       bkg = new MinbiasAnalysis ("bkg_mixVarH");
-    else if (doPPMixVar)      bkg = new MinbiasAnalysis ("bkg_ppMixVar");
+    else if (doPPMBMixVar)    bkg = new MinbiasAnalysis ("bkg_ppMBMixVar");
+    else if (doPPTransMaxVar) bkg = new MinbiasAnalysis ("bkg_ppTransMaxVar");
     else                      bkg = new MinbiasAnalysis ("bkg");
 
     if ((!isPbPb && !doPPMixVar))
@@ -233,8 +240,12 @@ int main (int argc, char** argv) {
       bkg->nPsi2MixBins = 16;
       bkg->doPsi3Mixing = true;
       bkg->nPsi3MixBins = 3;
-    } else if (doPPMixVar) {
+    } else if (doPPMBMixVar) {
       bkg->doPPTransMinMixing = false;
+      bkg->doPPMBMixing = true;
+    } else if (doPPTransMaxVar) {
+      bkg->doPPTransMinMixing = false;
+      bkg->doPPTransMaxMixing = true;
     }
 
     bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code

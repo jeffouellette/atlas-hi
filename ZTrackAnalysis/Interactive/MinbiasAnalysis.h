@@ -24,6 +24,8 @@ class MinbiasAnalysis : public PhysicsAnalysis {
   bool doQ2Mixing = false;
   bool doPsi2Mixing = true;
   bool doPsi3Mixing = false;
+  bool doPPTransMinMixing = true; // by default analyses are not performing trans-min mixing. Only really applies to pp bkg.
+  bool doPPTransMaxMixing = false; // variation for analyses to use trans-max mixing. Only really applies to pp bkg.
 
   int nQ2MixBins = 1;
   double* q2MixBins = nullptr;
@@ -74,8 +76,8 @@ class MinbiasAnalysis : public PhysicsAnalysis {
     plotFill = true;
     plotSignal = false;
     useAltMarker = false;
+    isBkg = true;
     hasBkg = false;
-    doPPTransMinMixing = true;
     backgroundSubtracted = true;
     histsUnfolded = true;
     iaaCalculated = true;
@@ -497,14 +499,6 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
 
       if (iPtZ < 2) continue; // skip unneeded events
 
-      //{
-      //  CorrectQ2Vector (z_q2x_a, z_q2y_a, z_q2x_c, z_q2y_c);
-      //  const float z_q2x = z_q2x_a + z_q2x_c;
-      //  const float z_q2y = z_q2y_a + z_q2y_c;
-      //  z_q2 = sqrt (z_q2x*z_q2x + z_q2y*z_q2y) / fcal_et;
-      //  z_psi2 = 0.5 * atan2 (z_q2y, z_q2x);
-      //}
-
 
       // Find the next unused minimum bias event
       {
@@ -526,26 +520,13 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
-          //{
-          //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
-          //  const float q2x = q2x_a + q2x_c;
-          //  const float q2y = q2y_a + q2y_c;
-          //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
-          //  psi2 = 0.5 * atan2 (q2y, q2x);
-          //}
           goodMixEvent = (fabs (vz) < 150 && event_weight != 0); // always require these conditions
-
-          //if (!doSameFileMixing || mixingFraction == 1)
-          //  goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
-
-          if (doSameFileMixing)
-            goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
-
-          goodMixEvent = goodMixEvent && (!doCentMixing || iFCalEt == GetSuperFineCentBin (fcal_et)); // do centrality matching
-          goodMixEvent = goodMixEvent && (!doQ2Mixing   || iQ2 == GetQ2MixBin (q2)); // do q2 matching
-          goodMixEvent = goodMixEvent && (!doPsi2Mixing || DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)); // do psi2 matching
-          goodMixEvent = goodMixEvent && (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins)); // do psi3 matching
-
+          //goodMixEvent &= (!doSameFileMixing || mixingFraction != 1 || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+          goodMixEvent &= (!doSameFileMixing || iMBEvt != iZEvt); // don't mix with the exact same event
+          goodMixEvent &= (!doCentMixing || iFCalEt == GetSuperFineCentBin (fcal_et)); // do centrality matching
+          goodMixEvent &= (!doQ2Mixing   || iQ2 == GetQ2MixBin (q2)); // do q2 matching
+          goodMixEvent &= (!doPsi2Mixing || DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)); // do psi2 matching
+          goodMixEvent &= (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins)); // do psi3 matching
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
@@ -747,7 +728,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
   // Do this if TTree is pp
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (!isPbPb) {
-    assert (doSameFileMixing == doPPTransMinMixing);
+    assert (doSameFileMixing == !doPPMBMixing);
 
     mbTree->LoadBaskets (3000000000);
     mbTree->SetBranchAddress ("run_number",   &run_number);
@@ -775,7 +756,7 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       zTree->SetBranchAddress ("trk_eta",       &z_trk_eta);
       zTree->SetBranchAddress ("trk_phi",       &z_trk_phi);
     }
-    if (doPPTransMinMixing) {
+    if (doPPTransMinMixing || doPPTransMaxMixing) {
       zTree->SetBranchAddress ("phi_transmin",  &phi_transmin);
       zTree->SetBranchAddress ("phi_transmax",  &phi_transmax);
     }
@@ -842,9 +823,6 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
       if (mixingFraction*nZEvts > 100 && iZEvt % (mixingFraction*nZEvts / 100) == 0)
         cout << iZEvt / (mixingFraction*nZEvts / 100) << "\% done...\r" << flush;
 
-      if (doPPTransMinMixing && iZEvt >= nZEvts) // temporary max mixing fraction of 10 in central-most bin
-        continue;
-
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
       zEventsUsed[iZEvt % nZEvts]++;
 
@@ -907,15 +885,10 @@ void MinbiasAnalysis :: Execute (const bool isPbPb, const char* inFileName, cons
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
           goodMixEvent = (fabs (vz) < 150 && event_weight != 0); // always require these conditions
-
-          if (!doSameFileMixing || mixingFraction == 1)
-            goodMixEvent = (goodMixEvent && !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
-
-          if (doSameFileMixing)
-            goodMixEvent = (goodMixEvent && iMBEvt != iZEvt); // don't mix with the exact same event
-
-          goodMixEvent = (goodMixEvent && (!doPPTransMinMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmin, z_phi) >= 7.*pi/8.)));
-          //goodMixEvent = (goodMixEvent && (!doPPTransMinMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmax, z_phi) >= 7.*pi/8.))); // alternatively mix with trans-max region
+          goodMixEvent &= (doSameFileMixing || mixingFraction != 1 || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+          goodMixEvent &= (!doSameFileMixing || iMBEvt != iZEvt); // don't mix with the exact same event
+          goodMixEvent &= (!doPPTransMinMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmin, z_phi) >= 7.*pi/8.));
+          goodMixEvent &= (!doPPTransMaxMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmax, z_phi) >= 7.*pi/8.)); // alternatively mix with trans-max region
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
