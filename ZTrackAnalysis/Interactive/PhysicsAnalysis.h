@@ -1056,32 +1056,36 @@ void PhysicsAnalysis :: ScaleHists () {
           TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
           h->Scale (1/counts);
           TH2D* h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
-          assert (h2->GetNbinsX () == h->GetNbinsX ());
-          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+          if (h2) {
+            assert (h2->GetNbinsX () == h->GetNbinsX ());
+            for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+              for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+                h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+            h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
 
-          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+            for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+              h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
+            h2->Scale (1. / pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+          }
           h->Scale (1. / (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
-          h2->Scale (1. / pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
 
           h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
           h->Scale (1/counts);
           h2 = h2_trk_xhz_dphi_cov[iSpc][iPtZ][iPhi][iCent];
-          assert (h2->GetNbinsX () == h->GetNbinsX ());
-          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+          if (h2) {
+            assert (h2->GetNbinsX () == h->GetNbinsX ());
+            for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+              for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+                h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+            h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
 
-          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+            for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+              h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
+            h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+          }
           h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
-          h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
         } // end loop over iPhi
 
 
@@ -1090,38 +1094,7 @@ void PhysicsAnalysis :: ScaleHists () {
         TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
         h->Scale (1/counts);
         TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
-        assert (h2->GetNbinsX () == h->GetNbinsX ());
-        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
-
-        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
-        h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
-
-        h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-        h->Scale (1/counts);
-        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
-        assert (h2->GetNbinsX () == h->GetNbinsX ());
-        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
-          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
-
-        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
-        h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
-        
-        
-        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-          TH1D* h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
-          h->Scale (1/counts);
-          TH2D* h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
+        if (h2) {
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
@@ -1131,8 +1104,45 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
 
+          h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+        }
+        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+
+        h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+        h->Scale (1/counts);
+        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
+        if (h2) {
+          assert (h2->GetNbinsX () == h->GetNbinsX ());
+          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+
+          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+
+          h2->Scale (1/ pow (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+        }
+        h->Scale (1/ (doPPTransMinMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+        
+        
+        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+          h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
+          h->Scale (1/counts);
+          h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
+          if (h2) {
+            assert (h2->GetNbinsX () == h->GetNbinsX ());
+            for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+              for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+                h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+            h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+
+            for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+              h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+
+            h2->Scale (1, "width");
+          }
           h->Scale (1, "width");
-          h2->Scale (1, "width");
         } // end loop over iPtch
       } // end loop over iPtZ
     } // end loop over iCent
