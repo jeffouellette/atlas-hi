@@ -188,26 +188,26 @@ double** pTchBins = init_pTchBins (); // iPtZ, iPtch
 
 // code that instantiates bins in track pT / Z pT.
 // essentially just a set-of-a-set of bin edges where the lowest bin is min (track pT) / min (Z pT)
-const int maxNXHZBins = 6;
-double allXHZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
-int* nXHZBins = Get1DArray <int> (nPtZBins);
+const int maxNXhZBins = 6;
+double allXhZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
+int* nXhZBins = Get1DArray <int> (nPtZBins);
 
 double** init_xhZBins () {
   double** _xhZBins = Get1DArray <double*> (nPtZBins);
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    nXHZBins[iPtZ] = maxNXHZBins;
-    while (nXHZBins[iPtZ] > 0 && zPtBins[iPtZ] > 0 && allXHZBins[maxNXHZBins-nXHZBins[iPtZ]] < 1./zPtBins[iPtZ])
-      nXHZBins[iPtZ]--;
+    nXhZBins[iPtZ] = maxNXhZBins;
+    while (nXhZBins[iPtZ] > 0 && zPtBins[iPtZ] > 0 && allXhZBins[maxNXhZBins-nXhZBins[iPtZ]] < 1./zPtBins[iPtZ])
+      nXhZBins[iPtZ]--;
 
-    if (nXHZBins[iPtZ] == 0)
-      nXHZBins[iPtZ] = 1;
+    if (nXhZBins[iPtZ] == 0)
+      nXhZBins[iPtZ] = 1;
   }
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-    _xhZBins[iPtZ] = Get1DArray<double> (nXHZBins[iPtZ]+1);
-    for (int iXHZ = 0; iXHZ <= nXHZBins[iPtZ]; iXHZ++) {
-      _xhZBins[iPtZ][iXHZ] = allXHZBins[iXHZ+(maxNXHZBins-nXHZBins[iPtZ])];
+    _xhZBins[iPtZ] = Get1DArray<double> (nXhZBins[iPtZ]+1);
+    for (int iXhZ = 0; iXhZ <= nXhZBins[iPtZ]; iXhZ++) {
+      _xhZBins[iPtZ][iXhZ] = allXhZBins[iXhZ+(maxNXhZBins-nXhZBins[iPtZ])];
     }
   }
 
@@ -218,7 +218,7 @@ double** xhZBins = init_xhZBins ();
 // Returns which bin corresponds to this value of zH for this Z boson pT bin number
 short GetiZH (const float zH, const int iPtZ) {
   short iZH = 0;
-  while (iZH < nXHZBins[iPtZ]) {
+  while (iZH < nXhZBins[iPtZ]) {
     if (xhZBins[iPtZ][iZH+1] < zH)
       iZH++;
     else
@@ -236,14 +236,14 @@ void PrintPtBins (const short iPtZ) {
 }
 
 // Prints track pT / Z pT bins for this Z pT bin
-void PrintXHZBins (const short iPtZ) {
-  for (int i = 0; i <= nXHZBins[iPtZ]; i++) {
+void PrintXhZBins (const short iPtZ) {
+  for (int i = 0; i <= nXhZBins[iPtZ]; i++) {
     cout << xhZBins[iPtZ][i] << endl;
   }
 }
 
 // Prints track pT / Z pT bin edges in a LaTeX friendly format (intended to be placed in a table)
-void LatexXHZBins () {
+void LatexXhZBins () {
   cout << "\\hline" << endl;
   for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
     cout << "\\multicolumn{2}{";
@@ -262,14 +262,14 @@ void LatexXHZBins () {
       cout << "& ";
   }
   cout << "\\\\ \\hline" << endl;
-  for (int i = 0; i <= maxNXHZBins; i++) {
+  for (int i = 0; i <= maxNXhZBins; i++) {
     for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      if (i < nXHZBins[iPtZ])
+      if (i < nXhZBins[iPtZ])
         cout << xhZBins[iPtZ][i] << " & " << xhZBins[iPtZ][i] * zPtBins[iPtZ] << " ";
       if (iPtZ != nPtZBins-1)
         cout << "& ";
     }
-    //if (i != nXHZBins[iPtZ])
+    //if (i != nXhZBins[iPtZ])
     cout << "\\\\ \\hline";
     cout << endl;
   }

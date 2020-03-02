@@ -141,10 +141,9 @@ void Run () {
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
   }
 
-  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
-  /*
   if (doSys) {
     //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
     //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
@@ -156,7 +155,6 @@ void Run () {
     data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
     data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
   }
-  */
 
 
   //mc->LoadHists       ("MCAnalysis/Nominal/savedHists.root");
@@ -167,14 +165,14 @@ void Run () {
   ////SaferDelete (mc_bkg);
 
 
-  data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
+  //data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
-  bkg18->LoadHists ("MinbiasAnalysis/Nominal/data18hi_hists.root");
+  //bkg18->LoadHists ("MinbiasAnalysis/Nominal/data18hi_hists.root");
   //bkg15->LoadHists ("MinbiasAnalysis/Nominal/data15hi_hists.root");
   //truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
 
-  data18->SubtractBackground (bkg18);
-  data18->CalculateIAA ();
+  //data18->SubtractBackground (bkg18);
+  //data18->CalculateIAA ();
 
   //data15->SubtractBackground (bkg15);
   //data15->CalculateIAA ();
@@ -188,6 +186,7 @@ void Run () {
   //truth->SubtractBackground ();
   //truth->CalculateIAA ();
 
+  /*
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
 
@@ -214,7 +213,6 @@ void Run () {
     SaferDelete (bkg_statDownVar);
 
 
-    /*
     cout << "Calculating mixed event systematic errors." << endl;
     bkgMixSys = new Systematic (data18, "bkgMixSys", "Mixed event");
     data_mixVarA    = new PhysicsAnalysis ("data_mixVarA");
@@ -313,7 +311,6 @@ void Run () {
     SaferDelete (bkg_mixVarF);
     SaferDelete (bkg_mixVarG);
     SaferDelete (bkg_mixVarH);
-    */
 
 
     cout << "Calculating pp mixing systematic errors" << endl;
@@ -329,7 +326,6 @@ void Run () {
     ppMixSys->AddVarDesc (data_ppTransMinVar, "Z-Z #it{pp} mixing (trans-min)");
     SaferDelete (bkg_ppTransMinVar);
 
-    /*
     data_ppTransMaxVar = new PhysicsAnalysis ("data_ppTransMaxVar");
     data_ppTransMaxVar->CopyAnalysis (data18, false);
     bkg_ppTransMaxVar = new MinbiasAnalysis ("bkg_ppMixVar");
@@ -340,7 +336,6 @@ void Run () {
     ppMixSys->AddVariation (data_ppTransMaxVar);
     ppMixSys->AddVarDesc (data_ppTransMaxVar, "Z-Z #it{pp} mixing (trans-max)");
     SaferDelete (bkg_ppTransMaxVar);
-    */
 
     ppMixSys->AddVariation (data18);
     ppMixSys->AddVarDesc (data18, "Z-MinBias #it{pp} mixing");
@@ -349,7 +344,6 @@ void Run () {
     //SaferDelete (data_ppTransMaxVar);
 
 
-    /*
     cout << "Calculating track ID relative systematic errors." << endl;
     trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
     data_trackHItight->LoadHists ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
@@ -496,7 +490,6 @@ void Run () {
     combSys->AddSystematic (bkgStatSys);
     //combSys->AddSystematic (bkgMixSys);
     combSys->AddSystematics ();
-    */
 
     //trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
     //trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
@@ -509,6 +502,7 @@ void Run () {
     //combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
 
   }
+  */
 
 
   SetupDirectories ("", "ZTrackAnalysis/");
@@ -866,7 +860,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[2]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -901,7 +895,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -917,7 +911,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[3]);
 
     g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    //g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -1027,7 +1021,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[1]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -1056,9 +1050,9 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
 
     g->Draw ("AP");
 
-    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
     g->Fit (fit1, "RQN0");
@@ -1068,9 +1062,9 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     fit1->SetLineWidth (1);
     fit1->Draw ("same");
 
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
 
@@ -1139,7 +1133,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetLineColor (colors[3]);
 
     //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
-    g->GetXaxis ()->SetLimits (allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
@@ -1147,7 +1141,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->Draw ("P");
 
     //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
     g->Fit (fit2, "RQN0");
@@ -1159,8 +1153,8 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtTrkBins]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtchBins]);
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
 
@@ -1169,7 +1163,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     inv_fit2->SetLineWidth (1);
     inv_fit2->Draw ("same");
 
-    TLine* l = new TLine (allPtTrkBins[0], 1, allPtTrkBins[maxNPtTrkBins], 1);
+    TLine* l = new TLine (allPtchBins[0], 1, allPtchBins[maxNPtchBins], 1);
     l->SetLineColor (kBlack);
     l->SetLineStyle (2);
     l->Draw ("same");
