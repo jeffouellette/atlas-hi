@@ -82,6 +82,7 @@ class MinbiasAnalysis : public PhysicsAnalysis {
     histsUnfolded = true;
     iaaCalculated = true;
     //icpCalculated = true;
+    doPPMBMixing = true;
   }
 
   void LoadEventWeights () override;

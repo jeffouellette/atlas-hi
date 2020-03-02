@@ -1222,7 +1222,7 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         myText (0.71, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.04/0.6);
       else
         myText (0.71, 0.85, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      const char* zstr = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      const char* zstr = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.71, 0.76, kBlack, zstr, 0.04/0.6);
 
       myMarkerText (0.753, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
@@ -1373,7 +1373,7 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
   myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
   myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
   for (int iSpc = 0; iSpc < 2; iSpc++) {
-    const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+    const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
     myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
     //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
     myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1.);
@@ -1438,7 +1438,7 @@ void FullAnalysis :: PlotLeptonTrackPtSpectra () {
       myText (0.66, 0.82-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
     }
 
-    myText (0.66, 0.88, kBlack, iSpc == 0 ? "Z#rightarrowe^{+}e^{-}" : (iSpc == 1 ?"Z#rightarrow#mu^{+}#mu^{-}" : "Z#rightarrowl^{+}l^{-}"), 0.04);
+    myText (0.66, 0.88, kBlack, iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ?"#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}"), 0.04);
     c->SaveAs (Form ("%s/LeptonTrackPtSpectra/%sTrackPtSpectra.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : (iSpc == 1 ? "Muon" : "Comb")));
   }
 
@@ -1716,7 +1716,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       uPad->cd ();
 
       myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-      myText (0.26, 0.85, kBlack, Form ("Z #rightarrow %s Events", iSpc == 0 ? "e^{+}e^{-}" : (iSpc == 1 ? "#mu^{+}#mu^{-}" : "l^{+}l^{-}")), 0.04/0.6);
+      myText (0.26, 0.85, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), 0.04/0.6);
       myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
       //myOnlyBoxText (0.76, 0.55, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001, 1);
       myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
@@ -1787,7 +1787,7 @@ void FullAnalysis :: PlotZYPhiMap () {
 
       myText (0.18, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
 
-      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.62, 0.90, kBlack, spcLabel, 0.04);
       myText (0.62, 0.84, kBlack, "#it{p}_{T}^{Z} > 15 GeV", 0.04);
       if (iCent == 0) {
@@ -1894,7 +1894,7 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
 
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
-      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.66, 0.88, kBlack, spcLabel, 0.04/0.6);
       myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
       //if (iPtZ == nPtZBins-1)
@@ -2051,7 +2051,7 @@ void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
 
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
-      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.66, 0.88, kBlack, spcLabel, 0.04/0.6);
       myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
       //if (iPtZ == nPtZBins-1)
@@ -2278,7 +2278,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
     myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
     myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
     for (int iSpc = 0; iSpc < 2; iSpc++) {
-      const char* spcLabel = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
       //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
       myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1);
@@ -2458,7 +2458,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
 
 void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, const short iReg) {
   myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-  const char* spc = iSpc == 0 ? "Z #rightarrow e^{+}e^{-}" : (iSpc == 1 ? "Z #rightarrow #mu^{+}#mu^{-}" : "Z #rightarrow l^{+}l^{-}");
+  const char* spc = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
   myText (0.71, 0.85, kBlack, spc, 0.04/0.6);
   if (iCent == 0) {
     myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
@@ -2556,7 +2556,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
   myText (0.22, 0.81, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
   if (pSpc != 2)
-    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow#it{%s}", pSpc == 0 ? "ee" : "#mu#mu"), 0.04);
+    myText (0.25, 0.72, kBlack, Form ("#it{Z} #rightarrow %s", pSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : "#it{#mu}^{+}#it{#mu}^{-}"), 0.04);
 
   c->SaveAs (Form ("%s/q2_Mixing/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
@@ -2657,7 +2657,7 @@ void FullAnalysis :: PlotAllYields_Scatter_dPtZ (const bool useTrkPt, const shor
       if (iCent == 0) {
         myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
         myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.06);
-        myText (0.22, 0.74, kBlack, Form ("Z #rightarrow #it{%s}", iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll")), 0.06);
+        myText (0.22, 0.74, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), 0.06);
       }
       else
         myText (0.55, 0.87, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);

@@ -1335,6 +1335,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
           highs = nullptr, lows = nullptr;
     
           g_highs->GetXaxis ()->SetMoreLogLabels ();
+          g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
           g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
     
           g_highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1462,6 +1463,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
         highs = nullptr, lows = nullptr;
   
         g_highs->GetXaxis ()->SetMoreLogLabels ();
+        useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
   
         g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1590,6 +1592,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
           highs = nullptr, lows = nullptr;
   
           g_highs->GetXaxis ()->SetMoreLogLabels ();
+          g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
           g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
   
           g_highs->GetXaxis ()->SetTitle ("#it{p}_{T}^{ch} [GeV]");
@@ -1717,6 +1720,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
         highs = nullptr, lows = nullptr;
   
         g_highs->GetXaxis ()->SetMoreLogLabels ();
+        useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
   
         g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
@@ -1966,6 +1970,7 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
         highs = nullptr, lows = nullptr;
 
         g_highs->GetXaxis ()->SetMoreLogLabels ();
+        useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
 
         g_highs->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
