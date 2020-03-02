@@ -393,7 +393,7 @@ void PlotLeptonEffs () {
 
   line->DrawLine (20, 1, 85, 1);
 
-  myText (0.22, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.22, 0.82, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.66, 0.885, kBlack, "HLT_mu14", 0.04);
 
@@ -427,7 +427,7 @@ void PlotLeptonEffs () {
   //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.893, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
-  c_1->SaveAs ("Plots/MuonTrigEffs/pp_PbPb18_pt_eta.pdf");
+  c_1->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/pp_PbPb18_pt_eta.pdf");
 
 
 
@@ -458,7 +458,7 @@ void PlotLeptonEffs () {
 
   line->DrawLine (20, 1, 85, 1);
 
-  myText (0.22, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.22, 0.82, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.22, 0.20, kBlack, "Medium muons", 0.04);
 
@@ -493,7 +493,7 @@ void PlotLeptonEffs () {
   //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.893, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
-  c_1->SaveAs ("Plots/MuonIDEffs/pp_PbPb18_pt_eta.pdf");
+  c_1->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/pp_PbPb18_pt_eta.pdf");
 
 
 
@@ -512,7 +512,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "#it{pp}, 5.02 TeV", 0.045);
   myText (0.23, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.23, 0.72, kBlack, "HLT_mu14", 0.045);
-  c_2->SaveAs ("Plots/MuonTrigEffs/pp_eta_phi.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/pp_eta_phi.pdf");
 
   TH1* h2_muonTrigEff_eta_phi_PbPb18 = t_muonTrigEff_eta_phi_PbPb18->GetCopyPassedHisto ();
   h2_muonTrigEff_eta_phi_PbPb18->Divide (t_muonTrigEff_eta_phi_PbPb18->GetTotalHistogram ());
@@ -526,7 +526,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
   myText (0.23, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.23, 0.72, kBlack, "HLT_mu14", 0.045);
-  c_2->SaveAs ("Plots/MuonTrigEffs/PbPb18_eta_phi.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/PbPb18_eta_phi.pdf");
 
   TH1* h2_muonIDEff_eta_phi_pp = t_muonIDEff_eta_phi_pp->GetCopyPassedHisto ();
   h2_muonIDEff_eta_phi_pp->Divide (t_muonIDEff_eta_phi_pp->GetTotalHistogram ());
@@ -540,7 +540,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "#it{pp}, 5.02 TeV", 0.045);
   myText (0.23, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.23, 0.72, kBlack, "Medium muons", 0.045);
-  c_2->SaveAs ("Plots/MuonIDEffs/pp_eta_phi.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/pp_eta_phi.pdf");
 
   TH1* h2_muonIDEff_eta_phi_PbPb18 = t_muonIDEff_eta_phi_PbPb18->GetCopyPassedHisto ();
   h2_muonIDEff_eta_phi_PbPb18->Divide (t_muonIDEff_eta_phi_PbPb18->GetTotalHistogram ());
@@ -554,7 +554,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
   myText (0.23, 0.78, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.045);
   myText (0.23, 0.72, kBlack, "Medium muons", 0.045);
-  c_2->SaveAs ("Plots/MuonIDEffs/PbPb18_eta_phi.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/PbPb18_eta_phi.pdf");
 
 
   TCanvas* c_3 = new TCanvas ("c_3", "", 800, 600);
@@ -590,7 +590,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "Medium muons", 0.04);
   myMarkerTextNoLine (0.65, 0.900, kBlack, kOpenCircle, "HLT_mu14", 1.25, 0.04);
-  c_3->SaveAs ("Plots/MuonTrigEffs/PbPb18_cent.pdf");
+  c_3->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/PbPb18_cent.pdf");
   SaferDelete (f_muonTrigEff_fcal_PbPb18);
 
 
@@ -716,7 +716,7 @@ void PlotLeptonEffs () {
 
   line->DrawLine (20, 1, 100, 1);
 
-  myText (0.22, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.22, 0.82, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   //myText (0.50, 0.885, kBlack, "HLT_e15_lhloose(_ion)_L1EM12", 0.04);
 
@@ -751,7 +751,7 @@ void PlotLeptonEffs () {
   myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.7 nb^{-1}", 1.5, 0.042);
 
-  c_1->SaveAs ("Plots/ElectronTrigEffs/pp_PbPb18_pt_eta.pdf");
+  c_1->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/pp_PbPb18_pt_eta.pdf");
 
 
   TGAE* g_electronIDEffPtpp = TEff2TGAE (t_electronIDEff_pt_pp);
@@ -781,7 +781,7 @@ void PlotLeptonEffs () {
 
   line->DrawLine (20, 1, 100, 1);
 
-  myText (0.22, 0.89, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
   myText (0.22, 0.82, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.22, 0.20, kBlack, "LHLoose(_HI) electrons", 0.04);
 
@@ -816,7 +816,7 @@ void PlotLeptonEffs () {
   myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.7 nb^{-1}", 1.5, 0.042);
 
-  c_1->SaveAs ("Plots/ElectronIDEffs/pp_PbPb18_pt_eta.pdf");
+  c_1->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/pp_PbPb18_pt_eta.pdf");
 
 
   FormatTH2Canvas (c_2, true);
@@ -834,7 +834,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "2017 #it{pp}, 5.02 TeV", 0.045);
   //myText (0.23, 0.78, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.045);
   myText (0.23, 0.78, kBlack, "HLT_e15_lhloose_L1EM12", 0.045);
-  c_2->SaveAs ("Plots/ElectronTrigEffs/pp_pt_eta.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/pp_pt_eta.pdf");
 
   TH1* h2_electronTrigEff_pt_eta_PbPb18 = t_electronTrigEff_pt_eta_PbPb18->GetCopyPassedHisto ();
   h2_electronTrigEff_pt_eta_PbPb18->Divide (t_electronTrigEff_pt_eta_PbPb18->GetTotalHistogram ());
@@ -849,7 +849,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "2018 Pb+Pb, 5.02 TeV", 0.045);
   //myText (0.23, 0.78, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.045);
   myText (0.23, 0.78, kBlack, "HLT_e15_lhloose_ion_L1EM12", 0.045);
-  c_2->SaveAs ("Plots/ElectronTrigEffs/PbPb18_pt_eta.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/PbPb18_pt_eta.pdf");
 
   TH1* h2_electronIDEff_pt_eta_pp = t_electronIDEff_pt_eta_pp->GetCopyPassedHisto ();
   h2_electronIDEff_pt_eta_pp->Divide (t_electronIDEff_pt_eta_pp->GetTotalHistogram ());
@@ -864,7 +864,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "2017 #it{pp}, 5.02 TeV", 0.045);
   //myText (0.23, 0.78, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.045);
   myText (0.23, 0.78, kBlack, "LHLoose electrons", 0.045);
-  c_2->SaveAs ("Plots/ElectronIDEffs/pp_pt_eta.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/pp_pt_eta.pdf");
 
   TH1* h2_electronIDEff_pt_eta_PbPb18 = t_electronIDEff_pt_eta_PbPb18->GetCopyPassedHisto ();
   h2_electronIDEff_pt_eta_PbPb18->Divide (t_electronIDEff_pt_eta_PbPb18->GetTotalHistogram ());
@@ -879,7 +879,7 @@ void PlotLeptonEffs () {
   myText (0.23, 0.84, kBlack, "2018 Pb+Pb, 5.02 TeV", 0.045);
   //myText (0.23, 0.78, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.045);
   myText (0.23, 0.78, kBlack, "LHLoose_HI electrons", 0.045);
-  c_2->SaveAs ("Plots/ElectronIDEffs/PbPb18_pt_eta.pdf");
+  c_2->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/PbPb18_pt_eta.pdf");
 
 
   FormatTH2Canvas (c_3, false);
@@ -916,7 +916,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "LHLoose_HI electrons", 0.04);
   myMarkerTextNoLine (0.55, 0.90, kBlack, kOpenCircle, "HLT_e15_lhloose_ion_L1EM12", 1.25, 0.04);
-  c_3->SaveAs ("Plots/ElectronTrigEffs/PbPb18_cent.pdf");
+  c_3->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/PbPb18_cent.pdf");
   SaferDelete (f_electronTrigEff_fcal_PbPb18);
 
 
@@ -965,7 +965,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_mu14", 0.04);
-  c_4->SaveAs ("Plots/ZmumuTrigEffs/pp_pt_y.pdf");
+  c_4->SaveAs ("../Plots/LeptonPerformance/ZmumuTrigEffs/pp_pt_y.pdf");
 
   TCanvas* c_5 = new TCanvas ("c_5", "", 1000, 800);
   FormatTH2Canvas (c_5, false);
@@ -982,7 +982,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_mu14", 0.04);
-  c_5->SaveAs ("Plots/ZmumuTrigEffs/PbPb18_pt_y.pdf");
+  c_5->SaveAs ("../Plots/LeptonPerformance/ZmumuTrigEffs/PbPb18_pt_y.pdf");
 
   TCanvas* c_6 = new TCanvas ("c_6", "", 1000, 800);
   FormatTH2Canvas (c_6, false);
@@ -999,7 +999,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_e15_lhloose_L1EM12", 0.04);
-  c_6->SaveAs ("Plots/ZeeTrigEffs/pp_pt_y.pdf");
+  c_6->SaveAs ("../Plots/LeptonPerformance/ZeeTrigEffs/pp_pt_y.pdf");
 
   TCanvas* c_7 = new TCanvas ("c_7", "", 1000, 800);
   FormatTH2Canvas (c_7, false);
@@ -1016,7 +1016,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_e15_lhloose_ion_L1EM12", 0.04);
-  c_7->SaveAs ("Plots/ZeeTrigEffs/PbPb18_pt_y.pdf");
+  c_7->SaveAs ("../Plots/LeptonPerformance/ZeeTrigEffs/PbPb18_pt_y.pdf");
 
 
 
@@ -1082,7 +1082,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.3, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "Medium muons", 0.04);
-  c_3->SaveAs ("Plots/MuonIDEffs/PbPb18_cent.pdf");
+  c_3->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/PbPb18_cent.pdf");
   SaferDelete (f_muonIDEff_fcal_PbPb18);
 
 
@@ -1121,7 +1121,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.3, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "LHLoose_HI electrons", 0.04);
-  c_3->SaveAs ("Plots/ElectronIDEffs/PbPb18_cent.pdf");
+  c_3->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/PbPb18_cent.pdf");
   //SaferDelete (f_electronIDEff_fcal_PbPb18);
 
 
@@ -1140,7 +1140,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "Medium muons", 0.04);
-  c_8->SaveAs ("Plots/ZmumuIDEffs/pp_pt_y.pdf");
+  c_8->SaveAs ("../Plots/LeptonPerformance/ZmumuIDEffs/pp_pt_y.pdf");
 
   TCanvas* c_9 = new TCanvas ("c_9", "", 1000, 800);
   FormatTH2Canvas (c_9, false);
@@ -1157,7 +1157,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "Medium muons", 0.04);
-  c_9->SaveAs ("Plots/ZmumuIDEffs/PbPb18_pt_y.pdf");
+  c_9->SaveAs ("../Plots/LeptonPerformance/ZmumuIDEffs/PbPb18_pt_y.pdf");
 
   TCanvas* c_10 = new TCanvas ("c_10", "", 1000, 800);
   FormatTH2Canvas (c_10, false);
@@ -1174,7 +1174,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "LHLoose electrons", 0.04);
-  c_10->SaveAs ("Plots/ZeeIDEffs/pp_pt_y.pdf");
+  c_10->SaveAs ("../Plots/LeptonPerformance/ZeeIDEffs/pp_pt_y.pdf");
 
   TCanvas* c_11 = new TCanvas ("c_11", "", 1000, 800);
   FormatTH2Canvas (c_11, false);
@@ -1191,7 +1191,7 @@ void PlotLeptonEffs () {
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "LHLoose_HI electrons", 0.04);
-  c_11->SaveAs ("Plots/ZeeIDEffs/PbPb18_pt_y.pdf");
+  c_11->SaveAs ("../Plots/LeptonPerformance/ZeeIDEffs/PbPb18_pt_y.pdf");
 
 }
 
