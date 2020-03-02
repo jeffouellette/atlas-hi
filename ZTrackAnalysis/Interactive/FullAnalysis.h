@@ -1315,13 +1315,13 @@ void FullAnalysis :: PlotLeptonTrackPtSpectra () {
 
       h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
       if (iSpc == 0) {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowee} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{ee}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
       else if (iSpc == 1) {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#mu#mu} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{#mu#mu}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
       else {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrowll} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{ll}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
       }
 
       h->SetLineColor (colors[iCent]);
@@ -1446,13 +1446,13 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       h->DrawCopy (iCent == 0 ? "e1" : "e1 same");
       //delete h;
 
-      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
-
       if (iCent != 0) {
         myText (0.22, 0.80-iCent*0.06, colors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
       }
-      else
+      else {
+        myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
         myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.04);
+      }
     }
 
     TLine* l1, *l2;
@@ -2251,7 +2251,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
           //h->GetYaxis ()->SetRangeUser (0, 1.3);
           h->GetYaxis ()->SetRangeUser (0, 0.12);
 
-          h->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
+          h->GetXaxis ()->SetTitle (Form ("m_{#it{%s}} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           //h->GetYaxis ()->SetTitle ("Arb. Units");
           h->GetYaxis ()->SetTitle ("Counts / Total");
           h->GetXaxis ()->SetTitleSize (0.04/0.6);
@@ -2284,7 +2284,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
           //g->GetYaxis ()->SetRangeUser (0, 1.3);
           g->GetYaxis ()->SetRangeUser (0, 0.12);
 
-          g->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
+          g->GetXaxis ()->SetTitle (Form ("m_{#it{%s}} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           //g->GetYaxis ()->SetTitle ("Arb. Units");
           g->GetYaxis ()->SetTitle ("Counts / Total");
           g->GetXaxis ()->SetTitleSize (0.04/0.6);
@@ -2324,7 +2324,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
           g->SetMarkerColor (kBlack);
           g->GetYaxis ()->SetRangeUser (0.3, 1.7);
 
-          g->GetXaxis ()->SetTitle (Form ("m_{%s} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
+          g->GetXaxis ()->SetTitle (Form ("m_{#it{%s}} [GeV]", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))));
           g->GetYaxis ()->SetTitle ("Data / MC");
           g->GetXaxis ()->SetTitleSize (0.04/0.4);
           g->GetYaxis ()->SetTitleSize (0.04/0.4);
@@ -2378,9 +2378,9 @@ void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, con
   myMarkerText (0.753, 0.76, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
 
   if (iReg == 0)
-    myText (0.22, 0.67, kBlack, Form ("#left|y^{%s}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+    myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
   else if (iReg == 1)
-    myText (0.22, 0.67, kBlack, Form ("#left|y^{%s}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+    myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
 }
 
 
@@ -2456,7 +2456,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
   myText (0.22, 0.81, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
   if (pSpc != 2)
-    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow%s", pSpc == 0 ? "ee" : "#mu#mu"), 0.04);
+    myText (0.25, 0.72, kBlack, Form ("Z#rightarrow#it{%s}", pSpc == 0 ? "ee" : "#mu#mu"), 0.04);
 
   c->SaveAs (Form ("%s/q2_Mixing/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
@@ -2557,7 +2557,7 @@ void FullAnalysis :: PlotAllYields_Scatter_dPtZ (const bool useTrkPt, const shor
       if (iCent == 0) {
         myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
         myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.06);
-        myText (0.22, 0.74, kBlack, Form ("Z #rightarrow %s", iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll")), 0.06);
+        myText (0.22, 0.74, kBlack, Form ("Z #rightarrow #it{%s}", iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll")), 0.06);
       }
       else
         myText (0.55, 0.87, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
