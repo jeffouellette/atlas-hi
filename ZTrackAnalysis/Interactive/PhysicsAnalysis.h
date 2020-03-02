@@ -1346,11 +1346,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       // fill phi correlation histograms and covariance matrices
       for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-        for (int idPhi = 0; idPhi < GetNdPhiBins (iPtch, iCent); idPhi++) {
-          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]));
-          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi]));
+        for (int idPhi1 = 0; idPhi1 < GetNdPhiBins (iPtch, iCent); idPhi1++) {
+          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]));
+          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi1+1, sqrt (pow (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinError (idPhi1+1), 2) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi1]));
           for (int idPhi2 = 0; idPhi2 < GetNdPhiBins (iPtch, iCent); idPhi2++)
-            h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, idPhi2+1, h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1, idPhi2+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]) * (trks_weights1_inPhi[iPtch][idPhi2]));
+            h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, idPhi2+1, h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1, idPhi2+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]) * (trks_weights1_inPhi[iPtch][idPhi2]));
         } // end loop over iPtch
       } // end loop over idPhi
 
@@ -1534,11 +1534,11 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
       // fill phi correlation histograms and covariance matrices
       for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-        for (int idPhi = 0; idPhi < GetNdPhiBins (iPtch, iCent); idPhi++) {
-          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]));
-          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi]));
+        for (int idPhi1 = 0; idPhi1 < GetNdPhiBins (iPtch, iCent); idPhi1++) {
+          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]));
+          h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi1+1, sqrt (pow (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinError (idPhi1+1), 2) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi1]));
           for (int idPhi2 = 0; idPhi2 < GetNdPhiBins (iPtch, iCent); idPhi2++)
-            h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi+1, idPhi2+1, h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi+1, idPhi2+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi]) * (trks_weights1_inPhi[iPtch][idPhi2]));
+            h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, idPhi2+1, h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1, idPhi2+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]) * (trks_weights1_inPhi[iPtch][idPhi2]));
         } // end loop over iPtch
       } // end loop over idPhi
 
