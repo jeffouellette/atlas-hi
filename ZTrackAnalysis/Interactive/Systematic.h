@@ -217,10 +217,10 @@ void Systematic :: CreateSysGraphs () {
         //  //AddGraphPair (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //} // end loop over iPhi
 
-        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
-          AddGraphPair (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
-          AddGraphPair (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-        } // end loop over iPtTrk
+        for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+          AddGraphPair (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
+          AddGraphPair (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
+        } // end loop over iPtch
 
         AddGraphPair (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
         AddGraphPair (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
@@ -268,8 +268,8 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //      const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
-//          h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+//        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+//          h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent] = (TH1D*) histFile->Get (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 //        //  h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = (TH1D*) histFile->Get (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
@@ -309,8 +309,8 @@ TGAE* Systematic :: GetTGAE (TH1D* h) {
 //    for (short iSpc = 0; iSpc < 3; iSpc++) {
 //
 //      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-//        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
-//          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+//        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+//          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
 //        }
 //        //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
 //        //  SafeWrite (h_trk_pt_dphi_raw[iSpc][iPtZ][iPhi][iCent]);
@@ -349,9 +349,9 @@ void Systematic :: LoadGraphs (const char* graphFileName) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        for (short iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
-          h = h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
-          g = (TGAE*) graphFile->Get (Form ("g_z_trk_phi_sub_%s_iPtZ%i_iPtTrk%i_iCent%i_%s", spc, iPtZ, iPtTrk, iCent, name.c_str ()));
+        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+          h = h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent];
+          g = (TGAE*) graphFile->Get (Form ("g_z_trk_phi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
           graphMap.insert (std::pair <TH1D*, TGAE*> (h, g));
         }
         //for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
@@ -505,16 +505,16 @@ void Systematic :: AddVariations () {
         //  } // end loop over cents
         //} // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+        for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
-            var = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
+            sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
+            var = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
+            sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
+            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over cents
-        } // end loop over iPtTrk
+        } // end loop over iPtch
 
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           sys = GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
@@ -793,35 +793,35 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  } // end loop over cents
       //} // end loop over phi
 
-      for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+      for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
-          sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+          sys = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
           temp = (TGAE*) sys->Clone ("temp");
           ClearTGAE (sys);
           n = 0;
           for (PhysicsAnalysis* a : variations) {
             if (!AddsUnsubVar (a->Name ()))
               continue;
-            var = a->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent];
+            var = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
             if (sys && var) AddToMuSigmaCalc (sys, var);
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
           SaferDelete (temp);
 
-          sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+          sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
           temp = (TGAE*) sys->Clone ("temp");
           ClearTGAE (sys);
           n = 0;
           for (PhysicsAnalysis* a : variations) {
-            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent];
+            var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent];
             if (sys && var) AddToMuSigmaCalc (sys, var);
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
           SaferDelete (temp);
         } // end loop over cents
-      } // end loop over iPtTrk
+      } // end loop over iPtch
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         sys = GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
@@ -1152,17 +1152,17 @@ void Systematic :: AddSystematics () {
         //  } // end loop over cents
         //} // end loop over phi
 
-        for (int iPtTrk = 0; iPtTrk < nPtchBins[iPtZ]; iPtTrk++) {
+        for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            master = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
-            sys = s->GetTGAE (s->h_trk_dphi[iSpc][iPtZ][iPtTrk][iCent]);
+            master = GetTGAE (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
+            sys = s->GetTGAE (s->h_trk_dphi[iSpc][iPtZ][iPtch][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
 
-            master = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
-            sys = s->GetTGAE (s->h_trk_dphi_sub[iSpc][iPtZ][iPtTrk][iCent]);
+            master = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
+            sys = s->GetTGAE (s->h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
           } // end loop over cents
-        } // end loop over iPtTrk
+        } // end loop over iPtch
 
         for (short iCent = 0; iCent < numCentBins; iCent++) {
           master = GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]);
@@ -2086,7 +2086,7 @@ void Systematic :: WriteIAAs () {
         f_z_trk_zpt_iaa[iSpc][iPtZ][iCent]->SetParameter (3, 0);
         h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]->Fit (f_z_trk_zpt_iaa[iSpc][iPtZ][iCent], "RN0Q");
 
-        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xhZBins[iPtZ][0], xhZBins[iPtZ][nXHZBins[iPtZ]]);
+        f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent] = new TF1 (Form ("f_z_trk_zxzh_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*(log(x))^2+[3]*(log(x))^3", xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (0, 1);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (1, 0);
         f_z_trk_zxzh_iaa[iSpc][iPtZ][iCent]->SetParameter (2, 0);
@@ -2140,8 +2140,8 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       c->Clear ();
 
-      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
-      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXhZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
       h->GetYaxis ()->SetRangeUser (1e-3, 20);
   
       h->GetXaxis ()->SetMoreLogLabels ();
@@ -2177,7 +2177,7 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
         var->SetMarkerStyle (kFullCircle);
         var->SetMarkerSize (1.2);
         var->SetLineWidth (2);
-        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
         var->GetYaxis ()->SetRangeUser (1e-3, 20);
 
         var->Draw ("P");
@@ -2236,8 +2236,8 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       c->Clear ();
 
-      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXHZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
-      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+      TH1D* h = new TH1D ("", "", useTrkPt ? nPtchBins[iPtZ] : nXhZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
+      useTrkPt ? h->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : h->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
       h->GetYaxis ()->SetRangeUser (0, max_iaa);
   
       h->GetXaxis ()->SetMoreLogLabels ();
@@ -2273,7 +2273,7 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
         var->SetMarkerStyle (kFullCircle);
         var->SetMarkerSize (1.2);
         var->SetLineWidth (2);
-        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+        useTrkPt ? var->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : var->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
         var->GetYaxis ()->SetRangeUser (0, max_iaa);
 
         var->Draw ("P");

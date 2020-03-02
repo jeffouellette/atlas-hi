@@ -859,7 +859,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetMarkerColor (colors[2]);
     g->SetLineColor (colors[2]);
 
-    //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
     g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
@@ -894,7 +894,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetMarkerColor (colors[1]);
     g->SetLineColor (colors[1]);
 
-    //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
     g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
@@ -910,7 +910,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetMarkerColor (colors[3]);
     g->SetLineColor (colors[3]);
 
-    g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+    g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
     //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (min, max);
 
@@ -1020,7 +1020,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetMarkerColor (colors[1]);
     g->SetLineColor (colors[1]);
 
-    //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
     g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
@@ -1051,7 +1051,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->Draw ("AP");
 
     //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
     TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
@@ -1063,7 +1063,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     fit1->Draw ("same");
 
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
     TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
@@ -1132,7 +1132,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
     g->SetMarkerColor (colors[3]);
     g->SetLineColor (colors[3]);
 
-    //g->GetXaxis ()->SetLimits (allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
     g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
@@ -1140,7 +1140,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
 
     g->Draw ("P");
 
-    //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXHZBins[0], allXHZBins[maxNXHZBins]);
+    //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
     TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
@@ -1153,7 +1153,7 @@ void ComparePbPbSubYields (const short iSpc = 2, const short iPtZ = nPtZBins-1) 
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXHZBins[0], allXHZBins[maxNPtchBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNPtchBins]);
     TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));

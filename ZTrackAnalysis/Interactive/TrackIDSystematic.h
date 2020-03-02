@@ -87,7 +87,7 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
       //    for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
       //      hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
-      //    TF1* fit = new TF1 ("fit", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+      //    TF1* fit = new TF1 ("fit", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
       //    fit->SetParameter (0, 1);
       //    hrat->Fit (fit, "RQN0");
       //    relVar[2][iPtZ][iPhi][iCent] = fit->GetParameter (0);
@@ -140,7 +140,7 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
         for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
           hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
-        TF1* fit = new TF1 ("fit", "[0]", allPtTrkBins[0], allPtTrkBins[maxNPtTrkBins]);
+        TF1* fit = new TF1 ("fit", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
         fit->SetParameter (0, 1);
         hrat->Fit (fit, "RQN0");
         relVar[2][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
