@@ -643,7 +643,7 @@ int GetPercentileCentrality (const float fcal_et) {
     return -1;
   if (i == numPercentileCentBins)
     return 100;
-  return i;
+  return i-1;
 }
 
 
