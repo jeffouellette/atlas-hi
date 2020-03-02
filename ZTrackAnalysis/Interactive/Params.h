@@ -160,15 +160,15 @@ const double trk_max_pt = 60;
 
 // code that instantiates bins in track pT.
 // essentially just a set-of-a-set of bin edges where the highest bin edge is min (Z pT)
-const int maxNPtTrkBins = 6;
-double allPtTrkBins[7] = {1, 2, 4, 8, 15, 30, 60};
+const int maxNPtchBins = 6;
+double allPtchBins[7] = {1, 2, 4, 8, 15, 30, 60};
 int* nPtchBins = Get1DArray <int> (nPtZBins);
 
 double** init_pTchBins () {
   double** _pTchBins = Get1DArray <double*> (nPtZBins);
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     nPtchBins[iPtZ] = 0;
-    while (nPtchBins[iPtZ] < maxNPtTrkBins && allPtTrkBins[nPtchBins[iPtZ]] < zPtBins[iPtZ])
+    while (nPtchBins[iPtZ] < maxNPtchBins && allPtchBins[nPtchBins[iPtZ]] < zPtBins[iPtZ])
       nPtchBins[iPtZ]++;
 
     if (nPtchBins[iPtZ] == 0)
@@ -177,14 +177,14 @@ double** init_pTchBins () {
 
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     _pTchBins[iPtZ] = Get1DArray<double> (nPtchBins[iPtZ]+1);
-    for (int iPtTrk = 0; iPtTrk <= nPtchBins[iPtZ]; iPtTrk++) {
-      _pTchBins[iPtZ][iPtTrk] = allPtTrkBins[iPtTrk];
+    for (int iPtch = 0; iPtch <= nPtchBins[iPtZ]; iPtch++) {
+      _pTchBins[iPtZ][iPtch] = allPtchBins[iPtch];
     }
   }
 
   return _pTchBins;
 }
-double** pTchBins = init_pTchBins (); // iPtZ, iPtTrk
+double** pTchBins = init_pTchBins (); // iPtZ, iPtch
 
 // code that instantiates bins in track pT / Z pT.
 // essentially just a set-of-a-set of bin edges where the lowest bin is min (track pT) / min (Z pT)
