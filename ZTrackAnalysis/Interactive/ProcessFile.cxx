@@ -195,6 +195,18 @@ int main (int argc, char** argv) {
       mixingFraction = 1;
     else if (algo == "mcminbias")
       mixingFraction = 10;
+    else if (isPbPb) {
+      const int _first = inFileName.find ("iCent") + 5;
+      const int _last = inFileName.find (".root");
+      const int iCent = atoi (inFileName.substr (_first, _last-_first).c_str ());
+      if (1 <= iCent && iCent <= 8)         mixingFraction = 160;
+      else if (9 <= iCent && iCent <= 18)   mixingFraction = 80;
+      else if (19 <= iCent && iCent <= 28)  mixingFraction = 40;
+      else {
+        cout << "Invalid centrality bin = " << iCent << "??? Check input & string parsing!" << endl;
+        return -1;
+      }
+    }
 
     bkg->is2015Conds = use2015conds;
     bkg->useHijingEffs = use2015conds; // for now
