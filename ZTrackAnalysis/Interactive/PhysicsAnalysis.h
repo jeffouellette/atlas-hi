@@ -43,7 +43,6 @@ class PhysicsAnalysis {
   //bool icpCalculated = false;
 
   TFile* eventWeightsFile = nullptr;
-  string eventWeightsFileName = "DataAnalysis/Nominal/eventWeightsFile.root";
   bool eventWeightsLoaded = false;
   TFile* trkEffFile = nullptr;
   bool effsLoaded   = false;
@@ -73,6 +72,8 @@ class PhysicsAnalysis {
   bool doTrackEffVar  = false; // whether to use pions-only tracking efficiency variation
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
+
+  string eventWeightsFileName = "DataAnalysis/Nominal/eventWeightsFile.root";
 
   // Analysis checks
   TH1D*   h_fcal_et               = nullptr;
@@ -172,6 +173,7 @@ class PhysicsAnalysis {
     Delete2DArray (h_PbPbFCal_weights,  3, nPtZBins+1);
     Delete3DArray (h_PbPbQ2_weights,    3, numFineCentBins, nPtZBins+1);
     Delete3DArray (h_PbPbPsi2_weights,  3, numFineCentBins, nPtZBins+1);
+
 
     ClearHists ();
 
@@ -1875,6 +1877,11 @@ void PhysicsAnalysis :: LoadEventWeights () {
   cout << "Loading event weights from " << rootPath.Data () << "/" << eventWeightsFileName.c_str () << endl;
   eventWeightsFile = new TFile (Form ("%s/%s", rootPath.Data (), eventWeightsFileName.c_str ()), "read");
 
+  //if (useCentWgts)  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_%s", name.c_str ()));
+  //for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+  //  if (useQ2Wgts)    h_PbPbQ2_weights[iFineCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbQ2_weights_iCent%i_%s", iFineCent, name.c_str ()));
+  //  if (usePsi2Wgts)  h_PbPbPsi2_weights[iFineCent] = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbPsi2_weights_iCent%i_%s", iFineCent, name.c_str ()));
+  //}
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
