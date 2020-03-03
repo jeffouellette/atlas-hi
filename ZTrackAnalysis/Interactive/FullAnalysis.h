@@ -90,7 +90,7 @@ class FullAnalysis : public PhysicsAnalysis {
   virtual void CreateHists () override;
   virtual void CopyAnalysis (FullAnalysis* a, const bool copyBkgs = false);
   virtual void ClearHists () override;
-  virtual void CombineHists () override;
+  virtual void CombineFullHists ();
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   virtual void SaveHists (const char* histFileName = "savedHists.root") override;
   virtual void ScaleHists () override;
@@ -292,7 +292,7 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   histsLoaded = true;
 
   if (_finishHists) {
-    FullAnalysis :: CombineHists ();
+    CombineFullHists ();
     ScaleHists ();
   }
 
@@ -359,7 +359,7 @@ void FullAnalysis :: SaveHists (const char* histFileName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Fill combined species histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void FullAnalysis :: CombineHists () {
+void FullAnalysis :: CombineFullHists () {
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 2; iSpc++) {

@@ -74,6 +74,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       //  for (short iCent = 0; iCent < numCentBins; iCent++) {
       //    hn = (TH1D*) var->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
       //    hn->Divide (nominal->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
+      //    assert (hn->GetNbinsX () == hd->GetNbinsX ());
       //    f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
@@ -83,6 +84,7 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
   
       //    hn = (TH1D*) var->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone ("temp");
       //    hn->Divide (nominal->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
+      //    assert (hn->GetNbinsX () == hd->GetNbinsX ());
       //    f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()), "[0]+[1]*log(x)", xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
       //    f->SetParameter (0, 1);
       //    f->SetParameter (1, 0);
@@ -95,11 +97,12 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         hn = (TH1D*) var->h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone ("temp");
         hd = nominal->h_trk_pt_ptz[iSpc][iPtZ][iCent];
+        assert (hn->GetNbinsX () == hd->GetNbinsX ());
         for (int ix = 1; ix <= hn->GetNbinsX (); ix++) {
           const float yn = hn->GetBinContent (ix);
           const float yne = hn->GetBinError (ix);
           const float yd = hd->GetBinContent (ix);
-          const float yde = hd->GetBinContent (ix);
+          const float yde = hd->GetBinError (ix);
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
@@ -112,11 +115,12 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
 
         hn = (TH1D*) var->h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone ("temp");
         hd = nominal->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+        assert (hn->GetNbinsX () == hd->GetNbinsX ());
         for (int ix = 1; ix <= hn->GetNbinsX (); ix++) {
           const float yn = hn->GetBinContent (ix);
           const float yne = hn->GetBinError (ix);
           const float yd = hd->GetBinContent (ix);
-          const float yde = hd->GetBinContent (ix);
+          const float yde = hd->GetBinError (ix);
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
@@ -149,7 +153,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
         //  for (TH1D* h : {a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], a->h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
         //    if (!h)
         //      continue;
-        //    TF1* f =  relVarPt[iSpc][iPtZ][numPhiBins][iCent];
+        //    TF1* f = relVarPt[iSpc][iPtZ][numPhiBins][iCent];
         //    for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
         //      if (upVar) {
         //        h->SetBinContent (ix, h->GetBinContent (ix) * f->Eval (h->GetBinCenter (ix)));
@@ -165,7 +169,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
         //  for (TH1D* h : {a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], a->h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]}) {//, a->h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]}) {
         //    if (!h)
         //      continue;
-        //    TF1* f =  relVarX[iSpc][iPtZ][numPhiBins][iCent];
+        //    TF1* f = relVarX[iSpc][iPtZ][numPhiBins][iCent];
         //    for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
         //      if (upVar) {
         //        h->SetBinContent (ix, h->GetBinContent (ix) * f->Eval (h->GetBinCenter (ix)));
@@ -182,32 +186,26 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
         for (TH1D* h : {a->h_trk_pt_ptz[iSpc][iPtZ][iCent], a->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]}) {//, a->h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
-          TF1* f =  relVarPt[iSpc][iPtZ][numPhiBins][iCent];
+          TF1* f = relVarPt[iSpc][iPtZ][numPhiBins][iCent];
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
-            if (upVar) {
-              h->SetBinContent (ix, h->GetBinContent (ix) * f->Eval (h->GetBinCenter (ix)));
-              h->SetBinError (ix, h->GetBinError (ix) * f->Eval (h->GetBinCenter (ix)));
-            }
-            else {
-              h->SetBinContent (ix, h->GetBinContent (ix) * (1./f->GetParameter (0)) * (1. - (f->GetParameter(1)/f->GetParameter(0)) * TMath::Log ((h->GetBinCenter (ix)))));
-              h->SetBinError (ix, h->GetBinError (ix) * (1./f->GetParameter (0)) * (1. - (f->GetParameter(1)/f->GetParameter(0)) * TMath::Log ((h->GetBinCenter (ix)))));
-            }
+            float factor = 1;
+            if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
+            else        factor = 2 - (f->GetParameter (0)) - (f->GetParameter (1)) * (TMath::Log (h->GetBinCenter (ix)));
+            h->SetBinContent (ix, h->GetBinContent (ix) * factor);
+            h->SetBinError (ix, h->GetBinError (ix) * factor);
           }
         }
 
         for (TH1D* h : {a->h_trk_xhz_ptz[iSpc][iPtZ][iCent], a->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]}) {//, a->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]}) {
           if (!h)
             continue;
-          TF1* f =  relVarX[iSpc][iPtZ][numPhiBins][iCent];
+          TF1* f = relVarX[iSpc][iPtZ][numPhiBins][iCent];
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
-            if (upVar) {
-              h->SetBinContent (ix, h->GetBinContent (ix) * f->Eval (h->GetBinCenter (ix)));
-              h->SetBinError (ix, h->GetBinError (ix) * f->Eval (h->GetBinCenter (ix)));
-            }
-            else {
-              h->SetBinContent (ix, h->GetBinContent (ix) * (1./f->GetParameter (0)) * (1. - (f->GetParameter(1)/f->GetParameter(0)) * TMath::Log ((h->GetBinCenter (ix)))));
-              h->SetBinError (ix, h->GetBinError (ix) * (1./f->GetParameter (0)) * (1. - (f->GetParameter(1)/f->GetParameter(0)) * TMath::Log ((h->GetBinCenter (ix)))));
-            }
+            float factor = 1;
+            if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
+            else        factor = 2 - (f->GetParameter (0)) - (f->GetParameter (1)) * (TMath::Log (h->GetBinCenter (ix)));
+            h->SetBinContent (ix, h->GetBinContent (ix) * factor);
+            h->SetBinError (ix, h->GetBinError (ix) * factor);
           }
         }
       } // end loop over iCent

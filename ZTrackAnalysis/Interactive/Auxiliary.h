@@ -88,13 +88,26 @@ void PlotPullDist (const PhysicsAnalysis* a, Systematic* sys = nullptr, const bo
 
 
 
-void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysis* a3, const short iPtZ = nPtZBins-1) {
-  TCanvas* c = new TCanvas ("c", "", 1600, 800);
+/**
+ * Plots nominal vs. up/down variations on the muon energy scale, then fits to a line. (This is how the muon ES systematic is evaluated.)
+ */
+void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAnalysis* a_down, const short iPtZ = nPtZBins-1, const bool useTrkPt = true) {
+  const char* canvasName = Form ("c_muonES_syst_%s_iPtZ%i", useTrkPt ? "pTch" : "xhZ", iPtZ);
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1600, 800);
+    gDirectory->Add (c);
+    c->cd ();
+  }
+
   const double dPadY = 0.5;
   const double uPadY = 1. - dPadY;
   const int axisTextSize = 23;
 
-  TH1D* h1 = nullptr, *h2 = nullptr, *h3 = nullptr, *hrat = nullptr;
+  TH1D* h_nom = nullptr, *h_up = nullptr, *h_down = nullptr, *h_ratio = nullptr;
   TGraphAsymmErrors* g = nullptr;
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
@@ -122,31 +135,28 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
     uPad->SetLogx ();
     uPad->SetLogy ();
 
-    h1 = a1->h_trk_pt_ptz[2][iPtZ][iCent];
-    h2 = a2->h_trk_pt_ptz[2][iPtZ][iCent];
-    h3 = a3->h_trk_pt_ptz[2][iPtZ][iCent];
+    h_nom = (TH1D*) (useTrkPt ? a_nom->h_trk_pt_ptz : a_nom->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_nom");
+    h_up = (TH1D*) (useTrkPt ? a_up->h_trk_pt_ptz : a_up->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_up");
+    h_down = (TH1D*) (useTrkPt ? a_down->h_trk_pt_ptz : a_down->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_down");
 
-    const float min = fmin (fmin (h1->GetMinimum (0), h2->GetMinimum (0)), h3->GetMinimum (0));
-    const float max = fmax (fmax (h1->GetMaximum (),  h2->GetMaximum ()), h3->GetMaximum (0));
+    const float min = fmin (fmin (h_nom->GetMinimum (0), h_up->GetMinimum (0)), h_down->GetMinimum (0));
+    const float max = fmax (fmax (h_nom->GetMaximum (),  h_up->GetMaximum ()), h_down->GetMaximum (0));
 
-    g = a1->GetTGAE (h1);
+    g = a_nom->GetTGAE (h_nom);
 
     g->SetMarkerStyle (kFullCircle);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[2]);
-    g->SetLineColor (colors[2]);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kBlack);
+    g->SetLineColor (kBlack);
 
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
+    useTrkPt ? g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
 
-    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-    //g->GetYaxis ()->SetTitle ("N_{ch}^{total}");
-    g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-    //g->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
+    g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+    g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T}d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
 
     g->GetXaxis ()->SetTitleFont (43);
     g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -163,97 +173,77 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
 
     g->Draw ("AP");
 
-
-    g = a2->GetTGAE (h2);
+    g = a_up->GetTGAE (h_up);
+    deltaize (g, 0.95, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[1]);
-    g->SetLineColor (colors[1]);
-
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
 
     g->Draw ("P");
 
-    g = a3->GetTGAE (h3);
+    g = a_down->GetTGAE (h_down);
+    deltaize (g, 1.05, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[3]);
-    g->SetLineColor (colors[3]);
-
-    g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (min, max);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kAzure-1);
+    g->SetLineColor (kAzure-1);
 
     g->Draw ("P");
 
 
     if (iCent == 0) {
-      myText (0.44, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.040/uPadY);
+      myText (0.40, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.040/uPadY);
       myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.036/uPadY);
     }
-    else
-      myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.036/uPadY);
+    else myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.036/uPadY);
 
-    if (iCent == 1)
-      myText (0.50, 0.88, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036/uPadY);
+    if (iCent == 1) myText (0.45, 0.85, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036/uPadY);
     else if (iCent == 2) {
-      if (iPtZ == nPtZBins-1)
-        myText (0.50, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.036/uPadY);
-      else
-        myText (0.50, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.036/uPadY);
+      if (iPtZ == nPtZBins-1) myText (0.50, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.036/uPadY);
+      else                    myText (0.40, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.036/uPadY);
     }
     else if (iCent == 3) {
-      myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "Central values", 1.4, 0.04/uPadY);
-      myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "Muons Up", 1.4, 0.04/uPadY);
-      myMarkerTextNoLine (0.50, 0.74, colors[3], kOpenSquare, "Muons Down", 1.4, 0.04/uPadY);
+      myMarkerTextNoLine (0.50, 0.9, kBlack, kFullCircle, "Central values", 1.4, 0.032/uPadY);
+      myMarkerTextNoLine (0.50, 0.82, kRed+1, kOpenSquare, "Muons Up", 1.4, 0.032/uPadY);
+      myMarkerTextNoLine (0.50, 0.74, kAzure-1, kOpenSquare, "Muons Down", 1.4, 0.032/uPadY);
     }
 
 
     dPad->cd ();
     dPad->SetLogx ();
 
-    hrat = (TH1D*) h2->Clone ("hrat");
-    hrat->Reset ();
-    for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-      const float y1 = h1->GetBinContent (ix);
-      const float y1e = h1->GetBinError (ix);
-      const float y2 = h2->GetBinContent (ix);
-      const float y2e = h2->GetBinError (ix);
-      hrat->SetBinContent (ix, y2/y1);
-      hrat->SetBinError (ix, fabs (y2/y1) * sqrt (fabs (pow (y1e/y1, 2) + pow (y2e/y2, 2) - 2.*y2e*y2e/(y1*y2))));
+    h_ratio = (TH1D*) h_up->Clone ("h_ratio");
+    h_ratio->Reset ();
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float yd = h_nom->GetBinContent (ix);
+      const float yde = h_nom->GetBinError (ix);
+      const float yn = h_up->GetBinContent (ix);
+      const float yne = h_up->GetBinError (ix);
+      h_ratio->SetBinContent (ix, yn/yd);
+      h_ratio->SetBinError (ix, fabs (yn/yd) * sqrt (fabs (pow (yde/yd, 2) + pow (yne/yn, 2) - 2.*yne*yne/(yd*yn))));
     }
 
-    g = make_graph (hrat);
-    delete hrat;
+    g = make_graph (h_ratio);
+    deltaize (g, 0.95, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[1]);
-    g->SetLineColor (colors[1]);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
 
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
+    useTrkPt ? g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
 
-    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-    //g->GetYaxis ()->SetTitle ("Z#rightarrow#mu#mu / Z#rightarrowee");
+    g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
     g->GetYaxis ()->SetTitle ("Variation / Nominal");
-    //g->GetYaxis ()->SetTitle ("Eff. Corrected / Uncorrected");
-    //g->GetYaxis ()->SetTitle ("New ES / Old ES");
-    //g->GetYaxis ()->SetTitle ("Unfolded / not unfolded");
 
     g->GetXaxis ()->SetTitleFont (43);
     g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -272,106 +262,113 @@ void DoMuonESSystStudy (PhysicsAnalysis* a1, PhysicsAnalysis* a2, PhysicsAnalysi
 
     g->Draw ("AP");
 
-    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
-    g->Fit (fit1, "RQN0");
+    h_ratio->Fit (fit1, "RN0Q");
+    SaferDelete (h_ratio);
 
-    fit1->SetLineColor (colors[1]);
+    fit1->SetLineColor (kRed+1);
     fit1->SetLineStyle (2);
-    fit1->SetLineWidth (1);
+    fit1->SetLineWidth (2);
     fit1->Draw ("same");
 
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
 
-    inv_fit1->SetLineColor (colors[1]);
+    inv_fit1->SetLineColor (kRed+1);
     inv_fit1->SetLineStyle (2);
-    inv_fit1->SetLineWidth (1);
+    inv_fit1->SetLineWidth (2);
     inv_fit1->Draw ("same");
 
     cout << "chi2/ndf = " << fit1->GetChisquare () << " / " << fit1->GetNDF () << endl;
 
 
-    hrat = (TH1D*) h3->Clone ("hrat");
-    hrat->Reset ();
-    for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-      const float y1 = h1->GetBinContent (ix);
-      const float y1e = h1->GetBinError (ix);
-      const float y3 = h3->GetBinContent (ix);
-      const float y3e = h3->GetBinError (ix);
-      hrat->SetBinContent (ix, y3/y1);
-      //hrat->SetBinError (ix, y3e/y1);
-      hrat->SetBinError (ix, fabs (y3/y1) * sqrt (fabs (pow (y1e/y1, 2) + pow (y3e/y3, 2) - 2.*y3e*y3e/(y1*y3))));
+    h_ratio = (TH1D*) h_down->Clone ("h_ratio");
+    h_ratio->Reset ();
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float yd = h_nom->GetBinContent (ix);
+      const float yde = h_nom->GetBinError (ix);
+      const float yn = h_down->GetBinContent (ix);
+      const float yne = h_down->GetBinError (ix);
+      h_ratio->SetBinContent (ix, yn/yd);
+      h_ratio->SetBinError (ix, fabs (yn/yd) * sqrt (fabs (pow (yde/yd, 2) + pow (yne/yn, 2) - 2.*yne*yne/(yd*yn))));
     }
 
-    g = make_graph (hrat);
-    delete hrat;
+    g = make_graph (h_ratio);
+    deltaize (g, 1.05, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[3]);
-    g->SetLineColor (colors[3]);
-
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (0.95, 1.05);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kAzure-1);
+    g->SetLineColor (kAzure-1);
 
     g->Draw ("P");
 
-    //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* fit2 = new TF1 ("fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
-    g->Fit (fit2, "RQN0");
+    h_ratio->Fit (fit2, "RN0Q");
+    SaferDelete (h_ratio);
 
-    fit2->SetLineColor (colors[3]);
+    fit2->SetLineColor (kAzure-1);
     fit2->SetLineStyle (2);
-    fit2->SetLineWidth (1);
+    fit2->SetLineWidth (2);
     fit2->Draw ("same");
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNPtchBins]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
 
-    inv_fit2->SetLineColor (colors[3]);
+    inv_fit2->SetLineColor (kAzure-1);
     inv_fit2->SetLineStyle (2);
-    inv_fit2->SetLineWidth (1);
+    inv_fit2->SetLineWidth (2);
     inv_fit2->Draw ("same");
 
-    TLine* l = new TLine (allPtchBins[0], 1, allPtchBins[maxNPtchBins], 1);
+    TLine* l = new TLine (useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], 1, useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]], 1);
     l->SetLineColor (kBlack);
     l->SetLineStyle (2);
     l->Draw ("same");
 
-    //myText (0.22, 0.3, kBlack, Form ("Avg. = %s", FormatMeasurement (fit1->GetParameter (0), fit1->GetParError (0), 2)), 0.03/dPadY);
-
-    delete h1, h2;
+    SaferDelete (h_nom);
+    SaferDelete (h_up);
+    SaferDelete (h_down);
   }
 
+  c->SaveAs (Form ("../Plots/LeptonESSystStudy/muonES_%s_iPtZ%i.pdf", useTrkPt ? "pTch" : "xhZ", iPtZ));
 }
 
 
 
-/*
-void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
-  TCanvas* c = new TCanvas ("c", "", 1600, 800);
+
+/**
+ * Plots nominal vs. up/down variations on the electron energy scale, then fits to a line. (This is how the electron ES systematic is evaluated.)
+ */
+void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAnalysis* a_down, const short iPtZ = nPtZBins-1, const bool useTrkPt = true) {
+  const char* canvasName = Form ("c_electronES_syst_%s_iPtZ%i", useTrkPt ? "pTch" : "xhZ", iPtZ);
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1600, 800);
+    gDirectory->Add (c);
+    c->cd ();
+  }
+
   const double dPadY = 0.5;
   const double uPadY = 1. - dPadY;
   const int axisTextSize = 23;
 
-  TH1D* h1 = nullptr, *h2 = nullptr, *h3 = nullptr, *hrat = nullptr, *eff1 = nullptr, *eff2 = nullptr, *effrat = nullptr, *purrat = nullptr;
+  TH1D* h_nom = nullptr, *h_up = nullptr, *h_down = nullptr, *h_ratio = nullptr;
   TGraphAsymmErrors* g = nullptr;
 
   for (int iCent = 0; iCent < numCentBins; iCent++) {
@@ -399,63 +396,28 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     uPad->SetLogx ();
     uPad->SetLogy ();
 
-    PhysicsAnalysis* a1, *a2 = nullptr, *a3 = nullptr;
+    h_nom = (TH1D*) (useTrkPt ? a_nom->h_trk_pt_ptz : a_nom->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_nom");
+    h_up = (TH1D*) (useTrkPt ? a_up->h_trk_pt_ptz : a_up->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_up");
+    h_down = (TH1D*) (useTrkPt ? a_down->h_trk_pt_ptz : a_down->h_trk_xhz_ptz)[2][iPtZ][iCent]->Clone ("h_down");
 
-    a1 = data18;
-    a2 = data_muonPtUp;
-    a3 = data_muonPtDown;
+    const float min = fmin (fmin (h_nom->GetMinimum (0), h_up->GetMinimum (0)), h_down->GetMinimum (0));
+    const float max = fmax (fmax (h_nom->GetMaximum (),  h_up->GetMaximum ()), h_down->GetMaximum (0));
 
-    h1 = a1->h_trk_pt_ptz[2][iPtZ][iCent];
-    h2 = a2->h_trk_pt_ptz[2][iPtZ][iCent];
-    h3 = a3->h_trk_pt_ptz[2][iPtZ][iCent];
-
-    //float i1 = 0, i2 = 0;
-    //for (int ix = 1; ix <= h1->GetNbinsX (); ix++) {
-    //  cout << h2->GetBinContent (ix) << endl;
-    //  i1 += h1->GetBinContent (ix) * h1->GetBinCenter (ix) * h1->GetBinWidth (ix);
-    //}
-    //for (int ix = 1; ix <= h1->GetNbinsX (); ix++) {
-    //  cout << h2->GetBinContent (ix) << endl;
-    //  i2 += h2->GetBinContent (ix) * h2->GetBinCenter (ix) * h2->GetBinWidth (ix);
-    //}
-
-    //i1 *= pi/4;
-    //i2 *= pi/4;
-
-    //cout << "iPtZ = " << iPtZ << ", iCent = " << iCent << endl;
-    //cout << "i1 = " << i1 << endl;
-    //cout << "i2 = " << i2 << endl;
-
-    //h3 = a3->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-    //h1 = (TH1D*) a1->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("h1");
-    //h1->Add (a1->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
-    //h2 = (TH1D*) a2->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("h2");
-    //h2->Add (a2->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
-    //h3 = (TH1D*) a3->h_z_trk_raw_pt[iSpc][iPtZ][1][iCent]->Clone ("h2");
-    //h3->Add (a3->h_z_trk_raw_pt[iSpc][iPtZ][2][iCent]);
-    //const float min = fmin (h1->GetMinimum (0), h2->GetMinimum (0));
-    //const float max = fmax (h1->GetMaximum (),  h2->GetMaximum ());
-    const float min = fmin (fmin (h1->GetMinimum (0), h2->GetMinimum (0)), h3->GetMinimum (0));
-    const float max = fmax (fmax (h1->GetMaximum (),  h2->GetMaximum ()), h3->GetMaximum (0));
-
-    g = a1->GetTGAE (h1);
+    g = a_nom->GetTGAE (h_nom);
 
     g->SetMarkerStyle (kFullCircle);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[2]);
-    g->SetLineColor (colors[2]);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kBlack);
+    g->SetLineColor (kBlack);
 
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
+    useTrkPt ? g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
     g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
 
     g->GetXaxis ()->SetMoreLogLabels ();
 
-    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-    //g->GetYaxis ()->SetTitle ("N_{ch}^{total}");
-    g->GetYaxis ()->SetTitle ("d^{2}Y / d#it{p}_{T}d#Delta#phi [GeV^{-1}]");
-    //g->GetYaxis ()->SetTitle ("Y / Y_{bkg}");
+    g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
+    g->GetYaxis ()->SetTitle (useTrkPt ? "d^{2}Y / d#it{p}_{T}d#Delta#phi [GeV^{-1}]" : "d^{2}Y / d#it{x}_{hZ}d#Delta#phi");
 
     g->GetXaxis ()->SetTitleFont (43);
     g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -473,152 +435,77 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
     g->Draw ("AP");
 
 
-    g = a2->GetTGAE (h2);
+    g = a_up->GetTGAE (h_up);
+    deltaize (g, 0.95, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[1]);
-    g->SetLineColor (colors[1]);
-
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
 
     g->Draw ("P");
 
-    g = a3->GetTGAE (h3);
+    g = a_down->GetTGAE (h_down);
+    deltaize (g, 1.05, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[3]);
-    g->SetLineColor (colors[3]);
-
-    g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    //g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (min, max);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kAzure-1);
+    g->SetLineColor (kAzure-1);
 
     g->Draw ("P");
 
 
     if (iCent == 0) {
-      myText (0.44, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.040/uPadY);
+      myText (0.40, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.040/uPadY);
       myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.036/uPadY);
-      if (iSpc == 0)
-        myText (0.44, 0.80, kBlack, "Z #rightarrow e^{+}e^{-} events", 0.036/uPadY);
-      if (iSpc == 1)
-        myText (0.44, 0.80, kBlack, "Z #rightarrow #mu^{+}#mu^{-} events", 0.036/uPadY);
     }
-    else
-      myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.036/uPadY);
+    else myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.036/uPadY);
 
-    if (iCent == 1)
-      myText (0.50, 0.88, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036/uPadY);
+    if (iCent == 1) myText (0.45, 0.85, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036/uPadY);
     else if (iCent == 2) {
-      if (iPtZ == nPtZBins-1)
-        myText (0.50, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.036/uPadY);
-      else
-        myText (0.50, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.036/uPadY);
+      if (iPtZ == nPtZBins-1) myText (0.50, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.036/uPadY);
+      else                    myText (0.40, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.036/uPadY);
     }
     else if (iCent == 3) {
-      //myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "Z#rightarrowee", 1.4, 0.036/uPadY);
-      //myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "Z#rightarrow#mu#mu", 1.4, 0.036/uPadY);
-      //myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "No correction", 1.4, 0.036/uPadY);
-      //myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "Eff. corrected", 1.4, 0.036/uPadY);
-      //myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "Electrons", 1.4, 0.036/uPadY);
-      //myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "Muons", 1.4, 0.04/uPadY);
-      myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "Central values", 1.4, 0.04/uPadY);
-      myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "Muons Up", 1.4, 0.04/uPadY);
-      myMarkerTextNoLine (0.50, 0.74, colors[3], kOpenSquare, "Muons Down", 1.4, 0.04/uPadY);
-      //myMarkerTextNoLine (0.50, 0.9, colors[2], kFullCircle, "#varepsilon_{Z} = 1", 1.4, 0.04/uPadY);
-      //myMarkerTextNoLine (0.50, 0.82, colors[1], kOpenSquare, "#varepsilon_{Z} = #varepsilon_{trig} #times #varepsilon_{reco}", 1.4, 0.04/uPadY);
+      myMarkerTextNoLine (0.50, 0.9, kBlack, kFullCircle, "Central values", 1.4, 0.032/uPadY);
+      myMarkerTextNoLine (0.50, 0.82, kRed+1, kOpenSquare, "Electrons Up", 1.4, 0.032/uPadY);
+      myMarkerTextNoLine (0.50, 0.74, kAzure-1, kOpenSquare, "Electrons Down", 1.4, 0.032/uPadY);
     }
 
 
     dPad->cd ();
     dPad->SetLogx ();
 
-    hrat = (TH1D*) h2->Clone ("hrat");
-    hrat->Reset ();
-    //hrat->Divide (h1);
-    for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-      const float y1 = h1->GetBinContent (ix);
-      const float y1e = h1->GetBinError (ix);
-      const float y2 = h2->GetBinContent (ix);
-      const float y2e = h2->GetBinError (ix);
-      hrat->SetBinContent (ix, y1/y2);
-      hrat->SetBinError (ix, fabs(y1/y2)*sqrt (fabs (pow (y1e/y1,2) + pow (y2e/y2,2) - 2.*y1e*y1e/(y1*y2))));
+    h_ratio = (TH1D*) h_up->Clone ("h_ratio");
+    h_ratio->Reset ();
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float yd = h_nom->GetBinContent (ix);
+      const float yde = h_nom->GetBinError (ix);
+      const float yn = h_up->GetBinContent (ix);
+      const float yne = h_up->GetBinError (ix);
+      h_ratio->SetBinContent (ix, yn/yd);
+      h_ratio->SetBinError (ix, fabs (yn/yd) * sqrt (fabs (pow (yde/yd, 2) + pow (yne/yn, 2) - 2.*yne*yne/(yd*yn))));
     }
-    //for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-    //  const float passes = h2->GetBinContent (ix);
-    //  const float trials = h1->GetBinContent (ix);
-    //  hrat->SetBinContent (ix, (passes+1) / (trials+2));
-    //  hrat->SetBinError (ix, sqrt ((passes+1)*(passes+2)/((trials+2)*(trials+3)) - pow (passes+1, 2) / pow (trials+2, 2)));
 
-    //  //hrat->SetBinError (ix, sqrt ((hrat->GetBinContent (ix)) * (1-hrat->GetBinContent (ix)) / h1->GetBinContent (ix)));
-    //}
-
-    //a1->LoadTrackingEfficiencies (true);
-    //a2->LoadTrackingEfficiencies (true);
-    //a1->LoadTrackingPurities (true);
-    //a2->LoadTrackingPurities (true);
-
-    //eff1 = (TH1D*) a1->h2_num_trk_effs[iCent]->ProjectionY ("1");
-    //effrat = (TH1D*) a1->h2_den_trk_effs[iCent]->ProjectionY ("2");
-    //eff1->Divide (effrat);
-    //delete effrat;
-    //eff2 = (TH1D*) a2->h2_num_trk_effs[iCent]->ProjectionY ("3");
-    //effrat = (TH1D*) a2->h2_den_trk_effs[iCent]->ProjectionY ("4");
-    //eff2->Divide (effrat);
-    //delete effrat;
-
-    //effrat = (TH1D*) eff2->Clone ("effrat");
-    //effrat->Divide (eff1);
-    //delete eff1, eff2;
-
-    //eff1 = (TH1D*) a1->h2_num_trk_purs[iCent]->ProjectionY ("1");
-    //eff1->Divide ((TH1D*) a1->h2_den_trk_purs[iCent]->ProjectionY ("2"));
-    //eff2 = (TH1D*) a2->h2_num_trk_purs[iCent]->ProjectionY ("3");
-    //eff2->Divide ((TH1D*) a2->h2_den_trk_purs[iCent]->ProjectionY ("4"));
-
-    //purrat = (TH1D*) eff2->Clone ("purrat");
-    //purrat->Divide (eff1);
-    //delete eff1, eff2;
-
-    //const int bin1 = effrat->FindBin (hrat->GetBinCenter (1));
-    //const int bin2 = purrat->FindBin (hrat->GetBinCenter (1));
-    //for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-    //  hrat->SetBinContent (ix, hrat->GetBinContent (ix) * purrat->GetBinContent (ix+bin2-1) / effrat->GetBinContent (ix+bin1-1));
-    //  hrat->SetBinError (ix, hrat->GetBinError (ix) * purrat->GetBinContent (ix+bin2-1) / effrat->GetBinContent (ix+bin1-1));
-    //}
-
-
-    g = make_graph (hrat);
-    delete hrat, effrat;
+    g = make_graph (h_ratio);
+    deltaize (g, 0.95, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[1]);
-    g->SetLineColor (colors[1]);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
 
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
+    useTrkPt ? g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
     g->GetYaxis ()->SetRangeUser (0.95, 1.05);
 
     g->GetXaxis ()->SetMoreLogLabels ();
 
-    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
-    //g->GetYaxis ()->SetTitle ("Z#rightarrow#mu#mu / Z#rightarrowee");
+    g->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ ch} [GeV]" : "#it{x}_{hZ}");
     g->GetYaxis ()->SetTitle ("Variation / Nominal");
-    //g->GetYaxis ()->SetTitle ("Eff. Corrected / Uncorrected");
-    //g->GetYaxis ()->SetTitle ("New ES / Old ES");
-    //g->GetYaxis ()->SetTitle ("Unfolded / not unfolded");
 
     g->GetXaxis ()->SetTitleFont (43);
     g->GetXaxis ()->SetTitleSize (axisTextSize);
@@ -637,130 +524,345 @@ void DoTrackWPSystStudy (const short iPtZ = nPtZBins-1) {
 
     g->Draw ("AP");
 
-    //TF1* fit1 = new TF1 ("fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
-    g->Fit (fit1, "RQN0");
+    h_ratio->Fit (fit1, "RN0Q");
+    SaferDelete (h_ratio);
 
-    fit1->SetLineColor (colors[1]);
+    fit1->SetLineColor (kRed+1);
     fit1->SetLineStyle (2);
-    fit1->SetLineWidth (1);
+    fit1->SetLineWidth (2);
     fit1->Draw ("same");
 
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
-    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
 
-    inv_fit1->SetLineColor (colors[1]);
+    inv_fit1->SetLineColor (kRed+1);
     inv_fit1->SetLineStyle (2);
-    inv_fit1->SetLineWidth (1);
+    inv_fit1->SetLineWidth (2);
     inv_fit1->Draw ("same");
 
     cout << "chi2/ndf = " << fit1->GetChisquare () << " / " << fit1->GetNDF () << endl;
 
 
-    hrat = (TH1D*) h3->Clone ("hrat");
-    hrat->Reset ();
-    for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-      const float y1 = h1->GetBinContent (ix);
-      const float y1e = h1->GetBinError (ix);
-      const float y3 = h3->GetBinContent (ix);
-      const float y3e = h3->GetBinError (ix);
-      hrat->SetBinContent (ix, y1/y3);
-      hrat->SetBinError (ix, (y1/y3)*sqrt (fabs (pow (y1e/y1,2) + pow (y3e/y3,2) - 2.*y1e*y1e/(y1*y3))));
+    h_ratio = (TH1D*) h_down->Clone ("h_ratio");
+    h_ratio->Reset ();
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float yd = h_nom->GetBinContent (ix);
+      const float yde = h_nom->GetBinError (ix);
+      const float yn = h_down->GetBinContent (ix);
+      const float yne = h_down->GetBinError (ix);
+      h_ratio->SetBinContent (ix, yn/yd);
+      h_ratio->SetBinError (ix, fabs (yn/yd) * sqrt (fabs (pow (yde/yd, 2) + pow (yne/yn, 2) - 2.*yne*yne/(yd*yn))));
     }
 
-    //for (int ix = 1; ix <= hrat->GetNbinsX (); ix++) {
-    //  hrat->SetBinError (ix, sqrt ((hrat->GetBinContent (ix)) * (1-hrat->GetBinContent (ix)) / h1->GetBinContent (ix)));
-    //}
-
-    //a1->LoadTrackingEfficiencies (true);
-    //a2->LoadTrackingEfficiencies (true);
-    //a1->LoadTrackingPurities (true);
-    //a2->LoadTrackingPurities (true);
-
-    //eff1 = (TH1D*) a1->h2_num_trk_effs[iCent]->ProjectionY ("1");
-    //effrat = (TH1D*) a1->h2_den_trk_effs[iCent]->ProjectionY ("2");
-    //eff1->Divide (effrat);
-    //delete effrat;
-    //eff2 = (TH1D*) a2->h2_num_trk_effs[iCent]->ProjectionY ("3");
-    //effrat = (TH1D*) a2->h2_den_trk_effs[iCent]->ProjectionY ("4");
-    //eff2->Divide (effrat);
-    //delete effrat;
-
-    //effrat = (TH1D*) eff2->Clone ("effrat");
-    //effrat->Divide (eff1);
-    //delete eff1, eff2;
-
-    //eff1 = (TH1D*) a1->h2_num_trk_purs[iCent]->ProjectionY ("1");
-    //eff1->Divide ((TH1D*) a1->h2_den_trk_purs[iCent]->ProjectionY ("2"));
-    //eff2 = (TH1D*) a2->h2_num_trk_purs[iCent]->ProjectionY ("3");
-    //eff2->Divide ((TH1D*) a2->h2_den_trk_purs[iCent]->ProjectionY ("4"));
-
-    //purrat = (TH1D*) eff2->Clone ("purrat");
-    //purrat->Divide (eff1);
-    //delete eff1, eff2;
-
-    //const int bin1 = effrat->FindBin (hrat->GetBinCenter (1));
-    //const int bin2 = purrat->FindBin (hrat->GetBinCenter (1));
-    //for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
-    //  hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1));// / effrat->GetBinContent (iy+bin1-1));
-
-    g = make_graph (hrat);
-    delete hrat;//, effrat;
+    g = make_graph (h_ratio);
+    deltaize (g, 1.05, true);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
-    g->SetLineWidth (1);
-    g->SetMarkerColor (colors[3]);
-    g->SetLineColor (colors[3]);
-
-    //g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
-    g->GetXaxis ()->SetLimits (allPtchBins[0], allPtchBins[maxNPtchBins]);
-    g->GetYaxis ()->SetRangeUser (0.95, 1.05);
-
-    g->GetXaxis ()->SetMoreLogLabels ();
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kAzure-1);
+    g->SetLineColor (kAzure-1);
 
     g->Draw ("P");
 
-    //TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allXhZBins[0], allXhZBins[maxNXhZBins]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* fit2 = new TF1 ("fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
-    g->Fit (fit2, "RQN0");
+    h_ratio->Fit (fit2, "RN0Q");
+    SaferDelete (h_ratio);
 
-    fit2->SetLineColor (colors[3]);
+    fit2->SetLineColor (kAzure-1);
     fit2->SetLineStyle (2);
-    fit2->SetLineWidth (1);
+    fit2->SetLineWidth (2);
     fit2->Draw ("same");
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allXhZBins[0], allXhZBins[maxNPtchBins]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", allPtchBins[0], allPtchBins[maxNPtchBins]);
+    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
     inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
 
-    inv_fit2->SetLineColor (colors[3]);
+    inv_fit2->SetLineColor (kAzure-1);
     inv_fit2->SetLineStyle (2);
-    inv_fit2->SetLineWidth (1);
+    inv_fit2->SetLineWidth (2);
     inv_fit2->Draw ("same");
 
-    TLine* l = new TLine (allPtchBins[0], 1, allPtchBins[maxNPtchBins], 1);
+    TLine* l = new TLine (useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], 1, useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]], 1);
     l->SetLineColor (kBlack);
     l->SetLineStyle (2);
     l->Draw ("same");
 
-    //myText (0.22, 0.3, kBlack, Form ("Avg. = %s", FormatMeasurement (fit1->GetParameter (0), fit1->GetParError (0), 2)), 0.03/dPadY);
-
-    delete h1, h2;
+    SaferDelete (h_nom);
+    SaferDelete (h_up);
+    SaferDelete (h_down);
   }
 
+  c->SaveAs (Form ("../Plots/LeptonESSystStudy/electronES_%s_iPtZ%i.pdf", useTrkPt ? "pTch" : "xhZ", iPtZ));
 }
-*/
+
+
+
+
+/**
+ * Plots nominal (HILoose) vs. HITight variation on the track selection, then fits to a constant. (This is how the track quality WP systematic is evaluated.)
+ */
+void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight, const short iPtZ = nPtZBins-1) {
+  const char* canvasName = Form ("c_trackWPsyst_pTch_iPtZ%i", iPtZ);
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 1600, 800);
+    gDirectory->Add (c);
+    c->cd ();
+  }
+
+  const double dPadY = 0.5;
+  const double uPadY = 1. - dPadY;
+  const int axisTextSize = 23;
+
+  TH1D* h_hiloose = nullptr, *h_hitight = nullptr, *h_ratio = nullptr, *eff_hiloose = nullptr, *eff_hitight = nullptr, *eff_ratio = nullptr, *pur_ratio = nullptr;
+  TGraphAsymmErrors* g = nullptr;
+
+  for (int iCent = 0; iCent < numCentBins; iCent++) {
+    c->cd ();
+
+    const char* uPadName = Form ("uPad_%i", iCent);
+    const char* dPadName = Form ("dPad_%i", iCent);
+
+    TPad* uPad = new TPad (uPadName, "", (1./(numCentBins))*(iCent), dPadY, (1./(numCentBins))*(iCent+1), 1);
+    TPad* dPad = new TPad (dPadName, "", (1./(numCentBins))*(iCent), 0, (1./(numCentBins))*(iCent+1), dPadY);
+
+    uPad->SetTopMargin (0.04);
+    uPad->SetBottomMargin (0);
+    uPad->SetLeftMargin (0.17);
+    uPad->SetRightMargin (0.06);
+    dPad->SetTopMargin (0);
+    dPad->SetBottomMargin (0.25);
+    dPad->SetLeftMargin (0.17);
+    dPad->SetRightMargin (0.06);
+    uPad->Draw ();
+    dPad->Draw ();
+
+
+    uPad->cd ();
+    uPad->SetLogx ();
+    uPad->SetLogy ();
+
+    h_hiloose = (TH1D*) a_hiloose->h_trk_pt_dphi_raw[2][iPtZ][1][iCent]->Clone ("h_hiloose");
+    h_hitight = (TH1D*) a_hitight->h_trk_pt_dphi_raw[2][iPtZ][1][iCent]->Clone ("h_hitight");
+    for (int idPhi = 2; idPhi < numPhiBins; idPhi++) {
+      h_hiloose->Add (a_hiloose->h_trk_pt_dphi_raw[2][iPtZ][idPhi][iCent]);
+      h_hitight->Add (a_hitight->h_trk_pt_dphi_raw[2][iPtZ][idPhi][iCent]);
+    }
+    for (int iX = 1; iX <= h_hiloose->GetNbinsX (); iX++)
+      h_hiloose->SetBinError (iX, sqrt (h_hiloose->GetBinContent (iX)));
+    for (int iX = 1; iX <= h_hitight->GetNbinsX (); iX++)
+      h_hitight->SetBinError (iX, sqrt (h_hitight->GetBinContent (iX)));
+
+    const float min = fmin (h_hiloose->GetMinimum (0), h_hitight->GetMinimum (0));
+    const float max = fmax (h_hiloose->GetMaximum (),  h_hitight->GetMaximum ());
+
+    g = a_hiloose->GetTGAE (h_hiloose);
+
+    g->SetMarkerStyle (kFullCircle);
+    g->SetMarkerSize (1);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kBlack);
+    g->SetLineColor (kBlack);
+
+    g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    g->GetYaxis ()->SetRangeUser (0.5*min, 2*max);
+
+    g->GetXaxis ()->SetMoreLogLabels ();
+
+    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+    g->GetYaxis ()->SetTitle ("N_{ch}^{total}");
+
+    g->GetXaxis ()->SetTitleFont (43);
+    g->GetXaxis ()->SetTitleSize (axisTextSize);
+    g->GetXaxis ()->SetLabelFont (43);
+    g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+    g->GetYaxis ()->SetTitleFont (43);
+    g->GetYaxis ()->SetTitleSize (axisTextSize);
+    g->GetYaxis ()->SetLabelFont (43);
+    g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+    g->GetXaxis ()->SetTitleOffset (2.6 * g->GetXaxis ()->GetTitleOffset ());
+    g->GetYaxis ()->SetTitleOffset (1.8 * g->GetYaxis ()->GetTitleOffset ());
+
+    g->Draw ("AP");
+
+
+    g = a_hitight->GetTGAE (h_hitight);
+
+    g->SetMarkerStyle (kOpenSquare);
+    g->SetMarkerSize (1);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
+
+    g->Draw ("P");
+
+    if (iCent == 0) {
+      myText (0.40, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.040/uPadY);
+      myText (0.22, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.036/uPadY);
+      //if (iSpc == 0) myText (0.44, 0.80, kBlack, "#it{Z} #rightarrow e^{+}e^{-} events", 0.036/uPadY);
+      //if (iSpc == 1) myText (0.44, 0.80, kBlack, "#it{Z} #rightarrow #mu^{+}#mu^{-} events", 0.036/uPadY);
+    }
+    else myText (0.22, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.036/uPadY);
+
+    if (iCent == 1) myText (0.45, 0.85, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036/uPadY);
+    else if (iCent == 2) {
+      if (iPtZ == nPtZBins-1) myText (0.50, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.036/uPadY);
+      else                    myText (0.40, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.036/uPadY);
+    }
+    else if (iCent == 3) {
+      myMarkerTextNoLine (0.55, 0.9, kBlack, kFullCircle, "HILoose", 1.4, 0.036/uPadY);
+      myMarkerTextNoLine (0.55, 0.82, kRed+1, kOpenSquare, "HITight", 1.4, 0.036/uPadY);
+    }
+
+
+    dPad->cd ();
+    dPad->SetLogx ();
+
+    h_ratio = (TH1D*) h_hitight->Clone ("h_ratio");
+    h_ratio->Reset ();
+    //h_ratio->Divide (h_hiloose);
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float y1 = h_hiloose->GetBinContent (ix);
+      const float y1e = h_hiloose->GetBinError (ix);
+      const float y2 = h_hitight->GetBinContent (ix);
+      const float y2e = h_hitight->GetBinError (ix);
+      h_ratio->SetBinContent (ix, y1/y2);
+      h_ratio->SetBinError (ix, fabs(y1/y2)*sqrt (fabs (pow (y1e/y1,2) + pow (y2e/y2,2) - 2.*y1e*y1e/(y1*y2))));
+    }
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      const float passes = h_hitight->GetBinContent (ix);
+      const float trials = h_hiloose->GetBinContent (ix);
+      h_ratio->SetBinContent (ix, (passes+1) / (trials+2));
+      h_ratio->SetBinError (ix, sqrt ((passes+1)*(passes+2)/((trials+2)*(trials+3)) - pow (passes+1, 2) / pow (trials+2, 2)));
+
+      //h_ratio->SetBinError (ix, sqrt ((h_ratio->GetBinContent (ix)) * (1-h_ratio->GetBinContent (ix)) / h_hiloose->GetBinContent (ix)));
+    }
+
+    a_hiloose->LoadTrackingEfficiencies (true);
+    a_hitight->LoadTrackingEfficiencies (true);
+    a_hiloose->LoadTrackingPurities (true);
+    a_hitight->LoadTrackingPurities (true);
+
+    eff_hiloose = (TH1D*) a_hiloose->h2_num_trk_effs[iCent]->ProjectionY ("1");
+    eff_ratio = (TH1D*) a_hiloose->h2_den_trk_effs[iCent]->ProjectionY ("2");
+    eff_hiloose->Divide (eff_ratio);
+    SaferDelete (eff_ratio);
+    eff_hitight = (TH1D*) a_hitight->h2_num_trk_effs[iCent]->ProjectionY ("3");
+    eff_ratio = (TH1D*) a_hitight->h2_den_trk_effs[iCent]->ProjectionY ("4");
+    eff_hitight->Divide (eff_ratio);
+    SaferDelete (eff_ratio);
+
+    eff_ratio = (TH1D*) eff_hitight->Clone ("eff_ratio");
+    eff_ratio->Divide (eff_hiloose);
+    SaferDelete (eff_hiloose);
+    SaferDelete (eff_hitight);
+
+    eff_hiloose = (TH1D*) a_hiloose->h2_num_trk_purs[iCent]->ProjectionY ("1");
+    eff_hiloose->Divide ((TH1D*) a_hiloose->h2_den_trk_purs[iCent]->ProjectionY ("2"));
+    eff_hitight = (TH1D*) a_hitight->h2_num_trk_purs[iCent]->ProjectionY ("3");
+    eff_hitight->Divide ((TH1D*) a_hitight->h2_den_trk_purs[iCent]->ProjectionY ("4"));
+
+    pur_ratio = (TH1D*) eff_hitight->Clone ("pur_ratio");
+    pur_ratio->Divide (eff_hiloose);
+    SaferDelete (eff_hiloose);
+    SaferDelete (eff_hitight);
+
+    const int bin1 = eff_ratio->FindBin (h_ratio->GetBinCenter (1));
+    const int bin2 = pur_ratio->FindBin (h_ratio->GetBinCenter (1));
+    for (int ix = 1; ix <= h_ratio->GetNbinsX (); ix++) {
+      h_ratio->SetBinContent (ix, h_ratio->GetBinContent (ix) * pur_ratio->GetBinContent (ix+bin2-1) / eff_ratio->GetBinContent (ix+bin1-1));
+      h_ratio->SetBinError (ix, h_ratio->GetBinError (ix) * pur_ratio->GetBinContent (ix+bin2-1) / eff_ratio->GetBinContent (ix+bin1-1));
+    }
+
+
+    g = make_graph (h_ratio);
+    SaferDelete (eff_ratio);
+    SaferDelete (pur_ratio);
+
+    g->SetMarkerStyle (kOpenSquare);
+    g->SetMarkerSize (1);
+    g->SetLineWidth (2);
+    g->SetMarkerColor (kRed+1);
+    g->SetLineColor (kRed+1);
+
+    g->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    g->GetYaxis ()->SetRangeUser (0.90, 1.10);
+
+    g->GetXaxis ()->SetMoreLogLabels ();
+
+    g->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
+    g->GetYaxis ()->SetTitle ("Performance Corr. Ratio");
+
+    g->GetXaxis ()->SetTitleFont (43);
+    g->GetXaxis ()->SetTitleSize (axisTextSize);
+    g->GetXaxis ()->SetLabelFont (43);
+    g->GetXaxis ()->SetLabelSize (axisTextSize);
+
+    g->GetYaxis ()->SetTitleFont (43);
+    g->GetYaxis ()->SetTitleSize (axisTextSize);
+    g->GetYaxis ()->SetLabelFont (43);
+    g->GetYaxis ()->SetLabelSize (axisTextSize);
+
+    g->GetXaxis ()->SetTitleOffset (2.6 * g->GetXaxis ()->GetTitleOffset ());
+    g->GetYaxis ()->SetTitleOffset (1.8 * g->GetYaxis ()->GetTitleOffset ());
+
+    g->GetYaxis ()->CenterTitle ();
+
+    g->Draw ("AP");
+
+    TF1* fit1 = new TF1 ("fit1", "[0]", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    //TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    fit1->SetParameter (0, 1);
+    //fit1->SetParameter (1, 0);
+    h_ratio->Fit (fit1, "RQN0");
+    SaferDelete (h_ratio);
+
+    fit1->SetLineColor (kRed+1);
+    fit1->SetLineStyle (2);
+    fit1->SetLineWidth (2);
+    fit1->Draw ("same");
+
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+    inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
+    //inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
+
+    inv_fit1->SetLineColor (kRed+1);
+    inv_fit1->SetLineStyle (2);
+    inv_fit1->SetLineWidth (2);
+    inv_fit1->Draw ("same");
+
+    cout << "chi2/ndf = " << fit1->GetChisquare () << " / " << fit1->GetNDF () << endl;
+
+    TLine* l = new TLine (pTchBins[iPtZ][0], 1, pTchBins[iPtZ][nPtchBins[iPtZ]], 1);
+    l->SetLineColor (kBlack);
+    l->SetLineStyle (2);
+    l->Draw ("same");
+
+    myText (0.22, 0.3, kBlack, Form ("Avg. = %s", FormatMeasurement (fit1->GetParameter (0), fit1->GetParError (0), 2)), 0.03/dPadY);
+
+    SaferDelete (h_hiloose);
+    SaferDelete (h_hitight);
+  }
+  c->SaveAs (Form ("../Plots/TrackWPSystStudy/trackWP_pTch_iPtZ%i.pdf", iPtZ));
+}
 
 #endif

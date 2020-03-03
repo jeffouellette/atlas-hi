@@ -1245,7 +1245,7 @@ void Systematic :: PrintRelSystematics () {
   for (Systematic* s : systematics) {
     cout << s->description;
     for (short iCent : {0, numCentBins-1}) {
-      for (short iPtZ : {nPtZBins-2, nPtZBins-1}) {
+      for (short iPtZ : {nPtZBins-3, nPtZBins-1}) {
         cout << " & ";
         float _maxRelSys = 0;
         for (bool useTrkPt : {true}) {
@@ -1404,7 +1404,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
           myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
-          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+          if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/TrkYieldSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -1530,7 +1530,7 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
         else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
         myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+        if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/TrkYieldSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -1659,7 +1659,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
           myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
-          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+          if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -1785,7 +1785,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
         else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
         myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+        if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -1911,7 +1911,7 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
           const char* lo = GetPiString (phiLowBins[iPhi]);
           const char* hi = GetPiString (phiHighBins[iPhi]);
           myText (0.22, 0.83, kBlack, Form ("%s < #left|#Delta#phi#right| < %s", lo, hi), 0.045);
-          myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+          if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
           c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
@@ -2035,7 +2035,7 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
         else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
         myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-        myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+        if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
         c->SaveAs (Form ("%s/IAASystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
@@ -2202,7 +2202,7 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
       else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
       myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-      myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+      if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
@@ -2304,7 +2304,7 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
       else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
       myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-      myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+      if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/IAA/SystematicTrends/iaa_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
