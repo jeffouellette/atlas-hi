@@ -6,12 +6,12 @@
 #include "MCAnalysis.h"
 //#include "MCClosureAnalysis.h"
 //#include "MixedMCAnalysis.h"
-#include "MinbiasAnalysis.h"
+#include "MixingAnalysis.h"
 #include "TruthAnalysis.h"
 #include "Auxiliary.h"
 
 #include "Systematic.h"
-#include "MixingVariation.h"
+//#include "MixingVariation.h"
 #include "TrackIDSystematic.h"
 #include "ReweightingSystematic.h"
 #include "SystematicFits.h"
@@ -25,10 +25,10 @@ int mixingFraction = 0;
 // nominal analyses
 FullAnalysis* data18 = nullptr;
 //FullAnalysis* data15 = nullptr;
-MinbiasAnalysis* bkg18 = nullptr;
-//MinbiasAnalysis* bkg15 = nullptr;
+MixingAnalysis* bkg18 = nullptr;
+//MixingAnalysis* bkg15 = nullptr;
 MCAnalysis* mc = nullptr;
-MinbiasAnalysis* mc_bkg = nullptr;
+MixingAnalysis* mc_bkg = nullptr;
 TruthAnalysis* truth = nullptr;
 
 // master systematics objects
@@ -49,26 +49,28 @@ Systematic* muonPtSys = nullptr;
 //SystematicFits* bkg_muonPtUpSysFits = nullptr, *bkg_muonPtDownSysFits = nullptr;
 
 // variations for systematics
-MinbiasAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
+MixingAnalysis* bkg_statUpVar = nullptr, *bkg_statDownVar = nullptr;
 PhysicsAnalysis* data_bkgStatUpVar = nullptr, *data_bkgStatDownVar = nullptr;
 
-MinbiasAnalysis* bkg_mixVarA = nullptr, *bkg_mixVarB = nullptr, *bkg_mixVarC = nullptr, *bkg_mixVarD = nullptr, *bkg_mixVarE = nullptr, *bkg_mixVarF = nullptr, *bkg_mixVarG = nullptr, *bkg_mixVarH = nullptr;
+MixingAnalysis* bkg_mixVarA = nullptr, *bkg_mixVarB = nullptr, *bkg_mixVarC = nullptr, *bkg_mixVarD = nullptr, *bkg_mixVarE = nullptr, *bkg_mixVarF = nullptr, *bkg_mixVarG = nullptr, *bkg_mixVarH = nullptr;
 PhysicsAnalysis* data_mixVarA = nullptr, *data_mixVarB = nullptr, *data_mixVarC = nullptr, *data_mixVarD = nullptr, *data_mixVarE = nullptr, *data_mixVarF = nullptr, *data_mixVarG = nullptr, *data_mixVarH = nullptr;
 
-MinbiasAnalysis* bkg_ppTransMinVar = nullptr, *bkg_ppTransMaxVar = nullptr;
+MixingAnalysis* bkg_ppTransMinVar = nullptr, *bkg_ppTransMaxVar = nullptr;
 PhysicsAnalysis* data_ppTransMinVar = nullptr, *data_ppTransMaxVar = nullptr;
 
 PhysicsAnalysis* data_trackHItight = nullptr, *data_trkIDUpVar = nullptr, *data_trkIDDownVar = nullptr;
-MinbiasAnalysis* bkg_trkIDUpVar = nullptr, *bkg_trkIDDownVar = nullptr;
+MixingAnalysis* bkg_trkIDUpVar = nullptr, *bkg_trkIDDownVar = nullptr;
 
 PhysicsAnalysis* data_partComp = nullptr, *data_partCompUpVar = nullptr, *data_partCompDownVar = nullptr;
-MinbiasAnalysis* bkg_partCompUpVar = nullptr, *bkg_partCompDownVar = nullptr;
+MixingAnalysis* bkg_partCompUpVar = nullptr, *bkg_partCompDownVar = nullptr;
 
 PhysicsAnalysis* data_trkPurUpVar = nullptr, *data_trkPurDownVar = nullptr;
-MinbiasAnalysis* bkg_trkPurUpVar = nullptr, *bkg_trkPurDownVar = nullptr;
+MixingAnalysis* bkg_trkPurUpVar = nullptr, *bkg_trkPurDownVar = nullptr;
 
 PhysicsAnalysis* data_electronPtUp = nullptr, *data_electronPtDown = nullptr;
+MCAnalysis* mc_electronPtUp = nullptr, *mc_electronPtDown = nullptr;
 PhysicsAnalysis* data_muonPtUp = nullptr, *data_muonPtDown = nullptr;
+MCAnalysis* mc_muonPtUp = nullptr, *mc_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_leptonRejVar = nullptr;
 
@@ -79,56 +81,56 @@ void Run () {
   //data15  = new FullAnalysis ("data15");
   //data15->is2015Conds = true;
   //data15->useHijingEffs = true;
-  bkg18     = new MinbiasAnalysis ("bkg");
+  bkg18     = new MixingAnalysis ("bkg");
   //bkg15->is2015Conds = true;
   //bkg15->useHijingEffs = true;
 
   mc      = new MCAnalysis ();
-  //mc_bkg  = new MinbiasAnalysis ("mc_bkg");
+  //mc_bkg  = new MixingAnalysis ("mc_bkg");
   //truth   = new TruthAnalysis ();
 
   if (doSys) {
     data_bkgStatUpVar       = new PhysicsAnalysis ("data_bkgStatUpVar");
     data_bkgStatDownVar     = new PhysicsAnalysis ("data_bkgStatDownVar");
-    bkg_statUpVar           = new MinbiasAnalysis ("bkg_statUpVar");
-    bkg_statDownVar         = new MinbiasAnalysis ("bkg_statDownVar");
+    bkg_statUpVar           = new MixingAnalysis ("bkg_statUpVar");
+    bkg_statDownVar         = new MixingAnalysis ("bkg_statDownVar");
 
     //data_mixVar             = new PhysicsAnalysis ("data_psi2mixed");
-    //bkg_mixVar              = new MinbiasAnalysis ("bkg_psi2mixed");
+    //bkg_mixVar              = new MixingAnalysis ("bkg_psi2mixed");
     //data_mixUpVar           = new PhysicsAnalysis ("data_mixUpVar");
     //data_mixDownVar         = new PhysicsAnalysis ("data_mixDownVar");
-    //bkg_mixUpVar            = new MinbiasAnalysis ("bkg_mixUpVar");
-    //bkg_mixDownVar          = new MinbiasAnalysis ("bkg_mixDownVar");
+    //bkg_mixUpVar            = new MixingAnalysis ("bkg_mixUpVar");
+    //bkg_mixDownVar          = new MixingAnalysis ("bkg_mixDownVar");
     
     data_trackHItight       = new PhysicsAnalysis ("data_trackHITightVar");
     data_trackHItight->useHITight = true;
     data_trkIDUpVar         = new PhysicsAnalysis ("data_trkIDUpVar");
     data_trkIDUpVar->useHITight = true;
-    bkg_trkIDUpVar          = new MinbiasAnalysis ("bkg_trkIDUpVar");
+    bkg_trkIDUpVar          = new MixingAnalysis ("bkg_trkIDUpVar");
     bkg_trkIDUpVar->useHITight = true;
     data_trkIDDownVar       = new PhysicsAnalysis ("data_trkIDDownVar");
     data_trkIDDownVar->useHITight = true;
-    bkg_trkIDDownVar        = new MinbiasAnalysis ("bkg_trkIDDownVar");
+    bkg_trkIDDownVar        = new MixingAnalysis ("bkg_trkIDDownVar");
     bkg_trkIDDownVar->useHITight = true;
 
     data_partComp        = new PhysicsAnalysis ("data_trackEffVar");
     data_partComp->doTrackEffVar = true;
     data_partCompUpVar   = new PhysicsAnalysis ("data_partCompUpVar");
     data_partCompUpVar->doTrackEffVar = true;
-    bkg_partCompUpVar    = new MinbiasAnalysis ("bkg_partCompUpVar");
+    bkg_partCompUpVar    = new MixingAnalysis ("bkg_partCompUpVar");
     bkg_partCompUpVar->doTrackEffVar = true;
     data_partCompDownVar   = new PhysicsAnalysis ("data_partCompDownVar");
     data_partCompDownVar->doTrackEffVar = true;
-    bkg_partCompDownVar    = new MinbiasAnalysis ("bkg_partCompDownVar");
+    bkg_partCompDownVar    = new MixingAnalysis ("bkg_partCompDownVar");
     bkg_partCompDownVar->doTrackEffVar = true;
 
     data_trkPurUpVar      = new PhysicsAnalysis ("data_trkPurUpVar");
     data_trkPurUpVar->doTrackPurVar = true; data_trkPurUpVar->trkPurNSigma = 1;
     data_trkPurDownVar    = new PhysicsAnalysis ("data_trkPurDownVar");
     data_trkPurDownVar->doTrackPurVar = true; data_trkPurDownVar->trkPurNSigma = -1;
-    bkg_trkPurUpVar       = new MinbiasAnalysis ("bkg_trkPurUpVar");
+    bkg_trkPurUpVar       = new MixingAnalysis ("bkg_trkPurUpVar");
     bkg_trkPurUpVar->doTrackPurVar = true; bkg_trkPurUpVar->trkPurNSigma = 1;
-    bkg_trkPurDownVar     = new MinbiasAnalysis ("bkg_trkPurDownVar");
+    bkg_trkPurDownVar     = new MixingAnalysis ("bkg_trkPurDownVar");
     bkg_trkPurDownVar->doTrackPurVar = true; bkg_trkPurDownVar->trkPurNSigma = -1;
 
     data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
@@ -136,24 +138,28 @@ void Run () {
 
     data_electronPtUp       = new PhysicsAnalysis ("data_electronPtUpVar");
     data_electronPtDown     = new PhysicsAnalysis ("data_electronPtDownVar");
+    mc_electronPtUp         = new MCAnalysis ("mc_electronPtUpVar");
+    mc_electronPtDown       = new MCAnalysis ("mc_electronPtDownVar");
 
     data_muonPtUp           = new PhysicsAnalysis ("data_muonPtUpVar");
     data_muonPtDown         = new PhysicsAnalysis ("data_muonPtDownVar");
+    mc_muonPtUp             = new MCAnalysis ("mc_muonPtUpVar");
+    mc_muonPtDown           = new MCAnalysis ("mc_muonPtDownVar");
   }
 
-  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
   if (doSys) {
     //data_electronPtUp->Execute      ("DataAnalysis/Variations/ElectronPtUpVariation/data18hi.root",        "DataAnalysis/Variations/ElectronPtUpVariation/data18hi_hists.root");
     //data_electronPtDown->Execute    ("DataAnalysis/Variations/ElectronPtDownVariation/data18hi.root",      "DataAnalysis/Variations/ElectronPtDownVariation/data18hi_hists.root");
-    data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
-    data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
-    data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
-    data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
-    data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
-    data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
-    data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
+    //data_muonPtUp->Execute          ("DataAnalysis/Variations/MuonPtUpVariation/data18hi.root",            "DataAnalysis/Variations/MuonPtUpVariation/data18hi_hists.root");
+    //data_muonPtDown->Execute        ("DataAnalysis/Variations/MuonPtDownVariation/data18hi.root",          "DataAnalysis/Variations/MuonPtDownVariation/data18hi_hists.root");
+    //data_leptonRejVar->Execute      ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/LeptonRejVariation/data18hi_hists.root");
+    //data_trackHItight->Execute      ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi.root",      "DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
+    //data_partComp->Execute          ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackEffPionsVariation/data18hi_hists.root");
+    //data_trkPurUpVar->Execute       ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
+    //data_trkPurDownVar->Execute     ("DataAnalysis/Nominal/data18hi.root",                                 "DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
   }
 
 
@@ -231,22 +237,22 @@ void Run () {
     data_mixVarF->CopyAnalysis (data18, false);
     data_mixVarG->CopyAnalysis (data18, false);
     data_mixVarH->CopyAnalysis (data18, false);
-    bkg_mixVarA     = new MinbiasAnalysis ("bkg_mixVarA");
-    bkg_mixVarB     = new MinbiasAnalysis ("bkg_mixVarB");
-    bkg_mixVarC     = new MinbiasAnalysis ("bkg_mixVarC");
-    bkg_mixVarD     = new MinbiasAnalysis ("bkg_mixVarD");
-    bkg_mixVarE     = new MinbiasAnalysis ("bkg_mixVarE");
-    bkg_mixVarF     = new MinbiasAnalysis ("bkg_mixVarF");
-    bkg_mixVarG     = new MinbiasAnalysis ("bkg_mixVarG");
-    bkg_mixVarH     = new MinbiasAnalysis ("bkg_mixVarH");
-    bkg_mixVarA->LoadHists ("MinbiasAnalysis/Variations/MixingVariationA/data18hi_hists.root");
-    bkg_mixVarB->LoadHists ("MinbiasAnalysis/Variations/MixingVariationB/data18hi_hists.root");
-    bkg_mixVarC->LoadHists ("MinbiasAnalysis/Variations/MixingVariationC/data18hi_hists.root");
-    bkg_mixVarD->LoadHists ("MinbiasAnalysis/Variations/MixingVariationD/data18hi_hists.root");
-    bkg_mixVarE->LoadHists ("MinbiasAnalysis/Variations/MixingVariationE/data18hi_hists.root");
-    bkg_mixVarF->LoadHists ("MinbiasAnalysis/Variations/MixingVariationF/data18hi_hists.root");
-    bkg_mixVarG->LoadHists ("MinbiasAnalysis/Variations/MixingVariationG/data18hi_hists.root");
-    bkg_mixVarH->LoadHists ("MinbiasAnalysis/Variations/MixingVariationH/data18hi_hists.root");
+    bkg_mixVarA     = new MixingAnalysis ("bkg_mixVarA");
+    bkg_mixVarB     = new MixingAnalysis ("bkg_mixVarB");
+    bkg_mixVarC     = new MixingAnalysis ("bkg_mixVarC");
+    bkg_mixVarD     = new MixingAnalysis ("bkg_mixVarD");
+    bkg_mixVarE     = new MixingAnalysis ("bkg_mixVarE");
+    bkg_mixVarF     = new MixingAnalysis ("bkg_mixVarF");
+    bkg_mixVarG     = new MixingAnalysis ("bkg_mixVarG");
+    bkg_mixVarH     = new MixingAnalysis ("bkg_mixVarH");
+    bkg_mixVarA->LoadHists ("MixingAnalysis/Variations/MixingVariationA/data18hi_hists.root");
+    bkg_mixVarB->LoadHists ("MixingAnalysis/Variations/MixingVariationB/data18hi_hists.root");
+    bkg_mixVarC->LoadHists ("MixingAnalysis/Variations/MixingVariationC/data18hi_hists.root");
+    bkg_mixVarD->LoadHists ("MixingAnalysis/Variations/MixingVariationD/data18hi_hists.root");
+    bkg_mixVarE->LoadHists ("MixingAnalysis/Variations/MixingVariationE/data18hi_hists.root");
+    bkg_mixVarF->LoadHists ("MixingAnalysis/Variations/MixingVariationF/data18hi_hists.root");
+    bkg_mixVarG->LoadHists ("MixingAnalysis/Variations/MixingVariationG/data18hi_hists.root");
+    bkg_mixVarH->LoadHists ("MixingAnalysis/Variations/MixingVariationH/data18hi_hists.root");
     data_mixVarA->SubtractBackground (bkg_mixVarA);
     data_mixVarA->CalculateIAA ();
     data_mixVarB->SubtractBackground (bkg_mixVarB);
@@ -317,7 +323,7 @@ void Run () {
     ppMixSys = new Systematic (data18, "ppMixSys", "#it{pp} mixing");
     data_ppTransMinVar = new PhysicsAnalysis ("data_ppTransMinVar");
     data_ppTransMinVar->CopyAnalysis (data18, false);
-    bkg_ppTransMinVar = new MinbiasAnalysis ("bkg_ppMixVar");
+    bkg_ppTransMinVar = new MixingAnalysis ("bkg_ppMixVar");
     bkg_ppTransMinVar->doPPTransMinMixing = false;
     bkg_ppTransMinVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMinVariation/data18hi_hists.root");
     data_ppTransMinVar->SubtractBackground (bkg_ppTransMinVar);
@@ -328,7 +334,7 @@ void Run () {
 
     data_ppTransMaxVar = new PhysicsAnalysis ("data_ppTransMaxVar");
     data_ppTransMaxVar->CopyAnalysis (data18, false);
-    bkg_ppTransMaxVar = new MinbiasAnalysis ("bkg_ppMixVar");
+    bkg_ppTransMaxVar = new MixingAnalysis ("bkg_ppMixVar");
     bkg_ppTransMaxVar->doPPTransMinMixing = false;
     bkg_ppTransMaxVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMaxVariation/data18hi_hists.root");
     data_ppTransMaxVar->SubtractBackground (bkg_ppTransMaxVar);

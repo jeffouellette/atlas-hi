@@ -1,8 +1,8 @@
 #include "MCAnalysis.h"
-#include "MCClosureAnalysis.h"
-#include "MixedMCAnalysis.h"
+//#include "MCClosureAnalysis.h"
+//#include "MixedMCAnalysis.h"
 #include "TruthAnalysis.h"
-#include "MinbiasAnalysis.h"
+#include "MixingAnalysis.h"
 
 int mixingFraction = 40;
 
@@ -33,27 +33,29 @@ int main (int argc, char** argv) {
     histDir = "MinbiasAnalysis/";
   }
 
-  const bool isPbPb           = (string (argv[6]) == "true");
-  const bool use2015conds     = (string (argv[7]) == "true");
+  const bool isPbPb               = (string (argv[6]) == "true");
+  const bool use2015conds         = (string (argv[7]) == "true");
 
-  const bool doHITightVar     = (string (argv[8]) == "doHITightVar");
-  const bool doMuonPtUpVar    = (string (argv[8]) == "doMuonPtUpVar");
-  const bool doMuonPtDownVar  = (string (argv[8]) == "doMuonPtDownVar");
-  const bool doMixVarA        = (string (argv[8]) == "doMixVarA");
-  const bool doMixVarB        = (string (argv[8]) == "doMixVarB");
-  const bool doMixVarC        = (string (argv[8]) == "doMixVarC");
-  const bool doMixVarD        = (string (argv[8]) == "doMixVarD");
-  const bool doMixVarE        = (string (argv[8]) == "doMixVarE");
-  const bool doMixVarF        = (string (argv[8]) == "doMixVarF");
-  const bool doMixVarG        = (string (argv[8]) == "doMixVarG");
-  const bool doMixVarH        = (string (argv[8]) == "doMixVarH");
-  const bool doPPMBMixVar     = (string (argv[8]) == "doPPMBMixVar");
-  const bool doPPTransMaxVar  = (string (argv[8]) == "doPPTransMaxVar");
-  const bool doPPMixVar       = (doPPMBMixVar || doPPTransMaxVar);
-  const bool doPbPbMixVar     = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
+  const bool doHITightVar         = (string (argv[8]) == "doHITightVar");
+  const bool doMuonPtUpVar        = (string (argv[8]) == "doMuonPtUpVar");
+  const bool doMuonPtDownVar      = (string (argv[8]) == "doMuonPtDownVar");
+  const bool doElectronPtUpVar    = (string (argv[8]) == "doElectronPtUpVar");
+  const bool doElectronPtDownVar  = (string (argv[8]) == "doElectronPtDownVar");
+  const bool doMixVarA            = (string (argv[8]) == "doMixVarA");
+  const bool doMixVarB            = (string (argv[8]) == "doMixVarB");
+  const bool doMixVarC            = (string (argv[8]) == "doMixVarC");
+  const bool doMixVarD            = (string (argv[8]) == "doMixVarD");
+  const bool doMixVarE            = (string (argv[8]) == "doMixVarE");
+  const bool doMixVarF            = (string (argv[8]) == "doMixVarF");
+  const bool doMixVarG            = (string (argv[8]) == "doMixVarG");
+  const bool doMixVarH            = (string (argv[8]) == "doMixVarH");
+  const bool doPPMBMixVar         = (string (argv[8]) == "doPPMBMixVar");
+  const bool doPPTransMaxVar      = (string (argv[8]) == "doPPTransMaxVar");
+  const bool doPPMixVar           = (doPPMBMixVar || doPPTransMaxVar);
+  const bool doPbPbMixVar         = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
 
 
-  if (!doHITightVar && !doMuonPtUpVar && !doMuonPtDownVar && !doPbPbMixVar && !doPPMixVar) {
+  if (!doHITightVar && !doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doPbPbMixVar && !doPPMixVar) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -61,6 +63,14 @@ int main (int argc, char** argv) {
     inFileName = "Variations/TrackHITightWPVariation/" + inFileName;
     mbInFileName = "Variations/TrackHITightWPVariation/" + mbInFileName;
     outFileName = "Variations/TrackHITightWPVariation/" + outFileName;
+  } else if (doElectronPtUpVar) {
+    inFileName = "Variations/ElectronPtUpVariation/" + inFileName;
+    mbInFileName = "Variations/ElectronPtUpVariation/" + mbInFileName;
+    outFileName = "Variations/ElectronPtUpVariation/" + outFileName;
+  } else if (doElectronPtDownVar) {
+    inFileName = "Variations/ElectronPtDownVariation/" + inFileName;
+    mbInFileName = "Variations/ElectronPtDownVariation/" + mbInFileName;
+    outFileName = "Variations/ElectronPtDownVariation/" + outFileName;
   } else if (doMuonPtUpVar) {
     inFileName = "Variations/MuonPtUpVariation/" + inFileName;
     mbInFileName = "Variations/MuonPtUpVariation/" + mbInFileName;
@@ -121,13 +131,21 @@ int main (int argc, char** argv) {
       mc = new MCAnalysis ("mc_trackHITightVar");
     //else if (algo == "mcminbias")
     //  mc = new MCAnalysis ("mc_bkg");
+    else if (doElectronPtUpVar) {
+      mc = new MCAnalysis ("mc_electronPtUpVar");
+      mc->eventWeightsFileName = "MCAnalysis/Variations/ElectronPtUpVariation/eventWeightsFile.root";
+    }
+    else if (doElectronPtDownVar) {
+      mc = new MCAnalysis ("mc_electronPtDownVar");
+      mc->eventWeightsFileName = "MCAnalysis/Variations/ElectronPtDownVariation/eventWeightsFile.root";
+    }
     else if (doMuonPtUpVar) {
       mc = new MCAnalysis ("mc_muonPtUpVar");
       mc->eventWeightsFileName = "MCAnalysis/Variations/MuonPtUpVariation/eventWeightsFile.root";
     }
     else if (doMuonPtDownVar) {
       mc = new MCAnalysis ("mc_muonPtDownVar");
-      mc->eventWeightsFileName = "MCAnalysis/Variations/MuonPtUpVariation/eventWeightsFile.root";
+      mc->eventWeightsFileName = "MCAnalysis/Variations/MuonPtDownVariation/eventWeightsFile.root";
     }
     else
       mc = new MCAnalysis ("mc");
@@ -190,7 +208,7 @@ int main (int argc, char** argv) {
 
   //else if (algo == "minbias") {
   else if (algo == "minbias" || algo == "mcminbias") {
-    MinbiasAnalysis* bkg = nullptr;
+    MixingAnalysis* bkg = nullptr;
 
     inFileName = inDir + inFileName;
 
@@ -203,19 +221,19 @@ int main (int argc, char** argv) {
 
     outFileName = histDir + outFileName;
 
-    if (algo == "mcminbias")  bkg = new MinbiasAnalysis ("mc_bkg");
-    else if (doHITightVar)    bkg = new MinbiasAnalysis ("bkg_trackHITightVar");
-    else if (doMixVarA)       bkg = new MinbiasAnalysis ("bkg_mixVarA");
-    else if (doMixVarB)       bkg = new MinbiasAnalysis ("bkg_mixVarB");
-    else if (doMixVarC)       bkg = new MinbiasAnalysis ("bkg_mixVarC");
-    else if (doMixVarD)       bkg = new MinbiasAnalysis ("bkg_mixVarD");
-    else if (doMixVarE)       bkg = new MinbiasAnalysis ("bkg_mixVarE");
-    else if (doMixVarF)       bkg = new MinbiasAnalysis ("bkg_mixVarF");
-    else if (doMixVarG)       bkg = new MinbiasAnalysis ("bkg_mixVarG");
-    else if (doMixVarH)       bkg = new MinbiasAnalysis ("bkg_mixVarH");
-    else if (doPPMBMixVar)    bkg = new MinbiasAnalysis ("bkg_ppMBMixVar");
-    else if (doPPTransMaxVar) bkg = new MinbiasAnalysis ("bkg_ppTransMaxVar");
-    else                      bkg = new MinbiasAnalysis ("bkg");
+    if (algo == "mcminbias")  bkg = new MixingAnalysis ("mc_bkg");
+    else if (doHITightVar)    bkg = new MixingAnalysis ("bkg_trackHITightVar");
+    else if (doMixVarA)       bkg = new MixingAnalysis ("bkg_mixVarA");
+    else if (doMixVarB)       bkg = new MixingAnalysis ("bkg_mixVarB");
+    else if (doMixVarC)       bkg = new MixingAnalysis ("bkg_mixVarC");
+    else if (doMixVarD)       bkg = new MixingAnalysis ("bkg_mixVarD");
+    else if (doMixVarE)       bkg = new MixingAnalysis ("bkg_mixVarE");
+    else if (doMixVarF)       bkg = new MixingAnalysis ("bkg_mixVarF");
+    else if (doMixVarG)       bkg = new MixingAnalysis ("bkg_mixVarG");
+    else if (doMixVarH)       bkg = new MixingAnalysis ("bkg_mixVarH");
+    else if (doPPMBMixVar)    bkg = new MixingAnalysis ("bkg_ppMBMixVar");
+    else if (doPPTransMaxVar) bkg = new MixingAnalysis ("bkg_ppTransMaxVar");
+    else                      bkg = new MixingAnalysis ("bkg");
 
     if ((!isPbPb && !doPPMBMixVar))
       mixingFraction = 1;
