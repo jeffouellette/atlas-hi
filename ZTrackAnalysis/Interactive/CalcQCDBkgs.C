@@ -40,26 +40,26 @@ void CalcQCDBkgs () {
   float n_os_mumu = 0;
   float n_ss_mumu = 0;
 
-  TH1D* h_zm_mumu_os_data = new TH1D ("h_zm_mumu_os_data", ";#it{m}_{#it{#mu#mu}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_mumu_os_data = new TH1D ("h_zm_mumu_os_data", ";m_{#it{#mu#mu}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_mumu_os_data->Sumw2 ();
-  TH1D* h_zm_mumu_ss_data = new TH1D ("h_zm_mumu_ss_data", ";#it{m}_{#it{#mu#mu}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_mumu_ss_data = new TH1D ("h_zm_mumu_ss_data", ";m_{#it{#mu#mu}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_mumu_ss_data->Sumw2 ();
-  TH1D* h_zm_mumu_os_mc = new TH1D ("h_zm_mumu_os_mc", ";#it{m}_{#it{#mu#mu}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_mumu_os_mc = new TH1D ("h_zm_mumu_os_mc", ";m_{#it{#mu#mu}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_mumu_os_mc->Sumw2 ();
-  TH1D* h_zm_mumu_ss_mc = new TH1D ("h_zm_mumu_ss_mc", ";#it{m}_{#it{#mu#mu}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_mumu_ss_mc = new TH1D ("h_zm_mumu_ss_mc", ";m_{#it{#mu#mu}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_mumu_ss_mc->Sumw2 ();
 
-  TH1D* h_zm_ee_os_data = new TH1D ("h_zm_ee_os_data", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_ee_os_data = new TH1D ("h_zm_ee_os_data", ";m_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_ee_os_data->Sumw2 ();
-  TH1D* h_zm_ee_ss_data = new TH1D ("h_zm_ee_ss_data", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_ee_ss_data = new TH1D ("h_zm_ee_ss_data", ";m_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_ee_ss_data->Sumw2 ();
-  TH1D* h_zm_ee_qcd_data = new TH1D ("h_zm_ee_qcd_data", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_ee_qcd_data = new TH1D ("h_zm_ee_qcd_data", ";m_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_ee_qcd_data->Sumw2 ();
-  TH1D* h_zm_ee_os_mc = new TH1D ("h_zm_ee_os_mc", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_ee_os_mc = new TH1D ("h_zm_ee_os_mc", ";m_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_ee_os_mc->Sumw2 ();
-  TH1D* h_zm_ee_ss_mc = new TH1D ("h_zm_ee_ss_mc", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  TH1D* h_zm_ee_ss_mc = new TH1D ("h_zm_ee_ss_mc", ";m_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   h_zm_ee_ss_mc->Sumw2 ();
-  //TH1D* h_zm_ee_qcd_mc = new TH1D ("h_zm_ee_qcd_mc", ";#it{m}_{#it{ee}} [GeV];Counts", 90, 60, 150);
+  //TH1D* h_zm_ee_qcd_mc = new TH1D ("h_zm_ee_qcd_mc", ";#it{m}_{#it{ee}} [GeV];Counts / GeV", 90, 60, 150);
   //h_zm_ee_qcd_mc->Sumw2 ();
 
   for (int iEvt = 0; iEvt < dataTree->GetEntries (); iEvt++) {
@@ -123,9 +123,21 @@ void CalcQCDBkgs () {
 
   TH1D* h_zm_ee_os_mc_plus_qcd = (TH1D*) h_zm_ee_os_mc->Clone ("h_zm_ee_os_mc_plus_qcd");
   for (int iX = 1; iX <= h_zm_ee_os_mc_plus_qcd->GetNbinsX (); iX++) {
-    h_zm_ee_os_mc_plus_qcd->SetBinContent (iX, h_zm_ee_os_mc_plus_qcd->GetBinContent (iX) + h_zm_ee_qcd_data->GetBinContent (h_zm_ee_qcd_data->FindBin (h_zm_ee_os_mc_plus_qcd->GetBinCenter (iX))));
+    h_zm_ee_os_mc_plus_qcd->SetBinContent (iX, h_zm_ee_os_mc_plus_qcd->GetBinContent (iX) + 0.5 * h_zm_ee_qcd_data->GetBinContent (h_zm_ee_qcd_data->FindBin (h_zm_ee_os_mc_plus_qcd->GetBinCenter (iX))));
   }
 
+  h_zm_mumu_os_mc->Scale (1., "width");
+  h_zm_mumu_ss_mc->Scale (1., "width");
+  h_zm_mumu_os_data->Scale (1., "width");
+  h_zm_mumu_ss_data->Scale (1., "width");
+
+  h_zm_ee_os_mc->Scale (1., "width");
+  h_zm_ee_ss_mc->Scale (1., "width");
+  h_zm_ee_os_data->Scale (1., "width");
+  h_zm_ee_ss_data->Scale (1., "width");
+  h_zm_ee_qcd_data->Scale (1., "width");
+  h_zm_ee_ss_data_minus_mc->Scale (1., "width");
+  h_zm_ee_os_mc_plus_qcd->Scale (1., "width");
 
 
 
