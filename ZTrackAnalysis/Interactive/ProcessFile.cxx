@@ -237,6 +237,10 @@ int main (int argc, char** argv) {
 
     if ((!isPbPb && !doPPMBMixVar))
       mixingFraction = 1;
+    else if (!isPbPb && !doPPMBMixVar) {
+      bkg->doPPMBMixing = true;
+      mixingFraction = 40;
+    }
     else if (algo == "mcminbias")
       mixingFraction = 10;
     else if (isPbPb) {

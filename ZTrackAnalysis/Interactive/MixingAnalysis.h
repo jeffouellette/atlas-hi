@@ -82,7 +82,7 @@ class MixingAnalysis : public PhysicsAnalysis {
     histsUnfolded = true;
     iaaCalculated = true;
     //icpCalculated = true;
-    doPPMBMixing = true;
+    doPPMBMixing = false;
   }
 
   void LoadEventWeights () override;
@@ -974,7 +974,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
             }
           }
         } // end loop over idPhi
-        if (3*pi/4 <= dPhi) {
+        if ((!doPPMBMixing && 7.*pi/8. <= dPhi) || (doPPMBMixing && 3.*pi/4. <= dPhi)) {
           if (iPtch != -1 && iPtch < 6) {
             trks_counts[0][iPtch][numPhiBins]   += 1;
             trks_weights1[0][iPtch][numPhiBins] += trkWeight;
