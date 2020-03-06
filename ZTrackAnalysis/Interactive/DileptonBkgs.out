@@ -1,0 +1,24 @@
+electron effective cross sections are
+all Z->ee         = 89.3872
+ttbar->ee bkg      = 0.0391874
+Z->tautau->ee bkg  = 0.0199432
+
+# ttbar->ee events     = 86
+# Z->tautau->ee events = 6
+# Z->ee events         = 371202
+
+ttbar->ee bkg rate     = 0.0438401%
+Z->tautau->ee bkg rate = 0.0223111%
+
+
+muon effective cross sections are
+all Z->mumu         = 112.378
+ttbar->mumu bkg      = 0.0601481
+Z->tautau->mumu bkg  = 0.0132955
+
+# ttbar->mumu events     = 132
+# Z->tautau->mumu events = 4
+# Z->mumu events         = 402263
+
+ttbar->mumu bkg rate     = 0.0535228%
+Z->tautau->mumu bkg rate = 0.011831%
