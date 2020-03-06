@@ -11,6 +11,8 @@
 #include <TH1D.h>
 #include <TCanvas.h>
 
+#include <fstream>
+
 void CalcQCDBkgs () {
 
   TFile* dataFile = new TFile ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/rootFiles/BkgEstimator/Nominal/data18hi.root", "read");
@@ -95,6 +97,11 @@ void CalcQCDBkgs () {
   }
 
 
+
+
+  ofstream output;
+  output.open ("QCDbkgs.out");
+
   h_zm_mumu_ss_data->Rebin (2);
   h_zm_mumu_ss_mc->Rebin (2);
   const float mumuMCNormFactor = h_zm_mumu_os_data->Integral () / h_zm_mumu_os_mc->Integral ();
@@ -103,6 +110,7 @@ void CalcQCDBkgs () {
 
   const float muonQCDBkgRate = n_ss_mumu / (n_ss_mumu + n_os_mumu);
   cout << "QCD bkg in Z->mumu = " << muonQCDBkgRate * 100 << "%" << endl;
+  output << "QCD bkg in Z->mumu = " << muonQCDBkgRate * 100 << "%" << endl;
 
 
   h_zm_ee_ss_data->Rebin (2);
@@ -120,11 +128,17 @@ void CalcQCDBkgs () {
   
   const float electronQCDBkgRate = h_zm_ee_qcd_data->Integral (h_zm_ee_qcd_data->FindBin (76), h_zm_ee_qcd_data->FindBin (106) - 1) / h_zm_ee_os_data->Integral (h_zm_ee_os_data->FindBin (76), h_zm_ee_os_data->FindBin (106) - 1);
   cout << "QCD bkg in Z->ee   = " << electronQCDBkgRate * 100 << "%" << endl;
+  output << "QCD bkg in Z->ee   = " << electronQCDBkgRate * 100 << "%" << endl;
 
   TH1D* h_zm_ee_os_mc_plus_qcd = (TH1D*) h_zm_ee_os_mc->Clone ("h_zm_ee_os_mc_plus_qcd");
   for (int iX = 1; iX <= h_zm_ee_os_mc_plus_qcd->GetNbinsX (); iX++) {
     h_zm_ee_os_mc_plus_qcd->SetBinContent (iX, h_zm_ee_os_mc_plus_qcd->GetBinContent (iX) + 0.5 * h_zm_ee_qcd_data->GetBinContent (h_zm_ee_qcd_data->FindBin (h_zm_ee_os_mc_plus_qcd->GetBinCenter (iX))));
   }
+
+  output.close ();
+
+
+
 
   h_zm_mumu_os_mc->Scale (1., "width");
   h_zm_mumu_ss_mc->Scale (1., "width");
@@ -138,6 +152,7 @@ void CalcQCDBkgs () {
   h_zm_ee_qcd_data->Scale (1., "width");
   h_zm_ee_ss_data_minus_mc->Scale (1., "width");
   h_zm_ee_os_mc_plus_qcd->Scale (1., "width");
+
 
 
 
@@ -225,8 +240,6 @@ void CalcQCDBkgs () {
   myLineText    (0.67, 0.64, kRed+1, 2, "MC Sig. + QCD Bkg.", 1, 0.032);
 
   c_zm_ee->SaveAs ("Plots/ZeeQCDBkg.pdf");
-
-
 
   
 }
