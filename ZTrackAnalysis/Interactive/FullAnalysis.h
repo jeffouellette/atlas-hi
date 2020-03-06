@@ -1190,7 +1190,7 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         g->SetMarkerStyle (markerStyle);
         g->SetMarkerStyle (markerStyle);
         g->SetMarkerSize (1.25);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         g->SetLineColor (kBlack);
         g->SetMarkerColor (kBlack);
         g->GetXaxis ()->SetRangeUser (20, 200);
@@ -1222,15 +1222,15 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
 
       uPad->cd ();
       myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-      if (iCent == 0)
-        myText (0.71, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.04/0.6);
-      else
-        myText (0.71, 0.85, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      if (iCent == 0) myText (0.68, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.04/0.6);
+      else            myText (0.68, 0.85, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
       const char* zstr = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.71, 0.76, kBlack, zstr, 0.04/0.6);
 
-      myMarkerText (0.753, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
-      myOnlyBoxText (0.76, 0.58, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      //myMarkerText (0.753, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myMarkerText (0.78, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      //myOnlyBoxText (0.76, 0.58, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      myOnlyBoxText (0.78, 0.58, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
       c->SaveAs (Form ("%s/LeptonPtSpectra/%sPtSpectra_iCent%i.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : "Muon", iCent));
     }
@@ -1419,13 +1419,13 @@ void FullAnalysis :: PlotLeptonTrackPtSpectra () {
 
       h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ ch} [GeV]");
       if (iSpc == 0) {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{ee}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z#rightarrow#it{ee}}) (dN_{ch}/d#it{p}_{T}) [GeV^{-1}]");
       }
       else if (iSpc == 1) {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{#mu#mu}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z#rightarrow#it{#mu#mu}}) (dN_{ch}/d#it{p}_{T}) [GeV^{-1}]");
       }
       else {
-        h->GetYaxis ()->SetTitle ("1/N_{Z#rightarrow#it{ll}} dN_{ch}/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z#rightarrow#it{ll}}) (dN_{ch}/d#it{p}_{T}) [GeV^{-1}]");
       }
 
       h->SetLineColor (colors[iCent]);
@@ -1638,7 +1638,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         h->GetYaxis ()->SetRangeUser (1e-6, 0.06);
 
         h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
-        h->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#it{p}_{T} [GeV^{-1}]");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
         h->GetXaxis ()->SetTitleSize (0.04/0.6);
         h->GetYaxis ()->SetTitleSize (0.04/0.6);
         h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1666,7 +1666,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         g->GetYaxis ()->SetRangeUser (1e-6, 0.06);
 
         g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
-        g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/d#it{p}_{T} [GeV^{-1}]");
+        g->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
         g->GetXaxis ()->SetTitleSize (0.04/0.6);
         g->GetYaxis ()->SetTitleSize (0.04/0.6);
         g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1676,8 +1676,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         g->Draw (!canvasExists/* && iCent == 0*/ ? "AP" : "P");
       }
 
-      if (!a)
-        continue;
+      if (!a) continue;
 
       dPad->cd ();
       h = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -1691,7 +1690,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         g->SetMarkerStyle (markerStyle);
         g->SetMarkerStyle (markerStyle);
         g->SetMarkerSize (1);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         g->SetLineColor (kBlack);
         g->SetMarkerColor (kBlack);
         g->GetYaxis ()->SetRangeUser (0.0, 2.0);
@@ -1719,16 +1718,15 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
 
       uPad->cd ();
 
-      myText (0.66, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
+      myText (0.62, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
       myText (0.26, 0.85, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), 0.04/0.6);
-      myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
-      //myOnlyBoxText (0.76, 0.55, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001, 1);
-      myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      //myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myMarkerText (0.78, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      //myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      myOnlyBoxText (0.78, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
-      if (iCent == 0)
-        myText (0.66, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
-      else
-        myText (0.66, 0.75, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      if (iCent == 0) myText (0.62, 0.75, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+      else            myText (0.62, 0.75, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
       c->SaveAs (Form ("%s/ZPtSpectra/z_pt_spectrum_iCent%i_%s.pdf", plotPath.Data (), iCent, spc));
     }
@@ -1794,11 +1792,9 @@ void FullAnalysis :: PlotZYPhiMap () {
       const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
       myText (0.62, 0.90, kBlack, spcLabel, 0.04);
       myText (0.62, 0.84, kBlack, "#it{p}_{T}^{Z} > 15 GeV", 0.04);
-      if (iCent == 0) {
-        myText (0.18, 0.84, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
-      }
-      else
-        myText (0.18, 0.84, kBlack, Form ("Pb+Pb %i-%i%%, 5.02 TeV", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+
+      if (iCent == 0) myText (0.18, 0.84, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04);
+      else            myText (0.18, 0.84, kBlack, Form ("Pb+Pb %i-%i%%, 5.02 TeV", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
 
       c->SaveAs (Form ("%s/ZYPhiDists/z%s_y_phi_iCent%i.pdf", plotPath.Data (), spc, iCent));
     }
@@ -1856,7 +1852,7 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
         h->GetYaxis ()->SetRangeUser (0, 0.30);
 
         h->GetXaxis ()->SetTitle ("#eta_{Z}");
-        h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/d#eta");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN_{Z}/d#eta)");
         h->GetXaxis ()->SetTitleSize (0.04/0.6);
         h->GetYaxis ()->SetTitleSize (0.04/0.6);
         h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1877,13 +1873,13 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
         const int markerStyle = kFullCircle;
         g->SetMarkerStyle (markerStyle);
         //g->SetMarkerSize (1);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
         g->GetYaxis ()->SetRangeUser (0, 0.30);
 
         g->GetXaxis ()->SetTitle ("#eta_{Z}");
-        g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/d#eta");
+        g->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN_{Z}/d#eta)");
         g->GetXaxis ()->SetTitleSize (0.04/0.6);
         g->GetYaxis ()->SetTitleSize (0.04/0.6);
         g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -1896,22 +1892,17 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
       if (!a)
         continue;
 
-      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
+      myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
       const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
-      myText (0.66, 0.88, kBlack, spcLabel, 0.04/0.6);
-      myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
-      //if (iPtZ == nPtZBins-1)
-      //  myText (0.66, 0.75, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
-      //else
-      //  myText (0.66, 0.75, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
-      if (iCent == 0)
-        myText (0.22, 0.78, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
-      else
-        //myText (0.28, 0.26-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.03/0.6);
-        myText (0.22, 0.78, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
-      myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myText (0.66, 0.86, kBlack, spcLabel, 0.04/0.6);
+      myText (0.66, 0.76, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
+      if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+      else            myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      //myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myMarkerText (0.30, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      //myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      myOnlyBoxText (0.30, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
 
       dPad->cd ();
@@ -1927,7 +1918,7 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
         const int markerStyle = kFullCircle;
         g->SetMarkerStyle (markerStyle);
         //g->SetMarkerSize (1);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
         g->GetYaxis ()->SetRangeUser (0.66, 1.34);
@@ -2034,13 +2025,13 @@ void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
         const int markerStyle = kFullCircle;
         g->SetMarkerStyle (markerStyle);
         //g->SetMarkerSize (1);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
         g->GetYaxis ()->SetRangeUser (0, 0.6);
 
         g->GetXaxis ()->SetTitle ("y_{Z}");
-        g->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/dy_{Z}");
+        g->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN_{Z}/dy_{Z})");
         g->GetXaxis ()->SetTitleSize (0.04/0.6);
         g->GetYaxis ()->SetTitleSize (0.04/0.6);
         g->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -2053,22 +2044,17 @@ void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
       if (!a)
         continue;
 
-      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
+      myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
       const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
-      myText (0.66, 0.88, kBlack, spcLabel, 0.04/0.6);
-      myText (0.66, 0.78, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
-      //if (iPtZ == nPtZBins-1)
-      //  myText (0.66, 0.75, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
-      //else
-      //  myText (0.66, 0.75, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
-      if (iCent == 0)
-        myText (0.22, 0.78, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
-      else
-        //myText (0.28, 0.26-iCent*0.06, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.03/0.6);
-        myText (0.22, 0.78, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
-      myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myText (0.66, 0.86, kBlack, spcLabel, 0.04/0.6);
+      myText (0.66, 0.76, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
+      if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+      else            myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+      //myMarkerText (0.273, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      myMarkerText (0.30, 0.69, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+      //myOnlyBoxText (0.28, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+      myOnlyBoxText (0.30, 0.60, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
       
 
       dPad->cd ();
@@ -2084,7 +2070,7 @@ void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
         const int markerStyle = kFullCircle;
         g->SetMarkerStyle (markerStyle);
         //g->SetMarkerSize (1);
-        g->SetLineWidth (1);
+        g->SetLineWidth (2);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
         g->GetYaxis ()->SetRangeUser (0.66, 1.34);
@@ -2173,7 +2159,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
         h->GetYaxis ()->SetRangeUser (0, 0.5);
 
         h->GetXaxis ()->SetTitle ("y_{Z}");
-        h->GetYaxis ()->SetTitle ("1/N_{Z} dN_{Z}/dy_{Z}");
+        h->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN_{Z}/dy_{Z})");
         h->GetXaxis ()->SetTitleSize (0.04/0.6);
         h->GetYaxis ()->SetTitleSize (0.04/0.6);
         h->GetXaxis ()->SetLabelSize (0.04/0.6);
@@ -2270,14 +2256,10 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
       
     uPad->cd ();
     myText (0.22, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-    if (iCent == 0)
-      myText (0.22, 0.82, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
-    else
-      myText (0.22, 0.82, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-    if (iPtZ == nPtZBins-1)
-      myText (0.22, 0.74, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
-    else
-      myText (0.22, 0.74, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
+    if (iCent == 0) myText (0.22, 0.82, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+    else            myText (0.22, 0.82, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+    if (iPtZ == nPtZBins-1) myText (0.22, 0.74, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.04/0.6);
+    else                    myText (0.22, 0.74, kBlack, Form ("%g < #it{p}_{T} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.04/0.6);
 
     myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
     myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
@@ -2382,7 +2364,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
           const int markerStyle = kFullCircle;
           g->SetMarkerStyle (markerStyle);
           g->SetMarkerSize (1);
-          g->SetLineWidth (1);
+          g->SetLineWidth (2);
           g->SetLineColor (kBlack);
           g->SetMarkerColor (kBlack);
           //g->GetYaxis ()->SetRangeUser (0, 1.3);
@@ -2423,7 +2405,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
           g->SetMarkerStyle (markerStyle);
           g->SetMarkerStyle (markerStyle);
           g->SetMarkerSize (1);
-          g->SetLineWidth (1);
+          g->SetLineWidth (2);
           g->SetLineColor (kBlack);
           g->SetMarkerColor (kBlack);
           g->GetYaxis ()->SetRangeUser (0.3, 1.7);
@@ -2464,27 +2446,16 @@ void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, con
   myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
   const char* spc = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
   myText (0.71, 0.85, kBlack, spc, 0.04/0.6);
-  if (iCent == 0) {
-    myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
-  }
-  else
-    myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
+  if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
+  else            myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
 
-  //myOnlyBoxText (0.76, 0.67, 1.2, fillColors[iCent], kBlack, 1, "MC", 0.04/0.6, 1001, 1);
-  myOnlyBoxText (0.76, 0.67, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+  //myMarkerText (0.753, 0.76, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+  myMarkerText (0.78, 0.76, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
+  //myOnlyBoxText (0.76, 0.67, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
+  myOnlyBoxText (0.78, 0.67, 1.2, kYellow-4, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
 
-  //TVirtualPad* cPad = gPad; // store current pad
-  //TBox* b = TBoxNDC (0.4+0.6*(0.598-0.025), 0.67-0.06*numPhiBins-0.018, 0.4+0.6*(0.598+0.025), 0.67-0.06*numPhiBins+0.018);
-  //b->SetFillColorAlpha (fillColors[iCent], fillAlpha);
-  //b->Draw ("l");
-  //cPad->cd ();
-  //myText (0.753, 0.67, kBlack, "MC", 0.04/0.6);
-  myMarkerText (0.753, 0.76, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
-
-  if (iReg == 0)
-    myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
-  else if (iReg == 1)
-    myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+  if (iReg == 0)      myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| < 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
+  else if (iReg == 1) myText (0.22, 0.67, kBlack, Form ("#left|y^{#it{%s}}#right| > 1", (iSpc == 0 ? "ee" : (iSpc == 1 ? "#mu#mu" : "ll"))), 0.04/0.6);
 }
 
 
@@ -2530,7 +2501,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
     deltaize (g, (1.5-iCent)*0.02, false);
 
     g->GetXaxis ()->SetTitle ("2#left|#phi_{Z} - #Psi_{2}#right|");
-    g->GetYaxis ()->SetTitle ("1/N_{Z} dN/d#Delta#phi");
+    g->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#Delta#phi)");
 
     g->GetYaxis ()->SetRangeUser (0.16, 0.5);
 

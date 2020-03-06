@@ -2177,6 +2177,7 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
         RecenterGraph (var);
         ResetXErrors (var);
         deltaize (var, 1+(iVar+1-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+        ResetXErrors (var);
         var->SetLineColor (colors[iVar+1]);
         var->SetMarkerColor (colors[iVar+1]);
         var->SetMarkerStyle (kFullCircle);
@@ -2186,23 +2187,22 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
         var->GetYaxis ()->SetRangeUser (1e-3, 20);
 
         var->Draw ("P");
-        if (variationDescriptions.find (a) != variationDescriptions.end ())
-          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, variationDescriptions[a].c_str (), 1, 0.026);
-        else
-          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, a->Name ().c_str (), 1, 0.026);
+        if (variationDescriptions.find (a) != variationDescriptions.end ()) myMarkerText (0.65, 0.92-0.026*iVar, colors[iVar+1], kFullCircle, variationDescriptions[a].c_str (), 1, 0.026);
+        else                                                                myMarkerText (0.65, 0.92-0.026*iVar, colors[iVar+1], kFullCircle, a->Name ().c_str (), 1, 0.026);
         
         iVar++;
       }
 
-      myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-      if (iCent == 0) myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-      else            myText (0.22, 0.20, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      myText (0.22, 0.20, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      //myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      //if (iCent == 0) myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+      //else            myText (0.22, 0.20, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
 
-      if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
-      else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
+      if (iPtZ == nPtZBins-1) myText (0.25, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+      else                    myText (0.25, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-      myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-      if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+      myText (0.25, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+      if (iCent != 0) myText (0.25, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/TrkYields/SystematicTrends/ysub_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }
@@ -2273,6 +2273,7 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
         RecenterGraph (var);
         ResetXErrors (var);
         deltaize (var, 1+(iVar+1-nVar*0.5)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
+        ResetXErrors (var);
         var->SetLineColor (colors[iVar+1]);
         var->SetMarkerColor (colors[iVar+1]);
         var->SetMarkerStyle (kFullCircle);
@@ -2282,10 +2283,8 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
         var->GetYaxis ()->SetRangeUser (0, max_iaa);
 
         var->Draw ("P");
-        if (variationDescriptions.find (a) != variationDescriptions.end ())
-          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, variationDescriptions[a].c_str (), 1, 0.026);
-        else
-          myLineText (0.65, 0.92-0.026*iVar, colors[iVar+1], iVar+2, a->Name ().c_str (), 1, 0.026);
+        if (variationDescriptions.find (a) != variationDescriptions.end ()) myMarkerText (0.65, 0.92-0.026*iVar, colors[iVar+1], kFullCircle, variationDescriptions[a].c_str (), 1, 0.026);
+        else                                                                myMarkerText (0.65, 0.92-0.026*iVar, colors[iVar+1], kFullCircle, a->Name ().c_str (), 1, 0.026);
         
         iVar++;
       }
@@ -2296,15 +2295,16 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
       line->SetLineColor (kPink-8);
       line->Draw ("same");
 
-      myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-      myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
-      myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
+      myText (0.22, 0.20, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      //myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
+      //myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      //myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
-      if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
-      else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
+      if (iPtZ == nPtZBins-1) myText (0.25, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
+      else                    myText (0.25, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
 
-      myText (0.22, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
-      if (iCent != 0) myText (0.22, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
+      myText (0.25, 0.83, kBlack, "3#pi/4 < #left|#Delta#phi#right| < #pi", 0.045);
+      if (iCent != 0) myText (0.25, 0.78, kBlack, Form ("%i-%i%%", centCuts[iCent], centCuts[iCent-1]), 0.045);
 
       c->SaveAs (Form ("%s/IAA/SystematicTrends/iaa_%s_iPtZ%i_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch":"xhZ", iPtZ, iCent, (pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb"))));
     }

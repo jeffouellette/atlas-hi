@@ -1083,20 +1083,24 @@ void PhysicsAnalysis :: ScaleHists () {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        const float counts = countsHist->GetBinContent (2);
+        const float counts = countsHist->GetBinContent (1);
+        const float sumWeights = countsHist->GetBinContent (2);
+        const float sumWeightsSq = countsHist->GetBinContent (3);
         if (counts <= 0)  continue;
 
+        // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
+        // then use diagonals of the covariance matrix to determine statistical uncertainties
+        // see internal documentation or https://en.wikipedia.org/wiki/Sample_mean_and_covariance for more details
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
-          // then use diagonals of the covariance matrix to determine statistical uncertainties
           TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
           h->Scale (1/counts);
           TH2D* h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          //h2->Scale (1 / (counts*(sumWeights-1)));
+          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1105,13 +1109,14 @@ void PhysicsAnalysis :: ScaleHists () {
           h->Scale (1. / (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
 
           h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
-          h->Scale (1/counts);
+          h->Scale (1/sumWeights);
           h2 = h2_trk_xhz_dphi_cov[iSpc][iPtZ][iPhi][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          //h2->Scale (1 / (counts*(sumWeights-1)));
+          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1121,16 +1126,15 @@ void PhysicsAnalysis :: ScaleHists () {
         } // end loop over iPhi
 
 
-        // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
-        // then use diagonals of the covariance matrix to determine statistical uncertainties
         TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
-        h->Scale (1/counts);
+        h->Scale (1/sumWeights);
         TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
         assert (h2->GetNbinsX () == h->GetNbinsX ());
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+        //h2->Scale (1 / (counts*(sumWeights-1)));
+        h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
 
         for (int iX = 1; iX <= h->GetNbinsX (); iX++)
           h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1139,13 +1143,14 @@ void PhysicsAnalysis :: ScaleHists () {
         h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
 
         h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-        h->Scale (1/counts);
+        h->Scale (1/sumWeights);
         h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
         assert (h2->GetNbinsX () == h->GetNbinsX ());
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+        //h2->Scale (1 / (counts*(sumWeights-1)));
+        h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
 
         for (int iX = 1; iX <= h->GetNbinsX (); iX++)
           h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1156,13 +1161,14 @@ void PhysicsAnalysis :: ScaleHists () {
         
         for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
-          h->Scale (1/counts);
+          h->Scale (1/sumWeights);
           h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (counts)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          h2->Scale (1 / (countsHist->GetBinContent (1)*(counts-1)));
+              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+          //h2->Scale (1 / (counts*(sumWeights-1)));
+          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -2192,8 +2198,8 @@ void PhysicsAnalysis :: CorrectQ2Vector (float& q2x_a, float& q2y_a, float& q2x_
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
   cout << "\t\t\t\\multirow{4}{*}";
-  if (iPtZ == nPtZBins)
-    cout << Form ("{\\pt > \\SI{%g}{\\GeV}$}& ", zPtBins[iPtZ]);
+  if (iPtZ == nPtZBins-1)
+    cout << Form ("{$\\pt > \\SI{%g}{\\GeV}$}& ", zPtBins[iPtZ]);
   else
     cout << Form ("{$%g < \\pt < \\SI{%g}{\\GeV}$}& ", zPtBins[iPtZ], zPtBins[iPtZ+1]);
 
@@ -2201,7 +2207,7 @@ void PhysicsAnalysis :: PrintZYields (const int iPtZ) {
     if (iCent == 0)
       cout << "\\pp ";
     else
-      cout << Form ("& Pb+Pb / %i-%i\\%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]);
+      cout << Form ("& %i--%i\\%% ", (int)centCuts[iCent], (int)centCuts[iCent-1]);
 
     for (short iSpc = 0; iSpc < 3; iSpc++)
       cout << Form ("& %g ", h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1));
@@ -2819,7 +2825,7 @@ void PhysicsAnalysis :: LabelCorrelations (const short iPtZ, const short iPtch, 
         myText             (0.61, 0.90, kBlack, "Before subtraction", 0.07);
       }
       else {
-        myText             (0.17, 0.88, kBlack, "MB", 0.07);
+        myText             (0.17, 0.88, kBlack, "UE", 0.07);
         myText             (0.26, 0.88, kBlack, "#it{Z}-tagged", 0.07);
         myText             (0.63, 0.90, kBlack, "After subtraction", 0.07);
       }
