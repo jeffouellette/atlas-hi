@@ -30,7 +30,7 @@ int main (int argc, char** argv) {
   }
   if (algo == "minbias") {
     inDir = "DataAnalysis/";
-    histDir = "MinbiasAnalysis/";
+    histDir = "MixingAnalysis/";
   }
 
   const bool isPbPb               = (string (argv[6]) == "true");
@@ -165,7 +165,7 @@ int main (int argc, char** argv) {
   //else if (algo == "mcclosure") {
   //  MCClosureAnalysis* mc = nullptr;
   //  inFileName = "MCAnalysis/" + inFileName;
-  //  mbInFileName = "MinbiasAnalysis/" + mbInFileName;
+  //  mbInFileName = "MixingAnalysis/" + mbInFileName;
   //  outFileName = "MCAnalysis/" + outFileName;
   //  mc = new MCClosureAnalysis ("mc_closure");
 
@@ -217,7 +217,7 @@ int main (int argc, char** argv) {
     else if (!doPPMBMixVar && !isPbPb && algo == "mcminbias")
       mbInFileName = inFileName;
     else
-      mbInFileName = "MinbiasAnalysis/" + mbInFileName;
+      mbInFileName = "MixingAnalysis/" + mbInFileName;
 
     outFileName = histDir + outFileName;
 
