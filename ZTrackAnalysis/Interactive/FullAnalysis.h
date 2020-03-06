@@ -122,11 +122,13 @@ class FullAnalysis : public PhysicsAnalysis {
 void FullAnalysis :: CreateHists () {
   PhysicsAnalysis :: CreateHists ();
 
+  const double* z_pt_bins = logspace (1, 300, 300);
+
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       h_z_phi[iCent][iSpc]          = new TH1D (Form ("h_z_phi_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 80, 0, pi);
-      h_z_pt[iCent][iSpc]           = new TH1D (Form ("h_z_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 300, 0, 300);
+      h_z_pt[iCent][iSpc]           = new TH1D (Form ("h_z_pt_%s_iCent%i_%s", spc, iCent, name.c_str ()), "", 300, z_pt_bins);
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
         h_z_y_phi[iCent][iSpc][iPtZ]  = new TH2D (Form ("h_z_y_phi_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 20, -2.5, 2.5, 20, 0, 2*pi);
         h_z_eta[iCent][iSpc][iPtZ]    = new TH1D (Form ("h_z_eta_%s_iCent%i_iPtZ%i_%s", spc, iCent, iPtZ, name.c_str ()), "", 16, -5.0, 5.0);
@@ -163,6 +165,8 @@ void FullAnalysis :: CreateHists () {
       h_lepton_trk_dr[iCent][iSpc]->Sumw2 ();
     } // end loop over iSpc
   } // end loop over iCent
+
+  delete[] z_pt_bins;
 
   histsLoaded = true;
   return;
