@@ -140,6 +140,7 @@ class PhysicsAnalysis {
   TH1D****   h_trk_pt_ptz_sig_to_bkg  = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_trk_pt_ptz_iaa         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   //TH1D****   h_trk_pt_ptz_icp         = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  TGAE***    g_trk_avg_pt_ptz         = Get2DArray <TGAE*> (3, numCentBins); // iSpc, iCent
 
   TH1D***** h_trk_xhz_dphi            = Get4DArray <TH1D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
   TH2D***** h2_trk_xhz_dphi_cov       = Get4DArray <TH2D*> (3, nPtZBins, numPhiBins, numCentBins); // iSpc, iPtZ, iPhi, iCent
@@ -154,6 +155,7 @@ class PhysicsAnalysis {
   TH1D****   h_trk_xhz_ptz_sig_to_bkg = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D****   h_trk_xhz_ptz_iaa        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   //TH1D****   h_trk_xhz_ptz_icp        = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
+  TGAE***    g_trk_avg_xhz_ptz        = Get2DArray <TGAE*> (3, numCentBins); // iSpc, iCent
 
   PhysicsAnalysis () { }
 
@@ -277,7 +279,8 @@ class PhysicsAnalysis {
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void UnfoldSubtractedYield ();
   virtual void InflateStatUnc (const float amount);
-  virtual void SubtractSameSigns (PhysicsAnalysis* a);
+  //virtual void SubtractSameSigns (PhysicsAnalysis* a);
+  virtual void CalculateMeanTracks (TH1D*** h_zpt_ptr = nullptr);
 
   virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1); // adds or subtracts nSigma of statistical errors to analysis
@@ -326,6 +329,7 @@ class PhysicsAnalysis {
   //virtual void PlotICP_dCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICP_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
   virtual void PlotSignalToBkg (const bool useTrkPt = true, const short iSpc = 2);
+  virtual void PlotTrackMeans (const bool useTrkPt = true, const short iSpc = 2);
 
   virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
@@ -3576,42 +3580,85 @@ void PhysicsAnalysis :: InflateStatUnc (const float amount) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Statistically subtracts same sign pairs
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
-  if (sameSignsSubtracted)
-    return;
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Statistically subtracts same sign pairs
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: SubtractSameSigns (PhysicsAnalysis* a) {
+//  if (sameSignsSubtracted)
+//    return;
+//
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iCent = 0; iCent < numCentBins; iCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//
+//          TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+//          const float bkgCountsOverObsCounts = (a->h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2)) / (h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2));
+//          if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
+//            cout << bkgCountsOverObsCounts << endl;
+//            cout << "2nd to last bin before: " << h->GetBinContent (6) << endl;
+//          }
+//
+//          h->Add (a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
+//          h->Scale (1/ (1-bkgCountsOverObsCounts));
+//          //if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
+//          //  cout << "2nd to last bin after:  " << h->GetBinContent (6) << endl;
+//          //}
+//
+//          h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+//          h->Add (a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
+//          h->Scale (1/ (1-bkgCountsOverObsCounts));
+//        } // end loop over iPhi
+//      } // end loop over iPtZ
+//    } // end loop over iCent
+//  } // end loop over iSpc
+//
+//  sameSignsSubtracted = true;
+//  return;
+//}
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    //const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Calculates mean <xhZ> and <pTch> for each centrality as a function of pT^Z
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: CalculateMeanTracks (TH1D*** h_zpt_ptr = nullptr) {
+  double mean_zpt, mean_zpt_err, mean_ptch, mean_ptch_err, mean_xhz_err;
+  for (short iSpc : {0, 1, 2}) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
-        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+      g_trk_avg_pt_ptz[iSpc][iCent] = new TGAE ();
+      g_trk_avg_pt_ptz[iSpc][iCent]->SetName (Form ("h_trk_acg_pt_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      g_trk_avg_xhz_ptz[iSpc][iCent] = new TGAE ();
+      g_trk_avg_xhz_ptz[iSpc][iCent]->SetName (Form ("h_trk_acg_xhz_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
-          TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-          const float bkgCountsOverObsCounts = (a->h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2)) / (h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2));
-          if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
-            cout << bkgCountsOverObsCounts << endl;
-            cout << "2nd to last bin before: " << h->GetBinContent (6) << endl;
-          }
+      TH1D* h_zpt = h_zpt_ptr[iSpc][iCent];
 
-          h->Add (a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
-          h->Scale (1/ (1-bkgCountsOverObsCounts));
-          //if (iCent == 0 && iPhi == 0 && iSpc == 2 && iPtZ == 2) {
-          //  cout << "2nd to last bin after:  " << h->GetBinContent (6) << endl;
-          //}
+      TGAE* g = g_trk_avg_pt_ptz[iSpc][iCent];
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        mean_zpt = h_zpt->IntegralAndError (h_zpt->FindBin (zPtBins[iPtZ]), h_zpt->FindBin (zPtBins[iPtZ+1]), mean_zpt_err);
 
-          h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
-          h->Add (a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], -bkgCountsOverObsCounts);
-          h->Scale (1/ (1-bkgCountsOverObsCounts));
-        } // end loop over iPhi
+        TH1D* h = h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
+        mean_ptch = h->IntegralAndError (1, h->GetNbinsX (), mean_ptch_err);
+
+        g->SetPoint (g->GetN (), mean_zpt, mean_ptch);
+        g->SetPointError (mean_zpt_err, mean_zpt_err, mean_ptch_err, mean_ptch_err);
       } // end loop over iPtZ
+
+      TGAE* g = g_trk_avg_xhz_ptz[iSpc][iCent];
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        mean_zpt = h_zpt->IntegralAndError (h_zpt->FindBin (zPtBins[iPtZ]), h_zpt->FindBin (zPtBins[iPtZ+1]), mean_zpt_err);
+
+        TH1D* h = h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
+        mean_xhz = h->IntegralAndError (1, h->GetNbinsX (), mean_xhz_err);
+
+        g->SetPoint (g->GetN (), mean_zpt, mean_xhz);
+        g->SetPointError (mean_zpt_err, mean_zpt_err, mean_xhz_err, mean_xhz_err);
+      } // end loop over iPtZ
+
     } // end loop over iCent
   } // end loop over iSpc
-
-  sameSignsSubtracted = true;
-  return;
 }
 
 
@@ -6058,7 +6105,7 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
       g->SetLineColor (colors[iCent]);
       g->SetLineWidth (2);
       g->Draw ("P");
-    }
+    } // end loop over iCent
 
     if (iPtZ == 2) {
       myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
@@ -6076,9 +6123,79 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
       myMarkerTextNoLine (0.25, 0.685, colors[3], markerStyles[3], "0-10%", 1.2, 0.05);
       myText (0.62, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.05);
     }
-  }
+  } // end loop over iPtZ
 
   c->SaveAs (Form ("%s/TrkYields/sigToBkg_%s_dPtZ.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ"));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Plots mean track distributions vs. pT^Z
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
+  const char* canvasName = Form ("c_mean_%s_%s", useTrkPt ? "pTch" : "xhZ", iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+  const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
+  TCanvas* c = nullptr;
+  if (canvasExists)
+    c = dynamic_cast <TCanvas*> (gDirectory->Get (canvasName));
+  else {
+    c = new TCanvas (canvasName, "", 800, 800);
+    gDirectory->Add (c);
+  }
+
+  if (!canvasExists) {
+    TH1D* h = new TH1D ("htemp", "", 1, 5, 120);
+    h->GetXaxis ()->SetRangeUser (5, 120);
+    h->GetYaxis ()->SetRangeUser (min, max);
+
+    h->SetLineWidth (0);
+    h->SetMarkerSize (0);
+
+    h->GetXaxis ()->SetMoreLogLabels ();
+
+    h->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
+    h->GetYaxis ()->SetTitle (useTrkPt ? "#LT#it{p}_{T}^{ch}#GT [GeV]" : "#LT#it{x}_{hZ}#GT");
+
+    h->DrawCopy ("hist ][");
+    delete h;
+  }
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    TGAE* g = (useTrkPt ? g_trk_avg_pt_ptz : g_trk_avg_xhz_ptz)[iSpc][iCent];
+
+    g->SetMarkerStyle (markerStyles[iCent]);
+    g->SetMarkerSize ((markerStyles[iCent] == kOpenDiamond || markerStyles[iCent] == kFullDiamond) ? 2.0 : 1.2);
+    g->SetMarkerColor (colors[iCent]);
+    g->SetLineColor (colors[iCent]);
+    g->SetLineWidth (2);
+    g->Draw ("P");
+
+    if (iPtZ == 1) {
+      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
+      myText (0.22, 0.81, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.050);
+      myText (0.22, 0.74, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.050);
+      myText (0.56, 0.24, kBlack, "15 < #it{p}_{T}^{Z} < 30 GeV", 0.050);
+    }
+    else if (iPtZ == 3) {
+      myText (0.56, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.050);
+    }
+    else if (iPtZ == 4) {
+      myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}", 1.2, 0.05);
+      myMarkerTextNoLine (0.25, 0.815, colors[1], markerStyles[1], "30-80%", 1.2, 0.05);
+      myMarkerTextNoLine (0.25, 0.75, colors[2], markerStyles[2], "10-30%", 2.0, 0.05);
+      myMarkerTextNoLine (0.25, 0.685, colors[3], markerStyles[3], "0-10%", 1.2, 0.05);
+      myText (0.62, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.05);
+    }
+  } // end loop over iCent
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
+  myText (0.22, 0.81, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.050);
+  myText (0.22, 0.74, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.050);
+  myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}", 1.2, 0.05);
+  myMarkerTextNoLine (0.25, 0.815, colors[1], markerStyles[1], "30-80%", 1.2, 0.05);
+  myMarkerTextNoLine (0.25, 0.75, colors[2], markerStyles[2], "10-30%", 2.0, 0.05);
+  myMarkerTextNoLine (0.25, 0.685, colors[3], markerStyles[3], "0-10%", 1.2, 0.05);
 }
 
 
