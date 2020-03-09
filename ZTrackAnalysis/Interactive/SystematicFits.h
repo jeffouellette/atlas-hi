@@ -106,9 +106,10 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
-        f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+        f = new TF1 (Form ("f_relVarPt_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*log(x)*log(x)", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
         f->SetParameter (0, 1);
         f->SetParameter (1, 0);
+        f->SetParameter (2, 0);
         hn->Fit (f, "RN0Q");
         delete hn;
         relVarPt[iSpc][iPtZ][numPhiBins][iCent] = f;
@@ -124,9 +125,10 @@ void SystematicFits :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
           hn->SetBinContent (ix, yn/yd);
           hn->SetBinError (ix, fabs(yn/yd) * sqrt (fabs (pow (yne/yn, 2) + pow (yde/yd, 2) - 2.*yne*yne/(yn*yd))));
         }
-        f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)", xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
+        f = new TF1 (Form ("f_relVarX_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, numPhiBins, iCent, name.c_str ()), "[0]+[1]*log(x)+[2]*log(x)*log(x)", xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         f->SetParameter (0, 1);
         f->SetParameter (1, 0);
+        f->SetParameter (2, 0);
         hn->Fit (f, "RN0Q");
         delete hn;
         relVarX[iSpc][iPtZ][numPhiBins][iCent] = f;
@@ -190,7 +192,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
             float factor = 1;
             if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
-            else        factor = 2 - (f->GetParameter (0)) - (f->GetParameter (1)) * (TMath::Log (h->GetBinCenter (ix)));
+            else        factor = 2 - f->Eval (h->GetBinCenter (ix));
             h->SetBinContent (ix, h->GetBinContent (ix) * factor);
             h->SetBinError (ix, h->GetBinError (ix) * factor);
           }
@@ -203,7 +205,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
             float factor = 1;
             if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
-            else        factor = 2 - (f->GetParameter (0)) - (f->GetParameter (1)) * (TMath::Log (h->GetBinCenter (ix)));
+            else        factor = 2 - f->Eval (h->GetBinCenter (ix));
             h->SetBinContent (ix, h->GetBinContent (ix) * factor);
             h->SetBinError (ix, h->GetBinError (ix) * factor);
           }

@@ -250,7 +250,6 @@ class PhysicsAnalysis {
   void LabelCorrelations (const short iPtZ, const short iPtch, const short iCent, const bool subBkg);
   void LabelIAA_dPhi (const short iCent, const short iPhi, const short iPtZ);
   void LabelIAA_dCent (const short iCent, const short iPhi, const short iPtZ);
-  void LabelIAA_dPtZ (const short iCent, const short iPtZ);
   //void LabelICP_dPhi (const short iCent, const short iPhi, const short iPtZ);
   //void LabelICP_dCent (const short iCent, const short iPhi, const short iPtZ);
   //void LabelICP_dPtZ (const short iCent, const short iPtZ);
@@ -280,7 +279,7 @@ class PhysicsAnalysis {
   virtual void UnfoldSubtractedYield ();
   virtual void InflateStatUnc (const float amount);
   //virtual void SubtractSameSigns (PhysicsAnalysis* a);
-  virtual void CalculateMeanTracks (TH1D*** h_zpt_ptr = nullptr);
+  virtual void CalculateTrackMeans (TH1D*** h_zpt_ptr = nullptr);
 
   virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1); // adds or subtracts nSigma of statistical errors to analysis
@@ -942,16 +941,16 @@ void PhysicsAnalysis :: SaveResults (const char* saveFileName) {
 
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtch][iCent],      Form ("h_ztrk_phi_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
-          SafeWrite (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent],  Form ("h_ztrk_phi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
+          SafeWrite (h_trk_dphi[iSpc][iPtZ][iPtch][iCent],      Form ("h_trk_dphi_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
+          SafeWrite (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent],  Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
         } // end loop over iPtZ
 
-        SafeWrite (h_trk_pt_ptz[iSpc][iPtZ][iCent],                Form ("h_ztrk_pt_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent],            Form ("h_ztrk_pt_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent],     Form ("h_ztrk_pt_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_xhz_ptz[iSpc][iPtZ][iCent],               Form ("h_ztrk_xhz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent],           Form ("h_ztrk_xhz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent],    Form ("h_ztrk_xhz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_pt_ptz[iSpc][iPtZ][iCent],                Form ("h_trk_pt_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent],            Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent],     Form ("h_trk_pt_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_xhz_ptz[iSpc][iPtZ][iCent],               Form ("h_trk_xhz_ptz_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent],           Form ("h_trk_xhz_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent],    Form ("h_trk_xhz_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
 
         SafeWrite (h_z_counts[iSpc][iPtZ][iCent],                 Form ("h_z_counts_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       } // end loop over iPtZ
@@ -962,8 +961,8 @@ void PhysicsAnalysis :: SaveResults (const char* saveFileName) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        SafeWrite (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent],            Form ("h_ztrk_pt_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
-        SafeWrite (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent],           Form ("h_ztrk_xhz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent],            Form ("h_trk_pt_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        SafeWrite (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent],           Form ("h_trk_xhz_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
       } // end loop over iPtZ
     } // end loop over iSpc
   } // end loop over iCent
@@ -1097,14 +1096,13 @@ void PhysicsAnalysis :: ScaleHists () {
         // see internal documentation or https://en.wikipedia.org/wiki/Sample_mean_and_covariance for more details
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
           TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-          h->Scale (1/counts);
+          h->Scale (1/sumWeights);
           TH2D* h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          //h2->Scale (1 / (counts*(sumWeights-1)));
-          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
+          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1119,8 +1117,7 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          //h2->Scale (1 / (counts*(sumWeights-1)));
-          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
+          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1137,8 +1134,7 @@ void PhysicsAnalysis :: ScaleHists () {
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
             h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        //h2->Scale (1 / (counts*(sumWeights-1)));
-        h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
+        h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
         for (int iX = 1; iX <= h->GetNbinsX (); iX++)
           h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1153,8 +1149,7 @@ void PhysicsAnalysis :: ScaleHists () {
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
             h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-        //h2->Scale (1 / (counts*(sumWeights-1)));
-        h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
+        h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
         for (int iX = 1; iX <= h->GetNbinsX (); iX++)
           h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -1171,8 +1166,7 @@ void PhysicsAnalysis :: ScaleHists () {
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
-          //h2->Scale (1 / (counts*(sumWeights-1)));
-          h2->Scale (1 / ((counts) * (sumWeights) * (1 - sumWeightsSq / (sumWeights*sumWeights))));
+          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
           for (int iX = 1; iX <= h->GetNbinsX (); iX++)
             h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
@@ -2664,9 +2658,6 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
         c->Divide (2, numCentBins);
       }
 
-      //for (short iCent = 0; iCent < 1; iCent++) {
-      //  c->cd ();
-      //  gPad->SetLogy ();
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         for (bool subBkg : {false, true}) {
           if (subBkg && !_subBkg) continue;
@@ -2737,26 +2728,10 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
               //h->GetYaxis ()->SetRangeUser (min, max);
 
               h->SetLineColorAlpha (fillColors[iPtch], 0.8);
-              h->SetLineWidth (4);
+              h->SetLineWidth (10);
               h->SetMarkerSize (0);
 
-              //h->GetXaxis ()->SetTitle ("#Delta#phi");
-              //h->GetYaxis ()->SetTitle ("dY / d#Delta#phi");
-
-              //h->GetXaxis ()->SetTitleOffset (0.6);
-              //h->GetYaxis ()->SetTitleOffset (0.8);
-              //h->GetXaxis ()->SetTitleSize (0.08);
-              //h->GetYaxis ()->SetTitleSize (0.07);
-              //h->GetXaxis ()->SetLabelSize (0.06);
-              //h->GetYaxis ()->SetLabelSize (0.06);
-
-              //h->DrawCopy ((subBkg || !canvasExists) && iPtch == 0 ? "hist" : "same hist");
               h->DrawCopy ("same hist");
-              //h->SetLineWidth (1);
-              //h->Draw ("hist same");
-
-              //TLine* line = new TLine (h->GetBinLowEdge (1), 0, h->GetBinLowEdge (h->GetNbinsX ()), 0);
-              //line->Draw ("same");
             } // end loop over iPtch
             gPad->RedrawAxis ();
           } else {
@@ -2764,41 +2739,13 @@ void PhysicsAnalysis :: PlotCorrelations (const short pSpc, const short pPtZ, co
               TGAE* g = GetTGAE (!subBkg ? h_trk_dphi[iSpc][iPtZ][iPtch][iCent] : h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
               ResetXErrors (g);
 
-              //const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
               const Style_t markerStyle = markerStyles[iPtch];
-              //g->GetYaxis ()->SetRangeUser (min, max);
 
               g->SetMarkerStyle (markerStyle);
               g->SetLineColor (colors[iPtch]);
               g->SetMarkerColor (colors[iPtch]);
 
-              //g->GetXaxis ()->SetTitle ("#Delta#phi");
-              //g->GetYaxis ()->SetTitle ("dY / d#Delta#phi");
-
-              //g->GetXaxis ()->SetTitleOffset (0.6);
-              //g->GetYaxis ()->SetTitleOffset (0.8);
-              //g->GetXaxis ()->SetTitleSize (0.08);
-              //g->GetYaxis ()->SetTitleSize (0.07);
-              //g->GetXaxis ()->SetLabelSize (0.06);
-              //g->GetYaxis ()->SetLabelSize (0.06);
-
-              //g->Draw ((subBkg || !canvasExists) && iPtch == 0 ? "AP" : "P");
               g->Draw ("P");
-
-              //if (_subBkg) LabelCorrelations (iPtZ, iPtch, iCent, subBkg);
-
-              //TLine* line1 = new TLine (phiLowBins[1], min, phiLowBins[1], max);
-              //TLine* line2 = new TLine (2*pi - phiLowBins[1], min, 2*pi - phiLowBins[1], max);
-
-              //line1->SetLineStyle (2);
-              //line2->SetLineStyle (2);
-              //line1->SetLineWidth (2);
-              //line2->SetLineWidth (2);
-              //line1->SetLineColor (kBlack);
-              //line2->SetLineColor (kBlack);
-
-              //line1->Draw ("same");
-              //line2->Draw ("same");
             } // end loop over iPtch
           }
         }
@@ -3624,37 +3571,58 @@ void PhysicsAnalysis :: InflateStatUnc (const float amount) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates mean <xhZ> and <pTch> for each centrality as a function of pT^Z
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: CalculateMeanTracks (TH1D*** h_zpt_ptr = nullptr) {
-  double mean_zpt, mean_zpt_err, mean_ptch, mean_ptch_err, mean_xhz_err;
+void PhysicsAnalysis :: CalculateTrackMeans (TH1D*** h_zpt_ptr = nullptr) {
+  double mean_zpt, mean_zpt_err, mean_ptch, mean_ptch_err, mean_xhz, mean_xhz_err;
   for (short iSpc : {0, 1, 2}) {
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       g_trk_avg_pt_ptz[iSpc][iCent] = new TGAE ();
-      g_trk_avg_pt_ptz[iSpc][iCent]->SetName (Form ("h_trk_acg_pt_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      g_trk_avg_pt_ptz[iSpc][iCent]->SetName (Form ("g_trk_avg_pt_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       g_trk_avg_xhz_ptz[iSpc][iCent] = new TGAE ();
-      g_trk_avg_xhz_ptz[iSpc][iCent]->SetName (Form ("h_trk_acg_xhz_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
+      g_trk_avg_xhz_ptz[iSpc][iCent]->SetName (Form ("g_trk_avg_xhz_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
-      TH1D* h_zpt = h_zpt_ptr[iSpc][iCent];
+      TH1D* h_zpt = h_zpt_ptr[iCent][iSpc];
+      TGAE* g = nullptr;
+      TH1D* h = nullptr;
 
-      TGAE* g = g_trk_avg_pt_ptz[iSpc][iCent];
+      g = g_trk_avg_pt_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        mean_zpt = h_zpt->IntegralAndError (h_zpt->FindBin (zPtBins[iPtZ]), h_zpt->FindBin (zPtBins[iPtZ+1]), mean_zpt_err);
+        mean_zpt = 0;
+        mean_zpt_err = 0;
+        const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
+        const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+        for (int iX = firstBin; iX <= lastBin; iX++) {
+          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX);
+          mean_zpt_err += pow (h_zpt->GetBinError (iX) * h_zpt->GetBinCenter (iX), 2);
+        }
+        mean_zpt = mean_zpt / (zPtBins[iPtZ+1]-zPtBins[iPtZ]);
+        mean_zpt_err = sqrt (mean_zpt_err) / (zPtBins[iPtZ+1]-zPtBins[iPtZ]);
 
-        TH1D* h = h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
-        mean_ptch = h->IntegralAndError (1, h->GetNbinsX (), mean_ptch_err);
+        h = h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
+        mean_ptch = h->GetMean ();
+        mean_ptch_err = h->GetMeanError ();
 
         g->SetPoint (g->GetN (), mean_zpt, mean_ptch);
-        g->SetPointError (mean_zpt_err, mean_zpt_err, mean_ptch_err, mean_ptch_err);
+        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_ptch_err, mean_ptch_err);
       } // end loop over iPtZ
 
-      TGAE* g = g_trk_avg_xhz_ptz[iSpc][iCent];
+      g = g_trk_avg_xhz_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        mean_zpt = h_zpt->IntegralAndError (h_zpt->FindBin (zPtBins[iPtZ]), h_zpt->FindBin (zPtBins[iPtZ+1]), mean_zpt_err);
+        mean_zpt = 0;
+        mean_zpt_err = 0;
+        const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
+        const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+        for (int iX = firstBin; iX <= lastBin; iX++) {
+          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX);
+          mean_zpt_err += pow (h_zpt->GetBinError (iX) * h_zpt->GetBinCenter (iX), 2);
+        }
 
-        TH1D* h = h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
-        mean_xhz = h->IntegralAndError (1, h->GetNbinsX (), mean_xhz_err);
+        h = h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
+        mean_xhz = h->GetMean ();
+        mean_xhz_err = h->GetMeanError ();
 
         g->SetPoint (g->GetN (), mean_zpt, mean_xhz);
-        g->SetPointError (mean_zpt_err, mean_zpt_err, mean_xhz_err, mean_xhz_err);
+        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_xhz_err, mean_xhz_err);
       } // end loop over iPtZ
 
     } // end loop over iCent
@@ -4071,8 +4039,8 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
           if (iCent == 0) myText (0.25, 0.06, kBlack, "#it{pp}, 5.02 TeV", 0.06);
           else            myText (0.25, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
-          if (iCent == 2 && iSpc == 0)      myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}", 0.06);
-          else if (iCent == 2 && iSpc == 1) myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}", 0.06);
+          if (iCent == 2 && iSpc == 0)      myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{e}#it{e}", 0.06);
+          else if (iCent == 2 && iSpc == 1) myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{#mu}#it{#mu}", 0.06);
 
           if (iCent == 0) myText (0.485, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
           else if (iCent == 1) {
@@ -4307,8 +4275,8 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
         }
         else myText (0.25, 0.06, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
-        if (iCent == 2 && iSpc == 0)      myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}", 0.06);
-        else if (iCent == 2 && iSpc == 1) myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}", 0.06);
+        if (iCent == 2 && iSpc == 0)      myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{e}#it{e}", 0.06);
+        else if (iCent == 2 && iSpc == 1) myText (0.72, 0.87, kBlack, "#it{Z} #rightarrow #it{#mu}#it{#mu}", 0.06);
 
         if (iCent == 0)       myText (0.485, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
         else if (iCent == 1)  myText (0.485, 0.87, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.06);
@@ -4320,7 +4288,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
         if (iCent == numCentBins-1) {
           for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
             myLineText (0.47, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], iPtZ, "", 2.0, 0.054) ;
-            myMarkerTextNoLine (0.54, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", 1.5, 0.054); // for plotting data vs bkg.
+            myMarkerTextNoLine (0.56, 0.85-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", 1.5, 0.054); // for plotting data vs bkg.
 
             if (iPtZ == nPtZBins-1) myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.054);
             else                    myText (0.56, 0.84-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.054);
@@ -4736,6 +4704,10 @@ void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, co
 
   h2->GetXaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
   h2->GetYaxis ()->SetTitle (useTrkPt ? "#it{p}_{T}^{ch} [GeV]" : "#it{x}_{hZ}");
+
+  h2->GetXaxis ()->SetMoreLogLabels ();
+  h2->GetYaxis ()->SetMoreLogLabels ();
+
   //h2->GetZaxis ()->SetTitle (useTrkPt ? "[cov (Y(x), Y(y)) / N_{evt} #LTY(x)#GT#LTY(y)#GT]^{1/2}" : "[cov (Y(x), Y(y)) / N_{evt} #LTY(x)#GT#LTY(y)#GT]^{1/2}");
   //h2->GetZaxis ()->SetTitle (useTrkPt ? "cov (Y(x), Y(y)) / N_{evt} #LTY(x)#GT#LTY(y)#GT" : "cov (Y(x), Y(y)) / N_{evt} #LTY(x)#GT#LTY(y)#GT");
   h2->GetZaxis ()->SetTitle (useTrkPt ? "cov (Y(x), Y(y)) / N_{evt} [GeV^{-2}]" : "cov (Y(x), Y(y)) / N_{evt}");
@@ -4749,8 +4721,8 @@ void PhysicsAnalysis :: PlotCovMatrix (const bool useTrkPt, const short pSpc, co
   myText (0.23, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
   if (pCent == 0) myText (0.23, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.04);
   else            myText (0.23, 0.80, kBlack, Form ("Pb+Pb, 5.02 TeV, %i-%i%%", (int)centCuts[pCent], (int)centCuts[pCent-1]), 0.04);
-  if (pPtZ == nPtZBins-1) myText (0.23, 0.75, kBlack, Form ("#it{Z} #rightarrow %s, #it{p}_{T}^{Z} > %g GeV", (pSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (pSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), zPtBins[pPtZ]), 0.04);
-  else                    myText (0.23, 0.75, kBlack, Form ("#it{Z} #rightarrow %s, %g < #it{p}_{T}^{Z} < %g GeV", (pSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (pSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), zPtBins[pPtZ], zPtBins[pPtZ+1]), 0.04);
+  if (pPtZ == nPtZBins-1) myText (0.23, 0.75, kBlack, Form ("#it{Z} #rightarrow %s, #it{p}_{T}^{Z} > %g GeV", (pSpc == 0 ? "#it{e}#it{e}" : (pSpc == 1 ? "#it{#mu}#it{#mu}" : "#it{l}#it{l}")), zPtBins[pPtZ]), 0.04);
+  else                    myText (0.23, 0.75, kBlack, Form ("#it{Z} #rightarrow %s, %g < #it{p}_{T}^{Z} < %g GeV", (pSpc == 0 ? "#it{e}#it{e}" : (pSpc == 1 ? "#it{#mu}#it{#mu}" : "#it{l}#it{l}")), zPtBins[pPtZ], zPtBins[pPtZ+1]), 0.04);
 
   c->SaveAs (Form ("%s/CovMatrices/covMatrix_%s_iSpc%i_iPtZ%i_iCent%i.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", pSpc, pPtZ, pCent));
 }
@@ -4939,13 +4911,6 @@ void PhysicsAnalysis :: LabelIAA_dPhi (const short iCent, const short iPhi, cons
     }
     const char* lo = GetPiString (phiLowBins[iPhi]);
     const char* hi = GetPiString (phiHighBins[iPhi]);
-    //const char* lo = phiLowBins[iPhi] != 0 ? (phiLowBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiLowBins[iPhi]*16/pi)) : "0";
-    //const char* hi = phiHighBins[iPhi] != pi ? (phiHighBins[iPhi] == pi/2 ? "#pi/2" : Form ("%.0f#pi/16", phiHighBins[iPhi]*16/pi)) : "#pi";
-    //TVirtualPad* cPad = gPad; // store current pad
-    //TBox* b = TBoxNDC (0.61-0.024, 0.91-0.06*iPhi-0.016, 0.61+0.024, 0.91-0.06*iPhi+0.016);
-    //b->SetFillColorAlpha (fillColors[iPhi], fillAlpha);
-    //b->Draw ("l");
-    //cPad->cd ();
     myMarkerTextNoLine (0.63, 0.925-0.06*(iPhi+1), colors[iPhi], kFullCircle, "", 1.4, 0.05);
     myText (0.65, 0.91-0.06*(iPhi+1), kBlack, Form ("(%s, %s)", lo, hi), 0.05);
   }
@@ -5181,13 +5146,28 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
           g->Draw ("2P");
         }
 
-        if (!canvasExists) LabelIAA_dPtZ (iCent, iPtZ);
+        if (!canvasExists) {
+          if (iCent == 1 && iPtZ == 2) {
+            myText (0.26, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.065);
+            myText (0.26, 0.78, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.05);
+            myText (0.26, 0.715, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.05);
+          }
+          else if (iCent == 2 && iPtZ == 2) {
+            const char* lo = GetPiString (phiLowBins[1]);
+            const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
+            myText (0.50, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.05);
+          }
+          else if (iCent == numCentBins-1) {
+            if (iPtZ == nPtZBins-1) myMarkerText (0.56, 0.900-0.07*(iPtZ-2), colors[iPtZ-1], markerStyle, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), (markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.0 : 1.2, 0.05);
+            else                    myMarkerText (0.56, 0.900-0.07*(iPtZ-2), colors[iPtZ-1], markerStyle, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), (markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.0 : 1.2, 0.05);
+          }
+        }
       } // end loop over iPtZ
     } // end loop over iCent
 
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       c->cd (iCent);
-      myText (0.22, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
+      myText (0.22, 0.20, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);
 
       TLine* l = new TLine (xmin, 1, xmax, 1);
       l->SetLineStyle (2);
@@ -5198,30 +5178,6 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
 
     c->SaveAs (Form ("%s/IAA/iaa_%s_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", spc));
   } // end loop over iSpc
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary (non-virtual) plot labelling for IAA measurements
-////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: LabelIAA_dPtZ (const short iCent, const short iPtZ) {
-
-  if (iCent == 1 && iPtZ == 2) {
-    myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.065);
-    myText (0.22, 0.78, kBlack, "Pb+Pb, 5.02 TeV", 0.05);
-  }
-  else if (iCent == 2 && iPtZ == 2) {
-    const char* lo = GetPiString (phiLowBins[1]);
-    const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-    myText (0.50, 0.88, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.05);
-  }
-  else if (iCent == numCentBins-1) {
-    myMarkerTextNoLine (0.55, 0.900-0.06*(iPtZ-2), colors[iPtZ-1], markerStyles[iPtZ-2], "", (markerStyles[iPtZ-2] == kOpenDiamond || markerStyles[iPtZ-2] == kFullDiamond) ? 2.0 : 1.2, 0.05);
-    if (iPtZ == nPtZBins-1) myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.05);
-    else myText (0.565, 0.89-0.06*(iPtZ-2), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.05);
-  }
 }
 
 
@@ -5250,7 +5206,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
        continue; // allows user to define which plots should be made
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
 
-    const char* canvasName = Form ("c_iaa_%s_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", pPtZ, iCent, spc);
+    const char* canvasName = Form ("c_singlePlot_iaa_%s_iPtZ%i_iCent%i_%s", useTrkPt ? "pTch" : "xhZ", pPtZ, iCent, spc);
     const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
     TCanvas* c = nullptr;
     if (canvasExists)
@@ -5265,7 +5221,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
     gPad->SetLogy ();
 
     for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-      const Style_t markerStyle = markerStyles[iPtZ-3];
+      const Style_t markerStyle = markerStyles[iPtZ-iPtZLo];
 
       TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
       RecenterGraph (g);
@@ -5273,7 +5229,8 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
       if (!plotAsSystematic) {
         //deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
         ResetXErrors (g);
-        //deltaize (g, 1+(iPtZ-3)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+        deltaize (g, 1+(iPtZ-(iPtZHi+iPtZLo)/2.)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
+        ResetXErrors (g);
         g->SetLineColor (colors[iPtZ-iPtZLo+1]);
         g->SetMarkerColor (colors[iPtZ-iPtZLo+1]);
         g->SetMarkerStyle (markerStyle);
@@ -5289,7 +5246,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
 
       useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
       //g->GetYaxis ()->SetRangeUser (0.1, max_iaa);
-      g->GetYaxis ()->SetRangeUser (0.15, max_iaa);
+      g->GetYaxis ()->SetRangeUser (0.10, max_iaa);
 
       g->GetXaxis ()->SetMoreLogLabels ();
       g->GetYaxis ()->SetMoreLogLabels ();
@@ -5320,20 +5277,19 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
         ((TGAE*)g->Clone ())->Draw (drawString.c_str ());
         g->Draw ("2P");
       }
+
+      if (!canvasExists) {
+        if (iPtZ == nPtZBins-1) myMarkerText (0.680, 0.88-0.055*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], markerStyle, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), (markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.5 : 1.5, 0.036);
+        else                    myMarkerText (0.680, 0.88-0.055*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], markerStyle, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), (markerStyle == kOpenDiamond || markerStyle == kFullDiamond) ? 2.5 : 1.5, 0.036);
+      }
     } // end loop over iPtZ
 
     if (!canvasExists) {
-      myText (0.20, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);
-      myText (0.20, 0.83, kBlack, "Pb+Pb, 5.02 TeV", 0.045);
-      const char* lo = GetPiString (phiLowBins[1]);
-      const char* hi = GetPiString (phiHighBins[numPhiBins-1]);
-      myText (0.20, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.05);
-      myText (0.20, 0.77, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.04);
-      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-        myMarkerTextNoLine (0.674, 0.868-0.05*(iPtZ-iPtZLo), colors[iPtZ-iPtZLo+1], markerStyles[iPtZ-3], "", (markerStyles[iPtZ-3] == kOpenDiamond || markerStyles[iPtZ-3] == kFullDiamond) ? 3.2 : 2.0, 0.04);
-        if (iPtZ == nPtZBins-1) myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.032);
-        else myText (0.690, 0.86-0.05*(iPtZ-iPtZLo), kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.032);
-      }
+      myText (0.20, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.048);
+      myText (0.20, 0.83, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.034);
+      myText (0.20, 0.784, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.034);
+      myText (0.76, 0.22, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.044);
+      //myText (0.20, 0.77, kBlack, "3#pi/4 < |#Delta#phi| < #pi", 0.036);
 
       TLine* l = new TLine (xmin, 1, xmax, 1);
       l->SetLineStyle (2);
@@ -5342,7 +5298,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
       l->Draw ("same");
     }
 
-    c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_%s.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", iCent, spc));
+    c->SaveAs (Form ("%s/IAA/iaa_%s_iCent%i_dPtZ_%s.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", iCent, spc));
   } // end loop over iSpc
 }
 
@@ -6148,7 +6104,7 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
   if (!canvasExists) {
     TH1D* h = new TH1D ("htemp", "", 1, 5, 120);
     h->GetXaxis ()->SetRangeUser (5, 120);
-    h->GetYaxis ()->SetRangeUser (min, max);
+    h->GetYaxis ()->SetRangeUser (0, useTrkPt ? 10 : 1);
 
     h->SetLineWidth (0);
     h->SetMarkerSize (0);
@@ -6172,23 +6128,8 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
     g->SetLineWidth (2);
     g->Draw ("P");
 
-    if (iPtZ == 1) {
-      myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
-      myText (0.22, 0.81, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.050);
-      myText (0.22, 0.74, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.050);
-      myText (0.56, 0.24, kBlack, "15 < #it{p}_{T}^{Z} < 30 GeV", 0.050);
-    }
-    else if (iPtZ == 3) {
-      myText (0.56, 0.24, kBlack, "30 < #it{p}_{T}^{Z} < 60 GeV", 0.050);
-    }
-    else if (iPtZ == 4) {
-      myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}", 1.2, 0.05);
-      myMarkerTextNoLine (0.25, 0.815, colors[1], markerStyles[1], "30-80%", 1.2, 0.05);
-      myMarkerTextNoLine (0.25, 0.75, colors[2], markerStyles[2], "10-30%", 2.0, 0.05);
-      myMarkerTextNoLine (0.25, 0.685, colors[3], markerStyles[3], "0-10%", 1.2, 0.05);
-      myText (0.62, 0.24, kBlack, "#it{p}_{T}^{Z} > 60 GeV", 0.05);
-    }
   } // end loop over iCent
+
   myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
   myText (0.22, 0.81, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.050);
   myText (0.22, 0.74, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.050);

@@ -442,7 +442,7 @@ void FullAnalysis :: ScaleHists () {
         normFactor += h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
 
       if (h_lepton_pt[iCent][iSpc]) {
-        h_lepton_pt[iCent][iSpc]->Rebin (5);
+        h_lepton_pt[iCent][iSpc]->Rebin (10);
         if (normFactor > 0)
           h_lepton_pt[iCent][iSpc]->Scale (1 / normFactor, "width");
       }
@@ -467,7 +467,7 @@ void FullAnalysis :: ScaleHists () {
 
       if ( h_z_pt[iCent][iSpc]) {
         h_z_pt[iCent][iSpc]->Rebin (10);
-        h_z_pt[iCent][iSpc]->Scale (0.1);
+        //h_z_pt[iCent][iSpc]->Scale (0.1);
         if (h_z_pt[iCent][iSpc]->Integral () > 0)
           h_z_pt[iCent][iSpc]->Scale (1 / h_z_pt[iCent][iSpc]->Integral (), "width");
       }
@@ -1116,32 +1116,37 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         c->cd ();
       }
 
-      TH1D* h = (TH1D*) h_lepton_pt[iCent][iSpc];
-
       uPad->cd ();
       uPad->SetLogx ();
       uPad->SetLogy ();
+
+      TH1D* h = (TH1D*) h_lepton_pt[iCent][iSpc];
+
+      if (!canvasExists) {
+        TH1D* htemp = (TH1D*) h->Clone ("htemp");
+        htemp->Reset ();
+        htemp->GetYaxis ()->SetRangeUser (2e-6, 0.50);
+        htemp->GetXaxis ()->SetMoreLogLabels ();
+        htemp->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+        htemp->GetYaxis ()->SetTitle (Form ("(1/N_{Z}) (dN_{%s}/d#it{p}_{T}) [GeV^{-1}]", spc));
+        htemp->GetXaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetYaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetXaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetYaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->DrawCopy ("hist");
+        SaferDelete (htemp);
+      }
+
       if (plotFill) {
         //h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
         h->SetFillColorAlpha (kAzure+10, fillAlpha);
         h->SetLineColor (kBlack);
         h->SetMarkerSize (0);
         h->SetLineWidth (0);
-        h->GetXaxis ()->SetRangeUser (20, 200);
-        h->GetYaxis ()->SetRangeUser (2e-6, 0.50);
 
-        h->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
-        h->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
-        h->GetXaxis ()->SetTitleSize (0.04/0.6);
-        h->GetYaxis ()->SetTitleSize (0.04/0.6);
-        h->GetXaxis ()->SetLabelSize (0.04/0.6);
-        h->GetYaxis ()->SetLabelSize (0.04/0.6);
-        h->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        h->GetYaxis ()->SetTitleOffset (1.5*0.6);
-
-        h->GetXaxis ()->SetMoreLogLabels ();
-
-        h->DrawCopy (!canvasExists ? "bar" : "bar same");
+        h->DrawCopy ("bar same");
         h->SetLineWidth (1);
         h->Draw ("hist same");
 
@@ -1158,25 +1163,11 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         g->SetMarkerColor (kBlack);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
-        g->GetXaxis ()->SetRangeUser (20, 200);
-        g->GetYaxis ()->SetRangeUser (2e-6, 0.50);
 
-        g->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
-        g->GetYaxis ()->SetTitle (Form ("1/N_{Z#rightarrow%s%s} dN_{%s}/d#it{p}_{T} [GeV^{-1}]", spc, spc, spc));
-        g->GetXaxis ()->SetTitleSize (0.04/0.6);
-        g->GetYaxis ()->SetTitleSize (0.04/0.6);
-        g->GetXaxis ()->SetLabelSize (0.04/0.6);
-        g->GetYaxis ()->SetLabelSize (0.04/0.6);
-        g->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        g->GetYaxis ()->SetTitleOffset (1.5*0.6);
-
-        g->GetXaxis ()->SetMoreLogLabels ();
-
-        g->Draw (!canvasExists ? "AP" : "P");
+        g->Draw ("P");
       }
 
-      if (!a)
-        continue;
+      if (!a) continue;
 
       h = (TH1D*) h_lepton_pt[iCent][iSpc]->Clone (Form ("h_lepton_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h->Divide (a->h_lepton_pt[iCent][iSpc]);
@@ -1184,6 +1175,29 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
       dPad->cd ();
       dPad->SetLogx ();
       //dPad->SetLogy ();
+
+      TH1D* htemp = (TH1D*) h->Clone ("htemp");
+      htemp->Reset ();
+      htemp->GetXaxis ()->SetMoreLogLabels ();
+      htemp->GetYaxis ()->SetRangeUser (0.0, 2.0);
+      htemp->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
+      htemp->GetYaxis ()->SetTitle ("Data / MC");
+      htemp->GetXaxis ()->SetTitleSize (0.04/0.4);
+      htemp->GetYaxis ()->SetTitleSize (0.04/0.4);
+      htemp->GetXaxis ()->SetLabelSize (0.04/0.4);
+      htemp->GetYaxis ()->SetLabelSize (0.04/0.4);
+      htemp->GetXaxis ()->SetTitleOffset (2.5*0.4);
+      htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
+      htemp->GetYaxis ()->CenterTitle ();
+      htemp->DrawCopy ("hist");
+      SaferDelete (htemp);
+
+      TLine* l = new TLine (20, 1, 250, 1);
+      l->SetLineColor (46);
+      l->SetLineWidth (2);
+      l->SetLineStyle (5);
+      l->Draw ("same");
+
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -1195,28 +1209,8 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         g->SetLineWidth (2);
         g->SetLineColor (kBlack);
         g->SetMarkerColor (kBlack);
-        g->GetXaxis ()->SetRangeUser (20, 200);
-        g->GetYaxis ()->SetRangeUser (0.5, 1.5);
 
-        g->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
-        g->GetYaxis ()->SetTitle ("Data / MC");
-        g->GetXaxis ()->SetTitleSize (0.04/0.4);
-        g->GetYaxis ()->SetTitleSize (0.04/0.4);
-        g->GetXaxis ()->SetLabelSize (0.04/0.4);
-        g->GetYaxis ()->SetLabelSize (0.04/0.4);
-        g->GetXaxis ()->SetTitleOffset (2.5*0.4);
-        g->GetYaxis ()->SetTitleOffset (1.5*0.4);
-        g->GetYaxis ()->CenterTitle ();
-
-        g->GetXaxis ()->SetMoreLogLabels ();
-
-        g->Draw ("AP");
-
-        TLine* l = new TLine (0, 1, 200, 1);
-        l->SetLineColor (46);
-        l->SetLineWidth (2);
-        l->SetLineStyle (5);
-        l->Draw ("same");
+        g->Draw ("P");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotLeptonPtSpectra: Lepton pT spectra ratio needs to be calculated!" << endl;
@@ -1226,7 +1220,7 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
       myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
       if (iCent == 0) myText (0.68, 0.85, kBlack, "#it{pp}, 5.02 TeV", 0.04/0.6);
       else            myText (0.68, 0.85, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
-      const char* zstr = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+      const char* zstr = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
       myText (0.71, 0.76, kBlack, zstr, 0.04/0.6);
 
       //myMarkerText (0.753, 0.67, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
@@ -1379,7 +1373,7 @@ void FullAnalysis :: PlotLeptonEtaSpcComp (FullAnalysis* a) {
   myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
   myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
   for (int iSpc = 0; iSpc < 2; iSpc++) {
-    const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+    const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
     myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
     //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
     myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1.);
@@ -1444,7 +1438,7 @@ void FullAnalysis :: PlotLeptonTrackPtSpectra () {
       myText (0.66, 0.82-0.06*iCent, colors[iCent], Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
     }
 
-    myText (0.66, 0.88, kBlack, iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ?"#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}"), 0.04);
+    myText (0.66, 0.88, kBlack, iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ?"#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}"), 0.04);
     c->SaveAs (Form ("%s/LeptonTrackPtSpectra/%sTrackPtSpectra.pdf", plotPath.Data (), iSpc == 0 ? "Electron" : (iSpc == 1 ? "Muon" : "Comb")));
   }
 
@@ -1627,9 +1621,26 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       c->cd ();
 
       uPad->cd ();
+      gPad->SetLogx ();
       gPad->SetLogy ();
 
       TH1D* h = h_z_pt[iCent][iSpc];
+
+      if (!canvasExists) {
+        TH1D* htemp = (TH1D*) h->Clone ("htemp");
+        htemp->Reset ();
+        htemp->GetYaxis ()->SetRangeUser (1.2e-6, 0.90);
+        htemp->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
+        htemp->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
+        htemp->GetXaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetYaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetXaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetYaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->DrawCopy ("hist");
+        SaferDelete (htemp);
+      }
 
       if (plotFill) {
         //h->SetFillColorAlpha (fillColors[iCent], fillAlpha);
@@ -1637,18 +1648,8 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         h->SetLineColor (kBlack);
         h->SetMarkerSize (0);
         h->SetLineWidth (0);
-        h->GetYaxis ()->SetRangeUser (1e-6, 0.06);
 
-        h->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
-        h->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
-        h->GetXaxis ()->SetTitleSize (0.04/0.6);
-        h->GetYaxis ()->SetTitleSize (0.04/0.6);
-        h->GetXaxis ()->SetLabelSize (0.04/0.6);
-        h->GetYaxis ()->SetLabelSize (0.04/0.6);
-        h->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        h->GetYaxis ()->SetTitleOffset (1.5*0.6);
-
-        h->DrawCopy (!canvasExists ? "bar" : "bar same");
+        h->DrawCopy ("bar same");
         h->SetLineWidth (1);
         h->Draw ("hist same");
 
@@ -1665,25 +1666,40 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         g->SetMarkerColor (kBlack);
         //g->SetLineColor (colors[iCent]);
         //g->SetMarkerColor (colors[iCent]);
-        g->GetYaxis ()->SetRangeUser (1e-6, 0.06);
-
-        g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
-        g->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
-        g->GetXaxis ()->SetTitleSize (0.04/0.6);
-        g->GetYaxis ()->SetTitleSize (0.04/0.6);
-        g->GetXaxis ()->SetLabelSize (0.04/0.6);
-        g->GetYaxis ()->SetLabelSize (0.04/0.6);
-        g->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        g->GetYaxis ()->SetTitleOffset (1.5*0.6);
-        g->Draw (!canvasExists/* && iCent == 0*/ ? "AP" : "P");
+        g->Draw ("P");
       }
 
       if (!a) continue;
 
       dPad->cd ();
+      gPad->SetLogx ();
+
       h = (TH1D*) h_z_pt[iCent][iSpc]->Clone (Form ("h_z_pt_ratio_%s_iCent%i_%s", spc, iCent, name.c_str ()));
       h->Divide (a->h_z_pt[iCent][iSpc]);
       h_z_pt_ratio[iCent][iSpc] = h;
+
+      TH1D* htemp = (TH1D*) h->Clone ("htemp");
+      htemp->Reset ();
+      htemp->GetXaxis ()->SetMoreLogLabels ();
+      htemp->GetYaxis ()->SetRangeUser (0.0, 2.0);
+      htemp->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
+      htemp->GetYaxis ()->SetTitle ("Data / MC");
+      htemp->GetXaxis ()->SetTitleSize (0.04/0.4);
+      htemp->GetYaxis ()->SetTitleSize (0.04/0.4);
+      htemp->GetXaxis ()->SetLabelSize (0.04/0.4);
+      htemp->GetYaxis ()->SetLabelSize (0.04/0.4);
+      htemp->GetXaxis ()->SetTitleOffset (2.5*0.4);
+      htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
+      htemp->GetYaxis ()->CenterTitle ();
+      htemp->DrawCopy ("hist");
+      SaferDelete (htemp);
+
+      TLine* l = new TLine (0, 1, 300, 1);
+      l->SetLineColor (46);
+      l->SetLineWidth (2);
+      l->SetLineStyle (5);
+      l->Draw ("same");
+
       if (h) {
         TGraphAsymmErrors* g = GetTGAE (h);
         ResetXErrors (g);
@@ -1695,24 +1711,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         g->SetLineWidth (2);
         g->SetLineColor (kBlack);
         g->SetMarkerColor (kBlack);
-        g->GetYaxis ()->SetRangeUser (0.0, 2.0);
-
-        g->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
-        g->GetYaxis ()->SetTitle ("Data / MC");
-        g->GetXaxis ()->SetTitleSize (0.04/0.4);
-        g->GetYaxis ()->SetTitleSize (0.04/0.4);
-        g->GetXaxis ()->SetLabelSize (0.04/0.4);
-        g->GetYaxis ()->SetLabelSize (0.04/0.4);
-        g->GetXaxis ()->SetTitleOffset (2.5*0.4);
-        g->GetYaxis ()->SetTitleOffset (1.5*0.4);
-        g->GetYaxis ()->CenterTitle ();
-        g->Draw ("AP");
-
-        TLine* l = new TLine (0, 1, 300, 1);
-        l->SetLineColor (46);
-        l->SetLineWidth (2);
-        l->SetLineStyle (5);
-        l->Draw ("same");
+        g->Draw ("P");
       }
       else {
         cout << "Warning in FullAnalysis :: PlotZPtSpectra: Z pT spectra ratio not stored, needs to be calculated!" << endl;
@@ -1721,7 +1720,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       uPad->cd ();
 
       myText (0.62, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-      myText (0.26, 0.85, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), 0.04/0.6);
+      myText (0.26, 0.85, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}#it{e}" : (iSpc == 1 ? "#it{#mu}#it{#mu}" : "#it{l}#it{l}")), 0.04/0.6);
       //myMarkerText (0.753, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
       myMarkerText (0.78, 0.65, kBlack, kFullCircle, "Data", 1.25, 0.04/0.6);
       //myOnlyBoxText (0.76, 0.55, 1.2, kAzure+10, kBlack, 1, "MC", 0.04/0.6, 1001, 1);
@@ -1791,7 +1790,7 @@ void FullAnalysis :: PlotZYPhiMap () {
 
       myText (0.18, 0.90, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
 
-      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
       myText (0.62, 0.90, kBlack, spcLabel, 0.04);
       myText (0.62, 0.84, kBlack, "#it{p}_{T}^{Z} > 15 GeV", 0.04);
 
@@ -1896,7 +1895,7 @@ void FullAnalysis :: PlotZEtaMap (FullAnalysis* a) {
 
       myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
-      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
       myText (0.66, 0.86, kBlack, spcLabel, 0.04/0.6);
       myText (0.66, 0.76, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
       if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
@@ -2048,7 +2047,7 @@ void FullAnalysis :: PlotZYMap (FullAnalysis* a) {
 
       myText (0.22, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
 
-      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
       myText (0.66, 0.86, kBlack, spcLabel, 0.04/0.6);
       myText (0.66, 0.76, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV" , zPtBins[2]), 0.04/0.6);
       if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
@@ -2266,7 +2265,7 @@ void FullAnalysis :: PlotZYMapSpcComp (const short pPtZ, FullAnalysis* a) {
     myText (0.58, 0.90, kBlack, "Data", 0.032/0.6);
     myText (0.66, 0.90, kBlack, "MC Reco.", 0.032/0.6);
     for (int iSpc = 0; iSpc < 2; iSpc++) {
-      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+      const char* spcLabel = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
       myMarkerTextNoLine (0.64, 0.823-iSpc*0.06, colors[iSpc+1], kFullCircle, "", 1.8, 0.04/0.6);
       //myBoxText (0.72, 0.823-iSpc*0.06, colors[iSpc+1], kOpenCircle, "", 1.5, 0.04/0.6);
       myOnlyBoxText (0.75, 0.823-iSpc*0.06, 1.2, fillColors[iSpc+1], kBlack, 1, "", 0.06, 1001, 1);
@@ -2446,7 +2445,7 @@ void FullAnalysis :: PlotZMassSpectra (FullAnalysis* a) {
 
 void FullAnalysis :: LabelZMassSpectra (const short iSpc, const short iCent, const short iReg) {
   myText (0.22, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.045/0.6);
-  const char* spc = iSpc == 0 ? "#it{Z} #rightarrow #it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}^{+}#it{#mu}^{-}" : "#it{Z} #rightarrow #it{l}^{+}#it{l}^{-}");
+  const char* spc = iSpc == 0 ? "#it{Z} #rightarrow #it{e}#it{e}" : (iSpc == 1 ? "#it{Z} #rightarrow #it{#mu}#it{#mu}" : "#it{Z} #rightarrow #it{l}#it{l}");
   myText (0.71, 0.85, kBlack, spc, 0.04/0.6);
   if (iCent == 0) myText (0.22, 0.76, kBlack, Form ("#it{pp}, 5.02 TeV"), 0.04/0.6);
   else            myText (0.22, 0.76, kBlack, Form ("Pb+Pb %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04/0.6);
@@ -2533,7 +2532,7 @@ void FullAnalysis :: PlotZPhiYield (const short pSpc) {
   myText (0.66, 0.88, kBlack, "Pb+Pb, 5.02 TeV", 0.04);
   myText (0.22, 0.81, kBlack, "#it{p}_{T}^{Z} > 5 GeV", 0.04);
   if (pSpc != 2)
-    myText (0.25, 0.72, kBlack, Form ("#it{Z} #rightarrow %s", pSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : "#it{#mu}^{+}#it{#mu}^{-}"), 0.04);
+    myText (0.25, 0.72, kBlack, Form ("#it{Z} #rightarrow %s", pSpc == 0 ? "#it{e}#it{e}" : "#it{#mu}#it{#mu}"), 0.04);
 
   c->SaveAs (Form ("%s/q2_Mixing/ZPhiYields_%s.pdf", plotPath.Data (), pSpc == 0 ? "ee" : (pSpc == 1 ? "mumu" : "comb")));
 }
@@ -2634,7 +2633,7 @@ void FullAnalysis :: PlotAllYields_Scatter_dPtZ (const bool useTrkPt, const shor
       if (iCent == 0) {
         myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.07);
         myText (0.22, 0.80, kBlack, "#it{pp}, 5.02 TeV", 0.06);
-        myText (0.22, 0.74, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}^{+}#it{e}^{-}" : (iSpc == 1 ? "#it{#mu}^{+}#it{#mu}^{-}" : "#it{l}^{+}#it{l}^{-}")), 0.06);
+        myText (0.22, 0.74, kBlack, Form ("#it{Z} #rightarrow %s", iSpc == 0 ? "#it{e}#it{e}" : (iSpc == 1 ? "#it{#mu}#it{#mu}" : "#it{l}#it{l}")), 0.06);
       }
       else
         myText (0.55, 0.87, kBlack, Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.06);

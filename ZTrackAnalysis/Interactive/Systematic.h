@@ -1355,8 +1355,8 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
     
           g_lows->Draw ("L");
 
-          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+          if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
           short iSys = 0;
           for (Systematic* sys : systematics) {
@@ -1390,13 +1390,13 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
   
             g_lows->Draw ("L");
 
-            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
           myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
           if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
 
           if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
           else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
@@ -1483,8 +1483,8 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
   
         g_lows->Draw ("L");
 
-        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+        if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
@@ -1518,13 +1518,13 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
 
           g_lows->Draw ("L");
 
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
         myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
         if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
 
         if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
         else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
@@ -1612,8 +1612,8 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   
           g_lows->Draw ("L");
 
-          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+          if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
           short iSys = 0;
           for (Systematic* sys : systematics) {
@@ -1645,13 +1645,13 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   
             g_lows->Draw ("L");
 
-            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
           myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
           if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+          else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
 
           if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
           else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
@@ -1740,8 +1740,8 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
   
         g_lows->Draw ("L");
 
-        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+        if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
@@ -1773,13 +1773,13 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
 
           g_lows->Draw ("L");
 
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
         myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
         if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+        else            myText (0.22, 0.22, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
 
         if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
         else                    myText (0.22, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
@@ -1864,8 +1864,8 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   
           g_lows->Draw ("L");
 
-          if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-          else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+          if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+          else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
           short iSys = 0;
           for (Systematic* sys : systematics) {
@@ -1897,12 +1897,12 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   
             g_lows->Draw ("L");
 
-            myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
           myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-          myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+          myText (0.22, 0.26, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
           myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
           if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
@@ -1990,8 +1990,8 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
 
         g_lows->Draw ("L");
 
-        if (systematics.size () == 0) myLineText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
-        else                          myLineText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
+        if (systematics.size () == 0) myLineColorText (0.65, 0.88, kGray+1, 1, description.c_str (), 1, 0.04);
+        else                          myLineColorText (0.65, 0.92, kGray+1, 1, "Total", 1, 0.026);
 
         short iSys = 0;
         for (Systematic* sys : systematics) {
@@ -2023,12 +2023,12 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
 
           g_lows->Draw ("L");
 
-          myLineText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
         myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-        myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+        myText (0.22, 0.26, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
         myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
         if (iPtZ == nPtZBins-1) myText (0.22, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
@@ -2196,7 +2196,7 @@ void Systematic :: PlotVarSignalTrkYields_dPtZ (const bool useTrkPt, const short
       myText (0.22, 0.20, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
       //myText (0.22, 0.26, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
       //if (iCent == 0) myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
-      //else            myText (0.22, 0.20, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      //else            myText (0.22, 0.20, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
 
       if (iPtZ == nPtZBins-1) myText (0.25, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);
       else                    myText (0.25, 0.88, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.045);
@@ -2297,7 +2297,7 @@ void Systematic :: PlotVarSignalIAAs_dPtZ (const bool useTrkPt, const short pSpc
 
       myText (0.22, 0.20, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
       //myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
-      //myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      //myText (0.22, 0.26, kBlack, "Pb+Pb, 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);
       //myText (0.22, 0.20, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
 
       if (iPtZ == nPtZBins-1) myText (0.25, 0.88, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.045);

@@ -263,9 +263,10 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     g->Draw ("AP");
 
     //TF1* fit1 = new TF1 ("fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
+    fit1->SetParameter (2, 0);
     h_ratio->Fit (fit1, "RN0Q");
     SaferDelete (h_ratio);
 
@@ -275,9 +276,12 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     fit1->Draw ("same");
 
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
-    inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    //inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
+    //inv_fit1->SetParameter (1, -fit1->GetParameter (1)/fit1->GetParameter (0));
+    inv_fit1->SetParameter (0, 2-fit1->GetParameter (0));
+    inv_fit1->SetParameter (1, -fit1->GetParameter (1));
+    inv_fit1->SetParameter (2, -fit1->GetParameter (2));
 
     inv_fit1->SetLineColor (kRed+1);
     inv_fit1->SetLineStyle (2);
@@ -310,9 +314,10 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     g->Draw ("P");
 
     //TF1* fit2 = new TF1 ("fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
+    fit2->SetParameter (2, 0);
     h_ratio->Fit (fit2, "RN0Q");
     SaferDelete (h_ratio);
 
@@ -324,9 +329,12 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
     //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
-    inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    //inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
+    //inv_fit2->SetParameter (1, -fit2->GetParameter (1)/fit2->GetParameter (0));
+    inv_fit2->SetParameter (0, 2-fit2->GetParameter (0));
+    inv_fit2->SetParameter (1, -fit2->GetParameter (1));
+    inv_fit2->SetParameter (2, -fit2->GetParameter (2));
 
     inv_fit2->SetLineColor (kAzure-1);
     inv_fit2->SetLineStyle (2);
@@ -525,7 +533,7 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     g->Draw ("AP");
 
     //TF1* fit1 = new TF1 ("fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit1 = new TF1 ("fit1", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
     h_ratio->Fit (fit1, "RN0Q");
@@ -537,9 +545,12 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     fit1->Draw ("same");
 
     //TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
-    inv_fit1->SetParameter (1, fit1->GetParameter (1)/fit1->GetParameter (0));
+    TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    //inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
+    //inv_fit1->SetParameter (1, -fit1->GetParameter (1)/fit1->GetParameter (0));
+    inv_fit1->SetParameter (2, 2-fit1->GetParameter (0));
+    inv_fit1->SetParameter (2, -fit1->GetParameter (1));
+    inv_fit1->SetParameter (2, -fit1->GetParameter (2));
 
     inv_fit1->SetLineColor (kRed+1);
     inv_fit1->SetLineStyle (2);
@@ -572,9 +583,10 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     g->Draw ("P");
 
     //TF1* fit2 = new TF1 ("fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
+    fit2->SetParameter (2, 0);
     h_ratio->Fit (fit2, "RN0Q");
     SaferDelete (h_ratio);
 
@@ -586,9 +598,12 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
     //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]-[1]*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
-    inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
+    TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
+    //inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
+    //inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
+    inv_fit2->SetParameter (2, 2-fit2->GetParameter (0));
+    inv_fit2->SetParameter (2, -fit2->GetParameter (1));
+    inv_fit2->SetParameter (2, -fit2->GetParameter (2));
 
     inv_fit2->SetLineColor (kAzure-1);
     inv_fit2->SetLineStyle (2);
