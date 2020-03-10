@@ -10,6 +10,8 @@
 #include <TGraphAsymmErrors.h>
 #include <TEfficiency.h>
 
+typedef TGraphAsymmErrors TGAE;
+
 namespace atlashi {
 
 /**
@@ -98,13 +100,13 @@ void ResetHistErrors (TH1D* h);
 /**
  * Sets all the errors in this TGAE to 0.
  */
-void ResetTGAEErrors (TGraphAsymmErrors* g);
+void ResetTGAEErrors (TGAE* g);
 
 
 /**
  * Sets all the x errors in this TGAE to 0.
  */
-void ResetXErrors (TGraphAsymmErrors* tg);
+void ResetXErrors (TGAE* tg);
 
 
 /**
@@ -122,7 +124,7 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys);
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
-void AddErrorsInQuadrature (TGraphAsymmErrors* master, TGraphAsymmErrors* sys);
+void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs = false);
 
 
 /**
@@ -136,19 +138,19 @@ void CalcSystematics (TH1D* sys, TH1D* var);
  * Calculates simple systematics as maximum variations on the nominal.
  * Intended for combining up/down variations in an expandable way.
  */
-void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const bool applyBothWays = true);
+void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays = true);
 
 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);
+void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);
 
 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal, const TGraph* sys_hi, const TGraph* sys_lo);
+void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo);
 
 
 /**
@@ -160,7 +162,7 @@ void SaveRelativeErrors (TH1D* errors, TH1D* centralValues);
 /**
  * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
  */
-void SaveRelativeErrors (TGraphAsymmErrors* errors, TGraphAsymmErrors* centralValues, TH1D* highs, TH1D* lows);
+void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows);
 
 
 /**
@@ -170,27 +172,27 @@ TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxi
 
 
 /**
- * Separates each point on a TGraphAsymmErrors by delta along the x axis, so that the errors don't overlap.
+ * Separates each point on a TGAE by delta along the x axis, so that the errors don't overlap.
  */
-void deltaize (TGraphAsymmErrors* tg, const double delta = 0, const bool logx = false);
+void deltaize (TGAE* tg, const double delta = 0, const bool logx = false);
 
 
 /**
- * Makes a TGraphAsymmErrors from the input histogram.
+ * Makes a TGAE from the input histogram.
  */
-TGraphAsymmErrors* make_graph (TH1* h, const float cutoff = -1);
+TGAE* make_graph (TH1* h, const float cutoff = -1);
 
 
 /**
  * Converts a TEfficiency to a TGAE
  */
-TGraphAsymmErrors* TEff2TGAE (TEfficiency* e);
+TGAE* TEff2TGAE (TEfficiency* e);
 
 
 /**
- * Recenters a TGraphAsymmErrors point for a log scale.
+ * Recenters a TGAE point for a log scale.
  */
-void RecenterGraph (TGraphAsymmErrors* g);
+void RecenterGraph (TGAE* g);
 
 
 /**

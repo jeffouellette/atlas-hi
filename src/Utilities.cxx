@@ -262,9 +262,9 @@ void ResetHistErrors (TH1D* h) {
 
 
 /**
- * Sets all the errors in this TGraphAsymmErrors to 0.
+ * Sets all the errors in this TGAE to 0.
  */
-void ResetTGAEErrors (TGraphAsymmErrors* g) {
+void ResetTGAEErrors (TGAE* g) {
   for (int ix = 0; ix < g->GetN (); ix++) {
     g->SetPointEYhigh (ix, 0);
     g->SetPointEYlow (ix, 0);
@@ -275,7 +275,7 @@ void ResetTGAEErrors (TGraphAsymmErrors* g) {
 /**
  * Sets all the x errors in this TGAE to 0.
  */
-void ResetXErrors (TGraphAsymmErrors* tg) {
+void ResetXErrors (TGAE* tg) {
   for (int ix = 0; ix < tg->GetN (); ix++) {
     tg->SetPointEXlow (ix, 0);
     tg->SetPointEXhigh (ix, 0);
@@ -315,7 +315,7 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
-void AddErrorsInQuadrature (TGraphAsymmErrors* master, TGraphAsymmErrors* sys) {
+void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs) {
   for (int ix = 0; ix < master->GetN (); ix++) {
     //double xm=0, ym=0, xs=0, ys=0;
     //master->GetPoint (ix, xm, ym);
@@ -328,6 +328,13 @@ void AddErrorsInQuadrature (TGraphAsymmErrors* master, TGraphAsymmErrors* sys) {
     master->SetPointEYhigh (ix, newErr);
     newErr = sqrt (pow (master->GetErrorYlow (ix), 2) + pow (sys->GetErrorYlow (ix), 2));
     master->SetPointEYlow (ix, newErr);
+
+    if (doXErrs) {
+      newErr = sqrt (pow (master->GetErrorXhigh (ix), 2) + pow (sys->GetErrorXhigh (ix), 2));
+      master->SetPointEXhigh (ix, newErr);
+      newErr = sqrt (pow (master->GetErrorXlow (ix), 2) + pow (sys->GetErrorXlow (ix), 2));
+      master->SetPointEXlow (ix, newErr);
+    }
   }
 }
 
@@ -349,7 +356,7 @@ void CalcSystematics (TH1D* sys, TH1D* var) {
  * Intended for combining up/down variations in an expandable way.
  * dir represents the variation direction, -1 = down, 0 = either, 1 = up
  */
-void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const bool applyBothWays) {
+void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays) {
   for (int ix = 0; ix < sys->GetN (); ix++) {
     double x, y;
     sys->GetPoint (ix, x, y);
@@ -365,7 +372,7 @@ void CalcSystematics (TGraphAsymmErrors* sys, TH1D* var, const bool applyBothWay
 }
 
 
-void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
+void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
   for (int ix = 1; ix <= optimal->GetNbinsX(); ix++) {
     const double content = optimal->GetBinContent (ix);
     const double lo = sys_lo->GetBinContent (ix);
@@ -401,7 +408,7 @@ void CalcSystematics (TGraphAsymmErrors* graph, const TH1* optimal, const TH1* s
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGraphAsymmErrors* graph, const TGraphAsymmErrors* optimal, const TGraph* sys_hi, const TGraph* sys_lo) {
+void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo) {
   for (int ix = 0; ix < optimal->GetN(); ix++) {
     double x, y, xl, yl, xh, yh;
     optimal->GetPoint (ix, x, y);
@@ -447,7 +454,7 @@ void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
 /**
  * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
  */
-void SaveRelativeErrors (TGraphAsymmErrors* errors, TGraphAsymmErrors* centralValues, TH1D* highs, TH1D* lows) {
+void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows) {
   for (int ix = 0; ix < centralValues->GetN (); ix++) {
     double x = 0, y = 0, eyhi = 0, eylo = 0;
     centralValues->GetPoint (ix, x, y);
@@ -627,9 +634,9 @@ TString GetIdentifier (const int dataSet, const char* inFileName, const bool isM
 
 
 /**
- * Separates each point on a TGraphAsymmErrors by delta along the x axis, so that the errors don't overlap.
+ * Separates each point on a TGAE by delta along the x axis, so that the errors don't overlap.
  */
-void deltaize (TGraphAsymmErrors* tg, const double delta, const bool logx) {
+void deltaize (TGAE* tg, const double delta, const bool logx) {
   double x, y, exh, exl;
   for (int n = 0; n < tg->GetN (); n++) {
     tg->GetPoint (n, x, y);
@@ -650,10 +657,10 @@ void deltaize (TGraphAsymmErrors* tg, const double delta, const bool logx) {
 
 
 /**
- * Makes a TGraphAsymmErrors from the input histogram.
+ * Makes a TGAE from the input histogram.
  */
-TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
-  TGraphAsymmErrors* tg = new TGraphAsymmErrors ();
+TGAE* make_graph (TH1* h, const float cutoff) {
+  TGAE* tg = new TGAE ();
 
   const float xlo = h->GetBinLowEdge (1);
   const float xhi = h->GetBinLowEdge (h->GetNbinsX ()) + h->GetBinWidth (h->GetNbinsX ());
@@ -676,9 +683,9 @@ TGraphAsymmErrors* make_graph (TH1* h, const float cutoff) {
 /**
  * Converts a TEfficiency to a TGAE
  */
-TGraphAsymmErrors* TEff2TGAE (TEfficiency* e) {
+TGAE* TEff2TGAE (TEfficiency* e) {
   const int nx = e->GetTotalHistogram ()->GetNbinsX ();
-  TGraphAsymmErrors* g = new TGraphAsymmErrors (nx);
+  TGAE* g = new TGAE (nx);
   for (int ix = 0; ix < nx; ix++) {
     g->SetPoint (ix, e->GetTotalHistogram ()->GetBinCenter (ix+1), e->GetEfficiency (ix+1));
     g->SetPointEXhigh (ix, 0.5*e->GetTotalHistogram ()->GetBinWidth (ix+1));
@@ -691,9 +698,9 @@ TGraphAsymmErrors* TEff2TGAE (TEfficiency* e) {
 
 
 /**
- * Recenters a TGraphAsymmErrors point for a log scale.
+ * Recenters a TGAE point for a log scale.
  */
-void RecenterGraph (TGraphAsymmErrors* g) {
+void RecenterGraph (TGAE* g) {
   double x, y, newx, xlo, xhi, logDelta;
   for (int n = 0; n < g->GetN (); n++) {
     g->GetPoint (n, x, y);
