@@ -41,6 +41,7 @@ class PhysicsAnalysis {
 
   bool iaaCalculated = false;
   //bool icpCalculated = false;
+  bool trackMeansCalculated = false;
 
   TFile* eventWeightsFile = nullptr;
   bool eventWeightsLoaded = false;
@@ -54,6 +55,7 @@ class PhysicsAnalysis {
 
   public:
   bool histsUnfolded = false;
+  bool variancesUnfolded = false;
   bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
@@ -212,6 +214,7 @@ class PhysicsAnalysis {
     Delete3DArray (h_trk_pt_ptz_sig_to_bkg,   3, nPtZBins, numCentBins);
     Delete3DArray (h_trk_pt_ptz_iaa,          3, nPtZBins, numCentBins);
     //Delete3DArray (h_trk_pt_ptz_icp,          3, nPtZBins, numCentBins);
+    Delete2DArray (g_trk_avg_pt_ptz,          3, numCentBins);
 
     Delete4DArray (h_trk_xhz_dphi,            3, nPtZBins, numPhiBins, numCentBins);
     Delete4DArray (h2_trk_xhz_dphi_cov,       3, nPtZBins, numPhiBins, numCentBins);
@@ -226,6 +229,7 @@ class PhysicsAnalysis {
     Delete3DArray (h_trk_xhz_ptz_sig_to_bkg,  3, nPtZBins, numCentBins);
     Delete3DArray (h_trk_xhz_ptz_iaa,         3, nPtZBins, numCentBins);
     //Delete3DArray (h_trk_xhz_ptz_icp,         3, nPtZBins, numCentBins);
+    Delete2DArray (g_trk_avg_xhz_ptz,         3, numCentBins);
 
     if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
       eventWeightsFile->Close ();
@@ -264,6 +268,8 @@ class PhysicsAnalysis {
 
   virtual TGAE* GetTGAE (TH1D* h);
 
+  static void SetErrors (TH1D* h, TH2D* h2);
+
   virtual void CreateHists ();
   virtual void CopyAnalysis (PhysicsAnalysis* a, const bool copyBkgs = false);
   virtual void ClearHists ();
@@ -277,9 +283,11 @@ class PhysicsAnalysis {
   virtual void LoadEventWeights ();
   virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
   virtual void UnfoldSubtractedYield ();
+  //virtual void UnfoldVariances ();
+  virtual void SetVariances ();
   virtual void InflateStatUnc (const float amount);
   //virtual void SubtractSameSigns (PhysicsAnalysis* a);
-  virtual void CalculateTrackMeans (TH1D*** h_zpt_ptr = nullptr);
+  virtual void CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt_ptr, PhysicsAnalysis* cov = nullptr);
 
   virtual void ApplyRelativeVariation (float**** relVar, const bool upVar = true); // multiplies yield results by relErr in each bin (or divides if not upVar)
   virtual void ConvertToStatVariation (const bool upVar = true, const float nSigma = 1); // adds or subtracts nSigma of statistical errors to analysis
@@ -328,7 +336,7 @@ class PhysicsAnalysis {
   //virtual void PlotICP_dCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
   //virtual void PlotICP_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
   virtual void PlotSignalToBkg (const bool useTrkPt = true, const short iSpc = 2);
-  virtual void PlotTrackMeans (const bool useTrkPt = true, const short iSpc = 2);
+  virtual void PlotTrackMeans (const bool useTrkPt = true, const bool plotAsSystematic = false, const short iSpc = 2);
 
   virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
@@ -399,6 +407,22 @@ TGAE* PhysicsAnalysis :: GetTGAE (TH1D* h) {
   return make_graph (h);
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets errors in h based on variance matrix h2
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: SetErrors (TH1D* h, TH2D* h2) {
+  assert (h->GetNbinsX () == h2->GetNbinsX ());
+  assert (h2->GetNbinsX () == h2->GetNbinsY ());
+
+  for (int iX = 1; iX <= h->GetNbinsX (); iX++) {
+    assert (h2->GetBinContent (iX, iX) >= 0);
+    h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+  }
+  return;
+}
 
 
 
@@ -834,8 +858,8 @@ void PhysicsAnalysis :: LoadHists (const char* histFileName, const bool _finishH
   
 
   if (_finishHists) {
-    //PhysicsAnalysis :: CombineHists (); // deprecated function call
-    PhysicsAnalysis :: ScaleHists ();
+    ScaleHists ();
+    SetVariances ();
   }
 
   _gDirectory->cd ();
@@ -994,7 +1018,7 @@ void PhysicsAnalysis :: CombineHists () {
       h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
       h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_trk_xhz_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
       h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
-      for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
+      for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
         h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Reset ();
         h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_trk_pt_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtchBins[iPtZ], pTchBins[iPtZ]);
         h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
@@ -1016,53 +1040,54 @@ void PhysicsAnalysis :: CombineHists () {
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      const double combCounts = h_z_counts[2][iPtZ][iCent]->GetBinContent (1);
+      const double combSumWgts = h_z_counts[2][iPtZ][iCent]->GetBinContent (2);
+      const double combSumWgts2 = h_z_counts[2][iPtZ][iCent]->GetBinContent (3);
       for (short iSpc = 0; iSpc < 2; iSpc++) {
 
         // Gets the weighting factor needed for this species.
         // E.g. if there are 2 muon events and 1 electron event,
         // the per-Z yield should be weighted by 2/3 in the muon
         // channel and 1/3 in the electron channel.
-        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        float spcWeight = countsHist->GetBinContent (2);
-        countsHist = h_z_counts[2][iPtZ][iCent];
-        if (countsHist->GetBinContent (2) > 0)
-          spcWeight = spcWeight / countsHist->GetBinContent (2);
-        else {
+        const double channelCounts = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
+        const double channelSumWgts = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (2);
+        const double channelSumWgts2 = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (3);
+        
+        if (channelCounts == 0) {
           cout << "Warning: In PhysicsAnalysis :: CombineHists: Found 0 total Z bosons in this bin, iCent = " << iCent << ", iPtZ = " << iPtZ << ", iSpc = " << iSpc << "; weight is set to 0!" << endl;
-          spcWeight = 0;
+          continue;
         }
 
         for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           while (h_trk_dphi[2][iPtZ][iPtch][iCent]->GetNbinsX () > h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetNbinsX ())
             h_trk_dphi[2][iPtZ][iPtch][iCent]->Rebin (2);
-          if (h_trk_dphi[iSpc][iPtZ][iPtch][iCent])     h_trk_dphi[2][iPtZ][iPtch][iCent]->Add      (h_trk_dphi[iSpc][iPtZ][iPtch][iCent], spcWeight);
+          h_trk_dphi[2][iPtZ][iPtch][iCent]->Add      (h_trk_dphi[iSpc][iPtZ][iPtch][iCent], channelSumWgts/combSumWgts);
 
-          if (hasBkg && h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]) {
+          if (hasBkg) {
             while (h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->GetNbinsX () > h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]->GetNbinsX ())
               h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Rebin (2);
-            if (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]) h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Add  (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent], spcWeight);
+            h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Add  (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent], channelSumWgts/combSumWgts);
           }
         } // end loop over iPtch
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          if (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent])              h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Add             (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], spcWeight);
-          if (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent])             h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Add            (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], spcWeight);
+          h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Add        (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+          h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Add       (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
           if (hasBkg) {
-            if (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent])          h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Add         (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
-            if (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])   h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
-            if (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent])         h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Add        (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent], spcWeight);
-            if (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent])  h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], spcWeight);
+            h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Add         (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+            h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+            h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Add        (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+            h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
           }
         } // end loop over iPhi
 
-        if (h_trk_pt_ptz[iSpc][iPtZ][iCent])  h_trk_pt_ptz[2][iPtZ][iCent]->Add   (h_trk_pt_ptz[iSpc][iPtZ][iCent], spcWeight);
-        if (h_trk_xhz_ptz[iSpc][iPtZ][iCent]) h_trk_xhz_ptz[2][iPtZ][iCent]->Add  (h_trk_xhz_ptz[iSpc][iPtZ][iCent], spcWeight);
-
+        h_trk_pt_ptz[2][iPtZ][iCent]->Add   (h_trk_pt_ptz[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+        h_trk_xhz_ptz[2][iPtZ][iCent]->Add  (h_trk_xhz_ptz[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
         if (hasBkg) {
-          if (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent])          h_trk_pt_ptz_sub[2][iPtZ][iCent]->Add         (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent], spcWeight);
-          if (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent])         h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Add        (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent], spcWeight);
-          if (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent])   h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Add  (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
-          if (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent])  h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Add (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent], spcWeight);
+          h_trk_pt_ptz_sub[2][iPtZ][iCent]->Add         (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+          h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Add        (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+          h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Add  (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+          h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Add (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
         }
       } // end loop over iSpc
     } // end loop over iPtZ
@@ -1085,94 +1110,70 @@ void PhysicsAnalysis :: ScaleHists () {
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
-        const float counts = countsHist->GetBinContent (1);
-        const float sumWeights = countsHist->GetBinContent (2);
-        const float sumWeightsSq = countsHist->GetBinContent (3);
+        TH1D* h = h_z_counts[iSpc][iPtZ][iCent];
+        const double counts = h->GetBinContent (1);
+        const double sumWeights = h->GetBinContent (2);
+        const double sumWeightsSq = h->GetBinContent (3);
         if (counts <= 0)  continue;
+
+        TH2D* h2 = nullptr;
 
         // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
         // then use diagonals of the covariance matrix to determine statistical uncertainties
         // see internal documentation or https://en.wikipedia.org/wiki/Sample_mean_and_covariance for more details
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
-          h->Scale (1/sumWeights);
-          TH2D* h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
+          h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+          h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
+          h->Scale (1/ (sumWeights * (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]))), "width");
+          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
-
-          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-          h2->Scale (1. / pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
-          h->Scale (1. / (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
 
           h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
-          h->Scale (1/sumWeights);
           h2 = h2_trk_xhz_dphi_cov[iSpc][iPtZ][iPhi][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
+          h->Scale (1/ (sumWeights * (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]))), "width");
+          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
-
-          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
-          h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
         } // end loop over iPhi
 
 
-        TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
-        h->Scale (1/sumWeights);
-        TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+        h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+        h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
         assert (h2->GetNbinsX () == h->GetNbinsX ());
+        h->Scale (1/ (sumWeights * (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.)), "width");
+        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
             h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
         h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
-
-        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
-        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
 
         h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
-        h->Scale (1/sumWeights);
         h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
         assert (h2->GetNbinsX () == h->GetNbinsX ());
+        h->Scale (1/ (sumWeights * (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.)), "width");
+        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
         for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
           for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
             h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
         h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
 
-        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
-        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
-        
-        
         for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
-          h->Scale (1/sumWeights);
           h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
           assert (h2->GetNbinsX () == h->GetNbinsX ());
+          h->Scale (1/sumWeights, "width");
+          h2->Scale (1, "width");
           for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
             for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
               h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
           h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
-
-          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
-            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
-
-          h2->Scale (1, "width");
-          h->Scale (1, "width");
         } // end loop over iPtch
       } // end loop over iPtZ
     } // end loop over iCent
@@ -1181,6 +1182,168 @@ void PhysicsAnalysis :: ScaleHists () {
   histsScaled = true;
   return;
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Scale histograms for plotting, calculating signals, etc.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void PhysicsAnalysis :: SetVariances () {
+  assert (histsLoaded);
+
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        const float counts = h_z_counts[iSpc][iPtZ][iCent]->GetBinContent (1);
+        if (counts <= 0)  continue;
+
+        TH1D* h = nullptr;
+        TH2D* h2 = nullptr;
+
+        // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
+        // then use diagonals of the covariance matrix to determine statistical uncertainties
+        // see internal documentation or https://en.wikipedia.org/wiki/Sample_mean_and_covariance for more details
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+          h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
+          PhysicsAnalysis :: SetErrors (h, h2);
+
+          h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+          h2 = h2_trk_xhz_dphi_cov[iSpc][iPtZ][iPhi][iCent];
+          PhysicsAnalysis :: SetErrors (h, h2);
+        } // end loop over iPhi
+
+
+        h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+        h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+        PhysicsAnalysis :: SetErrors (h, h2);
+
+        h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
+        PhysicsAnalysis :: SetErrors (h, h2);
+
+        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+          h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
+          h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
+          PhysicsAnalysis :: SetErrors (h, h2);
+        } // end loop over iPtch
+      } // end loop over iPtZ
+    } // end loop over iCent
+  } // end loop over iSpc
+
+  return;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Scale histograms for plotting, calculating signals, etc. **** DEVELOPMENT VERSION ****
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: ScaleHists () {
+//  if (histsScaled || !histsLoaded)
+//    return;
+//
+//  for (short iCent = 0; iCent < numCentBins; iCent++) {
+//    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iSpc = 0; iSpc < 3; iSpc++) {
+//        TH1D* countsHist = h_z_counts[iSpc][iPtZ][iCent];
+//        const double counts = countsHist->GetBinContent (1);
+//        const double sumWeights = countsHist->GetBinContent (2);
+//        const double sumWeightsSq = countsHist->GetBinContent (3);
+//        if (counts <= 0)  continue;
+//
+//        // finalize covariance calculation by normalizing to bin widths and subtracting off product of means
+//        // then use diagonals of the covariance matrix to determine statistical uncertainties
+//        // see internal documentation or https://en.wikipedia.org/wiki/Sample_mean_and_covariance for more details
+//        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+//          TH1D* h = h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
+//          h->Scale (1/sumWeights);
+//          TH2D* h2 = h2_trk_pt_dphi_cov[iSpc][iPtZ][iPhi][iCent];
+//          assert (h2->GetNbinsX () == h->GetNbinsX ());
+//          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+//            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+//              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+//          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
+//
+//          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+//            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+//
+//          h2->Scale (1. / pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+//          h->Scale (1. / (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
+//
+//          h = h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
+//          h->Scale (1/sumWeights);
+//          h2 = h2_trk_xhz_dphi_cov[iSpc][iPtZ][iPhi][iCent];
+//          assert (h2->GetNbinsX () == h->GetNbinsX ());
+//          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+//            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+//              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+//          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
+//
+//          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+//            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+//
+//          h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi]), 2), "width");
+//          h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : (phiHighBins[iPhi]-phiLowBins[iPhi])), "width");
+//        } // end loop over iPhi
+//
+//
+//        TH1D* h = h_trk_pt_ptz[iSpc][iPtZ][iCent];
+//        h->Scale (1/sumWeights);
+//        TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+//        assert (h2->GetNbinsX () == h->GetNbinsX ());
+//        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+//          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+//            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+//        h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
+//
+//        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+//          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+//
+//        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+//        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+//
+//        h = h_trk_xhz_ptz[iSpc][iPtZ][iCent];
+//        h->Scale (1/sumWeights);
+//        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
+//        assert (h2->GetNbinsX () == h->GetNbinsX ());
+//        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+//          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+//            h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+//        h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
+//
+//        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+//          h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+//
+//        h2->Scale (1/ pow (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4., 2), "width");
+//        h->Scale (1/ (isBkg && !doPPMBMixing && iCent == 0 ? pi/8. : pi/4.), "width");
+//        
+//        
+//        for (short iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+//          h = h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
+//          h->Scale (1/sumWeights);
+//          h2 = h2_trk_dphi_cov[iSpc][iPtZ][iPtch][iCent];
+//          assert (h2->GetNbinsX () == h->GetNbinsX ());
+//          for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+//            for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+//              h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - (sumWeights)*(h->GetBinContent (iX))*(h->GetBinContent (iY)));
+//          h2->Scale (sumWeights / (counts * (sumWeights*sumWeights - sumWeightsSq)));
+//
+//          for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+//            h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+//
+//          h2->Scale (1, "width");
+//          h->Scale (1, "width");
+//        } // end loop over iPtch
+//      } // end loop over iSpc
+//    } // end loop over iPtZ
+//  } // end loop over iCent
+//
+//  histsScaled = true;
+//  return;
+//}
 
 
 
@@ -3328,6 +3491,9 @@ void PhysicsAnalysis :: PlotTrackingPurities2D () {
 // Subtracts mixed event background from track yields
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
+  if (isBkg)
+    return;
+
   if (backgroundSubtracted) {
     cout << "Background already subtracted for " << name << endl;
     return;
@@ -3338,63 +3504,32 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     return;
   }
 
-  //cout << "Subtracting bkg. " << a->Name () << " from " << Name () << endl;
-
-  ////**** Create empty subtracted histograms for combined channel yield measurement ****//
-  //for (short iCent = 0; iCent < numCentBins; iCent++) {
-  //  for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
-  //    h_trk_pt_ptz[2][iPtZ][iCent]->Reset ();
-  //    h_trk_pt_ptz_sub[2][iPtZ][iCent]        = new TH1D (Form ("h_trk_pt_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtchBins[iPtZ], pTchBins[iPtZ]);
-  //    h_trk_pt_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
-  //    h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent] = new TH1D (Form ("h_trk_pt_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nPtchBins[iPtZ], pTchBins[iPtZ]);
-  //    h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
-  //    h_trk_xhz_ptz[2][iPtZ][iCent]->Reset ();
-  //    h_trk_xhz_ptz_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
-  //    h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
-  //    h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_trk_xhz_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
-  //    h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
-  //    for (short iPhi = 1; iPhi < numPhiBins; iPhi++) {
-  //      h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Reset ();
-  //      h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_trk_pt_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtchBins[iPtZ], pTchBins[iPtZ]);
-  //      h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-  //      h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_trk_pt_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nPtchBins[iPtZ], pTchBins[iPtZ]);
-  //      h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
-  //      h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Reset ();
-  //      h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_trk_xhz_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
-  //      h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-  //      h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_trk_xhz_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", nXhZBins[iPtZ], xhZBins[iPtZ]);
-  //      h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
-  //    } // end loop over iPhi
-  //    for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
-  //      h_trk_dphi[2][iPtZ][iPtch][iCent]->Reset ();
-  //      h_trk_dphi_sub[2][iPtZ][iPtch][iCent] = new TH1D (Form ("h_trk_dphi_sub_comb_iPtZ%i_iPtch%i_iCent%i_%s", iPtZ, iPtch, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
-  //      h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Sumw2 ();
-  //    } // end loop over iPtch
-  //  } // end loop over iPtZ
-  //} // end loop over iCent
-  
   for (short iSpc = 0; iSpc < 2; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
         //******** Do subtraction of integrated dPhi plots ********//
+        SaferDelete (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
         TH1D* h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] = h;
         TH1D* sub = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
         if (!isBkg) AddNoErrors (h, sub, -1);
         else        h->Reset ();
 
+        SaferDelete (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
         h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
         if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
         else        h->Reset ();
 
+        SaferDelete (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent] = h;
         sub = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
         if (!isBkg) AddNoErrors (h, sub, -1);
 
+        SaferDelete (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sigToBkg_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent] = h;
         if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
@@ -3402,24 +3537,28 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
 
         //******** Do subtraction of binned dPhi plots ********//
-        for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
+        for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          SaferDelete (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
           sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
           if (!isBkg) AddNoErrors (h, sub, -1);
           else        h->Reset ();
 
+          SaferDelete (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
           if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
           else        h->Reset ();
 
+          SaferDelete (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
           h = (TH1D*) h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
           sub = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
           if (!isBkg) AddNoErrors (h, sub, -1);
           else        h->Reset ();
 
+          SaferDelete (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
           h = (TH1D*) h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_sigToBkg_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent] = h;
           if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
@@ -3429,6 +3568,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         //******** Do background subtraction of phi distributions ********//
         for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+          SaferDelete (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
           h = (TH1D*) h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->Clone (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
           h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent] = h;
           sub = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
@@ -3442,7 +3582,7 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
   UnfoldSubtractedYield ();
 
-  PhysicsAnalysis :: CombineHists ();
+  CombineHists ();
 
   backgroundSubtracted = true;
   return;
@@ -3455,9 +3595,9 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 // Applies bin migration factors to subtracted yields
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: UnfoldSubtractedYield () {
-
   if (histsUnfolded)
     return;
+  assert (histsLoaded);
 
   SetupDirectories ("", "ZTrackAnalysis/");
   TFile* f_binMigrationFile = new TFile (Form ("%s/BinMigrationFactors/binmigration_corrfactors_master.root", rootPath.Data ()), "read");
@@ -3472,7 +3612,6 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
 
         TF1* f = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_pt_ZPT%i_%s", spc, iPtZ-2, cent));
         TH1D* h = h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
-
         for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
           const float x = h->GetBinCenter (ix);
           float y = h->GetBinContent (ix);
@@ -3481,6 +3620,16 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
           yerr = yerr / f->Eval (x);
           h->SetBinContent (ix, y);
           h->SetBinError (ix, yerr);
+        }
+        TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+        for (int ix = 1; ix <= h2->GetNbinsX (); ix++) {
+          for (int iy = 1; iy <= h2->GetNbinsY (); iy++) {
+            const double x = h2->GetXaxis ()->GetBinCenter (ix);
+            const double y = h2->GetYaxis ()->GetBinCenter (iy);
+            double z = h2->GetBinContent (ix, iy);
+            z = z / (f->Eval (x) * f->Eval (y));
+            h2->SetBinContent (ix, iy, z);
+          }
         }
 
         f = f_trk_xhz_ptz_binMigration[iSpc][iPtZ][iCent] = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_xh_ZPT%i_%s", spc, iPtZ-2, cent));
@@ -3494,13 +3643,76 @@ void PhysicsAnalysis :: UnfoldSubtractedYield () {
           h->SetBinContent (ix, y);
           h->SetBinError (ix, yerr);
         }
-      }
-    }
-  }
+        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
+        for (int ix = 1; ix <= h2->GetNbinsX (); ix++) {
+          for (int iy = 1; iy <= h2->GetNbinsY (); iy++) {
+            const double x = h2->GetXaxis ()->GetBinCenter (ix);
+            const double y = h2->GetYaxis ()->GetBinCenter (iy);
+            double z = h2->GetBinContent (ix, iy);
+            z = z / (f->Eval (x) * f->Eval (y));
+            h2->SetBinContent (ix, iy, z);
+          }
+        }
+      } // end loop over iCent
+    } // end loop over iPtZ
+  } // end loop over iSpc
 
   f_binMigrationFile->Close ();
   histsUnfolded = true;
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Applies bin migration factors to variance matrices **** DEVELOPMENT VERSION ****
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void PhysicsAnalysis :: UnfoldVariances () {
+//  if (variancesUnfolded)
+//    return;
+//  assert (histsLoaded);
+//
+//  SetupDirectories ("", "ZTrackAnalysis/");
+//  TFile* f_binMigrationFile = new TFile (Form ("%s/BinMigrationFactors/binmigration_corrfactors_master.root", rootPath.Data ()), "read");
+//
+//  for (short iSpc = 0; iSpc < 2; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : "mumu");
+//    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+//      for (short iCent = 0; iCent < numCentBins; iCent++) {
+//        const short iBBBCent = (iCent == 0 ? 0 : GetBBBCorrCentBin (0.5 * (centBins[iCent-1] + centBins[iCent])));
+//
+//        const char* cent = (iBBBCent == 0 ? "pp" : Form ("CENT%i", numBBBCorrCentBins-iBBBCent-1));
+//
+//        TF1* f = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_pt_ZPT%i_%s", spc, iPtZ-2, cent));
+//        TH2D* h2 = h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent];
+//        for (int ix = 1; ix <= h2->GetNbinsX (); ix++) {
+//          for (int iy = 1; iy <= h2->GetNbinsY (); iy++) {
+//            const double x = h2->GetXaxis ()->GetBinCenter (ix);
+//            const double y = h2->GetYaxis ()->GetBinCenter (iy);
+//            double z = h2->GetBinContent (ix, iy);
+//            z = z / (f->Eval (x) * f->Eval (y));
+//            h2->SetBinContent (ix, iy, z);
+//          }
+//        }
+//
+//        f = f_trk_xhz_ptz_binMigration[iSpc][iPtZ][iCent] = (TF1*) f_binMigrationFile->Get (Form ("tf1_%s_xh_ZPT%i_%s", spc, iPtZ-2, cent));
+//        h2 = h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent];
+//        for (int ix = 1; ix <= h2->GetNbinsX (); ix++) {
+//          for (int iy = 1; iy <= h2->GetNbinsY (); iy++) {
+//            const double x = h2->GetXaxis ()->GetBinCenter (ix);
+//            const double y = h2->GetYaxis ()->GetBinCenter (iy);
+//            double z = h2->GetBinContent (ix, iy);
+//            z = z / (f->Eval (x) * f->Eval (y));
+//            h2->SetBinContent (ix, iy, z);
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  f_binMigrationFile->Close ();
+//  variancesUnfolded = true;
+//}
 
 
 
@@ -3570,11 +3782,22 @@ void PhysicsAnalysis :: InflateStatUnc (const float amount) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Calculates mean <xhZ> and <pTch> for each centrality as a function of pT^Z
+// (Requires a set of pT^Z spectra to calculate <pT^Z> along the x-axis.)
+// Also takes in a background estimate (optional) to incorporate the background statistical
+// uncertainty matrices for systematics.
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: CalculateTrackMeans (TH1D*** h_zpt_ptr = nullptr) {
-  double mean_zpt, mean_zpt_err, mean_ptch, mean_ptch_err, mean_xhz, mean_xhz_err;
-  for (short iSpc : {0, 1, 2}) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc ? "mumu" : "comb"));
+void PhysicsAnalysis :: CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt_ptr, PhysicsAnalysis* cov) {
+  if (trackMeansCalculated) {
+    cout << "Track means already calculated for " << name << ", returning" << endl; 
+    return;
+  }
+
+  double zpt_norm, mean_zpt, mean_zpt_err;
+  double track_norm, mean_track, mean_track_err;
+  double* deriv_vec = Get1DArray <double> (6);
+  //cout << "mean pT^Z\tsigma pT^Z\tmean pT^ch\tsigma pT^ch" << endl;
+  for (short iSpc : {0, 1}) {
+    const char* spc = (iSpc == 0 ? "ee" : "mumu");
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       g_trk_avg_pt_ptz[iSpc][iCent] = new TGAE ();
       g_trk_avg_pt_ptz[iSpc][iCent]->SetName (Form ("g_trk_avg_pt_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
@@ -3584,49 +3807,199 @@ void PhysicsAnalysis :: CalculateTrackMeans (TH1D*** h_zpt_ptr = nullptr) {
       TH1D* h_zpt = h_zpt_ptr[iCent][iSpc];
       TGAE* g = nullptr;
       TH1D* h = nullptr;
+      TH2D* h2 = nullptr; // (co)variance matrix
 
       g = g_trk_avg_pt_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        zpt_norm = 0;
         mean_zpt = 0;
         mean_zpt_err = 0;
         const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
         const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+        // calculate mean pT^Z
         for (int iX = firstBin; iX <= lastBin; iX++) {
-          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX);
-          mean_zpt_err += pow (h_zpt->GetBinError (iX) * h_zpt->GetBinCenter (iX), 2);
+          zpt_norm += h_zpt->GetBinContent (iX) * h_zpt->GetBinWidth (iX);
+          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX) * h_zpt->GetBinWidth (iX);
         }
-        mean_zpt = mean_zpt / (zPtBins[iPtZ+1]-zPtBins[iPtZ]);
-        mean_zpt_err = sqrt (mean_zpt_err) / (zPtBins[iPtZ+1]-zPtBins[iPtZ]);
+        mean_zpt = mean_zpt / zpt_norm;
+        // now calculate the derivative vector and assume the covariance matrix is diagonal (events are independent)
+        mean_zpt_err = 0;
+        for (int iX = firstBin; iX <= lastBin; iX++) {
+          mean_zpt_err += pow ((h_zpt->GetBinCenter (iX) - mean_zpt) * h_zpt->GetBinWidth (iX), 2) * pow (h_zpt->GetBinError (iX), 2) / pow (zpt_norm, 2);
+        }
+        mean_zpt_err = sqrt (mean_zpt_err);
 
-        h = h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
-        mean_ptch = h->GetMean ();
-        mean_ptch_err = h->GetMeanError ();
+        h = nom->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]; // normalized per dpT^ch
+        h2 = (cov == nullptr ? h2_trk_pt_ptz_cov : cov->h2_trk_pt_ptz_cov)[iSpc][iPtZ][iCent];
+        assert (h->GetNbinsX () == h2->GetNbinsX ());
+       
+        track_norm = 0;
+        mean_track = 0;
+        // calculate mean pT^ch
+        for (int iX = 1; iX <= h->GetNbinsX (); iX++) {
+          track_norm += h->GetBinContent (iX) * h->GetBinWidth (iX);
+          mean_track += h->GetBinContent (iX) * h->GetBinCenter (iX) * h->GetBinWidth (iX);
+        }
+        mean_track = mean_track / track_norm;
 
-        g->SetPoint (g->GetN (), mean_zpt, mean_ptch);
-        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_ptch_err, mean_ptch_err);
+        // Now calculate derivative vector...
+        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+          deriv_vec[iX-1] = ((h->GetBinCenter (iX) - mean_track) * h->GetBinWidth (iX)) / track_norm;
+        // ... and take its quadratic form with the error matrix to get the final variance
+        mean_track_err = 0;
+        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+            mean_track_err += deriv_vec[iX-1] * h2->GetBinContent (iX, iY) * deriv_vec[iY-1];
+        mean_track_err = sqrt (mean_track_err);
+
+        g->SetPoint (g->GetN (), mean_zpt, mean_track);
+        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_track_err, mean_track_err);
+
+        if (iSpc == 2 && iCent == 3 && iPtZ == 4) cout << mean_zpt << "\t" << mean_zpt_err << "\t" << mean_track << "\t" << mean_track_err << endl;
       } // end loop over iPtZ
+
 
       g = g_trk_avg_xhz_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+        zpt_norm = 0;
         mean_zpt = 0;
         mean_zpt_err = 0;
         const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
         const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+        // calculate mean pT^Z
         for (int iX = firstBin; iX <= lastBin; iX++) {
-          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX);
-          mean_zpt_err += pow (h_zpt->GetBinError (iX) * h_zpt->GetBinCenter (iX), 2);
+          zpt_norm += h_zpt->GetBinContent (iX) * h_zpt->GetBinWidth (iX);
+          mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX) * h_zpt->GetBinWidth (iX);
         }
+        mean_zpt = mean_zpt / zpt_norm;
+        // now calculate the derivative vector and assume the covariance matrix is diagonal (events are independent)
+        mean_zpt_err = 0;
+        for (int iX = firstBin; iX <= lastBin; iX++) {
+          mean_zpt_err += pow ((h_zpt->GetBinCenter (iX) - mean_zpt) * h_zpt->GetBinWidth (iX), 2) * pow (h_zpt->GetBinError (iX), 2) / pow (zpt_norm, 2);
+        }
+        mean_zpt_err = sqrt (mean_zpt_err);
 
-        h = h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
-        mean_xhz = h->GetMean ();
-        mean_xhz_err = h->GetMeanError ();
+        h = nom->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
+        h2 = (cov == nullptr ? h2_trk_xhz_ptz_cov : cov->h2_trk_xhz_ptz_cov)[iSpc][iPtZ][iCent];
+        assert (h->GetNbinsX () == h2->GetNbinsX ());
+       
+        track_norm = 0;
+        mean_track = 0;
+        // calculate mean x_hZ
+        for (int iX = 1; iX <= h->GetNbinsX (); iX++) {
+          track_norm += h->GetBinContent (iX) * h->GetBinWidth (iX);
+          mean_track += h->GetBinContent (iX) * h->GetBinCenter (iX) * h->GetBinWidth (iX);
+        }
+        mean_track = mean_track / track_norm;
 
-        g->SetPoint (g->GetN (), mean_zpt, mean_xhz);
-        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_xhz_err, mean_xhz_err);
+        // now calculate derivative vector...
+        for (int iX = 1; iX <= h->GetNbinsX (); iX++)
+          deriv_vec[iX-1] = ((h->GetBinCenter (iX) - mean_track) * h->GetBinWidth (iX)) / track_norm;
+        // ... and take its quadratic form with the error matrix to get the final variance
+        mean_track_err = 0;
+        for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+          for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+            mean_track_err += deriv_vec[iX-1] * h2->GetBinContent (iX, iY) * deriv_vec[iY-1];
+        mean_track_err = sqrt (mean_track_err);
+
+        g->SetPoint (g->GetN (), mean_zpt, mean_track);
+        g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_track_err, mean_track_err);
+
+        if (iSpc == 2 && iCent == 3 && iPtZ == 4) cout << mean_zpt << "\t" << mean_zpt_err << "\t" << mean_track << "\t" << mean_track_err << endl;
       } // end loop over iPtZ
 
     } // end loop over iCent
   } // end loop over iSpc
+  Delete1DArray (deriv_vec, 6);
+
+
+  for (short iCent = 0; iCent < numCentBins; iCent++) {
+    g_trk_avg_pt_ptz[2][iCent] = new TGAE ();
+    g_trk_avg_pt_ptz[2][iCent]->SetName (Form ("g_trk_avg_pt_ptz_comb_iCent%i_%s", iCent, name.c_str ()));
+    g_trk_avg_xhz_ptz[2][iCent] = new TGAE ();
+    g_trk_avg_xhz_ptz[2][iCent]->SetName (Form ("g_trk_avg_xhz_ptz_comb_iCent%i_%s", iCent, name.c_str ()));
+
+    TH1D* h_zpt = h_zpt_ptr[iCent][2];
+    TGAE* g = nullptr;
+
+    g = g_trk_avg_pt_ptz[2][iCent];
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+      zpt_norm = 0;
+      mean_zpt = 0;
+      mean_zpt_err = 0;
+      const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
+      const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+      // calculate mean pT^Z
+      for (int iX = firstBin; iX <= lastBin; iX++) {
+        zpt_norm += h_zpt->GetBinContent (iX) * h_zpt->GetBinWidth (iX);
+        mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX) * h_zpt->GetBinWidth (iX);
+      }
+      mean_zpt = mean_zpt / zpt_norm;
+      // now calculate the derivative vector and assume the covariance matrix is diagonal (since events are independent)
+      mean_zpt_err = 0;
+      for (int iX = firstBin; iX <= lastBin; iX++) {
+        mean_zpt_err += pow ((h_zpt->GetBinCenter (iX) - mean_zpt) * h_zpt->GetBinWidth (iX), 2) * pow (h_zpt->GetBinError (iX), 2) / pow (zpt_norm, 2);
+      }
+      mean_zpt_err = sqrt (mean_zpt_err);
+
+      mean_track = 0;
+      mean_track_err = 0;
+      double xval = 0, yval = 0;
+      double sumWeights = 0;
+      for (int iSpc : {0, 1}) {
+        TGAE* gspc = g_trk_avg_pt_ptz[iSpc][iCent];
+        const double channelWeight = pow (gspc->GetErrorY (iPtZ-2), -2);
+        gspc->GetPoint (iPtZ-2, xval, yval);
+        mean_track += yval * channelWeight;
+        sumWeights += channelWeight;
+      }
+      mean_track = mean_track / sumWeights;
+      mean_track_err = sqrt (1/sumWeights);
+
+      g->SetPoint (g->GetN (), mean_zpt, mean_track);
+      g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_track_err, mean_track_err);
+    } // end loop over iPtZ
+
+    g = g_trk_avg_xhz_ptz[2][iCent];
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
+      zpt_norm = 0;
+      mean_zpt = 0;
+      mean_zpt_err = 0;
+      const int firstBin = h_zpt->FindBin (zPtBins[iPtZ]);
+      const int lastBin = h_zpt->FindBin(zPtBins[iPtZ+1])-1;
+      // calculate mean pT^Z
+      for (int iX = firstBin; iX <= lastBin; iX++) {
+        zpt_norm += h_zpt->GetBinContent (iX) * h_zpt->GetBinWidth (iX);
+        mean_zpt += h_zpt->GetBinContent (iX) * h_zpt->GetBinCenter (iX) * h_zpt->GetBinWidth (iX);
+      }
+      mean_zpt = mean_zpt / zpt_norm;
+      // now calculate the derivative vector and assume the covariance matrix is diagonal (since events are independent)
+      mean_zpt_err = 0;
+      for (int iX = firstBin; iX <= lastBin; iX++) {
+        mean_zpt_err += pow ((h_zpt->GetBinCenter (iX) - mean_zpt) * h_zpt->GetBinWidth (iX), 2) * pow (h_zpt->GetBinError (iX), 2) / pow (zpt_norm, 2);
+      }
+      mean_zpt_err = sqrt (mean_zpt_err);
+
+      mean_track = 0;
+      mean_track_err = 0;
+      double xval = 0, yval = 0;
+      double sumWeights = 0;
+      for (int iSpc : {0, 1}) {
+        TGAE* gspc = g_trk_avg_xhz_ptz[iSpc][iCent];
+        const double channelWeight = pow (gspc->GetErrorY (iPtZ-2), -2);
+        gspc->GetPoint (iPtZ-2, xval, yval);
+        mean_track += yval * channelWeight;
+        sumWeights += channelWeight;
+      }
+      mean_track = mean_track / sumWeights;
+      mean_track_err = sqrt (1/sumWeights);
+
+      g->SetPoint (g->GetN (), mean_zpt, mean_track);
+      g->SetPointError (g->GetN () - 1, mean_zpt_err, mean_zpt_err, mean_track_err, mean_track_err);
+    } // end loop over iPtZ
+  } // end loop over iCent
+
+  trackMeansCalculated = true;
 }
 
 
@@ -4745,6 +5118,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 
       ppHist = h_trk_pt_ptz_sub[iSpc][iPtZ][0];
       for (short iCent = 1; iCent < numCentBins; iCent++) {
+        SaferDelete (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]);
         PbPbHist = (TH1D*)(h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())));
         PbPbHist->Divide (ppHist);
         h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent] = PbPbHist;
@@ -4752,6 +5126,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 
       ppHist = h_trk_xhz_ptz_sub[iSpc][iPtZ][0];
       for (short iCent = 1; iCent < numCentBins; iCent++) {
+        SaferDelete (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
         PbPbHist = (TH1D*)(h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_iaa_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ())));
         PbPbHist->Divide (ppHist);
         h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent] = PbPbHist;
@@ -4761,6 +5136,7 @@ void PhysicsAnalysis :: CalculateIAA () {
         TH1D* ppHist = h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][0];
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
+          SaferDelete (h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
           TH1D* PbPbHist = (TH1D*)(h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_iaa_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())));
           PbPbHist->Divide (ppHist);
           h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
@@ -4768,6 +5144,7 @@ void PhysicsAnalysis :: CalculateIAA () {
         ppHist = h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][0];
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
+          SaferDelete (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
           TH1D* PbPbHist = (TH1D*)(h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_iaa_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ())));
           PbPbHist->Divide (ppHist);
           h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent] = PbPbHist;
@@ -5332,7 +5709,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
     gDirectory->Add (c);
   }
 
-  for (short iSpc = 0; iSpc < 2; iSpc++) {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
 
     for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
@@ -5416,10 +5793,12 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
           if (iCent == iCentLo+1) {
             c->cd (iCent-iCentLo + 1);
             if (iPtZ == iPtZLo) {
-              myText (0.656, 0.875, kBlack, "#it{ee}", 0.06);
-              myText (0.736, 0.875, kBlack, "#it{#mu#mu}", 0.06);
-              myMarkerTextNoLine (0.790, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+1], kFullCircle, "", 1.3, 0.06);
-              myMarkerTextNoLine (0.710, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+2], kFullCircle, "", 1.3, 0.06);
+              myText (0.656-0.08, 0.875, kBlack, "#it{ee}", 0.06);
+              myText (0.736-0.08, 0.875, kBlack, "#it{#mu#mu}", 0.06);
+              myText (0.816-0.08, 0.875, kBlack, "Comb.", 0.06);
+              myMarkerTextNoLine (0.800-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+1], kFullCircle, "", 1.3, 0.06);
+              myMarkerTextNoLine (0.720-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+2], kFullCircle, "", 1.3, 0.06);
+              myMarkerTextNoLine (0.880-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+3], kFullCircle, "", 1.3, 0.06);
             }
           }
           else if (iCent == iCentLo+2) {
@@ -6029,7 +6408,7 @@ void PhysicsAnalysis :: WriteIAAs () {
 // Plots signal-to-background panels for data
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) {
-  TCanvas* c = new TCanvas ("c_stb", "", 1200, 400);
+  TCanvas* c = new TCanvas (Form ("c_stb_%s", useTrkPt ? "pTch" : "xhZ"), "", 1200, 400);
   c->Divide (3, 1);
 
   for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
@@ -6090,7 +6469,7 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots mean track distributions vs. pT^Z
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
+void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const bool plotAsSystematic, const short iSpc) {
   const char* canvasName = Form ("c_mean_%s_%s", useTrkPt ? "pTch" : "xhZ", iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -6104,39 +6483,61 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
   if (!canvasExists) {
     TH1D* h = new TH1D ("htemp", "", 1, 5, 120);
     h->GetXaxis ()->SetRangeUser (5, 120);
-    h->GetYaxis ()->SetRangeUser (0, useTrkPt ? 10 : 1);
+    h->GetYaxis ()->SetRangeUser (0, useTrkPt ? 8 : 0.3);
 
     h->SetLineWidth (0);
     h->SetMarkerSize (0);
 
     h->GetXaxis ()->SetMoreLogLabels ();
 
-    h->GetXaxis ()->SetTitle ("#it{p}_{T}^{Z} [GeV]");
+    h->GetXaxis ()->SetTitle ("#LT#it{p}_{T}^{Z}#GT [GeV]");
     h->GetYaxis ()->SetTitle (useTrkPt ? "#LT#it{p}_{T}^{ch}#GT [GeV]" : "#LT#it{x}_{hZ}#GT");
 
     h->DrawCopy ("hist ][");
     delete h;
+    if (useTrkPt) {
+      myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
+      myMarkerText (0.28, 0.805, colors[0], markerStyles[0], "#it{pp}", 1.5, 0.045);
+      myMarkerText (0.28, 0.745, colors[1], markerStyles[1], "30-80%", 1.5, 0.045);
+      myMarkerText (0.50, 0.805, colors[2], markerStyles[2], "10-30%", 2.4, 0.045);
+      myMarkerText (0.50, 0.745, colors[3], markerStyles[3], "0-10%", 1.5, 0.045);
+      myText (0.46, 0.27, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      myText (0.46, 0.21, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.045);
+    }
+    else {
+      myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
+      myMarkerText (0.28, 0.805, colors[0], markerStyles[0], "#it{pp}", 1.5, 0.045);
+      myMarkerText (0.28, 0.745, colors[1], markerStyles[1], "30-80%", 1.5, 0.045);
+      myMarkerText (0.50, 0.805, colors[2], markerStyles[2], "10-30%", 2.4, 0.045);
+      myMarkerText (0.50, 0.745, colors[3], markerStyles[3], "0-10%", 1.5, 0.045);
+      myText (0.22, 0.27, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
+      myText (0.22, 0.21, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.045);
+    }
   }
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     TGAE* g = (useTrkPt ? g_trk_avg_pt_ptz : g_trk_avg_xhz_ptz)[iSpc][iCent];
 
-    g->SetMarkerStyle (markerStyles[iCent]);
-    g->SetMarkerSize ((markerStyles[iCent] == kOpenDiamond || markerStyles[iCent] == kFullDiamond) ? 2.0 : 1.2);
-    g->SetMarkerColor (colors[iCent]);
-    g->SetLineColor (colors[iCent]);
-    g->SetLineWidth (2);
-    g->Draw ("P");
+    if (!plotAsSystematic) {
+      g->SetMarkerStyle (markerStyles[iCent]);
+      g->SetMarkerSize ((markerStyles[iCent] == kOpenDiamond || markerStyles[iCent] == kFullDiamond) ? 2.4 : 1.5);
+      g->SetMarkerColor (colors[iCent]);
+      g->SetLineColor (colors[iCent]);
+      g->SetLineWidth (2);
+      g->Draw ("P");
+    } else {
+      g->SetMarkerSize (0); 
+      g->SetLineWidth (0);
+      //g->SetLineWidth (1);
+      //g->SetLineColor (colors[iCent-1]);
+      g->SetFillColorAlpha (fillColors[iCent], 0.3);
+      ((TGAE*)g->Clone ())->Draw ("5P");
+      g->Draw ("2P");
+    }
 
   } // end loop over iCent
 
-  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.060);
-  myText (0.22, 0.81, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.050);
-  myText (0.22, 0.74, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.050);
-  myMarkerTextNoLine (0.25, 0.88, colors[0], markerStyles[0], "#it{pp}", 1.2, 0.05);
-  myMarkerTextNoLine (0.25, 0.815, colors[1], markerStyles[1], "30-80%", 1.2, 0.05);
-  myMarkerTextNoLine (0.25, 0.75, colors[2], markerStyles[2], "10-30%", 2.0, 0.05);
-  myMarkerTextNoLine (0.25, 0.685, colors[3], markerStyles[3], "0-10%", 1.2, 0.05);
+  c->SaveAs (Form ("%s/TrkYields/Avg_%s_%s.pdf", plotPath.Data (), useTrkPt ? "pTch" : "xhZ", iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb")));
 }
 
 

@@ -298,8 +298,11 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   histsLoaded = true;
 
   if (_finishHists) {
+    //PhysicsAnalysis :: UnfoldYields ();
+    //PhysicsAnalysis :: CombineHists ();
     CombineFullHists ();
     ScaleHists ();
+    SetVariances ();
   }
 
   _gDirectory->cd ();
@@ -414,11 +417,9 @@ void FullAnalysis :: CombineFullHists () {
       if (h_lepton_pt[iCent][iSpc]) h_lepton_trk_pt[iCent][2]->Add (h_lepton_pt[iCent][iSpc]);
       if (h_trk_pt[iCent][iSpc]) h_trk_pt[iCent][2]->Add (h_trk_pt[iCent][iSpc]);
       if (h_lepton_trk_dr[iCent][iSpc]) h_lepton_trk_dr[iCent][2]->Add (h_lepton_trk_dr[iCent][iSpc]);
-
-      
-
     } // end loop over iSpc
   } // end loop over iCent
+
   return;
 }
 
@@ -466,7 +467,7 @@ void FullAnalysis :: ScaleHists () {
       }
 
       if ( h_z_pt[iCent][iSpc]) {
-        h_z_pt[iCent][iSpc]->Rebin (10);
+        //h_z_pt[iCent][iSpc]->Rebin (10);
         //h_z_pt[iCent][iSpc]->Scale (0.1);
         if (h_z_pt[iCent][iSpc]->Integral () > 0)
           h_z_pt[iCent][iSpc]->Scale (1 / h_z_pt[iCent][iSpc]->Integral (), "width");
@@ -1625,6 +1626,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       gPad->SetLogy ();
 
       TH1D* h = h_z_pt[iCent][iSpc];
+      h->Rebin (10);
 
       if (!canvasExists) {
         TH1D* htemp = (TH1D*) h->Clone ("htemp");

@@ -408,7 +408,7 @@ void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo) {
+void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs) {
   for (int ix = 0; ix < optimal->GetN(); ix++) {
     double x, y, xl, yl, xh, yh;
     optimal->GetPoint (ix, x, y);
@@ -419,8 +419,16 @@ void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, co
     const double err_hi = yh - y;
 
     graph->SetPoint (ix, x, y);
-    graph->SetPointEXlow (ix, optimal->GetErrorXlow (ix));
-    graph->SetPointEXhigh (ix, optimal->GetErrorXhigh (ix));
+
+    if (!doXErrs) {
+      graph->SetPointEXlow (ix, optimal->GetErrorXlow (ix));
+      graph->SetPointEXhigh (ix, optimal->GetErrorXhigh (ix));
+    }
+    else {
+      const double xerr = fmax (fabs (xh - x), fabs (x - xl));
+      graph->SetPointEXlow (ix, xerr);
+      graph->SetPointEXhigh (ix, xerr);
+    }
 
     if (err_lo < 0 && err_hi < 0) {
       graph->SetPointEYlow (ix, -err_hi);

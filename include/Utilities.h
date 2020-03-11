@@ -150,7 +150,7 @@ void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo);
+void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs = false);
 
 
 /**

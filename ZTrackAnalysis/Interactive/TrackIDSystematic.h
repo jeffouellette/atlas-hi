@@ -20,7 +20,7 @@ class TrackIDSystematic : public Systematic {
   public:
 
   float**** relVar = Get4DArray <float> (3, nPtZBins, numPhiBins+1, numCentBins); // iSpc, iPtZ, iPhi (or integrated at numPhiBins), iCent
-  TrackIDSystematic (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : Systematic (nom, _name, _desc) { }
+  TrackIDSystematic (FullAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : Systematic (nom, _name, _desc) { }
 
 
   void GetRelativeVariation (PhysicsAnalysis* nominal, PhysicsAnalysis* var);

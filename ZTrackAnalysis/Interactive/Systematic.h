@@ -118,7 +118,8 @@ class Systematic : public PhysicsAnalysis {
   // TFile with systematics graphs
   TFile* graphFile = nullptr;
   bool graphsLoaded = false;
-  
+
+  PhysicsAnalysis* nom = nullptr;
 
   void NullifyErrors ();
   void AddGraphPair (TH1D* h);
@@ -130,19 +131,24 @@ class Systematic : public PhysicsAnalysis {
 
   string description;
   bool cancelIAA = true;
+  bool meanTrackUncStoredAtCentralValues = true;
 
-  Systematic (PhysicsAnalysis* nom, const char* _name, const char* _desc) : PhysicsAnalysis (){
+  Systematic (FullAnalysis* _nom, const char* _name, const char* _desc) : PhysicsAnalysis (){
     name = _name;
     description = _desc;
-    CopyAnalysis (nom, true);
+    nom = _nom;
+    PhysicsAnalysis :: CopyAnalysis (nom, true);
+    CalculateTrackMeans (_nom, _nom->h_z_pt);
     CreateSysGraphs ();
     NullifyErrors ();
   }
 
-  Systematic (PhysicsAnalysis* nom, const char* _name, const char* _desc, const char* _graphFileName) : PhysicsAnalysis () {
+  Systematic (FullAnalysis* _nom, const char* _name, const char* _desc, const char* _graphFileName) : PhysicsAnalysis () {
     name = _name;
     description = _desc;
-    CopyAnalysis (nom, true);
+    nom = _nom;
+    PhysicsAnalysis :: CopyAnalysis (nom, true);
+    CalculateTrackMeans (_nom, _nom->h_z_pt);
     LoadGraphs (_graphFileName);
     NullifyErrors ();
   }
@@ -502,8 +508,8 @@ void Systematic :: AddVariations () {
         //    sys = GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
         //    var = a->h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent];
         //    if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        //  } // end loop over cents
-        //} // end loop over phi
+        //  } // end loop over iCent
+        //} // end loop over iPhi
 
         for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -513,7 +519,7 @@ void Systematic :: AddVariations () {
             sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
             var = a->h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-          } // end loop over cents
+          } // end loop over iCent
         } // end loop over iPtch
 
         for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -536,7 +542,7 @@ void Systematic :: AddVariations () {
           //sys = GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
           //var = a->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent];
           //if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        } // end loop over cents
+        } // end loop over iCent
 
 
         //// IAA, ICP systematics
@@ -548,7 +554,7 @@ void Systematic :: AddVariations () {
         //    sys = GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
         //    var = a->h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent];
         //    if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        //  } // end loop over cents
+        //  } // end loop over iCent
 
         //  //for (short iCent = 2; iCent < numCentBins; iCent++) {
         //  //  sys = GetTGAE (h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
@@ -557,8 +563,8 @@ void Systematic :: AddVariations () {
         //  //  sys = GetTGAE (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //  //  var = a->h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent];
         //  //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        //  //} // end loop over cents
-        //} // end loop over phi
+        //  //} // end loop over iCent
+        //} // end loop over iPhi
 
         if (cancelIAA) {
           for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -580,10 +586,52 @@ void Systematic :: AddVariations () {
         //  sys = GetTGAE (h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
         //  var = a->h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent];
         //  if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-        //} // end loop over cents
+        //} // end loop over iCent
 
-      } // end loop over pT^Z bins
-    } // end loop over species
+      } // end loop over iPtZ
+
+      if (trackMeansCalculated) {
+        for (short iCent = 0; iCent < numCentBins; iCent++) {
+          sys = g_trk_avg_pt_ptz[iSpc][iCent];
+          TGAE* gvar = a->g_trk_avg_pt_ptz[iSpc][iCent];
+          if (sys && gvar) {
+            if (meanTrackUncStoredAtCentralValues) CalcSystematics (sys, sys, gvar, gvar, true);
+            else {
+              double xle, xhe, yle, yhe;
+              for (int ix = 0; ix < sys->GetN (); ix++) {
+                xle = fmax (sys->GetErrorXlow (ix), gvar->GetErrorXlow (ix));
+                xhe = fmax (sys->GetErrorXhigh (ix), gvar->GetErrorXhigh (ix));
+                yle = fmax (sys->GetErrorYlow (ix), gvar->GetErrorYlow (ix));
+                yhe = fmax (sys->GetErrorYhigh (ix), gvar->GetErrorYhigh (ix));
+                sys->SetPointEXlow (ix, xle);
+                sys->SetPointEXhigh (ix, xhe);
+                sys->SetPointEYlow (ix, yle);
+                sys->SetPointEYhigh (ix, yhe);
+              } // end loop over ix
+            }
+          }
+
+          sys = g_trk_avg_xhz_ptz[iSpc][iCent];
+          gvar = a->g_trk_avg_xhz_ptz[iSpc][iCent];
+          if (sys && gvar) {
+            if (meanTrackUncStoredAtCentralValues) CalcSystematics (sys, sys, gvar, gvar, true);
+            else {
+              double xle, xhe, yle, yhe;
+              for (int ix = 0; ix < sys->GetN (); ix++) {
+                xle = fmax (sys->GetErrorXlow (ix), gvar->GetErrorXlow (ix));
+                xhe = fmax (sys->GetErrorXhigh (ix), gvar->GetErrorXhigh (ix));
+                yle = fmax (sys->GetErrorYlow (ix), gvar->GetErrorYlow (ix));
+                yhe = fmax (sys->GetErrorYhigh (ix), gvar->GetErrorYhigh (ix));
+                sys->SetPointEXlow (ix, xle);
+                sys->SetPointEXhigh (ix, xhe);
+                sys->SetPointEYlow (ix, yle);
+                sys->SetPointEYhigh (ix, yhe);
+              } // end loop over ix
+            }
+          }
+        } // end loop over iCent
+      }
+    } // end loop over iSpc
 
   } // end loop over variations
 
@@ -626,7 +674,7 @@ void Systematic :: AddVariations () {
             iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
             iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
-        } // end loop over cents
+        } // end loop over iCent
 
         pp_sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][0]);
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -657,9 +705,9 @@ void Systematic :: AddVariations () {
             iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
 
-        } // end loop over cents
-      } // end loop over pT^Z bins
-    } // end loop over species
+        } // end loop over iCent
+      } // end loop over iPtZ
+    } // end loop over iSpc
   }
 
   //variations.clear ();
@@ -790,8 +838,8 @@ void Systematic :: AddVariationsUsingStdDev () {
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
       //    SaferDelete (temp);
-      //  } // end loop over cents
-      //} // end loop over phi
+      //  } // end loop over iCent
+      //} // end loop over iPhi
 
       for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
         for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -820,7 +868,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
           SaferDelete (temp);
-        } // end loop over cents
+        } // end loop over iCent
       } // end loop over iPtch
 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -899,7 +947,7 @@ void Systematic :: AddVariationsUsingStdDev () {
         //} // end loop over variations
         //FinishMuSigmaCalc (n, sys, temp);
         //SaferDelete (temp);
-      } // end loop over cents
+      } // end loop over iCent
 
 
       //// IAA, ICP systematics
@@ -928,7 +976,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
       //    SaferDelete (temp);
-      //  } // end loop over cents
+      //  } // end loop over iCent
 
       //  //for (short iCent = 2; iCent < numCentBins; iCent++) {
       //  //  sys = GetTGAE (h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
@@ -954,8 +1002,8 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  //  } // end loop over variations
       //  //  FinishMuSigmaCalc (n, sys, temp);
       //  //  SaferDelete (temp);
-      //  //} // end loop over cents
-      //} // end loop over phi
+      //  //} // end loop over iCent
+      //} // end loop over iPhi
 
       if (cancelIAA) {
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -982,7 +1030,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
           SaferDelete (temp);
-        } // end loop over cents
+        } // end loop over iCent
       }
 
       //for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -1009,10 +1057,10 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  } // end loop over variations
       //  FinishMuSigmaCalc (n, sys, temp);
       //  SaferDelete (temp);
-      //} // end loop over cents
+      //} // end loop over iCent
 
-    } // end loop over pT^Z bins
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
 
 
   if (!cancelIAA) {
@@ -1053,7 +1101,7 @@ void Systematic :: AddVariationsUsingStdDev () {
             iaa_sys->SetPointEYhigh (ix, iaa_relsys_hi * y);
             iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
-        } // end loop over cents
+        } // end loop over iCent
 
         pp_sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][0]);
         for (short iCent = 1; iCent < numCentBins; iCent++) {
@@ -1084,9 +1132,9 @@ void Systematic :: AddVariationsUsingStdDev () {
             iaa_sys->SetPointEYlow (ix, iaa_relsys_lo * y);
           }
 
-        } // end loop over cents
-      } // end loop over pT^Z bins
-    } // end loop over species
+        } // end loop over iCent
+      } // end loop over iPtZ
+    } // end loop over iSpc
   }
 
   //variations.clear ();
@@ -1104,6 +1152,14 @@ void Systematic :: NullifyErrors () {
     if (element->second) ResetTGAEErrors (element->second);
     if (element->first) ResetHistErrors (element->first);
   }
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      ResetTGAEErrors (g_trk_avg_pt_ptz[iSpc][iCent]);
+      ResetTGAEErrors (g_trk_avg_xhz_ptz[iSpc][iCent]);
+      ResetXErrors (g_trk_avg_pt_ptz[iSpc][iCent]);
+      ResetXErrors (g_trk_avg_xhz_ptz[iSpc][iCent]);
+    } // end loop over iCent
+  } // end loop over iSpc
 }
 
 
@@ -1149,8 +1205,8 @@ void Systematic :: AddSystematics () {
         //    master = GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
         //    sys = s->GetTGAE (s->h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
         //    if (master && sys) AddErrorsInQuadrature (master, sys);
-        //  } // end loop over cents
-        //} // end loop over phi
+        //  } // end loop over iCent
+        //} // end loop over iPhi
 
         for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -1161,7 +1217,7 @@ void Systematic :: AddSystematics () {
             master = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
             sys = s->GetTGAE (s->h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
             if (master && sys) AddErrorsInQuadrature (master, sys);
-          } // end loop over cents
+          } // end loop over iCent
         } // end loop over iPtch
 
         for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -1184,7 +1240,7 @@ void Systematic :: AddSystematics () {
           //master = GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
           //sys = s->GetTGAE (s->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
           //if (master && sys) AddErrorsInQuadrature (master, sys);
-        } // end loop over cents
+        } // end loop over iCent
 
 
         //// IAA, ICP systematics
@@ -1196,7 +1252,7 @@ void Systematic :: AddSystematics () {
         //    master = GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
         //    sys = s->GetTGAE (s->h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
         //    if (master && sys) AddErrorsInQuadrature (master, sys);
-        //  } // end loop over cents
+        //  } // end loop over iCent
         //  //for (short iCent = 2; iCent < numCentBins; iCent++) {
         //  //  master = GetTGAE (h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //  //  sys = s->GetTGAE (s->h_trk_pt_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
@@ -1204,8 +1260,8 @@ void Systematic :: AddSystematics () {
         //  //  master = GetTGAE (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //  //  sys = s->GetTGAE (s->h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
         //  //  if (master && sys) AddErrorsInQuadrature (master, sys);
-        //  //} // end loop over cents
-        //} // end loop over phi
+        //  //} // end loop over iCent
+        //} // end loop over iPhi
 
         for (short iCent = 1; iCent < numCentBins; iCent++) {
           master = GetTGAE (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]);
@@ -1225,11 +1281,42 @@ void Systematic :: AddSystematics () {
         //  master = GetTGAE (h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
         //  sys = s->GetTGAE (s->h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
         //  if (master && sys) AddErrorsInQuadrature (master, sys);
-        //} // end loop over cents
-      } // end loop over pT^Z bins
-    } // end loop over species
+        //} // end loop over iCent
+      } // end loop over iPtZ
+
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        master = g_trk_avg_pt_ptz[iSpc][iCent];
+        sys = s->g_trk_avg_pt_ptz[iSpc][iCent];
+        if (master && sys) AddErrorsInQuadrature (master, sys, true);
+
+        master = g_trk_avg_xhz_ptz[iSpc][iCent];
+        sys = s->g_trk_avg_xhz_ptz[iSpc][iCent];
+        if (master && sys) AddErrorsInQuadrature (master, sys, true);
+      } // end loop over iCent
+
+    } // end loop over iSpc
 
   } // end loop over systematics
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iCent = 0; iCent < numCentBins; iCent++) {
+      TGAE* master = g_trk_avg_pt_ptz[iSpc][iCent];
+      //TGAE* alt = nom->g_trk_avg_pt_ptz[iSpc][iCent];
+      for (int ix = 0; ix < master->GetN (); ix++) {
+        const double xerr = fmax (2.5, master->GetErrorX (ix));//, alt->GetErrorX (ix)));
+        master->SetPointEXlow (ix, xerr);
+        master->SetPointEXhigh (ix, xerr);
+      } // end loop over ix
+
+      master = g_trk_avg_xhz_ptz[iSpc][iCent];
+      //alt = nom->g_trk_avg_xhz_ptz[iSpc][iCent];
+      for (int ix = 0; ix < master->GetN (); ix++) {
+        const double xerr = fmax (2.5, master->GetErrorX (ix));//, alt->GetErrorX (ix)));
+        master->SetPointEXlow (ix, xerr);
+        master->SetPointEXhigh (ix, xerr);
+      } // end loop over ix
+    } // end loop over iCent
+  } // end loop over iSpc
 }
 
 
@@ -1408,12 +1495,12 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
 
           c->SaveAs (Form ("%s/TrkYieldSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
-        } // end loop over centralities
+        } // end loop over iCent
 
-      } // end loop over Phi bins
+      } // end loop over iPhi
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }
 
@@ -1534,10 +1621,10 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
 
         c->SaveAs (Form ("%s/TrkYieldSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
-      } // end loop over centralities
+      } // end loop over iCent
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }
 
@@ -1663,12 +1750,12 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
 
           c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
-        } // end loop over centralities
+        } // end loop over iCent
 
-      } // end loop over Phi bins
+      } // end loop over iPhi
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }
 
@@ -1789,10 +1876,10 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
 
         c->SaveAs (Form ("%s/TrkYieldSignalSystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
-      } // end loop over centralities
+      } // end loop over iCent
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }
 
@@ -1915,12 +2002,12 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
 
           c->SaveAs (Form ("%s/IAASystematics/%s_iPtZ%i_iPhi%i_iCent%i.pdf", plotPath.Data (), spc, iPtZ, iPhi, iCent));
 
-        } // end loop over centralities
+        } // end loop over iCent
 
-      } // end loop over Phi bins
+      } // end loop over iPhi
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }
 
@@ -2039,10 +2126,10 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
 
         c->SaveAs (Form ("%s/IAASystematics/%s_%s_iPtZ%i_iCent%i.pdf", plotPath.Data (), spc, useTrkPt ? "pTch":"xhZ", iPtZ, iCent));
 
-      } // end loop over centralities
+      } // end loop over iCent
 
-    } // end loop over PtZ
-  } // end loop over species
+    } // end loop over iPtZ
+  } // end loop over iSpc
   
 }  
 
