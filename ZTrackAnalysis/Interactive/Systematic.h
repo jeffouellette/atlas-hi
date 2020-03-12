@@ -170,6 +170,8 @@ class Systematic : public PhysicsAnalysis {
   virtual void AddVariationsUsingStdDev (); // error is set to the standard deviation of several variations 
   virtual void AddSystematics (); // systematics add in quadrature
 
+  virtual void TrimPhysicsPlots () override;
+
   virtual void PrintRelSystematics (); // print relative systematics
 
   void PlotTotalTrkYieldRelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
@@ -1323,6 +1325,40 @@ void Systematic :: AddSystematics () {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Removes excess bins from plots which no longer need to be considered.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void Systematic :: TrimPhysicsPlots () {
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
+      for (short iCent = 0; iCent < numCentBins; iCent++) {
+        for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          TrimTGraph (GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGraph (GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]));
+        }
+
+        TrimTGraph (GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_xhz_ptz[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]));
+        TrimTGraph (GetTGAE (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]));
+      } // end loop over iCent
+    } // end loop over iPtZ
+  } // end loop over iSpc
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Prints the maximum relative systematics in this bin.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Systematic :: PrintRelSystematics () {
@@ -1417,9 +1453,12 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
 
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
-    
+
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+    
+          TrimTGraph (g_highs, iPtZ, true);
+          TrimTGraph (g_lows, iPtZ, true);
     
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
@@ -1461,10 +1500,13 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
 
             g_highs = new TGraph (highs);
             g_lows = new TGraph (lows);
-  
+
             delete highs, lows;
             highs = nullptr, lows = nullptr;
   
+            TrimTGraph (g_highs, iPtZ, true);
+            TrimTGraph (g_lows, iPtZ, true);
+
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
             g_highs->SetLineStyle (iSys+2);
@@ -1545,10 +1587,13 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
 
         g_highs = new TGraph (highs);
         g_lows = new TGraph (lows);
-  
+
         delete highs, lows;
         highs = nullptr, lows = nullptr;
   
+        TrimTGraph (g_highs, iPtZ, useTrkPt);
+        TrimTGraph (g_lows, iPtZ, useTrkPt);
+
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1592,6 +1637,9 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
 
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+
+          TrimTGraph (g_highs, iPtZ, useTrkPt);
+          TrimTGraph (g_lows, iPtZ, useTrkPt);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
@@ -1677,6 +1725,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+
+          TrimTGraph (g_highs, iPtZ, true);
+          TrimTGraph (g_lows, iPtZ, true); 
   
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
@@ -1719,6 +1770,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   
             delete highs, lows;
             highs = nullptr, lows = nullptr;
+  
+            TrimTGraph (g_highs, iPtZ, true);
+            TrimTGraph (g_lows, iPtZ, true);
   
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
@@ -1805,6 +1859,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
   
         delete highs, lows;
         highs = nullptr, lows = nullptr;
+
+        TrimTGraph (g_highs, iPtZ, useTrkPt);
+        TrimTGraph (g_lows, iPtZ, useTrkPt);
   
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
@@ -1847,6 +1904,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
 
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+
+          TrimTGraph (g_highs, iPtZ, useTrkPt);
+          TrimTGraph (g_lows, iPtZ, useTrkPt);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
@@ -1930,6 +1990,9 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+
+          TrimTGraph (g_highs, iPtZ, true);
+          TrimTGraph (g_lows, iPtZ, true);
   
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1972,6 +2035,9 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
             delete highs, lows;
             highs = nullptr, lows = nullptr;
   
+            TrimTGraph (g_highs, iPtZ, true);
+            TrimTGraph (g_lows, iPtZ, true);
+
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
             g_highs->SetLineStyle (iSys+2);
@@ -2056,6 +2122,9 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
         delete highs, lows;
         highs = nullptr, lows = nullptr;
 
+        TrimTGraph (g_highs, iPtZ, useTrkPt);
+        TrimTGraph (g_lows, iPtZ, useTrkPt);
+
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -2097,6 +2166,9 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
 
           delete highs, lows;
           highs = nullptr, lows = nullptr;
+
+          TrimTGraph (g_highs, iPtZ, useTrkPt);
+          TrimTGraph (g_lows, iPtZ, useTrkPt);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);

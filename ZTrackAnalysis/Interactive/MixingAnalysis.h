@@ -310,12 +310,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   bool HLT_noalg_pc_L1TE50_VTE600_0ETA49 = false;
   bool HLT_noalg_cc_L1TE600_0ETA49 = false;
 
-  int***    trks_counts   = Get3DArray <int> (2, 6, numPhiBins+1);
-  float***  trks_weights1 = Get3DArray <float> (2, 6, numPhiBins+1);
-  float***  trks_weights2 = Get3DArray <float> (2, 6, numPhiBins+1);
-  int**     trks_counts_inPhi   = Get2DArray <int> (6, 40);
-  float**   trks_weights1_inPhi = Get2DArray <float> (6, 40);
-  float**   trks_weights2_inPhi = Get2DArray <float> (6, 40);
+  int***    trks_counts   = Get3DArray <int> (2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  float***  trks_weights1 = Get3DArray <float> (2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  float***  trks_weights2 = Get3DArray <float> (2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  int**     trks_counts_inPhi   = Get2DArray <int> (maxNPtchBins, 40);
+  float**   trks_weights1_inPhi = Get2DArray <float> (maxNPtchBins, 40);
+  float**   trks_weights2_inPhi = Get2DArray <float> (maxNPtchBins, 40);
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -610,12 +610,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         if (dPhi < -pi/2) dPhi = dPhi + 2*pi;
 
         short iPtch = -1;
-        if (pTchBins[iPtZ][0] <= trkpt) {
+        if (allPtchBins[0] <= trkpt) {
           iPtch = 0;
-          while (iPtch < nPtchBins[iPtZ] && pTchBins[iPtZ][iPtch+1] < trkpt) iPtch++;
+          while (iPtch < maxNPtchBins && allPtchBins[iPtch+1] < trkpt) iPtch++;
         }
 
-        if (iPtch != -1 && iPtch < 6) {
+        if (iPtch != -1 && iPtch < maxNPtchBins) {
           short idPhi = 0;
           while (idPhi < GetNdPhiBins (iPtch, iCent) && (-pi/2.)+(2.*pi/GetNdPhiBins (iPtch, iCent))*(idPhi+1) < dPhi) idPhi++;
 
@@ -627,19 +627,19 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         short iXhZ = -1;
         if (xhZBins[iPtZ][0] <= xhz) {
           iXhZ = 0;
-          while (iXhZ < nXhZBins[iPtZ] && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
+          while (iXhZ < maxNXhZBins && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dPhi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dPhi && dPhi <= phiHighBins[idPhi]) {
-            if (iPtch != -1 && iPtch < 6) {   
+            if (iPtch != -1 && iPtch < maxNPtchBins) {   
               trks_counts[0][iPtch][idPhi]    += 1;
               trks_weights1[0][iPtch][idPhi]  += trkWeight;
               trks_weights2[0][iPtch][idPhi]  += pow (trkWeight, 2);
             }
-            if (iXhZ != -1 && iXhZ < 6) {   
+            if (iXhZ != -1 && iXhZ < maxNXhZBins) {   
               trks_counts[1][iXhZ][idPhi]   += 1;
               trks_weights1[1][iXhZ][idPhi] += trkWeight;
               trks_weights2[1][iXhZ][idPhi] += pow (trkWeight, 2);
@@ -647,12 +647,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           }
         } // end loop over idPhi
         if (3*pi/4 <= dPhi) {
-          if (iPtch != -1 && iPtch < 6) {
+          if (iPtch != -1 && iPtch < maxNPtchBins) {
             trks_counts[0][iPtch][numPhiBins]   += 1;
             trks_weights1[0][iPtch][numPhiBins] += trkWeight;
             trks_weights2[0][iPtch][numPhiBins] += pow (trkWeight, 2);
           }
-          if (iXhZ != -1 && iXhZ < 6) {
+          if (iXhZ != -1 && iXhZ < maxNXhZBins) {
             trks_counts[1][iXhZ][numPhiBins]    += 1;
             trks_weights1[1][iXhZ][numPhiBins]  += trkWeight;
             trks_weights2[1][iXhZ][numPhiBins]  += pow (trkWeight, 2);
@@ -661,7 +661,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       } // end loop over tracks
       
       // fill phi correlation histograms and covariance matrices
-      for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+      for (int iPtch = 0; iPtch < maxNPtchBins; iPtch++) {
         for (int idPhi1 = 0; idPhi1 < GetNdPhiBins (iPtch, iCent); idPhi1++) {
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]));
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi1+1, sqrt (pow (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinError (idPhi1+1), 2) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi1])));
@@ -672,38 +672,38 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       
       // fill yield histograms binned in dPhi and covariance matrices
       for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        for (int iPtch1 = 0; iPtch1 < nPtchBins[iPtZ]; iPtch1++) {
+        for (int iPtch1 = 0; iPtch1 < maxNPtchBins; iPtch1++) {
           h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1) + trks_counts[0][iPtch1][idPhi]);
           h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1) + (event_weight) * (trks_weights1[0][iPtch1][idPhi]));
           h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinError   (iPtch1+1, sqrt (pow (h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinError (iPtch1+1), 2) + pow (event_weight, 2) * (trks_weights2[0][iPtch1][idPhi])));
-          for (int iPtch2 = 0; iPtch2 < nPtchBins[iPtZ]; iPtch2++)
+          for (int iPtch2 = 0; iPtch2 < maxNPtchBins; iPtch2++)
             h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, iPtch2+1, h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1, iPtch2+1) + (event_weight) * (trks_weights1[0][iPtch1][idPhi]) * (trks_weights1[0][iPtch2][idPhi]));
         } // end loop over iPtch1
-        for (int iXhZ1 = 0; iXhZ1 < nXhZBins[iPtZ]; iXhZ1++) {
+        for (int iXhZ1 = 0; iXhZ1 < maxNXhZBins; iXhZ1++) {
           h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXhZ1+1, h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXhZ1+1) + (event_weight) * (trks_weights1[1][iXhZ1][idPhi]));
           h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinError   (iXhZ1+1, sqrt (pow (h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinError (iXhZ1+1), 2) + pow (event_weight, 2) * (trks_weights2[1][iXhZ1][idPhi])));
-          for (int iXhZ2 = 0; iXhZ2 < nXhZBins[iPtZ]; iXhZ2++)
+          for (int iXhZ2 = 0; iXhZ2 < maxNXhZBins; iXhZ2++)
             h2_trk_xhz_dphi_cov[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXhZ1+1, iXhZ2+1, h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXhZ1+1, iXhZ2+1) + (event_weight) * (trks_weights1[1][iXhZ1][idPhi]) * (trks_weights1[1][iXhZ2][idPhi]));
         } // end loop over iXhZ1
       } // end loop over idPhi
 
       // fill yield histograms and covariance matrices (for dPhi integrated yield)
-      for (int iPtch1 = 0; iPtch1 < nPtchBins[iPtZ]; iPtch1++) {
+      for (int iPtch1 = 0; iPtch1 < maxNPtchBins; iPtch1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (iPtch1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (iPtch1+1) + (event_weight) * (trks_weights1[0][iPtch1][numPhiBins]));
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError   (iPtch1+1, sqrt (pow (h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (iPtch1+1), 2) + pow (event_weight, 2) * (trks_weights2[0][iPtch1][numPhiBins])));
-        for (int iPtch2 = 0; iPtch2 < nPtchBins[iPtZ]; iPtch2++)
+        for (int iPtch2 = 0; iPtch2 < maxNPtchBins; iPtch2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (iPtch1+1, iPtch2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (iPtch1+1, iPtch2+1) + (event_weight) * (trks_weights1[0][iPtch1][numPhiBins]) * (trks_weights1[0][iPtch2][numPhiBins]));
       } // end loop over iPtch1
-      for (int iXhZ1 = 0; iXhZ1 < nXhZBins[iPtZ]; iXhZ1++) {
+      for (int iXhZ1 = 0; iXhZ1 < maxNXhZBins; iXhZ1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (iXhZ1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (iXhZ1+1) + (event_weight) * (trks_weights1[1][iXhZ1][numPhiBins]));
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError   (iXhZ1+1, sqrt (pow (h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (iXhZ1+1), 2) + pow (event_weight, 2) * (trks_weights2[1][iXhZ1][numPhiBins])));
-        for (int iXhZ2 = 0; iXhZ2 < nXhZBins[iPtZ]; iXhZ2++)
+        for (int iXhZ2 = 0; iXhZ2 < maxNXhZBins; iXhZ2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (iXhZ1+1, iXhZ2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (iXhZ1+1, iXhZ2+1) + (event_weight) * (trks_weights1[1][iXhZ1][numPhiBins]) * (trks_weights1[1][iXhZ2][numPhiBins]));
       } // end loop over iXhZ1
 
       // reset trk count measurements for next event
       for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 6; j++) {
+        for (int j = 0; j < max (maxNPtchBins, maxNXhZBins); j++) {
           for (int k = 0; k <= numPhiBins; k++) {
             trks_counts[i][j][k] = 0;
             trks_weights1[i][j][k] = 0;
@@ -711,7 +711,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           } // end loop over k
         } // end loop over j
       } // end loop over i
-      for (int i = 0; i < 6; i++) {
+      for (int i = 0; i < maxNPtchBins; i++) {
         for (int j = 0; j < 40; j++) {
           trks_counts_inPhi[i][j] = 0;
           trks_weights1_inPhi[i][j] = 0;
@@ -938,12 +938,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         if (dPhi < -pi/2) dPhi = dPhi + 2*pi;
 
         short iPtch = -1;
-        if (pTchBins[iPtZ][0] <= trkpt) {
+        if (allPtchBins[0] <= trkpt) {
           iPtch = 0;
-          while (iPtch < nPtchBins[iPtZ] && pTchBins[iPtZ][iPtch+1] < trkpt) iPtch++;
+          while (iPtch < maxNPtchBins && allPtchBins[iPtch+1] < trkpt) iPtch++;
         }
 
-        if (iPtch != -1 && iPtch < 6) {
+        if (iPtch != -1 && iPtch < maxNPtchBins) {
           short idPhi = 0;
           while (idPhi < GetNdPhiBins (iPtch, iCent) && (-pi/2.)+(2.*pi/GetNdPhiBins (iPtch, iCent))*(idPhi+1) < dPhi) idPhi++;
 
@@ -955,19 +955,19 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         short iXhZ = -1;
         if (xhZBins[iPtZ][0] <= xhz) {
           iXhZ = 0;
-          while (iXhZ < nXhZBins[iPtZ] && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
+          while (iXhZ < maxNXhZBins && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
         dPhi = DeltaPhi (z_phi, trk_phi[iTrk], false);
         for (short idPhi = 0; idPhi < numPhiBins; idPhi++) {
           if (phiLowBins[idPhi] <= dPhi && dPhi <= phiHighBins[idPhi]) {
-            if (iPtch != -1 && iPtch < 6) {   
+            if (iPtch != -1 && iPtch < maxNPtchBins) {   
               trks_counts[0][iPtch][idPhi]    += 1;
               trks_weights1[0][iPtch][idPhi]  += trkWeight;
               trks_weights2[0][iPtch][idPhi]  += pow (trkWeight, 2);
             }
-            if (iXhZ != -1 && iXhZ < 6) {   
+            if (iXhZ != -1 && iXhZ < maxNXhZBins) {   
               trks_counts[1][iXhZ][idPhi]   += 1;
               trks_weights1[1][iXhZ][idPhi] += trkWeight;
               trks_weights2[1][iXhZ][idPhi] += pow (trkWeight, 2);
@@ -975,12 +975,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           }
         } // end loop over idPhi
         if ((!doPPMBMixing && 7.*pi/8. <= dPhi) || (doPPMBMixing && 3.*pi/4. <= dPhi)) {
-          if (iPtch != -1 && iPtch < 6) {
+          if (iPtch != -1 && iPtch < maxNPtchBins) {
             trks_counts[0][iPtch][numPhiBins]   += 1;
             trks_weights1[0][iPtch][numPhiBins] += trkWeight;
             trks_weights2[0][iPtch][numPhiBins] += pow (trkWeight, 2);
           }
-          if (iXhZ != -1 && iXhZ < 6) {
+          if (iXhZ != -1 && iXhZ < maxNXhZBins) {
             trks_counts[1][iXhZ][numPhiBins]    += 1;
             trks_weights1[1][iXhZ][numPhiBins]  += trkWeight;
             trks_weights2[1][iXhZ][numPhiBins]  += pow (trkWeight, 2);
@@ -989,7 +989,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       } // end loop over tracks
       
       // fill phi correlation histograms and covariance matrices
-      for (int iPtch = 0; iPtch < nPtchBins[iPtZ]; iPtch++) {
+      for (int iPtch = 0; iPtch < maxNPtchBins; iPtch++) {
         for (int idPhi1 = 0; idPhi1 < GetNdPhiBins (iPtch, iCent); idPhi1++) {
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinContent (idPhi1+1, h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinContent (idPhi1+1) + (event_weight) * (trks_weights1_inPhi[iPtch][idPhi1]));
           h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->SetBinError (idPhi1+1, sqrt (pow (h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetBinError (idPhi1+1), 2) + pow (event_weight, 2) * (trks_weights2_inPhi[iPtch][idPhi1])));
@@ -1000,38 +1000,38 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       
       // fill yield histograms binned in dPhi and covariance matrices
       for (int idPhi = 0; idPhi < numPhiBins; idPhi++) {
-        for (int iPtch1 = 0; iPtch1 < nPtchBins[iPtZ]; iPtch1++) {
+        for (int iPtch1 = 0; iPtch1 < maxNPtchBins; iPtch1++) {
           h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, h_trk_pt_dphi_raw[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1) + trks_counts[0][iPtch1][idPhi]);
           h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1) + (event_weight) * (trks_weights1[0][iPtch1][idPhi]));
           h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinError   (iPtch1+1, sqrt (pow (h_trk_pt_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinError (iPtch1+1), 2) + pow (event_weight, 2) * (trks_weights2[0][iPtch1][idPhi])));
-          for (int iPtch2 = 0; iPtch2 < nPtchBins[iPtZ]; iPtch2++)
+          for (int iPtch2 = 0; iPtch2 < maxNPtchBins; iPtch2++)
             h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iPtch1+1, iPtch2+1, h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iPtch1+1, iPtch2+1) + (event_weight) * (trks_weights1[0][iPtch1][idPhi]) * (trks_weights1[0][iPtch2][idPhi]));
         } // end loop over iPtch1
-        for (int iXhZ1 = 0; iXhZ1 < nXhZBins[iPtZ]; iXhZ1++) {
+        for (int iXhZ1 = 0; iXhZ1 < maxNXhZBins; iXhZ1++) {
           h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXhZ1+1, h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXhZ1+1) + (event_weight) * (trks_weights1[1][iXhZ1][idPhi]));
           h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->SetBinError   (iXhZ1+1, sqrt (pow (h_trk_xhz_dphi[iSpc][iPtZ][idPhi][iCent]->GetBinError (iXhZ1+1), 2) + pow (event_weight, 2) * (trks_weights2[1][iXhZ1][idPhi])));
-          for (int iXhZ2 = 0; iXhZ2 < nXhZBins[iPtZ]; iXhZ2++)
+          for (int iXhZ2 = 0; iXhZ2 < maxNXhZBins; iXhZ2++)
             h2_trk_xhz_dphi_cov[iSpc][iPtZ][idPhi][iCent]->SetBinContent (iXhZ1+1, iXhZ2+1, h2_trk_pt_dphi_cov[iSpc][iPtZ][idPhi][iCent]->GetBinContent (iXhZ1+1, iXhZ2+1) + (event_weight) * (trks_weights1[1][iXhZ1][idPhi]) * (trks_weights1[1][iXhZ2][idPhi]));
         } // end loop over iXhZ1
       } // end loop over idPhi
 
       // fill yield histograms and covariance matrices (for dPhi integrated yield)
-      for (int iPtch1 = 0; iPtch1 < nPtchBins[iPtZ]; iPtch1++) {
+      for (int iPtch1 = 0; iPtch1 < maxNPtchBins; iPtch1++) {
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinContent (iPtch1+1, h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinContent (iPtch1+1) + (event_weight) * (trks_weights1[0][iPtch1][numPhiBins]));
         h_trk_pt_ptz[iSpc][iPtZ][iCent]->SetBinError   (iPtch1+1, sqrt (pow (h_trk_pt_ptz[iSpc][iPtZ][iCent]->GetBinError (iPtch1+1), 2) + pow (event_weight, 2) * (trks_weights2[0][iPtch1][numPhiBins])));
-        for (int iPtch2 = 0; iPtch2 < nPtchBins[iPtZ]; iPtch2++)
+        for (int iPtch2 = 0; iPtch2 < maxNPtchBins; iPtch2++)
           h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (iPtch1+1, iPtch2+1, h2_trk_pt_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (iPtch1+1, iPtch2+1) + (event_weight) * (trks_weights1[0][iPtch1][numPhiBins]) * (trks_weights1[0][iPtch2][numPhiBins]));
       } // end loop over iPtch1
-      for (int iXhZ1 = 0; iXhZ1 < nXhZBins[iPtZ]; iXhZ1++) {
+      for (int iXhZ1 = 0; iXhZ1 < maxNXhZBins; iXhZ1++) {
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinContent (iXhZ1+1, h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinContent (iXhZ1+1) + (event_weight) * (trks_weights1[1][iXhZ1][numPhiBins]));
         h_trk_xhz_ptz[iSpc][iPtZ][iCent]->SetBinError   (iXhZ1+1, sqrt (pow (h_trk_xhz_ptz[iSpc][iPtZ][iCent]->GetBinError (iXhZ1+1), 2) + pow (event_weight, 2) * (trks_weights2[1][iXhZ1][numPhiBins])));
-        for (int iXhZ2 = 0; iXhZ2 < nXhZBins[iPtZ]; iXhZ2++)
+        for (int iXhZ2 = 0; iXhZ2 < maxNXhZBins; iXhZ2++)
           h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->SetBinContent (iXhZ1+1, iXhZ2+1, h2_trk_xhz_ptz_cov[iSpc][iPtZ][iCent]->GetBinContent (iXhZ1+1, iXhZ2+1) + (event_weight) * (trks_weights1[1][iXhZ1][numPhiBins]) * (trks_weights1[1][iXhZ2][numPhiBins]));
       } // end loop over iXhZ1
 
       // reset trk count measurements for next event
       for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 6; j++) {
+        for (int j = 0; j < max (maxNPtchBins, maxNXhZBins); j++) {
           for (int k = 0; k <= numPhiBins; k++) {
             trks_counts[i][j][k] = 0;
             trks_weights1[i][j][k] = 0;
@@ -1039,7 +1039,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           } // end loop over k
         } // end loop over j
       } // end loop over i
-      for (int i = 0; i < 6; i++) {
+      for (int i = 0; i < maxNPtchBins; i++) {
         for (int j = 0; j < 40; j++) {
           trks_counts_inPhi[i][j] = 0;
           trks_weights1_inPhi[i][j] = 0;
@@ -1067,12 +1067,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
     SaferDelete (mixedEventsFile);
   }
 
-  Delete3DArray (trks_counts, 2, 6, numPhiBins+1);
-  Delete3DArray (trks_weights1, 2, 6, numPhiBins+1);
-  Delete3DArray (trks_weights2, 2, 6, numPhiBins+1);
-  Delete2DArray (trks_counts_inPhi, 6, 40);
-  Delete2DArray (trks_weights1_inPhi, 6, 40);
-  Delete2DArray (trks_weights2_inPhi, 6, 40);
+  Delete3DArray (trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete2DArray (trks_counts_inPhi, maxNPtchBins, 40);
+  Delete2DArray (trks_weights1_inPhi, maxNPtchBins, 40);
+  Delete2DArray (trks_weights2_inPhi, maxNPtchBins, 40);
 
   SaveHists (outFileName);
 

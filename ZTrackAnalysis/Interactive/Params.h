@@ -160,8 +160,8 @@ const double trk_max_pt = 60;
 
 // code that instantiates bins in track pT.
 // essentially just a set-of-a-set of bin edges where the highest bin edge is min (Z pT)
-const int maxNPtchBins = 6;
-double allPtchBins[7] = {1, 2, 4, 8, 15, 30, 60};
+const int maxNPtchBins = 8;
+double allPtchBins[9] = {1, 2, 4, 8, 15, 30, 60, 120, 240};
 int* nPtchBins = Get1DArray <int> (nPtZBins);
 
 double** init_pTchBins () {
@@ -188,8 +188,8 @@ double** pTchBins = init_pTchBins (); // iPtZ, iPtch
 
 // code that instantiates bins in track pT / Z pT.
 // essentially just a set-of-a-set of bin edges where the lowest bin is min (track pT) / min (Z pT)
-const int maxNXhZBins = 6;
-double allXhZBins[7] = {1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1.};
+const int maxNXhZBins = 8;
+double allXhZBins[9] = {1./120., 1./60., 1./30., 1./15., 1./8., 1./4., 1./2., 1., 2.};
 int* nXhZBins = Get1DArray <int> (nPtZBins);
 
 double** init_xhZBins () {

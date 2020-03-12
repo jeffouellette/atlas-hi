@@ -19,7 +19,7 @@
 
 #include "PlotHybridModel.h"
 
-const bool doSys = true;
+const bool doSys = false;
 int mixingFraction = 0;
 
 // nominal analyses
@@ -147,7 +147,7 @@ void Run () {
     mc_muonPtDown           = new MCAnalysis ("mc_muonPtDownVar");
   }
 
-  //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
+  data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
   //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
 
   if (doSys) {
@@ -173,8 +173,8 @@ void Run () {
 
   //data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
   //data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
-  //bkg18->LoadHists ("MinbiasAnalysis/Nominal/data18hi_hists.root");
-  //bkg15->LoadHists ("MinbiasAnalysis/Nominal/data15hi_hists.root");
+  //bkg18->LoadHists ("MixingAnalysis/Nominal/data18hi_hists.root");
+  //bkg15->LoadHists ("MixingAnalysis/Nominal/data15hi_hists.root");
   //truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
 
   //data18->SubtractBackground (bkg18);
@@ -325,7 +325,7 @@ void Run () {
     data_ppTransMinVar->CopyAnalysis (data18, false);
     bkg_ppTransMinVar = new MixingAnalysis ("bkg_ppMixVar");
     bkg_ppTransMinVar->doPPTransMinMixing = false;
-    bkg_ppTransMinVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMinVariation/data18hi_hists.root");
+    bkg_ppTransMinVar->LoadHists ("MixingAnalysis/Variations/PPTransMinVariation/data18hi_hists.root");
     data_ppTransMinVar->SubtractBackground (bkg_ppTransMinVar);
     data_ppTransMinVar->CalculateIAA ();
     ppMixSys->AddVariation (data_ppTransMinVar);
@@ -336,7 +336,7 @@ void Run () {
     data_ppTransMaxVar->CopyAnalysis (data18, false);
     bkg_ppTransMaxVar = new MixingAnalysis ("bkg_ppMixVar");
     bkg_ppTransMaxVar->doPPTransMinMixing = false;
-    bkg_ppTransMaxVar->LoadHists ("MinbiasAnalysis/Variations/PPTransMaxVariation/data18hi_hists.root");
+    bkg_ppTransMaxVar->LoadHists ("MixingAnalysis/Variations/PPTransMaxVariation/data18hi_hists.root");
     data_ppTransMaxVar->SubtractBackground (bkg_ppTransMaxVar);
     data_ppTransMaxVar->CalculateIAA ();
     ppMixSys->AddVariation (data_ppTransMaxVar);
