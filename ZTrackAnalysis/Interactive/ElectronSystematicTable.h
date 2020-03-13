@@ -32,8 +32,8 @@ class ElectronSystematicTable {
   ~ElectronSystematicTable () {
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
       for (short iCent = 0; iCent < numCentBins; iCent++) {
-        SaferDelete (relVarPt[iPtZ][iCent]);
-        SaferDelete (relVarX[iPtZ][iCent]);
+        SaferDelete (&relVarPt[iPtZ][iCent]);
+        SaferDelete (&relVarX[iPtZ][iCent]);
       }
     }
     Delete2DArray (relVarPt, nPtZBins, numCentBins);

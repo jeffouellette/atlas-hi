@@ -35,14 +35,14 @@ class ReweightingSystematic {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
         for (int iPhi = 0; iPhi <= numPhiBins; iPhi++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            SaferDelete (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            SaferDelete (relVarX[iSpc][iPtZ][iPhi][iCent]);
+            SaferDelete (&relVarPt[iSpc][iPtZ][iPhi][iCent]);
+            SaferDelete (&relVarX[iSpc][iPtZ][iPhi][iCent]);
           }
         }
       }
     }
-    Delete4DArray (relVarPt, 3, nPtZBins, numPhiBins+1, numCentBins);
-    Delete4DArray (relVarX, 3, nPtZBins, numPhiBins+1, numCentBins);
+    Delete4DArray (&relVarPt, 3, nPtZBins, numPhiBins+1, numCentBins);
+    Delete4DArray (&relVarX, 3, nPtZBins, numPhiBins+1, numCentBins);
   }
 
   string Name ()              { return name; }

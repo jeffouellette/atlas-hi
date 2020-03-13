@@ -580,17 +580,17 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     cout << "Done MC pp loop." << endl;
   }
 
-  Delete3DArray (trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete2DArray (trks_counts_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights1_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights2_inPhi, maxNPtchBins, 40);
+  Delete3DArray (&trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete2DArray (&trks_counts_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights1_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights2_inPhi, maxNPtchBins, 40);
 
   SaveHists (outFileName);
 
   if (inFile) inFile->Close ();
-  SaferDelete (inFile);
+  SaferDelete (&inFile);
 }
 
 

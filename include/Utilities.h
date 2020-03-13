@@ -17,8 +17,8 @@ namespace atlashi {
 /**
  * Safely deletes an object so that its pointer is also deleted.
  */
-template <typename T> inline void SaferDelete (T* &t) {
-  if (t) { delete t; t = nullptr; }
+template <typename T> inline void SaferDelete (T** t) {
+  if (*t) { delete (*t); (*t) = nullptr; }
 }
 
 /**

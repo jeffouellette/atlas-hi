@@ -1063,24 +1063,24 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
     mixedEventsTree->SetDirectory (mixedEventsFile);
     mixedEventsTree->Write ("", TObject :: kOverwrite);
 
-    mixedEventsFile->Close ();
-    SaferDelete (mixedEventsFile);
+    if (mixedEventsFile) mixedEventsFile->Close ();
+    SaferDelete (&mixedEventsFile);
   }
 
-  Delete3DArray (trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete2DArray (trks_counts_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights1_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights2_inPhi, maxNPtchBins, 40);
+  Delete3DArray (&trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete2DArray (&trks_counts_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights1_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights2_inPhi, maxNPtchBins, 40);
 
   SaveHists (outFileName);
 
   if (inFile) inFile->Close ();
-  SaferDelete (inFile);
+  SaferDelete (&inFile);
 
   if (mbInFile) mbInFile->Close ();
-  SaferDelete (mbInFile);
+  SaferDelete (&mbInFile);
 }
 
 

@@ -87,7 +87,7 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
       //    for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
       //      hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
-      //    TF1* fit = new TF1 ("fit", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
+      //    TF1* fit = new TF1 ("fit", "[0]", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]);
       //    fit->SetParameter (0, 1);
       //    hrat->Fit (fit, "RQN0");
       //    relVar[2][iPtZ][iPhi][iCent] = fit->GetParameter (0);
@@ -116,15 +116,16 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
         eff1 = (TH1D*) nominal->h2_num_trk_effs[iCent]->ProjectionY ("1");
         effrat = (TH1D*) nominal->h2_den_trk_effs[iCent]->ProjectionY ("2");
         eff1->Divide (effrat);
-        delete effrat;
+        SaferDelete (&effrat);
         eff2 = (TH1D*) var->h2_num_trk_effs[iCent]->ProjectionY ("3");
         effrat = (TH1D*) var->h2_den_trk_effs[iCent]->ProjectionY ("4");
         eff2->Divide (effrat);
-        delete effrat;
+        SaferDelete (&effrat);
 
         effrat = (TH1D*) eff2->Clone ("efftemp");
         effrat->Divide (eff1);
-        delete eff1, eff2;
+        SaferDelete (&eff1);
+        SaferDelete (&eff2);
 
         eff1 = (TH1D*) nominal->h2_num_trk_purs[iCent]->ProjectionY ("1");
         eff1->Divide ((TH1D*) nominal->h2_den_trk_purs[iCent]->ProjectionY ("2"));
@@ -133,21 +134,27 @@ void TrackIDSystematic :: GetRelativeVariation (PhysicsAnalysis* nominal, Physic
 
         purrat = (TH1D*) eff2->Clone ("purtemp");
         purrat->Divide (eff1);
-        delete eff1, eff2;
+        SaferDelete (&eff1);
+        SaferDelete (&eff2);
 
         const int bin1 = effrat->FindFixBin (hrat->GetBinCenter (1));
         const int bin2 = purrat->FindFixBin (hrat->GetBinCenter (1));
         for (int iy = 1; iy <= hrat->GetNbinsX (); iy++)
           hrat->SetBinContent (iy, hrat->GetBinContent (iy) * purrat->GetBinContent (iy+bin2-1) / effrat->GetBinContent (iy+bin1-1));
 
-        TF1* fit = new TF1 ("fit", "[0]", allPtchBins[0], allPtchBins[maxNPtchBins]);
+        TF1* fit = new TF1 ("fit", "[0]", pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
         fit->SetParameter (0, 1);
         hrat->Fit (fit, "RQN0");
         relVar[2][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
         relVar[0][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
         relVar[1][iPtZ][numPhiBins][iCent] = fit->GetParameter (0);
-        delete hrat, effrat, purrat, fit;
-        delete hnom, hvar;
+
+        SaferDelete (&hrat);
+        SaferDelete (&effrat);
+        SaferDelete (&purrat);
+        SaferDelete (&fit);
+        SaferDelete (&hnom);
+        SaferDelete (&hvar);
       } // end loop over iCent
     } // end loop over iPtZ
   } // end loop over iSpc

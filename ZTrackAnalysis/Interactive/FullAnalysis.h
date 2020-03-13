@@ -60,25 +60,25 @@ class FullAnalysis : public PhysicsAnalysis {
 
   virtual ~FullAnalysis () {
 
-    Delete2DArray (h_z_phi,         numCentBins, 3);
-    Delete2DArray (h_z_pt,          numCentBins, 3);
-    Delete2DArray (h_z_pt_ratio,    numCentBins, 3);
-    Delete3DArray (h_z_y_phi,       numCentBins, 3, nPtZBins+1);
-    Delete3DArray (h_z_eta,         numCentBins, 3, nPtZBins+1);
-    Delete3DArray (h_z_eta_ratio,   numCentBins, 3, nPtZBins+1);
-    Delete3DArray (h_z_y,           numCentBins, 3, nPtZBins+1);
-    Delete3DArray (h_z_y_ratio,     numCentBins, 3, nPtZBins+1);
-    Delete3DArray (h_z_m,           numCentBins, 3, 3);
-    Delete3DArray (h_z_m_ratio,     numCentBins, 3, 3);
-    Delete2DArray (h_z_lepton_dphi, numCentBins, 3);
-    Delete2DArray (h_lepton_pt,     numCentBins, 3);
-    Delete2DArray (h_lepton_eta,    numCentBins, 3);
-    Delete2DArray (h_lepton_trk_pt, numCentBins, 3);
-    Delete2DArray (h_trk_pt,        numCentBins, 3);
-    Delete2DArray (h_lepton_trk_dr, numCentBins, 3);
+    Delete2DArray (&h_z_phi,         numCentBins, 3);
+    Delete2DArray (&h_z_pt,          numCentBins, 3);
+    Delete2DArray (&h_z_pt_ratio,    numCentBins, 3);
+    Delete3DArray (&h_z_y_phi,       numCentBins, 3, nPtZBins+1);
+    Delete3DArray (&h_z_eta,         numCentBins, 3, nPtZBins+1);
+    Delete3DArray (&h_z_eta_ratio,   numCentBins, 3, nPtZBins+1);
+    Delete3DArray (&h_z_y,           numCentBins, 3, nPtZBins+1);
+    Delete3DArray (&h_z_y_ratio,     numCentBins, 3, nPtZBins+1);
+    Delete3DArray (&h_z_m,           numCentBins, 3, 3);
+    Delete3DArray (&h_z_m_ratio,     numCentBins, 3, 3);
+    Delete2DArray (&h_z_lepton_dphi, numCentBins, 3);
+    Delete2DArray (&h_lepton_pt,     numCentBins, 3);
+    Delete2DArray (&h_lepton_eta,    numCentBins, 3);
+    Delete2DArray (&h_lepton_trk_pt, numCentBins, 3);
+    Delete2DArray (&h_trk_pt,        numCentBins, 3);
+    Delete2DArray (&h_lepton_trk_dr, numCentBins, 3);
 
-    Delete3DArray (g_trk_pt_ptz,    3, nPtZBins, numCentBins);
-    Delete3DArray (g_trk_xhz_ptz,   3, nPtZBins, numCentBins);
+    Delete3DArray (&g_trk_pt_ptz,    3, nPtZBins, numCentBins);
+    Delete3DArray (&g_trk_xhz_ptz,   3, nPtZBins, numCentBins);
   }
 
 
@@ -239,8 +239,8 @@ void FullAnalysis :: ClearHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iSpc = 0; iSpc < 3; iSpc++) {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        if (g_trk_pt_ptz[iSpc][iPtZ][iCent])        SaferDelete (g_trk_pt_ptz[iSpc][iPtZ][iCent]);
-        if (g_trk_xhz_ptz[iSpc][iPtZ][iCent])       SaferDelete (g_trk_xhz_ptz[iSpc][iPtZ][iCent]);
+        SaferDelete (&g_trk_pt_ptz[iSpc][iPtZ][iCent]);
+        SaferDelete (&g_trk_xhz_ptz[iSpc][iPtZ][iCent]);
       } // end loop over iPtZ
     } // end loop over iSpc
   } // end loop over iCent
@@ -298,8 +298,6 @@ void FullAnalysis :: LoadHists (const char* histFileName, const bool _finishHist
   histsLoaded = true;
 
   if (_finishHists) {
-    //PhysicsAnalysis :: UnfoldYields ();
-    //PhysicsAnalysis :: CombineHists ();
     CombineFullHists ();
     ScaleHists ();
     SetVariances ();
@@ -1061,17 +1059,17 @@ void FullAnalysis :: Execute (const char* inFileName, const char* outFileName) {
     cout << "Done primary pp loop." << endl;
   }
 
-  Delete3DArray (trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete3DArray (trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
-  Delete2DArray (trks_counts_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights1_inPhi, maxNPtchBins, 40);
-  Delete2DArray (trks_weights2_inPhi, maxNPtchBins, 40);
+  Delete3DArray (&trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete2DArray (&trks_counts_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights1_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights2_inPhi, maxNPtchBins, 40);
 
   SaveHists (outFileName);
 
   if (inFile) inFile->Close ();
-  SaferDelete (inFile);
+  SaferDelete (&inFile);
 }
 
 
@@ -1137,7 +1135,7 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
         htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
         htemp->DrawCopy ("hist");
-        SaferDelete (htemp);
+        SaferDelete (&htemp);
       }
 
       if (plotFill) {
@@ -1191,7 +1189,7 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
       htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
       htemp->GetYaxis ()->CenterTitle ();
       htemp->DrawCopy ("hist");
-      SaferDelete (htemp);
+      SaferDelete (&htemp);
 
       TLine* l = new TLine (20, 1, 250, 1);
       l->SetLineColor (46);
@@ -1641,7 +1639,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
         htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
         htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
         htemp->DrawCopy ("hist");
-        SaferDelete (htemp);
+        SaferDelete (&htemp);
       }
 
       if (plotFill) {
@@ -1694,7 +1692,7 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
       htemp->GetYaxis ()->CenterTitle ();
       htemp->DrawCopy ("hist");
-      SaferDelete (htemp);
+      SaferDelete (&htemp);
 
       TLine* l = new TLine (0, 1, 300, 1);
       l->SetLineColor (46);

@@ -17,5 +17,12 @@ Trigger :
 Initialization :
 	$(CC) -lTrigger -lGlobalParams -o ${ATLAS_PATH}/lib/libInitialization.so ${ATLAS_PATH}/src/Initialization.cxx
 
+AtlasUtils : src/AtlasUtils.cxx AtlasStyle
+	$(CC) -lAtlasStyle -o ${ATLAS_PATH}/lib/libAtlasUtils.so ${ATLAS_PATH}/src/AtlasUtils.cxx
+
+AtlasStyle : src/AtlasStyle.cxx
+	$(CC) -o ${ATLAS_PATH}/lib/libAtlasStyle.so ${ATLAS_PATH}/src/AtlasStyle.cxx
+
+
 clean :
 	rm -rf lib/*.so*

@@ -34,14 +34,14 @@ class SystematicFits {
       for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) { 
         for (int iPhi = 0; iPhi <= numPhiBins; iPhi++) {
           for (short iCent = 0; iCent < numCentBins; iCent++) {
-            SaferDelete (relVarPt[iSpc][iPtZ][iPhi][iCent]);
-            SaferDelete (relVarX[iSpc][iPtZ][iPhi][iCent]);
+            SaferDelete (&relVarPt[iSpc][iPtZ][iPhi][iCent]);
+            SaferDelete (&relVarX[iSpc][iPtZ][iPhi][iCent]);
           }
         }
       }
     }
-    Delete4DArray (relVarPt, 3, nPtZBins, numPhiBins+1, numCentBins);
-    Delete4DArray (relVarX, 3, nPtZBins, numPhiBins+1, numCentBins);
+    Delete4DArray (&relVarPt, 3, nPtZBins, numPhiBins+1, numCentBins);
+    Delete4DArray (&relVarX, 3, nPtZBins, numPhiBins+1, numCentBins);
   }
 
   string Name ()              { return name; }
@@ -190,6 +190,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
             continue;
           TF1* f = relVarPt[iSpc][iPtZ][numPhiBins][iCent];
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+            //if (h->GetBinCenter (ix) < pTchBins[iPtZ][0] || pTchBins[iPtZ][nPtchBins[iPtZ]] < h->GetBinCenter (ix)) continue;
             float factor = 1;
             if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
             else        factor = 2 - f->Eval (h->GetBinCenter (ix));
@@ -203,6 +204,7 @@ void SystematicFits :: ApplyRelativeVariations (PhysicsAnalysis* a, const bool u
             continue;
           TF1* f = relVarX[iSpc][iPtZ][numPhiBins][iCent];
           for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
+            //if (h->GetBinCenter (ix) < xhZBins[iPtZ][0] || xhZBins[iPtZ][nXhZBins[iPtZ]] < h->GetBinCenter (ix)) continue;
             float factor = 1;
             if (upVar)  factor = f->Eval (h->GetBinCenter (ix));
             else        factor = 2 - f->Eval (h->GetBinCenter (ix));

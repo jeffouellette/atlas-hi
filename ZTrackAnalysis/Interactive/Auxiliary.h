@@ -47,7 +47,7 @@ void PlotPullDist (const PhysicsAnalysis* a, Systematic* sys = nullptr, const bo
   for (short i = 0; i < 2000; i++) {
     h_pull_expected->Fill (gaus->GetRandom ());
   }
-  SaferDelete (gaus);
+  SaferDelete (&gaus);
   h_pull_expected->Scale (nPoints/2000.);
   h_pull_expected->SetLineColorAlpha (kRed, 0.35);
   h_pull_expected->SetLineStyle (2);
@@ -268,7 +268,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     fit1->SetParameter (1, 0);
     fit1->SetParameter (2, 0);
     h_ratio->Fit (fit1, "RN0Q");
-    SaferDelete (h_ratio);
+    SaferDelete (&h_ratio);
 
     fit1->SetLineColor (kRed+1);
     fit1->SetLineStyle (2);
@@ -319,7 +319,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     fit2->SetParameter (1, 0);
     fit2->SetParameter (2, 0);
     h_ratio->Fit (fit2, "RN0Q");
-    SaferDelete (h_ratio);
+    SaferDelete (&h_ratio);
 
     fit2->SetLineColor (kAzure-1);
     fit2->SetLineStyle (2);
@@ -346,9 +346,9 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
     l->SetLineStyle (2);
     l->Draw ("same");
 
-    SaferDelete (h_nom);
-    SaferDelete (h_up);
-    SaferDelete (h_down);
+    SaferDelete (&h_nom);
+    SaferDelete (&h_up);
+    SaferDelete (&h_down);
   }
 
   c->SaveAs (Form ("../Plots/LeptonESSystStudy/muonES_%s_iPtZ%i.pdf", useTrkPt ? "pTch" : "xhZ", iPtZ));
@@ -537,7 +537,7 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     fit1->SetParameter (0, 1);
     fit1->SetParameter (1, 0);
     h_ratio->Fit (fit1, "RN0Q");
-    SaferDelete (h_ratio);
+    SaferDelete (&h_ratio);
 
     fit1->SetLineColor (kRed+1);
     fit1->SetLineStyle (2);
@@ -588,7 +588,7 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     fit2->SetParameter (1, 0);
     fit2->SetParameter (2, 0);
     h_ratio->Fit (fit2, "RN0Q");
-    SaferDelete (h_ratio);
+    SaferDelete (&h_ratio);
 
     fit2->SetLineColor (kAzure-1);
     fit2->SetLineStyle (2);
@@ -615,9 +615,9 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     l->SetLineStyle (2);
     l->Draw ("same");
 
-    SaferDelete (h_nom);
-    SaferDelete (h_up);
-    SaferDelete (h_down);
+    SaferDelete (&h_nom);
+    SaferDelete (&h_up);
+    SaferDelete (&h_down);
   }
 
   c->SaveAs (Form ("../Plots/LeptonESSystStudy/electronES_%s_iPtZ%i.pdf", useTrkPt ? "pTch" : "xhZ", iPtZ));
@@ -779,16 +779,16 @@ void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight,
     eff_hiloose = (TH1D*) a_hiloose->h2_num_trk_effs[iCent]->ProjectionY ("1");
     eff_ratio = (TH1D*) a_hiloose->h2_den_trk_effs[iCent]->ProjectionY ("2");
     eff_hiloose->Divide (eff_ratio);
-    SaferDelete (eff_ratio);
+    SaferDelete (&eff_ratio);
     eff_hitight = (TH1D*) a_hitight->h2_num_trk_effs[iCent]->ProjectionY ("3");
     eff_ratio = (TH1D*) a_hitight->h2_den_trk_effs[iCent]->ProjectionY ("4");
     eff_hitight->Divide (eff_ratio);
-    SaferDelete (eff_ratio);
+    SaferDelete (&eff_ratio);
 
     eff_ratio = (TH1D*) eff_hitight->Clone ("eff_ratio");
     eff_ratio->Divide (eff_hiloose);
-    SaferDelete (eff_hiloose);
-    SaferDelete (eff_hitight);
+    SaferDelete (&eff_hiloose);
+    SaferDelete (&eff_hitight);
 
     eff_hiloose = (TH1D*) a_hiloose->h2_num_trk_purs[iCent]->ProjectionY ("1");
     eff_hiloose->Divide ((TH1D*) a_hiloose->h2_den_trk_purs[iCent]->ProjectionY ("2"));
@@ -797,8 +797,8 @@ void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight,
 
     pur_ratio = (TH1D*) eff_hitight->Clone ("pur_ratio");
     pur_ratio->Divide (eff_hiloose);
-    SaferDelete (eff_hiloose);
-    SaferDelete (eff_hitight);
+    SaferDelete (&eff_hiloose);
+    SaferDelete (&eff_hitight);
 
     const int bin1 = eff_ratio->FindBin (h_ratio->GetBinCenter (1));
     const int bin2 = pur_ratio->FindBin (h_ratio->GetBinCenter (1));
@@ -809,8 +809,8 @@ void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight,
 
 
     g = make_graph (h_ratio);
-    SaferDelete (eff_ratio);
-    SaferDelete (pur_ratio);
+    SaferDelete (&eff_ratio);
+    SaferDelete (&pur_ratio);
 
     g->SetMarkerStyle (kOpenSquare);
     g->SetMarkerSize (1);
@@ -848,7 +848,7 @@ void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight,
     fit1->SetParameter (0, 1);
     //fit1->SetParameter (1, 0);
     h_ratio->Fit (fit1, "RQN0");
-    SaferDelete (h_ratio);
+    SaferDelete (&h_ratio);
 
     fit1->SetLineColor (kRed+1);
     fit1->SetLineStyle (2);
@@ -874,8 +874,8 @@ void DoTrackWPSystStudy (PhysicsAnalysis* a_hiloose, PhysicsAnalysis* a_hitight,
 
     myText (0.22, 0.3, kBlack, Form ("Avg. = %s", FormatMeasurement (fit1->GetParameter (0), fit1->GetParError (0), 2)), 0.03/dPadY);
 
-    SaferDelete (h_hiloose);
-    SaferDelete (h_hitight);
+    SaferDelete (&h_hiloose);
+    SaferDelete (&h_hitight);
   }
   c->SaveAs (Form ("../Plots/TrackWPSystStudy/trackWP_pTch_iPtZ%i.pdf", iPtZ));
 }

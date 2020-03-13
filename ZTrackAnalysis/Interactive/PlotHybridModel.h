@@ -3,6 +3,8 @@
 
 #include "Params.h"
 
+#include <fstream>
+
 void PlotHybridModel (const bool useTrkPt = true) {
   const int axisTextSize = 35;
 

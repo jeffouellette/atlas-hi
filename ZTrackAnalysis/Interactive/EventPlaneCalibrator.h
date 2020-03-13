@@ -65,7 +65,7 @@ void EventPlaneCalibrator :: LoadCalibration (const char* file) {
   const float _qyqy_c = ((TH1D*) f->Get ("h_qyqy_c"))->GetMean ();
 
   f->Close ();
-  SaferDelete (f);
+  SaferDelete (&f);
 
   _qxqxhat_a = _qxqx_a - _qx_a*_qx_a;
   _qxqyhat_a = _qxqy_a - _qx_a*_qy_a;

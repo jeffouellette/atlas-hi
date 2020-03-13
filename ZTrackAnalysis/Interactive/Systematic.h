@@ -410,7 +410,9 @@ void Systematic :: SaveGraphs (const char* graphFileName) {
   for (map <TH1D*, TGAE*> :: iterator element = graphMap.begin (); element != graphMap.end (); ++element) {
     TGAE* g = element->second;
     //TH1D* h = element->first;
-
+    if (!g) {
+      cout << "Warning: cannot find corresponding TGAE for " << element->first->GetName () << endl;
+    }
     //h->Write ();
     g->Write ();
   }
@@ -763,7 +765,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -777,7 +779,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -789,7 +791,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -801,7 +803,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -815,7 +817,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -827,7 +829,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -839,7 +841,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
       //  } // end loop over iCent
       //} // end loop over iPhi
 
@@ -857,7 +859,7 @@ void Systematic :: AddVariationsUsingStdDev () {
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
-          SaferDelete (temp);
+          SaferDelete (&temp);
 
           sys = GetTGAE (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]);
           temp = (TGAE*) sys->Clone ("temp");
@@ -869,7 +871,7 @@ void Systematic :: AddVariationsUsingStdDev () {
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
-          SaferDelete (temp);
+          SaferDelete (&temp);
         } // end loop over iCent
       } // end loop over iPtch
 
@@ -886,7 +888,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           n++;
         } // end loop over variations
         FinishMuSigmaCalc (n, sys, temp);
-        SaferDelete (temp);
+        SaferDelete (&temp);
 
         sys = GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
         temp = (TGAE*) sys->Clone ("temp");
@@ -898,7 +900,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           n++;
         } // end loop over variations
         FinishMuSigmaCalc (n, sys, temp);
-        SaferDelete (temp);
+        SaferDelete (&temp);
 
         //sys = GetTGAE (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
         //temp = (TGAE*) sys->Clone ("temp");
@@ -910,7 +912,7 @@ void Systematic :: AddVariationsUsingStdDev () {
         //  n++;
         //} // end loop over variations
         //FinishMuSigmaCalc (n, sys, temp);
-        //SaferDelete (temp);
+        //SaferDelete (&temp);
 
         sys = GetTGAE (h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
         temp = (TGAE*) sys->Clone ("temp");
@@ -924,7 +926,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           n++;
         } // end loop over variations
         FinishMuSigmaCalc (n, sys, temp);
-        SaferDelete (temp);
+        SaferDelete (&temp);
 
         sys = GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
         temp = (TGAE*) sys->Clone ("temp");
@@ -936,7 +938,7 @@ void Systematic :: AddVariationsUsingStdDev () {
           n++;
         } // end loop over variations
         FinishMuSigmaCalc (n, sys, temp);
-        SaferDelete (temp);
+        SaferDelete (&temp);
 
         //sys = GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
         //temp = (TGAE*) sys->Clone ("temp");
@@ -948,7 +950,7 @@ void Systematic :: AddVariationsUsingStdDev () {
         //  n++;
         //} // end loop over variations
         //FinishMuSigmaCalc (n, sys, temp);
-        //SaferDelete (temp);
+        //SaferDelete (&temp);
       } // end loop over iCent
 
 
@@ -965,7 +967,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
 
       //    sys = GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]);
       //    temp = (TGAE*) sys->Clone ("temp");
@@ -977,7 +979,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //      n++;
       //    } // end loop over variations
       //    FinishMuSigmaCalc (n, sys, temp);
-      //    SaferDelete (temp);
+      //    SaferDelete (&temp);
       //  } // end loop over iCent
 
       //  //for (short iCent = 2; iCent < numCentBins; iCent++) {
@@ -991,7 +993,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  //    n++;
       //  //  } // end loop over variations
       //  //  FinishMuSigmaCalc (n, sys, temp);
-      //  //  SaferDelete (temp);
+      //  //  SaferDelete (&temp);
 
       //  //  sys = GetTGAE (h_trk_xhz_dphi_icp[iSpc][iPtZ][iPhi][iCent]);
       //  //  temp = (TGAE*) sys->Clone ("temp");
@@ -1003,7 +1005,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //  //    n++;
       //  //  } // end loop over variations
       //  //  FinishMuSigmaCalc (n, sys, temp);
-      //  //  SaferDelete (temp);
+      //  //  SaferDelete (&temp);
       //  //} // end loop over iCent
       //} // end loop over iPhi
 
@@ -1019,7 +1021,7 @@ void Systematic :: AddVariationsUsingStdDev () {
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
-          SaferDelete (temp);
+          SaferDelete (&temp);
 
           sys = GetTGAE (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]);
           temp = (TGAE*) sys->Clone ("temp");
@@ -1031,7 +1033,7 @@ void Systematic :: AddVariationsUsingStdDev () {
             n++;
           } // end loop over variations
           FinishMuSigmaCalc (n, sys, temp);
-          SaferDelete (temp);
+          SaferDelete (&temp);
         } // end loop over iCent
       }
 
@@ -1046,7 +1048,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //    n++;
       //  } // end loop over variations
       //  FinishMuSigmaCalc (n, sys, temp);
-      //  SaferDelete (temp);
+      //  SaferDelete (&temp);
 
       //  sys = GetTGAE (h_trk_xhz_ptz_icp[iSpc][iPtZ][iCent]);
       //  temp = (TGAE*) sys->Clone ("temp");
@@ -1058,7 +1060,7 @@ void Systematic :: AddVariationsUsingStdDev () {
       //    n++;
       //  } // end loop over variations
       //  FinishMuSigmaCalc (n, sys, temp);
-      //  SaferDelete (temp);
+      //  SaferDelete (&temp);
       //} // end loop over iCent
 
     } // end loop over iPtZ
@@ -1328,31 +1330,34 @@ void Systematic :: AddSystematics () {
 // Removes excess bins from plots which no longer need to be considered.
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void Systematic :: TrimPhysicsPlots () {
+  PhysicsAnalysis :: TrimPhysicsPlots ();
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
       for (short iCent = 0; iCent < numCentBins; iCent++) {
         for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          TrimTGraph (GetTGAE (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]));
-          TrimTGraph (GetTGAE (h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]));
+          TrimTGAE (&(graphMap[h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]]), iPtZ, true);
+          TrimTGAE (&(graphMap[h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]]), iPtZ, true);
+          TrimTGAE (&(graphMap[h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]]), iPtZ, true);
+          TrimTGAE (&(graphMap[h_trk_pt_dphi_iaa[iSpc][iPtZ][iPhi][iCent]]), iPtZ, true);
+          TrimTGAE (&(graphMap[h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]]), iPtZ, false);
+          TrimTGAE (&(graphMap[h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]]), iPtZ, false);
+          TrimTGAE (&(graphMap[h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent]]), iPtZ, false);
+          TrimTGAE (&(graphMap[h_trk_xhz_dphi_iaa[iSpc][iPtZ][iPhi][iCent]]), iPtZ, false);
         }
 
-        TrimTGraph (GetTGAE (h_trk_pt_ptz[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_xhz_ptz[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]));
-        TrimTGraph (GetTGAE (h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]));
+        TrimTGAE (&(graphMap[h_trk_pt_ptz[iSpc][iPtZ][iCent]]), iPtZ, true);
+        TrimTGAE (&(graphMap[h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]]), iPtZ, true);
+        TrimTGAE (&(graphMap[h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]]), iPtZ, true);
+        TrimTGAE (&(graphMap[h_trk_pt_ptz_iaa[iSpc][iPtZ][iCent]]), iPtZ, true);
+        TrimTGAE (&(graphMap[h_trk_xhz_ptz[iSpc][iPtZ][iCent]]), iPtZ, false);
+        TrimTGAE (&(graphMap[h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]]), iPtZ, false);
+        TrimTGAE (&(graphMap[h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]]), iPtZ, false);
+        TrimTGAE (&(graphMap[h_trk_xhz_ptz_iaa[iSpc][iPtZ][iCent]]), iPtZ, false);
       } // end loop over iCent
     } // end loop over iPtZ
   } // end loop over iSpc
+
+  return;
 }
 
 
@@ -1387,8 +1392,8 @@ void Systematic :: PrintRelSystematics () {
           _maxRelSys = fmax (fabs (_maxRelSys), fabs (highs->GetMaximum ()));
           _maxRelSys = fmax (fabs (_maxRelSys), fabs (lows->GetMaximum ()));
 
-          SaferDelete (highs);
-          SaferDelete (lows);
+          SaferDelete (&highs);
+          SaferDelete (&lows);
         } // end loop over useTrkPt
 
         int i = 0;
@@ -1454,11 +1459,8 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
 
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
-    
-          TrimTGraph (g_highs, iPtZ, true);
-          TrimTGraph (g_lows, iPtZ, true);
+          SaferDelete (&highs);
+          SaferDelete (&lows);
     
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
@@ -1501,12 +1503,9 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
             g_highs = new TGraph (highs);
             g_lows = new TGraph (lows);
 
-            delete highs, lows;
-            highs = nullptr, lows = nullptr;
+            SaferDelete (&highs);
+            SaferDelete (&lows);
   
-            TrimTGraph (g_highs, iPtZ, true);
-            TrimTGraph (g_lows, iPtZ, true);
-
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
             g_highs->SetLineStyle (iSys+2);
@@ -1588,12 +1587,9 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
         g_highs = new TGraph (highs);
         g_lows = new TGraph (lows);
 
-        delete highs, lows;
-        highs = nullptr, lows = nullptr;
+        SaferDelete (&highs);
+        SaferDelete (&lows);
   
-        TrimTGraph (g_highs, iPtZ, useTrkPt);
-        TrimTGraph (g_lows, iPtZ, useTrkPt);
-
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1635,11 +1631,8 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
 
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
-
-          TrimTGraph (g_highs, iPtZ, useTrkPt);
-          TrimTGraph (g_lows, iPtZ, useTrkPt);
+          SaferDelete (&highs);
+          SaferDelete (&lows);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
@@ -1723,12 +1716,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
   
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
+          SaferDelete (&highs);
+          SaferDelete (&lows);
 
-          TrimTGraph (g_highs, iPtZ, true);
-          TrimTGraph (g_lows, iPtZ, true); 
-  
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
           g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1768,11 +1758,8 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
             g_highs = new TGraph (highs);
             g_lows = new TGraph (lows);
   
-            delete highs, lows;
-            highs = nullptr, lows = nullptr;
-  
-            TrimTGraph (g_highs, iPtZ, true);
-            TrimTGraph (g_lows, iPtZ, true);
+            SaferDelete (&highs);
+            SaferDelete (&lows);
   
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
@@ -1857,12 +1844,9 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
         g_highs = new TGraph (highs);
         g_lows = new TGraph (lows);
   
-        delete highs, lows;
-        highs = nullptr, lows = nullptr;
+        SaferDelete (&highs);
+        SaferDelete (&lows);
 
-        TrimTGraph (g_highs, iPtZ, useTrkPt);
-        TrimTGraph (g_lows, iPtZ, useTrkPt);
-  
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
         g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
@@ -1902,11 +1886,8 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
 
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
-
-          TrimTGraph (g_highs, iPtZ, useTrkPt);
-          TrimTGraph (g_lows, iPtZ, useTrkPt);
+          SaferDelete (&highs);
+          SaferDelete (&lows);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
@@ -1988,12 +1969,9 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
   
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
+          SaferDelete (&highs);
+          SaferDelete (&lows);
 
-          TrimTGraph (g_highs, iPtZ, true);
-          TrimTGraph (g_lows, iPtZ, true);
-  
           g_highs->GetXaxis ()->SetMoreLogLabels ();
           g_highs->GetYaxis ()->SetRangeUser (-max_rel_sys, max_rel_sys);
   
@@ -2032,12 +2010,9 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
             g_highs = new TGraph (highs);
             g_lows = new TGraph (lows);
   
-            delete highs, lows;
-            highs = nullptr, lows = nullptr;
+            SaferDelete (&highs);
+            SaferDelete (&lows);
   
-            TrimTGraph (g_highs, iPtZ, true);
-            TrimTGraph (g_lows, iPtZ, true);
-
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
             g_highs->SetLineStyle (iSys+2);
@@ -2119,11 +2094,8 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
         g_highs = new TGraph (highs);
         g_lows = new TGraph (lows);
 
-        delete highs, lows;
-        highs = nullptr, lows = nullptr;
-
-        TrimTGraph (g_highs, iPtZ, useTrkPt);
-        TrimTGraph (g_lows, iPtZ, useTrkPt);
+        SaferDelete (&highs);
+        SaferDelete (&lows);
 
         g_highs->GetXaxis ()->SetMoreLogLabels ();
         useTrkPt ? g_highs->GetXaxis ()->SetLimits (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]) : g_highs->GetXaxis ()->SetLimits (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
@@ -2164,11 +2136,8 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
           g_highs = new TGraph (highs);
           g_lows = new TGraph (lows);
 
-          delete highs, lows;
-          highs = nullptr, lows = nullptr;
-
-          TrimTGraph (g_highs, iPtZ, useTrkPt);
-          TrimTGraph (g_lows, iPtZ, useTrkPt);
+          SaferDelete (&highs);
+          SaferDelete (&lows);
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
@@ -2267,8 +2236,8 @@ void Systematic :: WriteIAAs () {
 
   outFile->Close ();
 
-  Delete3DArray (f_z_trk_zpt_iaa, 3, nPtZBins, numCentBins);
-  Delete3DArray (f_z_trk_zxzh_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (&f_z_trk_zpt_iaa, 3, nPtZBins, numCentBins);
+  Delete3DArray (&f_z_trk_zxzh_iaa, 3, nPtZBins, numCentBins);
 
   _gDirectory->cd ();
 }
