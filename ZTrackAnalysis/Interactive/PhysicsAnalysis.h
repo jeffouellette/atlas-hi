@@ -278,7 +278,7 @@ class PhysicsAnalysis {
   virtual void SaveResults (const char* saveFileName = "resultsHists.root");
   virtual void ScaleHists ();
   virtual void SetVariances ();
-  virtual void SubtractBackground (PhysicsAnalysis* a = nullptr);
+  virtual void SubtractBackground (PhysicsAnalysis* bkg = nullptr);
   virtual void UnfoldSubtractedYield ();
   virtual void CombineHists ();
   virtual void CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt_ptr, PhysicsAnalysis* cov = nullptr);
@@ -466,7 +466,7 @@ void PhysicsAnalysis :: TrimTH1D (TH1D** _h, const short iPtZ, const bool useTrk
   TH1D* htemp = new TH1D ("temp", "", useTrkPt ? nPtchBins[iPtZ] : nXhZBins[iPtZ], useTrkPt ? pTchBins[iPtZ] : xhZBins[iPtZ]);
   for (int iX = 1; iX <= htemp->GetNbinsX (); iX++) {
     for (int iY = 1; iY <= h->GetNbinsX (); iY++) {
-      if (htemp->GetBinCenter (iX) == h->GetBinCenter (iY)) {
+      if (htemp->GetBinLowEdge (iX) < h->GetBinCenter (iY) && h->GetBinCenter (iY) < htemp->GetBinLowEdge (iX) + htemp->GetBinWidth (iX)) {
         htemp->SetBinContent (iX, h->GetBinContent (iY));
         htemp->SetBinError (iX, h->GetBinError (iY));
         break;
@@ -476,7 +476,7 @@ void PhysicsAnalysis :: TrimTH1D (TH1D** _h, const short iPtZ, const bool useTrk
   TString tempName = h->GetName ();
   SaferDelete (&h);
   htemp->SetName (tempName);
-  h = htemp;
+  (*_h) = htemp;
   return;
 }
 
@@ -1193,16 +1193,18 @@ void PhysicsAnalysis :: SetVariances () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Subtracts mixed event background from track yields
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
-  if (isBkg)
+void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* bkg) {
+  if (isBkg) {
+    cout << "Cannot subtract background on background analysis" << endl;
     return;
+  }
 
   if (backgroundSubtracted) {
     cout << "Background already subtracted for " << name << endl;
     return;
   }
 
-  if (a == nullptr) {
+  if (!bkg) {
     cout << "No background provided! Will not do subtraction." << endl;
     return;
   }
@@ -1212,11 +1214,13 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
 
+        TH1D* sub = nullptr, *h = nullptr;
+
         //******** Do subtraction of integrated dPhi plots ********//
+        sub = bkg->h_trk_pt_ptz[iSpc][iPtZ][iCent];
         SaferDelete (&(h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]));
-        TH1D* h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
+        h = (TH1D*) h_trk_pt_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_pt_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_pt_ptz_sub[iSpc][iPtZ][iCent] = h;
-        TH1D* sub = a->h_trk_pt_ptz[iSpc][iPtZ][iCent];
         if (!isBkg) AddNoErrors (h, sub, -1);
         else        h->Reset ();
 
@@ -1226,10 +1230,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
         if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
         else        h->Reset ();
 
+        sub = bkg->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
         SaferDelete (&(h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]));
         h = (TH1D*) h_trk_xhz_ptz[iSpc][iPtZ][iCent]->Clone (Form ("h_trk_xhz_ptz_sub_%s_iPtZ%i_iCent%i_%s", spc, iPtZ, iCent, name.c_str ()));
         h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent] = h;
-        sub = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
         if (!isBkg) AddNoErrors (h, sub, -1);
 
         SaferDelete (&(h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]));
@@ -1241,10 +1245,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         //******** Do subtraction of binned dPhi plots ********//
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
+          sub = bkg->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
           SaferDelete (&(h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
           h = (TH1D*) h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_pt_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
-          sub = a->h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent];
           if (!isBkg) AddNoErrors (h, sub, -1);
           else        h->Reset ();
 
@@ -1254,10 +1258,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
           if (!isBkg) { AddNoErrors (h, sub, -1); h->Divide (sub); }
           else        h->Reset ();
 
+          sub = bkg->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
           SaferDelete (&(h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent]));
           h = (TH1D*) h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent]->Clone (Form ("h_trk_xhz_dphi_sub_%s_iPtZ%i_iPhi%i_iCent%i_%s", spc, iPtZ, iPhi, iCent, name.c_str ()));
           h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent] = h;
-          sub = a->h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent];
           if (!isBkg) AddNoErrors (h, sub, -1);
           else        h->Reset ();
 
@@ -1271,10 +1275,10 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
 
         //******** Do background subtraction of phi distributions ********//
         for (int iPtch = 0; iPtch < maxNPtchBins; iPtch++) {
+          sub = bkg->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
           SaferDelete (&(h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]));
           h = (TH1D*) h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->Clone (Form ("h_trk_dphi_sub_%s_iPtZ%i_iPtch%i_iCent%i_%s", spc, iPtZ, iPtch, iCent, name.c_str ()));
           h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent] = h;
-          sub = a->h_trk_dphi[iSpc][iPtZ][iPtch][iCent];
           if (!isBkg) AddNoErrors (h, sub, -1);
           else        h->Reset ();
         } // end loop over iPtch
@@ -1282,12 +1286,12 @@ void PhysicsAnalysis :: SubtractBackground (PhysicsAnalysis* a) {
       } // end loop over iPtZ
     } // end loop over iCent
   } // end loop over iSpc
+  backgroundSubtracted = true;
 
   UnfoldSubtractedYield ();
 
   CombineHists ();
 
-  backgroundSubtracted = true;
   return;
 }
 
@@ -1374,38 +1378,44 @@ void PhysicsAnalysis :: CombineHists () {
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) { 
       h_trk_pt_ptz[2][iPtZ][iCent]->Reset ();
-      h_trk_pt_ptz_sub[2][iPtZ][iCent]        = new TH1D (Form ("h_trk_pt_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
-      h_trk_pt_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
-      h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent] = new TH1D (Form ("h_trk_pt_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
-      h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
       h_trk_xhz_ptz[2][iPtZ][iCent]->Reset ();
-      h_trk_xhz_ptz_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
-      h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
-      h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_trk_xhz_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
-      h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+      if (hasBkg && backgroundSubtracted) {
+        h_trk_pt_ptz_sub[2][iPtZ][iCent]          = new TH1D (Form ("h_trk_pt_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
+        h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]   = new TH1D (Form ("h_trk_pt_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
+        h_trk_xhz_ptz_sub[2][iPtZ][iCent]         = new TH1D (Form ("h_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
+        h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]  = new TH1D (Form ("h_trk_xhz_ptz_sigToBkg_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
+        h_trk_pt_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
+        h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+        h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Sumw2 ();
+        h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Sumw2 ();
+      }
       for (short iPhi = 0; iPhi < numPhiBins; iPhi++) {
         h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Reset ();
-        h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_trk_pt_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
-        h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-        h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_trk_pt_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
-        h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
         h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Reset ();
-        h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_trk_xhz_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
-        h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
-        h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_trk_xhz_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
-        h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        if (hasBkg && backgroundSubtracted) {
+          h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]         = new TH1D (Form ("h_trk_pt_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
+          h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]  = new TH1D (Form ("h_trk_pt_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNPtchBins, allPtchBins);
+          h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]        = new TH1D (Form ("h_trk_xhz_dphi_sub_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
+          h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent] = new TH1D (Form ("h_trk_xhz_dphi_sigToBkg_comb_iPtZ%i_iPhi%i_iCent%i_%s", iPtZ, iPhi, iCent, name.c_str ()), "", maxNXhZBins, allXhZBins);
+          h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Sumw2 ();
+          h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Sumw2 ();
+        }
       } // end loop over iPhi
       for (int iPtch = 0; iPtch < maxNPtchBins; iPtch++) {
         h_trk_dphi[2][iPtZ][iPtch][iCent]->Reset ();
-        h_trk_dphi_sub[2][iPtZ][iPtch][iCent] = new TH1D (Form ("h_trk_dphi_sub_comb_iPtZ%i_iPtch%i_iCent%i_%s", iPtZ, iPtch, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
-        h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Sumw2 ();
+        if (hasBkg && backgroundSubtracted) {
+          h_trk_dphi_sub[2][iPtZ][iPtch][iCent] = new TH1D (Form ("h_trk_dphi_sub_comb_iPtZ%i_iPtch%i_iCent%i_%s", iPtZ, iPtch, iCent, name.c_str ()), "", 80, -pi/2, 3*pi/2);
+          h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Sumw2 ();
+        }
       } // end loop over iPtch
     } // end loop over iPtZ
   } // end loop over iCent
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-      const double combSumWgts = h_z_counts[2][iPtZ][iCent]->GetBinContent (2);
+      const double totalSumWgts = h_z_counts[2][iPtZ][iCent]->GetBinContent (2);
       for (short iSpc = 0; iSpc < 2; iSpc++) {
 
         // Gets the weighting factor needed for this species.
@@ -1423,33 +1433,33 @@ void PhysicsAnalysis :: CombineHists () {
         for (int iPtch = 0; iPtch < maxNPtchBins; iPtch++) {
           while (h_trk_dphi[2][iPtZ][iPtch][iCent]->GetNbinsX () > h_trk_dphi[iSpc][iPtZ][iPtch][iCent]->GetNbinsX ())
             h_trk_dphi[2][iPtZ][iPtch][iCent]->Rebin (2);
-          h_trk_dphi[2][iPtZ][iPtch][iCent]->Add      (h_trk_dphi[iSpc][iPtZ][iPtch][iCent], channelSumWgts/combSumWgts);
+          h_trk_dphi[2][iPtZ][iPtch][iCent]->Add      (h_trk_dphi[iSpc][iPtZ][iPtch][iCent], channelSumWgts/totalSumWgts);
 
           if (hasBkg && backgroundSubtracted) {
             while (h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->GetNbinsX () > h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent]->GetNbinsX ())
               h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Rebin (2);
-            h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Add  (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent], channelSumWgts/combSumWgts);
+            h_trk_dphi_sub[2][iPtZ][iPtch][iCent]->Add  (h_trk_dphi_sub[iSpc][iPtZ][iPtch][iCent], channelSumWgts/totalSumWgts);
           }
         } // end loop over iPtch
 
         for (int iPhi = 0; iPhi < numPhiBins; iPhi++) {
-          h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Add        (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
-          h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Add       (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+          h_trk_pt_dphi[2][iPtZ][iPhi][iCent]->Add        (h_trk_pt_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
+          h_trk_xhz_dphi[2][iPtZ][iPhi][iCent]->Add       (h_trk_xhz_dphi[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
           if (hasBkg && backgroundSubtracted) {
-            h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Add         (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
-            h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
-            h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Add        (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
-            h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/combSumWgts);
+            h_trk_pt_dphi_sub[2][iPtZ][iPhi][iCent]->Add         (h_trk_pt_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
+            h_trk_pt_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add  (h_trk_pt_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
+            h_trk_xhz_dphi_sub[2][iPtZ][iPhi][iCent]->Add        (h_trk_xhz_dphi_sub[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
+            h_trk_xhz_dphi_sig_to_bkg[2][iPtZ][iPhi][iCent]->Add (h_trk_xhz_dphi_sig_to_bkg[iSpc][iPtZ][iPhi][iCent], channelSumWgts/totalSumWgts);
           }
         } // end loop over iPhi
 
-        h_trk_pt_ptz[2][iPtZ][iCent]->Add   (h_trk_pt_ptz[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
-        h_trk_xhz_ptz[2][iPtZ][iCent]->Add  (h_trk_xhz_ptz[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+        h_trk_pt_ptz[2][iPtZ][iCent]->Add   (h_trk_pt_ptz[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
+        h_trk_xhz_ptz[2][iPtZ][iCent]->Add  (h_trk_xhz_ptz[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
         if (hasBkg && backgroundSubtracted) {
-          h_trk_pt_ptz_sub[2][iPtZ][iCent]->Add         (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
-          h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Add        (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
-          h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Add  (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
-          h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Add (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/combSumWgts);
+          h_trk_pt_ptz_sub[2][iPtZ][iCent]->Add         (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
+          h_trk_pt_ptz_sig_to_bkg[2][iPtZ][iCent]->Add  (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
+          h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Add        (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
+          h_trk_xhz_ptz_sig_to_bkg[2][iPtZ][iCent]->Add (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent], channelSumWgts/totalSumWgts);
         }
       } // end loop over iSpc
     } // end loop over iPtZ

@@ -63,8 +63,6 @@ const double muon_mass = 0.105658; // mass of the muon in GeV
 const double Z_mass = 91.2; // mass of the Z in GeV
 const double Z_width = 2.4952; // width of the Z peak in GeV
 
-const double pi = TMath::Pi();
-
 /** End general parameters **/
 
 

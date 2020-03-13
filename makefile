@@ -3,7 +3,7 @@ LDFLAGS=`root-config --glibs` -L${ATLAS_PATH}/lib
 
 CC=$(CXX) $(CXXFLAGS) $(LDFLAGS)
 
-all : GlobalParams Utilities Trigger Initialization
+all : GlobalParams Utilities Trigger Initialization AtlasUtils AtlasStyle
 
 GlobalParams :
 	$(CC) -o ${ATLAS_PATH}/lib/libGlobalParams.so ${ATLAS_PATH}/src/GlobalParams.cxx

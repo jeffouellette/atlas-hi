@@ -6,6 +6,8 @@
 #include <TSystemFile.h>
 #include <TF1.h>
 
+#include <math.h>
+
 using namespace std;
 
 namespace atlashi {
@@ -190,9 +192,9 @@ double* logspace (double lo, double hi, int num) {
  * Returns the equivalent angle in the range 0 to 2pi.
  */
 double InTwoPi (double phi) {
-  while (phi < 0 || 2*pi <= phi) {
-   if (phi < 0) phi += 2*pi;
-   else phi -= 2*pi;
+  while (phi < 0 || 2*M_PI <= phi) {
+   if (phi < 0) phi += 2*M_PI;
+   else phi -= 2*M_PI;
   }
   return phi;
 }
@@ -206,7 +208,7 @@ double DeltaPhi (double phi1, double phi2, const bool sign) {
   phi1 = InTwoPi(phi1);
   phi2 = InTwoPi(phi2);
   double dphi = abs(phi1 - phi2);
-  while (dphi > pi) dphi = abs (dphi - 2*pi);
+  while (dphi > M_PI) dphi = abs (dphi - 2*M_PI);
 
   if (sign && InTwoPi (phi2 + dphi) == phi1)
      dphi *= -1;
@@ -231,7 +233,7 @@ double DeltaR (const double eta1, const double eta2, const double phi1, const do
 bool InDisabledHEC (const double eta, double phi, const double dr) {
   phi = InTwoPi (phi);
   return 1.5-dr < eta && eta < 3.2+dr &&
-         pi-dr < phi && phi < 3*pi/2+dr;
+         M_PI-dr < phi && phi < 3*M_PI/2+dr;
 }
 
 

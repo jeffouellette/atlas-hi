@@ -10,6 +10,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include <math.h>
+
 using namespace std;
 using namespace atlashi;
 
@@ -23,6 +25,8 @@ const Color_t fillColors[10] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, k
 const Color_t modelFillColors[8] = {kGray, kRed+2, kBlue-3, kGreen+3, kViolet-6, kMagenta+2, kCyan+3, kOrange+2};
 //const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
 const float fillAlpha = 1;
+
+const double pi = M_PI;
 
 double* doubleLogSpace (const double lo, const double hi, const int num) {
   double* arr = Get1DArray <double> (2*num+1);
@@ -199,6 +203,7 @@ double** init_xhZBins () {
     nXhZBins[iPtZ] = maxNXhZBins;
     while (nXhZBins[iPtZ] > 0 && zPtBins[iPtZ] > 0 && allXhZBins[maxNXhZBins-nXhZBins[iPtZ]] < 1./zPtBins[iPtZ])
       nXhZBins[iPtZ]--;
+    nXhZBins[iPtZ]--;
 
     if (nXhZBins[iPtZ] == 0)
       nXhZBins[iPtZ] = 1;
@@ -207,7 +212,7 @@ double** init_xhZBins () {
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     _xhZBins[iPtZ] = Get1DArray<double> (nXhZBins[iPtZ]+1);
     for (int iXhZ = 0; iXhZ <= nXhZBins[iPtZ]; iXhZ++) {
-      _xhZBins[iPtZ][iXhZ] = allXhZBins[iXhZ+(maxNXhZBins-nXhZBins[iPtZ])];
+      _xhZBins[iPtZ][iXhZ] = allXhZBins[iXhZ+(maxNXhZBins-nXhZBins[iPtZ]-1)];
     }
   }
 
