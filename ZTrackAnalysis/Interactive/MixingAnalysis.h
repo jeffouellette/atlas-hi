@@ -625,9 +625,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         }
 
         short iXhZ = -1;
-        if (xhZBins[iPtZ][0] <= xhz) {
+        if (allXhZBins[0] <= xhz) {
           iXhZ = 0;
-          while (iXhZ < maxNXhZBins && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
+          while (iXhZ < maxNXhZBins && allXhZBins[iXhZ+1] < xhz) iXhZ++;
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
@@ -953,9 +953,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         }
 
         short iXhZ = -1;
-        if (xhZBins[iPtZ][0] <= xhz) {
+        if (allXhZBins[0] <= xhz) {
           iXhZ = 0;
-          while (iXhZ < maxNXhZBins && xhZBins[iPtZ][iXhZ+1] < xhz) iXhZ++;
+          while (iXhZ < maxNXhZBins && allXhZBins[iXhZ+1] < xhz) iXhZ++;
         }
 
         // Study track yield relative to Z-going direction (requires dphi in 0 to pi)
