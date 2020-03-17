@@ -58,6 +58,7 @@ class PhysicsAnalysis {
   bool plotFill       = false; // whether to plot as filled (bar) graph or points w/ errors
   bool plotSignal     = true; // whether to plot background subtracted plots
   bool useAltMarker   = false; // whether to plot as open markers (instead of closed)
+  bool plotAsSyst     = false; // whether to plot as a systematic uncertainty (box uncertainties)
 
   bool isMC           = false;
   bool isBkg          = false; // whether analysis represents a background (UE) track yield.
@@ -267,7 +268,7 @@ class PhysicsAnalysis {
   virtual TGAE* GetTGAE (TH1D* h);
 
   static void SetErrors (TH1D* h, TH2D* h2);
-  static void TrimTGAE (TGAE** _g, const short iPtZ, const bool useTrkPt);
+  static void TrimTGAE (TGAE* g, const short iPtZ, const bool useTrkPt);
   static void TrimTH1D (TH1D** _h, const short iPtZ, const bool useTrkPt);
 
   virtual void ClearHists ();
@@ -322,22 +323,22 @@ class PhysicsAnalysis {
   void CalculateIAA ();
   //void CalculateICP ();
 
-  virtual void PlotUnweightedTrkYields (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotAllYields_dPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotAllYields_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
-  virtual void PlotAllYields_dPtZ_SpcComp (const bool useTrkPt = true, const bool plotAsSystematic = false);
+  virtual void PlotUnweightedTrkYields (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  virtual void PlotAllYields_dPhi (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  virtual void PlotAllYields_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  virtual void PlotAllYields_dPtZ_SpcComp (const bool useTrkPt = true);
   virtual void PlotAllCovMatrices ();
   virtual void PlotCovMatrix (const bool useTrkPt = true, const short pSpc = 0, const short pPtZ = nPtZBins-1, const short pCent = numCentBins-1);
-  virtual void PlotIAA_dPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotIAA_dCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  virtual void PlotIAA_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
-  virtual void PlotSingleIAA_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pPtZ = -1, const short iCent = numCentBins-1, const short pSpc = 2);
-  virtual void PlotIAA_dPtZ_SpcComp (const bool useTrkPt = true, const bool plotAsSystematic = false);
-  //virtual void PlotICP_dPhi (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  //virtual void PlotICP_dCent (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  //virtual void PlotICP_dPtZ (const bool useTrkPt = true, const bool plotAsSystematic = false, const short pSpc = 2);
+  virtual void PlotIAA_dPhi (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  virtual void PlotIAA_dCent (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  virtual void PlotIAA_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  virtual void PlotSingleIAA_dPtZ (const bool useTrkPt = true, const short pPtZ = -1, const short iCent = numCentBins-1, const short pSpc = 2);
+  virtual void PlotIAA_dPtZ_SpcComp (const bool useTrkPt = true);
+  //virtual void PlotICP_dPhi (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  //virtual void PlotICP_dCent (const bool useTrkPt = true, const short pSpc = 2, const short pPtZ = nPtZBins-1);
+  //virtual void PlotICP_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
   virtual void PlotSignalToBkg (const bool useTrkPt = true, const short iSpc = 2);
-  virtual void PlotTrackMeans (const bool useTrkPt = true, const bool plotAsSystematic = false, const short iSpc = 2);
+  virtual void PlotTrackMeans (const bool useTrkPt = true, const short iSpc = 2);
 
   virtual void WriteIAAs ();
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2);
@@ -431,11 +432,11 @@ void PhysicsAnalysis :: SetErrors (TH1D* h, TH2D* h2) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Removes extra points stored in a TGAE to avoid showing them
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: TrimTGAE (TGAE** _g, const short iPtZ, const bool useTrkPt) {
-  TGAE* g = (*_g);
+void PhysicsAnalysis :: TrimTGAE (TGAE* g, const short iPtZ, const bool useTrkPt) {
+  //TGAE* g = (*_g);
   if (!g) return;
-  if ((g->GetN () != maxNPtchBins && useTrkPt) || (g->GetN () != maxNXhZBins && !useTrkPt)) {
-    //cout << "Warning: In PhysicsAnalysis :: TrimTGAE: " << g->GetName () << " already had its bins trimmed!" << endl;
+  if ((useTrkPt && g->GetN () != maxNPtchBins) || (!useTrkPt && g->GetN () != maxNXhZBins)) {
+    cout << "Warning: In PhysicsAnalysis :: TrimTGAE: " << g->GetName () << " already had its bins trimmed!" << endl;
     return;
   }
   double x = 0, dummy = 0;
@@ -3953,7 +3954,7 @@ void PhysicsAnalysis :: PlotTrackingPurities2D () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot pTch distributions binned in dPhi
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotUnweightedTrkYields (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotUnweightedTrkYields (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
 
@@ -4058,7 +4059,7 @@ void PhysicsAnalysis :: PlotUnweightedTrkYields (const bool useTrkPt, const bool
             TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_raw : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
-            if (!plotAsSystematic) {
+            if (!plotAsSyst) {
               ResetXErrors (g);
               g->SetMarkerStyle (markerStyle);
               g->SetMarkerColor (colors[iPhi]);
@@ -4093,7 +4094,7 @@ void PhysicsAnalysis :: PlotUnweightedTrkYields (const bool useTrkPt, const bool
 
             g->GetYaxis ()->SetTitleOffset (1.1);
 
-            if (!plotAsSystematic) {
+            if (!plotAsSyst) {
               string drawString = string (!canvasExists && iPhi == 0 ? "AP" : "P");
               g->Draw (drawString.c_str ());
             } else {
@@ -4146,7 +4147,7 @@ void PhysicsAnalysis :: PlotUnweightedTrkYields (const bool useTrkPt, const bool
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Y(pT or xZh) binned in dPhi
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
 
@@ -4270,7 +4271,7 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
             TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi : h_trk_xhz_dphi)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
-            if (!plotAsSystematic) {
+            if (!plotAsSyst) {
               ResetXErrors (g);
               g->SetMarkerStyle (markerStyle);
               g->SetMarkerColor (colors[iPhi]);
@@ -4285,7 +4286,7 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (!plotAsSystematic) g->Draw ("P");
+            if (!plotAsSyst) g->Draw ("P");
             else {
               ((TGAE*)g->Clone ())->Draw ("5P");
               g->Draw ("2P");
@@ -4393,7 +4394,7 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
             TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_sub : h_trk_xhz_dphi_sub)[iSpc][iPtZ][iPhi][iCent]);
             RecenterGraph (g);
 
-            if (!plotAsSystematic) {
+            if (!plotAsSyst) {
               ResetXErrors (g);
               g->SetMarkerStyle (markerStyle);
               g->SetMarkerColor (colors[iPhi]);
@@ -4408,7 +4409,7 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
               g->SetFillColorAlpha (fillColors[iPhi], 0.3);
             }
 
-            if (!plotAsSystematic) g->Draw ("P");
+            if (!plotAsSyst) g->Draw ("P");
             else {
               ((TGAE*)g->Clone ())->Draw ("5P");
               g->Draw ("2P");
@@ -4428,7 +4429,7 @@ void PhysicsAnalysis :: PlotAllYields_dPhi (const bool useTrkPt, const bool plot
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Y(pT or xZh) binned in Z Pt
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pSpc) {
+void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
 
@@ -4573,12 +4574,12 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             g->SetMarkerStyle (markerStyle);
             g->SetMarkerColor (colors[iPtZ-1]);
             g->SetLineColor (colors[iPtZ-1]);
-            g->SetMarkerSize (1);
+            g->SetMarkerSize (markerStyle == kFullDiamond || markerStyle == kOpenDiamond ? 1.6 : 1);
             g->SetLineWidth (2);
           } else {
             g->SetMarkerSize (0); 
@@ -4588,7 +4589,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          if (!plotAsSystematic) g->Draw ("P");
+          if (!plotAsSyst) g->Draw ("P");
           else {
             ((TGAE*)g->Clone ())->Draw ("5P");
             g->Draw ("2P");
@@ -4663,7 +4664,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             g->SetMarkerStyle (markerStyle);
             g->SetMarkerColor (colors[iPtZ-1]);
@@ -4678,7 +4679,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
             g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
           }
 
-          if (!plotAsSystematic) g->Draw ("P");
+          if (!plotAsSyst) g->Draw ("P");
           else {
             ((TGAE*)g->Clone ())->Draw ("5P");
             g->Draw ("2P");
@@ -4697,7 +4698,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const bool plot
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot Y(pT or xZh) binned in Z Pt
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const bool plotAsSystematic) {
+void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt) {
   if (!backgroundSubtracted)
     SubtractBackground ();
 
@@ -4821,7 +4822,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
         TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           ResetXErrors (g);
           g->SetMarkerStyle (markerStyle);
           g->SetMarkerColor (colors[iPtZ-1]);
@@ -4836,7 +4837,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
           g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
         }
 
-        if (!plotAsSystematic) g->Draw ("P");
+        if (!plotAsSyst) g->Draw ("P");
         else {
           ((TGAE*)g->Clone ())->Draw ("5P");
           g->Draw ("2P");
@@ -4887,7 +4888,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
       SaferDelete (&h);
       RecenterGraph (g);
 
-      if (!plotAsSystematic) {
+      if (!plotAsSyst) {
         ResetXErrors (g);
         g->SetMarkerColor (colors[iPtZ-1]);
         g->SetLineColor (colors[iPtZ-1]);
@@ -4901,7 +4902,7 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ_SpcComp (const bool useTrkPt, const b
         g->SetFillColorAlpha (fillColors[iPtZ-1], 0.3);
       }
 
-      if (!plotAsSystematic) g->Draw ("P");
+      if (!plotAsSyst) g->Draw ("P");
       else {
         ((TGAE*)g->Clone ())->Draw ("5P");
         g->Draw ("2P");
@@ -5049,7 +5050,7 @@ void PhysicsAnalysis :: CalculateIAA () {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots IAA for each deltaPhi bin in all centralities
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotIAA_dPhi (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotIAA_dPhi (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -5087,7 +5088,7 @@ void PhysicsAnalysis :: PlotIAA_dPhi (const bool useTrkPt, const bool plotAsSyst
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             deltaize (g, 1+((numPhiBins-1)*((int)useAltMarker)-iPhi)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
             g->SetLineColor (colors[iPhi]);
@@ -5126,7 +5127,7 @@ void PhysicsAnalysis :: PlotIAA_dPhi (const bool useTrkPt, const bool plotAsSyst
           g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
           //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             string drawString = string (!canvasExists && iPhi == 1 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
@@ -5187,7 +5188,7 @@ void PhysicsAnalysis :: LabelIAA_dPhi (const short iCent, const short iPhi, cons
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots IAA for each centrality in all deltaPhi bins
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotIAA_dCent (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotIAA_dCent (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -5225,7 +5226,7 @@ void PhysicsAnalysis :: PlotIAA_dCent (const bool useTrkPt, const bool plotAsSys
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             deltaize (g, 1+(iCent-2)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
             g->SetLineColor (colors[iCent]);
@@ -5264,7 +5265,7 @@ void PhysicsAnalysis :: PlotIAA_dCent (const bool useTrkPt, const bool plotAsSys
           g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
           //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             string drawString = string (!canvasExists && iCent == 1 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
@@ -5328,7 +5329,7 @@ void PhysicsAnalysis :: LabelIAA_dCent (const short iCent, const short iPhi, con
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots IAA for each pT^Z bin in all centralities
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pSpc) {
+void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -5363,7 +5364,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
         TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           ResetXErrors (g);
           deltaize (g, 1+(iPtZ-3)*0.04, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iPtZ-1]);
@@ -5402,7 +5403,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
         g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
         //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           string drawString = string (!canvasExists && iPtZ-2 == 0 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
@@ -5451,7 +5452,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ (const bool useTrkPt, const bool plotAsSyst
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots IAA for each pT^Z bin in a single centrality
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pPtZ, const short iCent, const short pSpc) {
+void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const short pPtZ, const short iCent, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -5491,7 +5492,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
       TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
       RecenterGraph (g);
 
-      if (!plotAsSystematic) {
+      if (!plotAsSyst) {
         //deltaize (g, 1+((nPtZBins-2)*((int)useAltMarker)-iPtZ)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
         ResetXErrors (g);
         deltaize (g, 1+(iPtZ-(iPtZHi+iPtZLo)/2.)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
@@ -5534,7 +5535,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
       g->GetXaxis ()->SetTitleOffset (1.2 * g->GetXaxis ()->GetTitleOffset ());
       //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-      if (!plotAsSystematic) {
+      if (!plotAsSyst) {
         string drawString = string (!canvasExists && iPtZ-iPtZLo == 0 ? "AP" : "P");
         g->Draw (drawString.c_str ());
       } else {
@@ -5573,7 +5574,7 @@ void PhysicsAnalysis :: PlotSingleIAA_dPtZ (const bool useTrkPt, const bool plot
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots subtracted yield ratios between some Pb+Pb centrality and pp
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool plotAsSystematic) {
+void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!iaaCalculated)
@@ -5597,7 +5598,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
     gDirectory->Add (c);
   }
 
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
+  for (short iSpc = 0; iSpc < 2; iSpc++) {
 
     for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
       for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
@@ -5609,7 +5610,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
         TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_iaa : h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           ResetXErrors (g);
           deltaize (g, 1+iSpc*0.05-0.025, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iSpc+1]);
@@ -5628,7 +5629,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
           //g->SetFillColorAlpha (fillColors[2*(iPtZ-iPtZLo)+iSpc+1], 0.3);
         }
 
-        useTrkPt ? g->GetXaxis ()->SetLimits (trk_min_pt, pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (allXhZBins[0], allXhZBins[maxNXhZBins]);
+        useTrkPt ? g->GetXaxis ()->SetLimits (pTchBins[nPtZBins-1][0], pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]) : g->GetXaxis ()->SetLimits (xhZBins[nPtZBins-1][0], xhZBins[nPtZBins-1][nXhZBins[nPtZBins-1]]);
         g->GetYaxis ()->SetRangeUser (0, max_iaa);
 
         g->GetXaxis ()->SetMoreLogLabels ();
@@ -5650,7 +5651,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
         g->GetXaxis ()->SetTitleOffset (3.0 * g->GetXaxis ()->GetTitleOffset ());
         g->GetYaxis ()->SetTitleOffset (3.0 * g->GetYaxis ()->GetTitleOffset ());
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           string drawString = string (!canvasExists && iSpc == 0 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
@@ -5660,44 +5661,45 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
         }
       } // end loop over iPtZ
     } // end loop over iCent
-
-    if (!canvasExists) {
-      for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
-        for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-          c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
-          if (iPtZ == iPtZHi-1)
-            myText (0.65, 0.77, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
-          if (iCent == iCentLo && iPtZ == iPtZLo) {
-            myText (0.25, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.08);
-            myText (0.25, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.07);
-          }
-          //if (iCent == iCentLo+1 && iPtZ == iPtZLo) {
-          //  const char* lo = "3#pi/4";
-          //  const char* hi = "#pi";
-          //  myText (0.25, 0.85, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.06);
-          //}
-        }
-        for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
-          if (iCent == iCentLo+1) {
-            c->cd (iCent-iCentLo + 1);
-            if (iPtZ == iPtZLo) {
-              myText (0.656-0.08, 0.875, kBlack, "#it{ee}", 0.06);
-              myText (0.736-0.08, 0.875, kBlack, "#it{#mu#mu}", 0.06);
-              myText (0.816-0.08, 0.875, kBlack, "Comb.", 0.06);
-              myMarkerTextNoLine (0.800-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+1], kFullCircle, "", 1.3, 0.06);
-              myMarkerTextNoLine (0.720-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+2], kFullCircle, "", 1.3, 0.06);
-              myMarkerTextNoLine (0.880-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+3], kFullCircle, "", 1.3, 0.06);
-            }
-          }
-          else if (iCent == iCentLo+2) {
-            c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo)+iCent);
-            if (iPtZ == nPtZBins-1) myText (0.510, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.07);
-            else                    myText (0.430, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.07);
-          }
-        } // end loop over iPtZ
-      } // end loop over iCent
-    }
   } // end loop over iSpc
+
+  if (!canvasExists) {
+    for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+        c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
+        if (iPtZ == iPtZHi-1)
+          myText (0.65, 0.77, kBlack, Form ("%i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.08);
+        if (iCent == iCentLo && iPtZ == iPtZLo) {
+          myText (0.25, 0.85, kBlack, "#bf{#it{ATLAS}} Internal", 0.08);
+          myText (0.25, 0.75, kBlack, "Pb+Pb, 5.02 TeV", 0.07);
+        }
+        //if (iCent == iCentLo+1 && iPtZ == iPtZLo) {
+        //  const char* lo = "3#pi/4";
+        //  const char* hi = "#pi";
+        //  myText (0.25, 0.85, kBlack, Form ("%s < |#Delta#phi| < %s", lo, hi), 0.06);
+        //}
+      }
+      for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+        if (iCent == iCentLo+1) {
+          c->cd (iCent-iCentLo + 1);
+          if (iPtZ == iPtZLo) {
+            myText (0.656-0.08, 0.875, kBlack, "#it{ee}", 0.06);
+            myText (0.736-0.08, 0.875, kBlack, "#it{#mu#mu}", 0.06);
+            myText (0.816-0.08, 0.875, kBlack, "Comb.", 0.06);
+            myMarkerTextNoLine (0.800-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+1], kFullCircle, "", 1.3, 0.06);
+            myMarkerTextNoLine (0.720-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+2], kFullCircle, "", 1.3, 0.06);
+            myMarkerTextNoLine (0.880-0.08, 0.810-0.10*(iPtZ-iPtZLo), colors[2*(iPtZ-iPtZLo)+3], kFullCircle, "", 1.3, 0.06);
+          }
+        }
+        else if (iCent == iCentLo+2) {
+          c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo)+iCent);
+          if (iPtZ == nPtZBins-1) myText (0.510, 0.85, kBlack, Form ("#it{p}_{T}^{Z} > %g GeV", zPtBins[iPtZ]), 0.07);
+          else                    myText (0.430, 0.85, kBlack, Form ("%g < #it{p}_{T}^{Z} < %g GeV", zPtBins[iPtZ], zPtBins[iPtZ+1]), 0.07);
+        }
+      } // end loop over iPtZ
+    } // end loop over iCent
+  }
+
   for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
     for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
       c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
@@ -5711,7 +5713,7 @@ void PhysicsAnalysis :: PlotIAA_dPtZ_SpcComp (const bool useTrkPt, const bool pl
     }
   } // end loop over iCent
 
-  //if (!plotAsSystematic) {
+  //if (!plotAsSyst) {
   //  for (short iCent = iCentLo; iCent < iCentHi; iCent++) {
   //    for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
   //      c->cd ((iPtZ-iPtZLo)*(iCentHi-iCentLo) + iCent-iCentLo + 1);
@@ -5812,7 +5814,7 @@ void PhysicsAnalysis :: CalculateICP () {
 // Plots ICP for each deltaPhi bin in all centralities
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-void PhysicsAnalysis :: PlotICP_dPhi (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotICP_dPhi (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!icpCalculated)
@@ -5850,7 +5852,7 @@ void PhysicsAnalysis :: PlotICP_dPhi (const bool useTrkPt, const bool plotAsSyst
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             deltaize (g, 1+(iPhi-1.5)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
             g->SetLineColor (colors[iPhi]);
@@ -5889,7 +5891,7 @@ void PhysicsAnalysis :: PlotICP_dPhi (const bool useTrkPt, const bool plotAsSyst
           g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
           //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             string drawString = string (!canvasExists && iPhi == 1 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
@@ -5968,7 +5970,7 @@ void PhysicsAnalysis :: LabelICP_dPhi (const short iCent, const short iPhi, cons
 // Plots ICP for each centrality in all deltaPhi bins
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-void PhysicsAnalysis :: PlotICP_dCent (const bool useTrkPt, const bool plotAsSystematic, const short pSpc, const short pPtZ) {
+void PhysicsAnalysis :: PlotICP_dCent (const bool useTrkPt, const short pSpc, const short pPtZ) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!icpCalculated)
@@ -6006,7 +6008,7 @@ void PhysicsAnalysis :: PlotICP_dCent (const bool useTrkPt, const bool plotAsSys
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_icp : h_trk_xhz_dphi_icp)[iSpc][iPtZ][iPhi][iCent]);
           RecenterGraph (g);
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             ResetXErrors (g);
             deltaize (g, 1+((numCentBins-2)*((int)useAltMarker)-iCent)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
             g->SetLineColor (colors[iCent-1]);
@@ -6045,7 +6047,7 @@ void PhysicsAnalysis :: PlotICP_dCent (const bool useTrkPt, const bool plotAsSys
           g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
           //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-          if (!plotAsSystematic) {
+          if (!plotAsSyst) {
             string drawString = string (!canvasExists && iCent == 2 ? "AP" : "P");
             g->Draw (drawString.c_str ());
           } else {
@@ -6114,7 +6116,7 @@ void PhysicsAnalysis :: LabelICP_dCent (const short iCent, const short iPhi, con
 // Plots IAA for each pT^Z bin in all centralities
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-void PhysicsAnalysis :: PlotICP_dPtZ (const bool useTrkPt, const bool plotAsSystematic, const short pSpc) {
+void PhysicsAnalysis :: PlotICP_dPtZ (const bool useTrkPt, const short pSpc) {
   if (!backgroundSubtracted)
     SubtractBackground ();
   if (!icpCalculated)
@@ -6149,7 +6151,7 @@ void PhysicsAnalysis :: PlotICP_dPtZ (const bool useTrkPt, const bool plotAsSyst
         TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_icp : h_trk_xhz_ptz_icp)[iSpc][iPtZ][iCent]);
         RecenterGraph (g);
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           ResetXErrors (g);
           deltaize (g, 1+((numCentBins-2)*((int)useAltMarker)-iCent)*0.02, true); // 2.5 = 0.5*(numPhiBins-1)
           g->SetLineColor (colors[iPtZ-1]);
@@ -6188,7 +6190,7 @@ void PhysicsAnalysis :: PlotICP_dPtZ (const bool useTrkPt, const bool plotAsSyst
         g->GetXaxis ()->SetTitleOffset (0.9 * g->GetXaxis ()->GetTitleOffset ());
         //g->GetYaxis ()->SetTitleOffset (0.9 * g->GetYaxis ()->GetTitleOffset ());
 
-        if (!plotAsSystematic) {
+        if (!plotAsSyst) {
           string drawString = string (!canvasExists && iPtZ == 2 ? "AP" : "P");
           g->Draw (drawString.c_str ());
         } else {
@@ -6357,7 +6359,7 @@ void PhysicsAnalysis :: PlotSignalToBkg (const bool useTrkPt, const short iSpc) 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plots mean track distributions vs. pT^Z
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const bool plotAsSystematic, const short iSpc) {
+void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
   const char* canvasName = Form ("c_mean_%s_%s", useTrkPt ? "pTch" : "xhZ", iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -6367,6 +6369,7 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const bool plotAsSy
     c = new TCanvas (canvasName, "", 800, 800);
     gDirectory->Add (c);
   }
+  c->cd ();
 
   if (!canvasExists) {
     TH1D* h = new TH1D ("htemp", "", 1, 5, 120);
@@ -6389,9 +6392,9 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const bool plotAsSy
       myMarkerText (0.28, 0.750, colors[1], markerStyles[1], "30-80%", 1.5, 0.045);
       myMarkerText (0.50, 0.810, colors[2], markerStyles[2], "10-30%", 2.4, 0.045);
       myMarkerText (0.50, 0.750, colors[3], markerStyles[3], "0-10%", 1.5, 0.045);
-      myText (0.22, 0.69, kBlack, "1/60 < #it{x}_{hZ}", 0.045);
       myText (0.46, 0.27, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
       myText (0.46, 0.21, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.045);
+      myText (0.22, 0.68, kBlack, "1 < #it{p}_{T}^{ch} < 240", 0.045);
     }
     else {
       myText (0.22, 0.87, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
@@ -6401,13 +6404,14 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const bool plotAsSy
       myMarkerText (0.50, 0.750, colors[3], markerStyles[3], "0-10%", 1.5, 0.045);
       myText (0.22, 0.27, kBlack, "Pb+Pb, 5.02 TeV, 1.7 nb^{-1}", 0.045);
       myText (0.22, 0.21, kBlack, "#it{pp}, 5.02 TeV, 260 pb^{-1}", 0.045);
+      myText (0.22, 0.68, kBlack, "1/60 < #it{x}_{hZ} < 2", 0.045);
     }
   }
 
   for (short iCent = 0; iCent < numCentBins; iCent++) {
     TGAE* g = (useTrkPt ? g_trk_avg_pt_ptz : g_trk_avg_xhz_ptz)[iSpc][iCent];
 
-    if (!plotAsSystematic) {
+    if (!plotAsSyst) {
       g->SetMarkerStyle (markerStyles[iCent]);
       g->SetMarkerSize ((markerStyles[iCent] == kOpenDiamond || markerStyles[iCent] == kFullDiamond) ? 2.4 : 1.5);
       g->SetMarkerColor (colors[iCent]);

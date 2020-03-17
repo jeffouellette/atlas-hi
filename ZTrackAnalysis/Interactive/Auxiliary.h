@@ -14,18 +14,26 @@ using namespace atlashi;
 
 typedef TGraphAsymmErrors TGAE;
 
-void PlotPullDist (const PhysicsAnalysis* a, Systematic* sys = nullptr, const bool useTrkPt = true) {
-  TCanvas* c = new TCanvas (Form ("c_pull_%s", useTrkPt ? "pTch" : "xhZ"), "", 800, 600);
-  TH1D* h_pull = new TH1D (Form ("h_pull_%s", useTrkPt ? "pTch" : "xhZ"), Form (";Pull = (#LTY^{#it{ee}} (%s)#GT - #LTY^{#it{#mu#mu}} (%s)#GT) / #sigma;Entries", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}"), 20, -5, 5);
+/**
+ * Plots pull distributions between electron and muon channels. Can also provide a systematic uncertainty and add errors in quadrature.
+ */
+void PlotPullDist (const PhysicsAnalysis* data, const bool useTrkPt = true, const short pPtZ = -1, Systematic* sys = nullptr) {
+  const bool doSpecificBin = (pPtZ >= 0 && pPtZ < nPtZBins);
+
+  TCanvas* c = new TCanvas (Form ("c_pull_%s%s", useTrkPt ? "pTch" : "xhZ", doSpecificBin ? Form ("iPtZ%ipPtZ", pPtZ) : ""), "", 800, 600);
+  TH1D* h_pull = new TH1D (Form ("h_pull_%s%s", useTrkPt ? "pTch" : "xhZ", doSpecificBin ? Form ("iPtZ%ipPtZ", pPtZ) : ""), Form (";Pull = (#LTY^{#it{ee}} (%s)#GT - #LTY^{#it{#mu#mu}} (%s)#GT) / #sigma;Entries", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}", useTrkPt ? "#it{p}_{T}^{ch}" : "#it{x}_{hZ}"), 20, -5, 5);
+
+  const short iPtZLo = (doSpecificBin ? pPtZ : 3);
+  const short iPtZHi = (doSpecificBin ? pPtZ+1 : 5);
 
   int nPoints = 0;
   for (short iCent = 1; iCent < numCentBins; iCent++) {
   //for (short iCent = 0; iCent < 1; iCent++) {
-    for (short iPtZ = 3; iPtZ < nPtZBins; iPtZ++) {
-      TH1D* h_ee = (useTrkPt ? a->h_trk_pt_ptz_iaa : a->h_trk_xhz_ptz_iaa)[0][iPtZ][iCent];
-      TH1D* h_mumu = (useTrkPt ? a->h_trk_pt_ptz_iaa : a->h_trk_xhz_ptz_iaa)[1][iPtZ][iCent];
-      TGAE* g_ee_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_iaa : sys->h_trk_xhz_ptz_iaa)[0][iPtZ][iCent]) : nullptr);
-      TGAE* g_mumu_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_iaa : sys->h_trk_xhz_ptz_iaa)[1][iPtZ][iCent]) : nullptr);
+    for (short iPtZ = iPtZLo; iPtZ < iPtZHi; iPtZ++) {
+      TH1D* h_ee = (useTrkPt ? data->h_trk_pt_ptz_sub : data->h_trk_xhz_ptz_sub)[0][iPtZ][iCent];
+      TH1D* h_mumu = (useTrkPt ? data->h_trk_pt_ptz_sub : data->h_trk_xhz_ptz_sub)[1][iPtZ][iCent];
+      TGAE* g_ee_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_sub : sys->h_trk_xhz_ptz_sub)[0][iPtZ][iCent]) : nullptr);
+      TGAE* g_mumu_sys = (sys ? sys->GetTGAE ((useTrkPt ? sys->h_trk_pt_ptz_sub : sys->h_trk_xhz_ptz_sub)[1][iPtZ][iCent]) : nullptr);
       const int nBinsX = h_ee->GetNbinsX ();
       for (short iX = 1; iX <= nBinsX; iX++) {
         float variance = pow (h_ee->GetBinError (iX), 2) + pow (h_mumu->GetBinError (iX), 2);
@@ -69,7 +77,9 @@ void PlotPullDist (const PhysicsAnalysis* a, Systematic* sys = nullptr, const bo
   const float sigmaErr = fit->GetParError (2);
   myText (0.20, 0.86, kBlack, "#bf{#it{ATLAS}} Internal", 0.055);
   //myText (0.20, 0.80, kBlack, "#it{pp}, all points #it{p}_{T}^{Z} > 30 GeV", 0.045);
-  myText (0.20, 0.80, kBlack, "Pb+Pb, all points #it{p}_{T}^{Z} > 30 GeV", 0.045);
+  if (!doSpecificBin)           myText (0.20, 0.80, kBlack, "Pb+Pb, all points #it{p}_{T}^{Z} > 30 GeV", 0.045);
+  else if (pPtZ != nPtZBins-1)  myText (0.20, 0.80, kBlack, Form ("Pb+Pb, all points %g < #it{p}_{T}^{Z} < %g GeV", zPtBins[pPtZ], zPtBins[pPtZ+1]), 0.045);
+  else                          myText (0.20, 0.80, kBlack, Form ("Pb+Pb, all points #it{p}_{T}^{Z} > %g GeV", zPtBins[pPtZ]), 0.045);
   //myText (0.20, 0.74, kBlack, "Poisson uncertainties", 0.045);
   myText (0.20, 0.74, kBlack, "Generalized uncertainties", 0.045);
 
@@ -313,7 +323,6 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
 
     g->Draw ("P");
 
-    //TF1* fit2 = new TF1 ("fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     TF1* fit2 = new TF1 ("fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     fit2->SetParameter (0, 1);
     fit2->SetParameter (1, 0);
@@ -328,10 +337,7 @@ void DoMuonESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, PhysicsAn
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    //inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
-    //inv_fit2->SetParameter (1, -fit2->GetParameter (1)/fit2->GetParameter (0));
     inv_fit2->SetParameter (0, 2-fit2->GetParameter (0));
     inv_fit2->SetParameter (1, -fit2->GetParameter (1));
     inv_fit2->SetParameter (2, -fit2->GetParameter (2));
@@ -548,8 +554,8 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
     TF1* inv_fit1 = new TF1 ("inv_fit1", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     //inv_fit1->SetParameter (0, 1/fit1->GetParameter (0));
     //inv_fit1->SetParameter (1, -fit1->GetParameter (1)/fit1->GetParameter (0));
-    inv_fit1->SetParameter (2, 2-fit1->GetParameter (0));
-    inv_fit1->SetParameter (2, -fit1->GetParameter (1));
+    inv_fit1->SetParameter (0, 2-fit1->GetParameter (0));
+    inv_fit1->SetParameter (1, -fit1->GetParameter (1));
     inv_fit1->SetParameter (2, -fit1->GetParameter (2));
 
     inv_fit1->SetLineColor (kRed+1);
@@ -597,12 +603,9 @@ void DoElectronESSystStudy (PhysicsAnalysis* a_nom, PhysicsAnalysis* a_up, Physi
 
     cout << "chi2/ndf = " << fit2->GetChisquare () << " / " << fit2->GetNDF () << endl;
 
-    //TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
     TF1* inv_fit2 = new TF1 ("inv_fit2", "[0]+[1]*log(x)+[2]*log(x)*log(x)", useTrkPt ? pTchBins[iPtZ][0] : xhZBins[iPtZ][0], useTrkPt ? pTchBins[iPtZ][nPtchBins[iPtZ]] : xhZBins[iPtZ][nXhZBins[iPtZ]]);
-    //inv_fit2->SetParameter (0, 1./fit2->GetParameter (0));
-    //inv_fit2->SetParameter (1, fit2->GetParameter (1)/fit2->GetParameter (0));
-    inv_fit2->SetParameter (2, 2-fit2->GetParameter (0));
-    inv_fit2->SetParameter (2, -fit2->GetParameter (1));
+    inv_fit2->SetParameter (0, 2-fit2->GetParameter (0));
+    inv_fit2->SetParameter (1, -fit2->GetParameter (1));
     inv_fit2->SetParameter (2, -fit2->GetParameter (2));
 
     inv_fit2->SetLineColor (kAzure-1);
