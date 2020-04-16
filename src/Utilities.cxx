@@ -374,7 +374,7 @@ void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays) {
 }
 
 
-void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
+void CalcSystematics (TGAE* graph, TH1* optimal, const TH1* sys_hi, const TH1* sys_lo) {
   for (int ix = 1; ix <= optimal->GetNbinsX(); ix++) {
     const double content = optimal->GetBinContent (ix);
     const double lo = sys_lo->GetBinContent (ix);
@@ -410,7 +410,7 @@ void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs) {
+void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs) {
   for (int ix = 0; ix < optimal->GetN(); ix++) {
     double x, y, xl, yl, xh, yh;
     optimal->GetPoint (ix, x, y);
@@ -646,23 +646,90 @@ TString GetIdentifier (const int dataSet, const char* inFileName, const bool isM
 /**
  * Separates each point on a TGAE by delta along the x axis, so that the errors don't overlap.
  */
-void deltaize (TGAE* tg, const double delta, const bool logx) {
+void deltaize (TGAE* tg, const double delta, const bool logx, const double x1, const double x2) {
   double x, y, exh, exl;
+
+  if (x1*x2 < 0) {
+    cout << "Error in deltaize: x1 and x2 have different signs! Assuming both are negative." << endl;
+  }
+  const bool useX2OverX1Factor = (x1 > 0 && x2 > 0);
+
   for (int n = 0; n < tg->GetN (); n++) {
     tg->GetPoint (n, x, y);
     exh = x + tg->GetErrorXhigh (n);
-    exl = x - tg->GetErrorXhigh (n);
-    
-    if (logx) tg->SetPoint (n, x*delta, y);
+    exl = x - tg->GetErrorXlow (n);
+
+    if (logx && useX2OverX1Factor) tg->SetPoint (n, x * exp (0.5 * delta * log (x2/x1)), y);
+    else if (logx) tg->SetPoint (n, x*delta, y);
     else tg->SetPoint (n, x + delta, y);
 
     tg->GetPoint (n, x, y);
-    exh = exh - x;
-    exl = x - exl;
+    exh = fabs (exh - x);
+    exl = fabs (x - exl);
 
     tg->SetPointEXhigh (n, exh);
     tg->SetPointEXlow (n, exl);
   }
+}
+
+
+/**
+ * Offsets each point on a TGAE by delta along the y axis.
+ */
+void OffsetYAxis (TGAE* g, const double delta, const bool logx) {
+  if (logx && delta < 0) {
+    cout << "delta < 0 and logx set, these are incompatible options! Returning." << endl;
+    return;
+  }
+  double x, y, yhe, yle;
+  for (int n = 0; n < g->GetN (); n++) {
+    g->GetPoint (n, x, y);
+    yhe = g->GetErrorYhigh (n);
+    yle = g->GetErrorYlow (n);
+
+    if (logx) {
+      g->SetPoint (n, x, y*delta);
+      g->SetPointEYhigh (n, yhe*delta);
+      g->SetPointEYlow (n, yle*delta);
+    }
+    else {
+      g->SetPoint (n, x, y*(1+delta));
+    }
+  }
+  return;
+}
+
+
+/**
+ * Sets each point error to some constant value.
+ * If mult is true, then will be multiplicative (intended for a log scale).
+ */
+void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const double x1, const double x2) {
+  double x, y, exh, exl;
+
+  if (x1*x2 < 0) {
+    cout << "Error in deltaize: x1 and x2 have different signs! Assuming both are negative." << endl;
+  }
+  const bool useX2OverX1Factor = (x1 > 0 && x2 > 0);
+
+  for (int n = 0; n < tg->GetN (); n++) {
+    tg->GetPoint (n, x, y);
+    if (mult && useX2OverX1Factor) {
+      exh = fabs (x * (exp (0.5*err * log (x2/x1)) - 1));
+      exl = fabs (x * (1 - exp (-0.5*err * log(x2/x1))));
+    }
+    else if (mult) {
+      exh = fabs (x * (exp (0.5*err) - 1));
+      exl = fabs (x * (1 - exp (-0.5*err)));
+    }
+    else {
+      exh = err;
+      exl = err;
+    }
+    tg->SetPointEXhigh (n, exh);
+    tg->SetPointEXlow (n, exl);
+  }
+  return;
 }
 
 

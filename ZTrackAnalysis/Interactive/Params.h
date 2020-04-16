@@ -12,18 +12,25 @@
 
 #include <math.h>
 
+#include <TColor.h>
+
 using namespace std;
 using namespace atlashi;
 
 typedef TGraphAsymmErrors TGAE;
 
+TColor* tcolor = new TColor ();
+
 //const Style_t markerStyles[7] = {kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCrossX, kFullCircle, kFullSquare, kFullDiamond};
 const Style_t markerStyles[7] = {kFullCircle, kFullSquare, kFullDiamond, kFullCrossX, kFullCircle, kFullSquare, kFullDiamond};
-//const Color_t colors[10] =    {kBlack, kRed+1, kBlue+1, kGreen+2, kMagenta, kViolet-3, kCyan+1, kOrange+1, kGreen-7, kAzure+7};
+//const Color_t colors[10] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
 const Color_t colors[10] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
 const Color_t fillColors[10] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, kMagenta-9, kCyan-6, kOrange, kGreen-2, kGray};
 const Color_t modelFillColors[8] = {kGray, kRed+2, kBlue-3, kGreen+3, kViolet-6, kMagenta+2, kCyan+3, kOrange+2};
-//const Color_t fillColors[10] = {kGray, kRed-10, kAzure+10, kGreen-10, kMagenta-10, kGreen-2, kCyan-6, kOrange, kViolet-2, kGray};
+
+const Color_t finalColors[4]          = {(Color_t) tcolor->GetColor (0, 0, 0), (Color_t) tcolor->GetColor ( 87, 132, 198), (Color_t) tcolor->GetColor (130,  10, 130), (Color_t) tcolor->GetColor (255,  12,  73)};
+const Color_t finalFillColors[4]      = {(Color_t) tcolor->GetColor (0, 0, 0), (Color_t) tcolor->GetColor ( 87, 132, 198), (Color_t) tcolor->GetColor (130,  10, 130), (Color_t) tcolor->GetColor (255,  12,  73)};
+const Color_t finalModelFillColors[4] = {(Color_t) tcolor->GetColor (0, 0, 0), (Color_t) tcolor->GetColor ( 87, 132, 198), (Color_t) tcolor->GetColor (130,  10, 130), (Color_t) tcolor->GetColor (255,  12,  73)};
 const float fillAlpha = 1;
 
 const double pi = M_PI;
@@ -205,6 +212,8 @@ double** init_xhZBins () {
       nXhZBins[iPtZ]--;
     nXhZBins[iPtZ]--;
 
+    //nXhZBins[iPtZ]--; // for rebinning 1st bin
+
     if (nXhZBins[iPtZ] == 0)
       nXhZBins[iPtZ] = 1;
   }
@@ -212,6 +221,7 @@ double** init_xhZBins () {
   for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
     _xhZBins[iPtZ] = Get1DArray<double> (nXhZBins[iPtZ]+1);
     for (int iXhZ = 0; iXhZ <= nXhZBins[iPtZ]; iXhZ++) {
+      //_xhZBins[iPtZ][iXhZ] = allXhZBins[iXhZ+(maxNXhZBins-nXhZBins[iPtZ]-1 - (iXhZ==0))]; // for rebinning 1st bin
       _xhZBins[iPtZ][iXhZ] = allXhZBins[iXhZ+(maxNXhZBins-nXhZBins[iPtZ]-1)];
     }
   }

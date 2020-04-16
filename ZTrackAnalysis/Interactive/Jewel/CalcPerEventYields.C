@@ -31,22 +31,35 @@ void CalcPerEventYields () {
   bool  isEE   = false;
 
   TH1D**** h_z_trk_pth = Get3DArray <TH1D*> (2, 3, nPtZBins); // pp/PbPb, species, ptZ
+  TH1D**** h_z_trk_pth_var = Get3DArray <TH1D*> (2, 3, nPtZBins); // pp/PbPb, species, ptZ
   TH1D**** h_z_trk_xhz = Get3DArray <TH1D*> (2, 3, nPtZBins); // pp/PbPb, species, ptZ
+  TH1D**** h_z_trk_xhz_var = Get3DArray <TH1D*> (2, 3, nPtZBins); // pp/PbPb, species, ptZ
   int***   z_counts    = Get3DArray <int>   (2, 3, nPtZBins); // pp/PbPb, species, ptZ
 
-  double* pthBins = logspace (0.5, 60, 25);
-  double* xhzBins = logspace (0.01, 1, 25);
+  const int nBinsPtch = 18;
+  const int nBinsXhZ = 15;
+  double** pthBins = Get1DArray <double*> (nPtZBins);
+  double** xhzBins = Get1DArray <double*> (nPtZBins);
 
-  for (int iCollSys : {0, 1}) {
-    for (int iPtZ = nPtZBins-3; iPtZ < nPtZBins; iPtZ++) {
+  TFile* outFile = new TFile (Form ("%s/Jewel/hists.root", rootPath.Data ()), "recreate");
+  for (int iPtZ = nPtZBins-3; iPtZ < nPtZBins; iPtZ++) {
+    const double maxPtch = pTchBins[iPtZ][nPtchBins[iPtZ]];
+    const double minPtch = pTchBins[iPtZ][0];
+    const double maxXhZ = xhZBins[iPtZ][nXhZBins[iPtZ]];
+    const double minXhZ = xhZBins[iPtZ][0];
+    pthBins[iPtZ] = logspace (minPtch, maxPtch, nBinsPtch);
+    xhzBins[iPtZ] = logspace (minXhZ, maxXhZ, nBinsXhZ);
+    for (int iCollSys : {0, 1}) {
       for (int iSpc = 0; iSpc < 3; iSpc++) {
-        h_z_trk_pth[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_pth_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{p}_{T}^{ ch} [GeV];Counts", 25, pthBins);
-        h_z_trk_xhz[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_xhz_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{x}_{hZ};Counts", 25, xhzBins);
+        h_z_trk_pth[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_pth_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{p}_{T}^{ ch} [GeV];Counts", nBinsPtch, pthBins[iPtZ]);
+        h_z_trk_pth_var[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_pth_var_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{p}_{T}^{ ch} [GeV];Counts", nBinsPtch, pthBins[iPtZ]);
+        h_z_trk_xhz[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_xhz_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{x}_{hZ};Counts", nBinsXhZ, xhzBins[iPtZ]);
+        h_z_trk_xhz_var[iCollSys][iSpc][iPtZ] = new TH1D (Form ("h_z_trk_xhz_var_%s_iSpc%i_iPtZ%i", iCollSys == 0 ? "vacuum":"medium", iSpc, iPtZ), ";#it{x}_{hZ};Counts", nBinsXhZ, xhzBins[iPtZ]);
       }
     }
   }
 
-  TFile* mediumFile = new TFile (Form ("%s/Jewel/mediumFile.root", rootPath.Data ()), "read");
+  TFile* mediumFile = new TFile (Form ("%s/Jewel/z_jet_medium_nevt_1760000.root", rootPath.Data ()), "read");
   TTree* mediumTree = (TTree*) mediumFile->Get ("tree");
 
   mediumTree->SetBranchAddress ("part_n",        &part_n);
@@ -66,8 +79,16 @@ void CalcPerEventYields () {
 
   const int nMediumEvts = mediumTree->GetEntries ();
 
+  int* yields_pth = Get1DArray <int> (nBinsPtch);
+  int* yields_xhz = Get1DArray <int> (nBinsXhZ);
+
   for (int iEvt = 0; iEvt < nMediumEvts; iEvt++) {
     mediumTree->GetEntry (iEvt);
+
+    for (int i = 0; i < nBinsPtch; i++)
+      yields_pth[i] = 0;
+    for (int i = 0; i < nBinsXhZ; i++)
+      yields_xhz[i] = 0;
 
     if (z_pt < 15)
       continue;
@@ -78,17 +99,42 @@ void CalcPerEventYields () {
     for (int iPart = 0; iPart < part_n; iPart++) {
       if (DeltaPhi (z_phi, part_phi[iPart]) < 3*pi/4)
         continue;
+      const double pth = part_pt[iPart];
+      const double xhz = pth / z_pt;
 
-      h_z_trk_pth[1][iSpc][iPtZ]->Fill (part_pt[iPart]);
-      h_z_trk_xhz[1][iSpc][iPtZ]->Fill (part_pt[iPart] / z_pt);
+      if (pth >= pthBins[iPtZ][0]) {
+        int iPth = 0;
+        while (iPth < nBinsPtch && pth >= pthBins[iPtZ][iPth+1]) iPth++;
+        if (0 <= iPth && iPth < nBinsPtch)
+          yields_pth[iPth]++;
+      }
+    
+      if (xhz >= xhzBins[iPtZ][0]) {
+        int iXhZ = 0;
+        while (iXhZ < nBinsXhZ && xhz >= xhzBins[iPtZ][iXhZ+1]) iXhZ++; 
+        if (0 <= iXhZ && iXhZ < nBinsXhZ)
+          yields_xhz[iXhZ]++;
+      }
     } // end ch. hadron loop
+
+    
+    for (int i = 0; i < nBinsPtch; i++) {
+      h_z_trk_pth[1][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_pth[1][iSpc][iPtZ]->GetBinContent (i+1) + yields_pth[i]);
+      h_z_trk_pth_var[1][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_pth_var[1][iSpc][iPtZ]->GetBinContent (i+1) + pow (yields_pth[i], 2));
+    }
+    for (int i = 0; i < nBinsXhZ; i++) {
+      h_z_trk_xhz[1][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_xhz[1][iSpc][iPtZ]->GetBinContent (i+1) + yields_xhz[i]);
+      h_z_trk_xhz_var[1][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_xhz_var[1][iSpc][iPtZ]->GetBinContent (i+1) + pow (yields_xhz[i], 2));
+    }
 
     z_counts[1][iSpc][iPtZ]++;
   } // end event loop
 
   mediumFile->Close ();
 
-  TFile* vacuumFile = new TFile (Form ("%s/Jewel/vacuumFile.root", rootPath.Data ()), "read");
+
+
+  TFile* vacuumFile = new TFile (Form ("%s/Jewel/z_jet_vacuum_nevt_1760000.root", rootPath.Data ()), "read");
   TTree* vacuumTree = (TTree*) vacuumFile->Get ("tree");
   
   vacuumTree->SetBranchAddress ("part_n",        &part_n);
@@ -111,6 +157,11 @@ void CalcPerEventYields () {
   for (int iEvt = 0; iEvt < nVacuumEvts; iEvt++) {
     vacuumTree->GetEntry (iEvt);
 
+    for (int i = 0; i < nBinsPtch; i++)
+      yields_pth[i] = 0;
+    for (int i = 0; i < nBinsXhZ; i++)
+      yields_xhz[i] = 0;
+
     if (z_pt < 15)
       continue;
 
@@ -120,13 +171,46 @@ void CalcPerEventYields () {
     for (int iPart = 0; iPart < part_n; iPart++) {
       if (DeltaPhi (z_phi, part_phi[iPart]) < 3*pi/4)
         continue;
+      const double pth = part_pt[iPart];
+      const double xhz = pth / z_pt;
 
-      h_z_trk_pth[0][iSpc][iPtZ]->Fill (part_pt[iPart]);
-      h_z_trk_xhz[0][iSpc][iPtZ]->Fill (part_pt[iPart] / z_pt);
+      if (pth >= pthBins[iPtZ][0]) {
+        int iPth = 0;
+        while (iPth < nBinsPtch && pth >= pthBins[iPtZ][iPth+1]) iPth++;
+        if (0 <= iPth && iPth < nBinsPtch)
+          yields_pth[iPth]++;
+      }
+    
+      if (xhz >= xhzBins[iPtZ][0]) {
+        int iXhZ = 0;
+        while (iXhZ < nBinsXhZ && xhz >= xhzBins[iPtZ][iXhZ+1]) iXhZ++; 
+        if (0 <= iXhZ && iXhZ < nBinsXhZ)
+          yields_xhz[iXhZ]++;
+      }
     } // end ch. hadron loop
+
+    
+    for (int i = 0; i < nBinsPtch; i++) {
+      h_z_trk_pth[0][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_pth[0][iSpc][iPtZ]->GetBinContent (i+1) + yields_pth[i]);
+      h_z_trk_pth_var[0][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_pth_var[0][iSpc][iPtZ]->GetBinContent (i+1) + pow (yields_pth[i], 2));
+    }
+    for (int i = 0; i < nBinsXhZ; i++) {
+      h_z_trk_xhz[0][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_xhz[0][iSpc][iPtZ]->GetBinContent (i+1) + yields_xhz[i]);
+      h_z_trk_xhz_var[0][iSpc][iPtZ]->SetBinContent (i+1, h_z_trk_xhz_var[0][iSpc][iPtZ]->GetBinContent (i+1) + pow (yields_xhz[i], 2));
+    }
 
     z_counts[0][iSpc][iPtZ]++;
   } // end event loop
+
+
+  for (int iPtZ = nPtZBins-3; iPtZ < nPtZBins; iPtZ++) {
+    delete[] pthBins[iPtZ];
+    pthBins[iPtZ] = nullptr;
+    delete[] xhzBins[iPtZ];
+    xhzBins[iPtZ] = nullptr;
+  }
+  Delete1DArray (pthBins, nPtZBins);
+  Delete1DArray (xhzBins, nPtZBins);
 
 
   // postprocessing
@@ -136,18 +220,38 @@ void CalcPerEventYields () {
       h_z_trk_pth[iCollSys][2][iPtZ]->Add (h_z_trk_pth[iCollSys][1][iPtZ]);
       h_z_trk_xhz[iCollSys][2][iPtZ]->Add (h_z_trk_xhz[iCollSys][0][iPtZ]);
       h_z_trk_xhz[iCollSys][2][iPtZ]->Add (h_z_trk_xhz[iCollSys][1][iPtZ]);
+      h_z_trk_pth_var[iCollSys][2][iPtZ]->Add (h_z_trk_pth_var[iCollSys][0][iPtZ]);
+      h_z_trk_pth_var[iCollSys][2][iPtZ]->Add (h_z_trk_pth_var[iCollSys][1][iPtZ]);
+      h_z_trk_xhz_var[iCollSys][2][iPtZ]->Add (h_z_trk_xhz_var[iCollSys][0][iPtZ]);
+      h_z_trk_xhz_var[iCollSys][2][iPtZ]->Add (h_z_trk_xhz_var[iCollSys][1][iPtZ]);
       z_counts[iCollSys][2][iPtZ] = z_counts[iCollSys][0][iPtZ] + z_counts[iCollSys][1][iPtZ];
     }
   }
 
-  TFile* outFile = new TFile (Form ("%s/Jewel/hists.root", rootPath.Data ()), "recreate");
+  outFile->cd ();
   for (int iCollSys : {0, 1}) {
     for (int iPtZ = nPtZBins-3; iPtZ < nPtZBins; iPtZ++) {
       for (int iSpc = 0; iSpc < 3; iSpc++) {
 
-        if (z_counts[iCollSys][iSpc][iPtZ] > 0) {
-          h_z_trk_pth[iCollSys][iSpc][iPtZ]->Scale (1./ (z_counts[iCollSys][iSpc][iPtZ] * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
-          h_z_trk_xhz[iCollSys][iSpc][iPtZ]->Scale (1./ (z_counts[iCollSys][iSpc][iPtZ] * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+        const int nZ = z_counts[iCollSys][iSpc][iPtZ];
+
+        if (nZ > 0) {
+          h_z_trk_pth[iCollSys][iSpc][iPtZ]->Scale (1./ nZ);// * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          h_z_trk_xhz[iCollSys][iSpc][iPtZ]->Scale (1./ nZ);// * (phiHighBins[numPhiBins-1] - phiLowBins[1])), "width");
+          for (int iX = 1; iX <= nBinsPtch; iX++)
+            h_z_trk_pth_var[iCollSys][iSpc][iPtZ]->SetBinContent (iX, h_z_trk_pth_var[iCollSys][iSpc][iPtZ]->GetBinContent (iX) - nZ * pow (h_z_trk_pth[iCollSys][iSpc][iPtZ]->GetBinContent (iX), 2));
+          for (int iX = 1; iX <= nBinsXhZ; iX++)
+            h_z_trk_xhz_var[iCollSys][iSpc][iPtZ]->SetBinContent (iX, h_z_trk_xhz_var[iCollSys][iSpc][iPtZ]->GetBinContent (iX) - nZ * pow (h_z_trk_xhz[iCollSys][iSpc][iPtZ]->GetBinContent (iX), 2));
+          h_z_trk_pth_var[iCollSys][iSpc][iPtZ]->Scale (1./ (nZ-1));
+          h_z_trk_xhz_var[iCollSys][iSpc][iPtZ]->Scale (1./ (nZ-1));
+
+          for (int iX = 1; iX <= nBinsPtch; iX++)
+            h_z_trk_pth[iCollSys][iSpc][iPtZ]->SetBinError (iX, sqrt (h_z_trk_pth_var[iCollSys][iSpc][iPtZ]->GetBinContent (iX) / nZ));
+          for (int iX = 1; iX <= nBinsXhZ; iX++)
+            h_z_trk_xhz[iCollSys][iSpc][iPtZ]->SetBinError (iX, sqrt (h_z_trk_xhz_var[iCollSys][iSpc][iPtZ]->GetBinContent (iX) / nZ));
+
+          h_z_trk_pth[iCollSys][iSpc][iPtZ]->Scale (1./ (phiHighBins[numPhiBins-1] - phiLowBins[1]), "width");
+          h_z_trk_xhz[iCollSys][iSpc][iPtZ]->Scale (1./ (phiHighBins[numPhiBins-1] - phiLowBins[1]), "width");
         }
 
         h_z_trk_pth[iCollSys][iSpc][iPtZ]->Write ();
@@ -155,7 +259,6 @@ void CalcPerEventYields () {
       }
     }
   }
-
 
   outFile->Close ();
   

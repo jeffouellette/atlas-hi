@@ -144,13 +144,13 @@ void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays = true);
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGAE* graph, const TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);
+void CalcSystematics (TGAE* graph, TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);
 
 
 /**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
-void CalcSystematics (TGAE* graph, const TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs = false);
+void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TGraph* sys_lo, const bool doXErrs = false);
 
 
 /**
@@ -174,7 +174,20 @@ TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxi
 /**
  * Separates each point on a TGAE by delta along the x axis, so that the errors don't overlap.
  */
-void deltaize (TGAE* tg, const double delta = 0, const bool logx = false);
+void deltaize (TGAE* tg, const double delta = 0, const bool logx = false, const double x1 = 0, const double x2 = 0);
+
+
+/**
+ * Offsets each point on a TGAE by delta along the y axis.
+ */
+void OffsetYAxis (TGAE* g, const double delta, const bool logx);
+
+
+/**
+ * Sets each point error to some constant value.
+ * If mult is true, then will be multiplicative (intended for a log scale).
+ */
+void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const double x1 = 0, const double x2 = 0);
 
 
 /**

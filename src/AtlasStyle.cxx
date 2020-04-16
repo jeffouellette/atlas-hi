@@ -4,12 +4,12 @@
 
 #include <iostream>
 
-#include "AtlasStyle.h"
+#include "../include/AtlasStyle.h"
 
 #include "TROOT.h"
 
-void SetAtlasStyle ()
-{
+
+void SetAtlasStyle () {
   static TStyle* atlasStyle = 0;
   std::cout << "\nApplying ATLAS style settings...\n" << std::endl ;
   if ( atlasStyle==0 ) atlasStyle = AtlasStyle();
@@ -17,8 +17,10 @@ void SetAtlasStyle ()
   gROOT->ForceStyle();
 }
 
-TStyle* AtlasStyle() 
-{
+
+
+
+TStyle* AtlasStyle() {
   TStyle *atlasStyle = new TStyle("ATLAS","Atlas style");
 
   // use plain black on white colors

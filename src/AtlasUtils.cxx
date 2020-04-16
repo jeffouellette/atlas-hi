@@ -2,8 +2,8 @@
 #include <iostream>
 #include <cmath>
 
-#include "AtlasUtils.h"
-#include "AtlasStyle.h"
+#include "../include/AtlasUtils.h"
+#include "../include/AtlasStyle.h"
 
 #include "TROOT.h"
 #include "TLine.h"
@@ -13,6 +13,75 @@
 #include "TH1.h"
 #include "TH1D.h"
 #include "TStyle.h"
+
+bool IsOpenMarker (const Style_t ms) {
+  return ms == kOpenCircle ||
+         ms == kOpenSquare ||
+         ms == kOpenTriangleUp ||
+         ms == kOpenDiamond ||
+         ms == kOpenCross ||
+         ms == kOpenStar ||
+         ms == kOpenTriangleDown ||
+         ms == kOpenDiamondCross ||
+         ms == kOpenSquareDiagonal ||
+         ms == kOpenThreeTriangles ||
+         ms == kOpenFourTrianglesX ||
+         ms == kOpenDoubleDiamond ||
+         ms == kOpenFourTrianglesPlus ||
+         ms == kOpenCrossX;
+}
+
+bool IsFullMarker (const Style_t ms) {
+  return ms == kFullCircle ||
+         ms == kFullSquare ||
+         ms == kFullTriangleUp ||
+         ms == kFullDiamond ||
+         ms == kFullCross ||
+         ms == kFullStar ||
+         ms == kFullTriangleDown ||
+         ms == kFullThreeTriangles ||
+         ms == kFullFourTrianglesX ||
+         ms == kFullDoubleDiamond ||
+         ms == kFullFourTrianglesPlus ||
+         ms == kFullCrossX;
+}
+
+Style_t FullToOpenMarker (const Style_t ms) {
+  switch (ms) {
+    case kFullCircle: return kOpenCircle;
+    case kFullSquare: return kOpenSquare;
+    case kFullDiamond: return kOpenDiamond;
+    case kFullCross: return kOpenCross;
+    case kFullTriangleUp: return kOpenTriangleUp;
+    case kFullTriangleDown: return kOpenTriangleDown;
+    case kFullStar: return kOpenStar;
+    case kFullCrossX: return kOpenCrossX;
+    case kFullFourTrianglesPlus: return kOpenFourTrianglesPlus;
+    case kFullFourTrianglesX: return kOpenFourTrianglesX;
+    case kFullThreeTriangles: return kOpenThreeTriangles;
+    case kFullDoubleDiamond: return kOpenDoubleDiamond;
+    default: return kDot;
+  }
+}
+
+
+Style_t OpenToFullMarker (const Style_t ms) {
+  switch (ms) {
+    case kOpenCircle: return kFullCircle;
+    case kOpenSquare: return kFullSquare;
+    case kOpenDiamond: return kFullDiamond;
+    case kOpenCross: return kFullCross;
+    case kOpenTriangleUp: return kFullTriangleUp;
+    case kOpenTriangleDown: return kFullTriangleDown;
+    case kOpenStar: return kFullStar;
+    case kOpenCrossX: return kFullCrossX;
+    case kOpenFourTrianglesPlus: return kFullFourTrianglesPlus;
+    case kOpenFourTrianglesX: return kFullFourTrianglesX;
+    case kOpenThreeTriangles: return kFullThreeTriangles;
+    case kOpenDoubleDiamond: return kFullDoubleDiamond;
+    default: return kDot;
+  }
+}
 
 void SetStyle () {
   TStyle* myStyle = AtlasStyle();
@@ -33,8 +102,7 @@ void FormatTH2Canvas (TCanvas* c, const bool zAxisSpace) {
 }
 
 
-void ATLAS_LABEL(Double_t x,Double_t y,Color_t color) 
-{
+void ATLAS_LABEL (double x, double y,Color_t color) {
   TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
   l.SetNDC();
   l.SetTextFont(72);
@@ -42,16 +110,19 @@ void ATLAS_LABEL(Double_t x,Double_t y,Color_t color)
   l.DrawLatex(x,y,"ATLAS");
 }
 
-TGraphErrors* myTGraphErrorsDivide(TGraphErrors* g1,TGraphErrors* g2) {
+
+
+
+TGraphErrors* myTGraphErrorsDivide (TGraphErrors* g1, TGraphErrors* g2) {
  
-  const Int_t debug=0; 
+  const int debug=0; 
 
   if (!g1) printf("**myTGraphErrorsDivide: g1 does not exist !  \n"); 
   if (!g2) printf("**myTGraphErrorsDivide: g2 does not exist !  \n"); 
 
 
-  Int_t n1=g1->GetN();
-  Int_t n2=g2->GetN();
+  int n1=g1->GetN();
+  int n2=g2->GetN();
 
   if (n1!=n2) {
    printf("**myTGraphErrorsDivide: vector do not have same number of entries !  \n"); 
@@ -59,12 +130,12 @@ TGraphErrors* myTGraphErrorsDivide(TGraphErrors* g1,TGraphErrors* g2) {
 
   TGraphErrors* g3= new TGraphErrors();
 
-  Double_t  x1=0., y1=0., x2=0., y2=0.;
-  Double_t dx1=0.,dy1=0.,       dy2=0.;
+  double  x1=0., y1=0., x2=0., y2=0.;
+  double dx1=0.,dy1=0.,       dy2=0.;
 
-  Int_t iv=0;
-  for (Int_t i1=0; i1<n1; i1++) {
-   for (Int_t i2=0; i2<n2; i2++) {
+  int iv=0;
+  for (int i1=0; i1<n1; i1++) {
+   for (int i2=0; i2<n2; i2++) {
      //if (debug) printf("**myTGraphErrorsDivide: %d  %d !  \n",i1,i2);
 
     g1->GetPoint(i1,x1,y1);
@@ -83,13 +154,13 @@ TGraphErrors* myTGraphErrorsDivide(TGraphErrors* g1,TGraphErrors* g2) {
      if (y2!=0.) g3->SetPoint(iv, x1,y1/y2);
      else        g3->SetPoint(iv, x1,y2);
    
-     Double_t e=0.;
+     double e=0.;
      if (y1!=0 && y2!=0) e=std::sqrt(dy1*dy1+dy2*dy2)*(y1/y2); 
      g3->SetPointError(iv,dx1,e);
 
 
      if (debug) {
-       //Double_t g3y, g3x,g3e;
+       //double g3y, g3x,g3e;
        //g3->GetPoint(iv, g3y,g3x);
        //g3e=g3->GetErrorY(iv);
        //printf("%d g3y= %f g3e=%f  \n",iv,g3y,g3e);
@@ -104,7 +175,9 @@ TGraphErrors* myTGraphErrorsDivide(TGraphErrors* g1,TGraphErrors* g2) {
 }
 
 
-TGraphAsymmErrors* multiplyTGraphAsymmErrors(TGraphAsymmErrors* g1, TGraphAsymmErrors* g2) {
+
+
+TGraphAsymmErrors* multiplyTGraphAsymmErrors (TGraphAsymmErrors* g1, TGraphAsymmErrors* g2) {
     TGraphAsymmErrors* g3 = new TGraphAsymmErrors();
 
     int n1 = g1->GetN();
@@ -159,39 +232,41 @@ TGraphAsymmErrors* multiplyTGraphAsymmErrors(TGraphAsymmErrors* g1, TGraphAsymmE
 }
 
 
-TGraphAsymmErrors* myTGraphErrorsDivide(TGraphAsymmErrors* g1,TGraphAsymmErrors* g2) {
 
-  const Int_t debug=0; 
+
+TGraphAsymmErrors* myTGraphErrorsDivide (TGraphAsymmErrors* g1, TGraphAsymmErrors* g2) {
+
+  const int debug=0; 
 
   TGraphAsymmErrors* g3= new TGraphAsymmErrors();
-  Int_t n1=g1->GetN();
-  Int_t n2=g2->GetN();
+  int n1=g1->GetN();
+  int n2=g2->GetN();
 
   if (n1!=n2) {
     printf(" vectors do not have same number of entries !  \n");
    return g3;
   }
 
-  Double_t   x1=0.,   y1=0., x2=0., y2=0.;
-  Double_t dx1h=0., dx1l=0.;
-  Double_t dy1h=0., dy1l=0.;
-  Double_t dy2h=0., dy2l=0.;
+  double   x1=0.,   y1=0., x2=0., y2=0.;
+  double dx1h=0., dx1l=0.;
+  double dy1h=0., dy1l=0.;
+  double dy2h=0., dy2l=0.;
 
-  Double_t* X1 = g1->GetX();
-  Double_t* Y1 = g1->GetY();
-  Double_t* EXhigh1 = g1->GetEXhigh();
-  Double_t* EXlow1 =  g1->GetEXlow();
-  Double_t* EYhigh1 = g1->GetEYhigh();
-  Double_t* EYlow1 =  g1->GetEYlow();
+  double* X1 = g1->GetX();
+  double* Y1 = g1->GetY();
+  double* EXhigh1 = g1->GetEXhigh();
+  double* EXlow1 =  g1->GetEXlow();
+  double* EYhigh1 = g1->GetEYhigh();
+  double* EYlow1 =  g1->GetEYlow();
 
-  Double_t* X2 = g2->GetX();
-  Double_t* Y2 = g2->GetY();
-  Double_t* EXhigh2 = g2->GetEXhigh();
-  Double_t* EXlow2 =  g2->GetEXlow();
-  Double_t* EYhigh2 = g2->GetEYhigh();
-  Double_t* EYlow2 =  g2->GetEYlow();
+  double* X2 = g2->GetX();
+  double* Y2 = g2->GetY();
+  double* EXhigh2 = g2->GetEXhigh();
+  double* EXlow2 =  g2->GetEXlow();
+  double* EYhigh2 = g2->GetEYhigh();
+  double* EYlow2 =  g2->GetEYlow();
 
-  for (Int_t i=0; i<g1->GetN(); i++) {
+  for (int i=0; i<g1->GetN(); i++) {
     g1->GetPoint(i,x1,y1);
     g2->GetPoint(i,x2,y2);
     dx1h  = EXhigh1[i];
@@ -213,7 +288,7 @@ TGraphAsymmErrors* myTGraphErrorsDivide(TGraphAsymmErrors* g1,TGraphAsymmErrors*
 
     if (y2!=0.) g3->SetPoint(i, x1,y1/y2);
     else       g3->SetPoint(i, x1,y2);
-    Double_t el=0.; Double_t eh=0.;
+    double el=0.; double eh=0.;
 
     if (y1!=0. && y2!=0.) el=std::sqrt(dy1l*dy1l+dy2l*dy2l)*(y1/y2);
     if (y1!=0. && y2!=0.) eh=std::sqrt(dy1h*dy1h+dy2h*dy2h)*(y1/y2);
@@ -228,16 +303,17 @@ TGraphAsymmErrors* myTGraphErrorsDivide(TGraphAsymmErrors* g1,TGraphAsymmErrors*
 
 
 
-TGraphAsymmErrors* myMakeBand(TGraphErrors* g0, TGraphErrors* g1,TGraphErrors* g2) {
+
+TGraphAsymmErrors* myMakeBand (TGraphErrors* g0, TGraphErrors* g1, TGraphErrors* g2) {
   // default is g0
-    //const Int_t debug=0;
+    //const int debug=0;
 
   TGraphAsymmErrors* g3= new TGraphAsymmErrors();
 
-  Double_t  x1=0., y1=0., x2=0., y2=0., y0=0, x3=0.;
-  //Double_t dx1=0.;
-  Double_t dum;
-  for (Int_t i=0; i<g1->GetN(); i++) {
+  double  x1=0., y1=0., x2=0., y2=0., y0=0, x3=0.;
+  //double dx1=0.;
+  double dum;
+  for (int i=0; i<g1->GetN(); i++) {
     g0->GetPoint(i, x1,y0);
     g1->GetPoint(i, x1,y1);
     g2->GetPoint(i, x1,y2);
@@ -251,14 +327,14 @@ TGraphAsymmErrors* myMakeBand(TGraphErrors* g0, TGraphErrors* g1,TGraphErrors* g
     if (i==0)            x3=x1;
     else                 g2->GetPoint(i-1,x3,dum);
 
-    Double_t tmp=y2;
+    double tmp=y2;
     if (y1<y2) {y2=y1; y1=tmp;}
-    //Double_t y3=1.;
-    Double_t y3=y0;
+    //double y3=1.;
+    double y3=y0;
     g3->SetPoint(i,x1,y3);
 
-    Double_t binwl=(x1-x3)/2.;
-    Double_t binwh=(x2-x1)/2.;
+    double binwl=(x1-x3)/2.;
+    double binwh=(x2-x1)/2.;
     if (binwl==0.)  binwl= binwh;
     if (binwh==0.)  binwh= binwl;
     g3->SetPointError(i,binwl,binwh,(y3-y2),(y1-y3));
@@ -268,19 +344,22 @@ TGraphAsymmErrors* myMakeBand(TGraphErrors* g0, TGraphErrors* g1,TGraphErrors* g
 
 }
 
-void myAddtoBand(TGraphErrors* g1, TGraphAsymmErrors* g2) {
 
-  Double_t  x1=0., y1=0.,  y2=0., y0=0;
-  //Double_t dx1=0.;
-  //Double_t dum;
+
+
+void myAddtoBand (TGraphErrors* g1, TGraphAsymmErrors* g2) {
+
+  double  x1=0., y1=0.,  y2=0., y0=0;
+  //double dx1=0.;
+  //double dum;
 
   if (g1->GetN()!=g2->GetN())
     std::cout << " graphs have not the same # of elements " << std::endl;
 
-  Double_t* EYhigh = g2-> GetEYhigh();
-  Double_t* EYlow  = g2-> GetEYlow();
+  double* EYhigh = g2-> GetEYhigh();
+  double* EYlow  = g2-> GetEYlow();
 
-  for (Int_t i=0; i<g1->GetN(); i++) {
+  for (int i=0; i<g1->GetN(); i++) {
     g1->GetPoint(i, x1,y1);
     g2->GetPoint(i, x1,y2);
     
@@ -295,9 +374,9 @@ void myAddtoBand(TGraphErrors* g1, TGraphAsymmErrors* g2) {
     //    if (i==0)            x3=x1;
     //    else                 g2->GetPoint(i-1,x3,dum);
 
-    Double_t eyh=0., eyl=0.;
+    double eyh=0., eyl=0.;
     //if (y1<y2) {y2=y1; y1=tmp;}
-    //Double_t y3=1.;
+    //double y3=1.;
 
     //printf("%d: y1=%f y2=%f Eyhigh= %f Eylow= %f \n",i,y1,y2,EYhigh[i],EYlow[i]);
 
@@ -320,15 +399,18 @@ void myAddtoBand(TGraphErrors* g1, TGraphAsymmErrors* g2) {
 
 }
 
-TGraphErrors* TH1TOTGraph(TH1 *h1){
+
+
+
+TGraphErrors* TH1TOTGraph (TH1 *h1) {
 
 
   if (!h1) std::cout << "TH1TOTGraph: histogram not found !" << std::endl;
 
  TGraphErrors* g1= new TGraphErrors();
 
- Double_t x, y, ex, ey;
- for (Int_t i=1 ; i<=h1->GetNbinsX(); i++) {
+ double x, y, ex, ey;
+ for (int i=1 ; i<=h1->GetNbinsX(); i++) {
    y=h1->GetBinContent(i);
    ey=h1->GetBinError(i);
    x=h1->GetBinCenter(i);
@@ -346,6 +428,9 @@ TGraphErrors* TH1TOTGraph(TH1 *h1){
  return g1;
 }
 
+
+
+
 void BinomialDivide (TH1D* n, TH1D* d) {
   for (int ix = 1; ix <= n->GetNbinsX (); ix++) {
     float eff = n->GetBinContent (ix);
@@ -362,9 +447,12 @@ void BinomialDivide (TH1D* n, TH1D* d) {
   return;
 }
 
-void myText(Double_t x,Double_t y,Color_t color, const char *text, Double_t tsize) {
 
-//  Double_t tsize=0.04;
+
+
+void myText (double x, double y, Color_t color, const char *text, double tsize) {
+
+//  double tsize=0.04;
   TLatex l; /*l.SetTextAlign(12);*/ l.SetTextSize(tsize); 
   l.SetNDC();
   l.SetTextColor(color);
@@ -372,19 +460,20 @@ void myText(Double_t x,Double_t y,Color_t color, const char *text, Double_t tsiz
 }
  
 
-void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *text) 
-{
 
-  Double_t tsize=0.06;
+
+void myBoxText (double x, double y, double boxsize, int mcolor, const char *text) {
+
+  double tsize=0.06;
 
   TLatex l; l.SetTextAlign(12); //l.SetTextSize(tsize); 
   l.SetNDC();
   l.DrawLatex(x,y,text);
 
-  Double_t y1=y-0.25*tsize;
-  Double_t y2=y+0.25*tsize;
-  Double_t x2=x-0.3*tsize;
-  Double_t x1=x2-boxsize;
+  double y1=y-0.25*tsize;
+  double y2=y+0.25*tsize;
+  double x2=x-0.3*tsize;
+  double x1=x2-boxsize;
 
   printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
 
@@ -398,16 +487,18 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
   mline.SetLineWidth(4);
   mline.SetLineColor(1);
   mline.SetLineStyle(1);
-  Double_t y_new=(y1+y2)/2.;
+  double y_new=(y1+y2)/2.;
   mline.DrawLineNDC(x1,y_new,x2,y_new);
 
 }
 
 
-/*void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text) 
+
+
+/*void myMarkerText(double x,double y,int color,int mstyle, const char *text) 
 {
-  Double_t tsize=0.032;
-  Float_t msize = 0.75;
+  double tsize=0.032;
+  float msize = 0.75;
   TMarker *marker = new TMarker(x-(0.4*tsize),y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
   marker->SetMarkerStyle(mstyle);
@@ -420,8 +511,9 @@ void myBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,const char *
 }*/
 
 
-void myLineText(Double_t x,Double_t y,Int_t color, Int_t lstyle,const char *text,Float_t lsize,Double_t tsize) 
-{
+
+
+void myLineText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize) {
   TLine *markerLine = new TLine(x-(0.8*tsize)-0.02*lsize, y, x-(0.8*tsize)+0.02*lsize, y);
   markerLine->SetNDC();
   markerLine->SetLineColor(color);
@@ -429,14 +521,17 @@ void myLineText(Double_t x,Double_t y,Int_t color, Int_t lstyle,const char *text
   markerLine->SetLineWidth(2);
   markerLine->Draw();
 
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); /*l.SetTextColor (color);*/
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
+  if (text[0] != '\0') {
+    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); /*l.SetTextColor (color);*/
+    l.SetNDC();
+    l.DrawLatex(x,y,text);
+  }
 }
 
 
-void myLineColorText(Double_t x,Double_t y,Int_t color, Int_t lstyle,const char *text,Float_t lsize,Double_t tsize) 
-{
+
+
+void myLineColorText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize) {
   TLine *markerLine = new TLine(x-(0.8*tsize)-0.02*lsize, y, x-(0.8*tsize)+0.02*lsize, y);
   markerLine->SetNDC();
   markerLine->SetLineColor(color);
@@ -444,15 +539,18 @@ void myLineColorText(Double_t x,Double_t y,Int_t color, Int_t lstyle,const char 
   markerLine->SetLineWidth(2);
   markerLine->Draw();
 
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); l.SetTextColor (color);
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
+  if (text[0] != '\0') {
+    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); l.SetTextColor (color);
+    l.SetNDC();
+    l.DrawLatex(x,y,text);
+  }
 }
 
 
-void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t msize,Double_t tsize) 
-{
-//  Double_t tsize=0.032;
+
+
+void myMarkerText (double x, double y, int color, int mstyle, const char *text, float msize, double tsize) {
+//  double tsize=0.032;
   //TMarker *marker = new TMarker(x-(0.44*tsize),y,8);
   TMarker *marker = new TMarker(x-(0.8*tsize),y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
@@ -468,15 +566,18 @@ void myMarkerText(Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *te
   markerLine->SetLineWidth(2);
   markerLine->Draw();
 
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
+  if (text[0] != '\0') {
+    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.DrawLatex(x,y,text);
+  }
 }
 
 
-void myMarkerTextNoLine (Double_t x,Double_t y,Int_t color,Int_t mstyle, const char *text,Float_t msize,Double_t tsize) 
-{
-//  Double_t tsize=0.032;
+
+
+void myMarkerTextNoLine (double x, double y, int color, int mstyle, const char *text, float msize, double tsize) {
+//  double tsize=0.032;
   //TMarker *marker = new TMarker(x-(0.44*tsize),y,8);
   TMarker *marker = new TMarker(x-(0.8*tsize),y,8);
   marker->SetMarkerColor(color);  marker->SetNDC();
@@ -484,22 +585,23 @@ void myMarkerTextNoLine (Double_t x,Double_t y,Int_t color,Int_t mstyle, const c
   marker->SetMarkerSize(msize);
   marker->Draw();
 
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
+  if (text[0] != '\0') {
+    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
+    l.SetNDC();
+    l.DrawLatex(x,y,text);
+  }
 }
 
-void myOnlyBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,Int_t lcolor,Int_t lstyle, const char *text, Double_t tsize, Int_t bstyle, Double_t balpha)
-{
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize);
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
-  Double_t y1=y-0.25*tsize;
-  Double_t y2=y+0.25*tsize;
-  Double_t x2=x-0.8*tsize+0.02*boxsize;
-  Double_t x1=x-0.8*tsize-0.02*boxsize;
-  //Double_t x2=x-0.15*tsize;
-  //Double_t x1=x-0.95*tsize;
+
+
+
+void myOnlyBoxText (double x, double y, double boxsize, int mcolor, int lcolor, int lstyle, const char *text, double tsize, int bstyle, double balpha) {
+  double y1=y-0.25*tsize;
+  double y2=y+0.25*tsize;
+  double x2=x-0.8*tsize+0.02*boxsize;
+  double x1=x-0.8*tsize-0.02*boxsize;
+  //double x2=x-0.15*tsize;
+  //double x1=x-0.95*tsize;
   //printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
   TPave *mbox= new TPave(x1,y1,x2,y2,0,"NDC");
   mbox->SetFillColorAlpha(mcolor,balpha);
@@ -510,13 +612,21 @@ void myOnlyBoxText(Double_t x, Double_t y,Double_t boxsize,Int_t mcolor,Int_t lc
   mline.SetLineColor(lcolor);
   //mline.SetLineStyle(lstyle);
   mline.SetLineStyle(lstyle);
-  //Double_t y_new=(y1+y2)/2.;
+  //double y_new=(y1+y2)/2.;
   //mline.DrawLineNDC(x1,y_new,x2,y_new);
   mline.DrawLineNDC(x1,y1,x2,y1);
   mline.DrawLineNDC(x1,y2,x2,y2);
   mline.DrawLineNDC(x1,y1,x1,y2);
   mline.DrawLineNDC(x2,y1,x2,y2);
+
+  if (text[0] != '\0') {
+    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize);
+    l.SetNDC();
+    l.DrawLatex(x,y,text);
+  }
 }
+
+
 
 
 TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2) {
@@ -531,4 +641,74 @@ TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y
   p->cd ();
   TBox* b = new TBox (x1, y1, x2, y2);
   return b;
+}
+
+
+
+
+void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize) {
+  double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
+  double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
+  double x2 = x - (0.8*tsize) + 0.02;
+  double x1 = x - (0.8*tsize) + 0.02 - (0.04*bsize);
+
+  TPave *mbox= new TPave (x1, y1, x2, y2, 0, "NDC");
+  mbox->SetFillColorAlpha (bcolor, balpha);
+  mbox->SetFillStyle (bstyle);
+  mbox->Draw ();
+
+  TLine mline;
+  mline.SetLineWidth (1);
+  mline.SetLineColor (mcolor);
+  mline.SetLineStyle (1);
+  mline.DrawLineNDC (x1, y1, x2, y1);
+  mline.DrawLineNDC (x1, y2, x2, y2);
+  mline.DrawLineNDC (x1, y1, x1, y2);
+  mline.DrawLineNDC (x2, y1, x2, y2);
+
+  if (mstyle != -1) {
+
+    TMarker *marker = new TMarker(x - (0.8*tsize)+0.02-0.02*bsize, y+0.25*tsize, 8);
+    marker->SetNDC();
+    marker->SetMarkerColor (mcolor);
+    marker->SetMarkerStyle (mstyle);
+    marker->SetMarkerSize (msize);
+
+    //TLine *markerLine = new TLine(marker->GetX()-0.018*msize, marker->GetY(), marker->GetX()+0.018*msize, marker->GetY());
+    TLine *markerLine = new TLine ();
+    markerLine->SetNDC();
+    markerLine->SetLineColor(mcolor);
+    markerLine->SetLineStyle(1);
+    markerLine->SetLineWidth(2);
+
+    markerLine->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
+    markerLine->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
+
+    //if (IsOpenMarker (mstyle) {
+    //  Rectangle_t bb = marker->GetBBox ();
+
+    //  const double xbbl_user = gPad->PixelToUser (bb.fX);
+    //  const short xbbl = bb.fX- 0.5*bb.fWidth ();
+    //  const short ybbl = bb.fY + 0.5*bb.fWidth ();
+
+    //  
+    //}
+
+    marker->Draw();
+
+    if (FullToOpenMarker (mstyle) != kDot) {
+      TMarker *marker2 = new TMarker(x - (0.8*tsize)+0.02-0.02*bsize, y+0.25*tsize, 8);
+      marker2->SetNDC();
+      marker2->SetMarkerColor (kBlack);
+      marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+      marker2->SetMarkerSize (msize);
+      marker2->Draw();
+    }
+  }
+  
+  TLatex l;
+  l.SetTextAlign (11);
+  l.SetTextSize (tsize);
+  l.SetNDC ();
+  l.DrawLatex (x, y, text);
 }
