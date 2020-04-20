@@ -647,10 +647,10 @@ TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y
 
 
 void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize) {
-  double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
-  double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
-  double x2 = x - (0.8*tsize) + 0.02;
-  double x1 = x - (0.8*tsize) + 0.02 - (0.04*bsize);
+  const double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
+  const double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
+  const double x2 = x - (0.8*tsize) + 0.02;
+  const double x1 = x - (0.8*tsize) + 0.02 - (0.04*bsize);
 
   TPave *mbox= new TPave (x1, y1, x2, y2, 0, "NDC");
   mbox->SetFillColorAlpha (bcolor, balpha);

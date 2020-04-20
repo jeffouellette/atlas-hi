@@ -77,6 +77,23 @@ void MakeTheoryBox (const double x, const double y, const Color_t color, const d
 void MakeDataBox (const double x, const double y, const Color_t color, const double colorAlpha, const Style_t mstyle, const double msize) {
   MakeTheoryBox (x, y, color, colorAlpha);
 
+  const double ytsize = 0.07;
+  const double xtsize = 0.18;
+
+  const double y1 = y - 0.25*ytsize;
+  const double y2 = y + 0.25*ytsize;
+  const double x2 = x - 0.15*xtsize;
+  const double x1 = x - 0.55*xtsize;
+
+  TLine* ml = new TLine ();
+  ml->SetNDC();
+  ml->SetLineColor (color);
+  ml->SetLineStyle (1);
+  ml->SetLineWidth (2);
+
+  ml->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
+  ml->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
+
   TMarker* marker = new TMarker (x-0.35*0.18, y, 0);
   marker->SetNDC();
   marker->SetMarkerColor (color);
@@ -92,7 +109,6 @@ void MakeDataBox (const double x, const double y, const Color_t color, const dou
     marker2->SetMarkerSize (msize);
     marker2->Draw();
   }
-
   return;
 }
 
@@ -1790,6 +1806,178 @@ void MakeFinalPlots () {
 
 
   {
+    TCanvas* c4d = new TCanvas ("c4d", "", 800, 800);
+    const double lMargin = 0.15;
+    const double rMargin = 0.04;
+    const double bMargin = 0.15;
+    const double tMargin = 0.04;
+
+    c4d->SetLeftMargin (lMargin);
+    c4d->SetRightMargin (rMargin);
+    c4d->SetBottomMargin (bMargin);
+    c4d->SetTopMargin (tMargin);
+
+    const short iPtZ = 4;
+    const short iCent = 3;
+
+    {
+      gPad->SetLogx ();
+      //gPad->SetLogy ();
+
+      TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
+
+      TAxis* xax = h->GetXaxis ();
+      TAxis* yax = h->GetYaxis ();
+
+      xax->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+      xax->SetRangeUser (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+      //xax->SetTitleFont (43);
+      //xax->SetTitleSize (36);
+      //xax->SetTitleOffset (2.5);
+      //xax->SetTitleOffset (1.2);
+      xax->SetLabelSize (0);
+
+      yax->SetTitle ("#it{I}_{AA} (#it{p}_{T}^{ch})");
+      //yax->SetRangeUser (0.05, 10);
+      double ymin, ymax;
+      if (iPtZ == 3) { ymin = 0; ymax = 4.0; }
+      if (iPtZ == 4) { ymin = 0; ymax = 5.0; }
+      else           { ymin = 0; ymax = 4.0; }
+      yax->SetRangeUser (ymin, ymax);
+      //yax->SetTitleFont (43);
+      //yax->SetTitleSize (36);
+      //yax->SetTitleOffset (2.6);
+      //yax->SetLabelFont (43);
+      //yax->SetLabelSize (36);
+
+      h->SetLineWidth (0);
+
+      h->DrawCopy ("");
+      SaferDelete (&h);
+
+      tl->SetTextFont (43);
+      tl->SetTextSize (36);
+      tl->SetTextAlign (21);
+      //const double yoff = 0.034;
+
+      const double yoff = ymin - 0.05 * (ymax-ymin) / (1.-tMargin-bMargin);
+      tl->DrawLatex (1,  yoff, "1");
+      tl->DrawLatex (2,  yoff, "2");
+      tl->DrawLatex (3,  yoff, "3");
+      tl->DrawLatex (4,  yoff, "4");
+      tl->DrawLatex (5,  yoff, "5");
+      tl->DrawLatex (6,  yoff, "6");
+      tl->DrawLatex (7,  yoff, "7");
+      tl->DrawLatex (10, yoff, "10");
+      tl->DrawLatex (20, yoff, "20");
+      tl->DrawLatex (30, yoff, "30");
+      tl->DrawLatex (40, yoff, "40");
+      tl->DrawLatex (60, yoff, "60");
+
+      l->SetLineStyle (2);
+      l->SetLineWidth (2);
+      //l->SetLineColor (kPink-8);
+      l->DrawLine (pTchBins[iPtZ][0], 1, pTchBins[iPtZ][nPtchBins[iPtZ]], 1);
+    }
+
+    {
+      TGAE* g_syst = (TGAE*) g_trk_pt_ptz_iaa_syst[iPtZ][iCent]->Clone ();
+
+      RecenterGraph (g_syst);
+      ResetXErrors (g_syst);
+      SetConstantXErrors (g_syst, 0.060, true, pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+
+      g_syst->SetMarkerSize (0);
+      g_syst->SetLineWidth (1);
+      //g_syst->SetLineColor (kBlack);
+      //g_syst->SetFillColorAlpha (kGray, 0.3);
+      g_syst->SetLineColor (finalColors[iPtZ-1]);
+      g_syst->SetFillColorAlpha (finalFillColors[iPtZ-1], 0.3);
+
+      g_syst->Draw ("5P");
+    }
+
+    {
+      TGAE* g_stat = make_graph (h_trk_pt_ptz_iaa_stat[iPtZ][iCent]);
+
+      RecenterGraph (g_stat);
+      ResetXErrors (g_stat);
+
+      g_stat->SetMarkerStyle (kFullCircle);
+      g_stat->SetMarkerSize (2.3);
+      g_stat->SetLineWidth (3);
+      //g_stat->SetMarkerColor (kBlack);
+      //g_stat->SetLineColor (kBlack);
+      g_stat->SetMarkerColor (finalColors[iPtZ-1]);
+      g_stat->SetLineColor (finalColors[iPtZ-1]);
+
+      ((TGAE*) g_stat->Clone ())->Draw ("P");
+
+      g_stat->SetMarkerStyle (kOpenCircle);
+      g_stat->SetMarkerSize (2.3);
+      g_stat->SetLineWidth (0);
+      g_stat->SetMarkerColor (kBlack);
+
+      ((TGAE*) g_stat->Clone ())->Draw ("P");
+
+      SaferDelete (&g_stat);
+    }
+
+    {
+      TGAE* g = (TGAE*) g_hybrid_pth[iPtZ]->Clone ();
+
+      g->SetFillColorAlpha (hybridColor, hybridAlpha);
+      ((TGAE*) g->Clone ())->Draw ("3");
+      SaferDelete (&g);
+    }
+
+    //{
+    //  TGAE* g = (TGAE*) g_vitev_pth[iPtZ]->Clone ();
+  
+    //  g->SetFillColorAlpha (vitevColor, vitevAlpha);
+    //  ((TGAE*) g->Clone ())->Draw ("3");
+    //  SaferDelete (&g);
+    //}
+
+    {
+      TGAE* g = (TGAE*) g_jewel_pth[iPtZ]->Clone ();
+  
+      g->SetFillColorAlpha (jewelColor, jewelAlpha);
+      ((TGAE*) g->Clone ())->Draw ("3");
+      SaferDelete (&g);
+    }
+
+    tl->SetTextColor (kBlack);
+    tl->SetTextAlign (11);
+
+    tl->SetTextSize (36);
+    tl->DrawLatexNDC (0.28, 0.890, "#bf{#it{ATLAS}} Internal");
+    tl->SetTextSize (32);
+    tl->DrawLatexNDC (0.30, 0.840, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
+    tl->DrawLatexNDC (0.30, 0.790, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
+
+    tl->SetTextSize (32);
+    tl->DrawLatexNDC (0.42, 0.730, "#it{p}_{T}^{Z} = 60+ GeV");
+
+    tl->SetTextSize (32);
+    tl->DrawLatexNDC (0.49, 0.685-0.0130, "ATLAS 0-10\% Pb+Pb");
+    tl->DrawLatexNDC (0.49, 0.630-0.0130, "Hybrid Model");
+    //tl->DrawLatexNDC (0.49, 0.575-0.0130, "Li & Vitev");
+    tl->DrawLatexNDC (0.49, 0.575-0.0130, "SCET_{G}");
+    tl->DrawLatexNDC (0.49, 0.520-0.0130, "JEWEL");
+
+    MakeDataBox   (0.50, 0.685, finalFillColors[3], 0.30, kFullCircle, 2.3);
+    MakeTheoryBox (0.50, 0.630, hybridColor, hybridAlpha);
+    MakeTheoryBox (0.50, 0.575, vitevColor, vitevAlpha);
+    MakeTheoryBox (0.50, 0.520, jewelColor, jewelAlpha);
+
+    c4d->SaveAs ("../Plots/FinalPlots/iaa_pTch_theoryComp_iPtZ4.pdf");
+  }
+
+
+
+
+  {
     TCanvas* c5a = new TCanvas ("c5a", "", 1100,  1000);
     c5a->SetLogx ();
     c5a->SetLogy ();
@@ -2776,9 +2964,9 @@ void MakeFinalPlots () {
     tl->SetTextColor (kBlack);
     tl->SetTextAlign (11);
 
-    tl->SetTextSize (48);
+    tl->SetTextSize (50);
     tl->DrawLatexNDC (0.32, 0.880, "#bf{#it{ATLAS}} Internal");
-    tl->SetTextSize (44);
+    tl->SetTextSize (46);
     tl->DrawLatexNDC (0.32, 0.830, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
     tl->DrawLatexNDC (0.32, 0.780, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
 
@@ -2911,9 +3099,9 @@ void MakeFinalPlots () {
     tl->SetTextColor (kBlack);
     tl->SetTextAlign (11);
 
-    tl->SetTextSize (48);
+    tl->SetTextSize (50);
     tl->DrawLatexNDC (0.32, 0.880, "#bf{#it{ATLAS}} Internal");
-    tl->SetTextSize (44);
+    tl->SetTextSize (46);
     tl->DrawLatexNDC (0.32, 0.830, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
     tl->DrawLatexNDC (0.32, 0.780, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
 
