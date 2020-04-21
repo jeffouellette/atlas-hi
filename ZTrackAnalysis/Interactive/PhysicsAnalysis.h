@@ -3,7 +3,7 @@
 
 #include "Params.h"
 #include "EventPlaneCalibrator.h"
-#include "CovarianceFit.C"
+//#include "CovarianceFit.C"
 
 #include <ArrayTemplates.h>
 
@@ -20,6 +20,7 @@
 #include <TLorentzVector.h>
 #include <TBox.h>
 #include <TVirtualFitter.h>
+#include <TLatex.h>
 
 #include <iostream>
 #include <string>
@@ -1526,11 +1527,6 @@ void PhysicsAnalysis :: CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt
       g_trk_avg_xhz_ptz[iSpc][iCent]->SetName (Form ("g_trk_avg_xhz_ptz_%s_iCent%i_%s", spc, iCent, name.c_str ()));
 
       TH1D* h_zpt = h_zpt_ptr[iCent][iSpc];
-      TGAE* g = nullptr;
-      TH1D* h = nullptr;
-      TH2D* h2 = nullptr; // (co)variance matrix
-
-      g = g_trk_avg_pt_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         zpt_norm = 0;
         mean_zpt = 0;
@@ -1570,8 +1566,6 @@ void PhysicsAnalysis :: CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt
       TH1D* h = nullptr;
       TH2D* h2 = nullptr; // (co)variance matrix
 
-      
-
       g = g_trk_avg_pt_ptz[iSpc][iCent];
       for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
         h = nom->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]; // normalized per dpT^ch
@@ -1604,7 +1598,7 @@ void PhysicsAnalysis :: CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt
         double meanPtch[maxNPtchBins] = {};
         double meanPtchErr[maxNPtchBins] = {};
         for (int iX = 0; iX < h->GetNbinsX (); iX++) {
-          double num = 0, numErr = 0, den = 0, denErr = 0;
+          //double num = 0, numErr = 0, den = 0, denErr = 0;
 
           const double x1 = allPtchBins[iX];
           const double x2 = allPtchBins[iX+1];
@@ -1678,7 +1672,7 @@ void PhysicsAnalysis :: CalculateTrackMeans (PhysicsAnalysis* nom, TH1D*** h_zpt
         double meanXhZ[maxNXhZBins] = {};
         double meanXhZErr[maxNXhZBins] = {};
         for (int iX = 0; iX < h->GetNbinsX (); iX++) {
-          double num = 0, numErr = 0, den = 0, denErr = 0;
+          //double num = 0, numErr = 0, den = 0, denErr = 0;
 
           const double x1 = allXhZBins[iX];
           const double x2 = allXhZBins[iX+1];
@@ -4759,7 +4753,6 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const short pSp
       }
       else {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-          const Style_t markerStyle = markerStyles[iPtZ-2];
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz : h_trk_xhz_ptz)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
           ResetXErrors (g);
@@ -4869,8 +4862,6 @@ void PhysicsAnalysis :: PlotAllYields_dPtZ (const bool useTrkPt, const short pSp
         gPad->RedrawAxis ();
       } else {
         for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
-          const Style_t markerStyle = markerStyles[iPtZ-2];
-
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_ptz_sub : h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent]);
           RecenterGraph (g);
           ResetXErrors (g);
@@ -5375,8 +5366,6 @@ void PhysicsAnalysis :: PlotIAA_dPhi (const bool useTrkPt, const short pSpc, con
         }
 
         for (int iPhi = 1; iPhi < numPhiBins; iPhi++) {
-          const Style_t markerStyle = (useAltMarker ? kOpenCircle : kFullCircle);
-
           TGAE* g = GetTGAE ((useTrkPt ? h_trk_pt_dphi_iaa : h_trk_xhz_dphi_iaa)[iSpc][iPtZ][iPhi][iCent]);
           RecenterGraph (g);
           ResetXErrors (g);
@@ -6232,9 +6221,8 @@ void PhysicsAnalysis :: PlotTrackMeans (const bool useTrkPt, const short iSpc) {
 // Plot UE subtracted Y(pT or xZh) binned in Z Pt with power law fits overlaid
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: PlotSubYields_dPtZ_Fits (short pSpc) {
-  const double padRatio = 0.9; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
-  const double dPadY = padRatio / (padRatio+1.0);
-  const int axisTextSize = 23;
+  //const double padRatio = 0.9; // ratio of size of upper pad to lower pad. Used to scale plots and font sizes equally.
+  //const double dPadY = padRatio / (padRatio+1.0);
 
   if (pSpc != 0 && pSpc != 1)
     pSpc = 2;

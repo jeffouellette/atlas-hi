@@ -28,6 +28,8 @@ MixingAnalysis* bkg18 = nullptr;
 MCAnalysis* mc = nullptr;
 MixingAnalysis* mc_bkg = nullptr;
 TruthAnalysis* truth = nullptr;
+MCAnalysis* hijing = nullptr;
+MixingAnalysis* hijing_bkg = nullptr;
 
 // master systematics objects
 Systematic* combSys = nullptr;
@@ -97,6 +99,8 @@ void Run () {
   mc      = new MCAnalysis ();
   mc_bkg  = new MixingAnalysis ("mc_bkg");
   //truth   = new TruthAnalysis ();
+  hijing  = new MCAnalysis ("hijing");
+  hijing_bkg = new MixingAnalysis ("hijing_bkg");
 
   //if (doSys) {
   //  mc_bkgStatUpVar         = new PhysicsAnalysis ("mc_bkgStatUpVar");
@@ -134,21 +138,21 @@ void Run () {
   //mc->LoadHists ("MCAnalysis/Nominal/savedHists.root");
   //mc->CombineHists ();
 
-  mc->LoadHists ("MCAnalysis/Nominal/PbPb18_pp_Zee_Hijing/savedHists.root");
+  //mc->LoadHists ("MCAnalysis/Nominal/PbPb18_pp_Zee_Hijing/savedHists.root");
   //mc_bkg->LoadHists ("MCAnalysis/Variations/PPMixingVariation/mixedHists.root");
-  mc_bkg->LoadHists ("MCAnalysis/Nominal/PbPb18_pp_Zee_Hijing/mixedHists.root");
-  mc->SubtractBackground (mc_bkg);
+  //mc_bkg->LoadHists ("MCAnalysis/Nominal/PbPb18_pp_Zee_Hijing/mixedHists.root");
+  //mc->SubtractBackground (mc_bkg);
   //mc->CalculateIAA ();
   //SaferDelete (&mc_bkg);
 
 
-  data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
-  //data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
-  bkg18->LoadHists ("MixingAnalysis/Nominal/data18hi_hists.root");
-  //bkg15->LoadHists ("MixingAnalysis/Nominal/data15hi_hists.root");
-  //truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
+  //data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
+  ////data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
+  //bkg18->LoadHists ("MixingAnalysis/Nominal/data18hi_hists.root");
+  ////bkg15->LoadHists ("MixingAnalysis/Nominal/data15hi_hists.root");
+  ////truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
 
-  data18->SubtractBackground (bkg18);
+  //data18->SubtractBackground (bkg18);
   //data18->CalculateTrackMeans (data18, data18->h_z_pt);
   //data18->CalculateIAA ();
 
@@ -158,6 +162,7 @@ void Run () {
   //truth->SubtractBackground ();
   //truth->CalculateIAA ();
 
+/*
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
 
@@ -596,22 +601,12 @@ void Run () {
     //combSys->TruncatePhysicsPlots ();
 
 
-    /*
-    trkSys->SaveGraphs ("Systematics/TrackIDSys.root");
-    trkEffSys->SaveGraphs ("Systematics/PartCompSys.root");
-    trkPurSys->SaveGraphs ("Systematics/TrackPurSys.root");
-    leptonRejSys->SaveGraphs ("Systematics/LeptonRejSys.root");
-    electronPtSys->SaveGraphs ("Systematics/ElectronPtSys.root");
-    muonPtSys->SaveGraphs ("Systematics/MuonPtSys.root");
-    bkgStatSys->SaveGraphs ("Systematics/BkgStatSys.root");
-    */
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
   }
+*/
 
-  data18->CalculateTrackMeans (data18, data18->h_z_pt);
-  data18->CalculateIAA ();
-
-
+  //data18->CalculateTrackMeans (data18, data18->h_z_pt);
+  //data18->CalculateIAA ();
 
   SetupDirectories ("", "ZTrackAnalysis/");
 

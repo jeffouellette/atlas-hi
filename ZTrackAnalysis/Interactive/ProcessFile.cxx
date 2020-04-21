@@ -3,6 +3,7 @@
 //#include "MixedMCAnalysis.h"
 #include "TruthAnalysis.h"
 #include "MixingAnalysis.h"
+#include "HijingAnalysis.h"
 
 int mixingFraction = 40;
 
@@ -23,10 +24,14 @@ int main (int argc, char** argv) {
 
   string inDir = "DataAnalysis/";
   string histDir = "DataAnalysis/";
-  if (algo == "mcminbias" || algo == "mc") {
+  if (algo == "mcminbias" || algo == "mc" || algo == "hijing_mixing") {
     inDir = "MCAnalysis/"; 
     histDir = "MCAnalysis/";
     //outFileName = "Background/" + outFileName;
+  }
+  if (algo == "hijing") {
+    inDir = "MixedEvents/";
+    histDir = "MCAnalysis/";
   }
   if (algo == "minbias") {
     inDir = "DataAnalysis/";
@@ -154,7 +159,22 @@ int main (int argc, char** argv) {
       mc->takeNonTruthTracks = true;
 
     mc->is2015Conds = use2015conds;
-    mc->useHijingEffs = use2015conds;
+    mc->useHITight = doHITightVar;
+    mc->useCentWgts = true;
+
+    mc->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete mc;
+  }
+  else if (algo == "hijing") {
+
+    HijingAnalysis* mc = nullptr;
+    inFileName = inDir + inFileName;
+    outFileName = histDir + outFileName;
+
+    mc = new HijingAnalysis ("hijing");
+    mc->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
+
+    mc->is2015Conds = use2015conds;
     mc->useHITight = doHITightVar;
     mc->useCentWgts = true;
 
@@ -207,7 +227,7 @@ int main (int argc, char** argv) {
   }
 
   //else if (algo == "minbias") {
-  else if (algo == "minbias" || algo == "mcminbias") {
+  else if (algo == "minbias" || algo == "mcminbias" || algo == "hijing_mixing") {
     MixingAnalysis* bkg = nullptr;
 
     inFileName = inDir + inFileName;
@@ -222,6 +242,10 @@ int main (int argc, char** argv) {
     outFileName = histDir + outFileName;
 
     if (algo == "mcminbias")  bkg = new MixingAnalysis ("mc_bkg");
+    else if (algo == "hijing_mixing") {
+      bkg = new MixingAnalysis ("hijing_bkg");
+      bkg->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
+    }
     else if (doHITightVar)    bkg = new MixingAnalysis ("bkg_trackHITightVar");
     else if (doMixVarA)       bkg = new MixingAnalysis ("bkg_mixVarA");
     else if (doMixVarB)       bkg = new MixingAnalysis ("bkg_mixVarB");
@@ -243,6 +267,8 @@ int main (int argc, char** argv) {
     }
     else if (algo == "mcminbias")
       mixingFraction = 10;
+    else if (algo == "hijing_mixing")
+      mixingFraction = 1;
     else if (isPbPb) {
       const int _first = inFileName.find ("iCent") + 5;
       const int _last = inFileName.find (".root");
@@ -259,7 +285,6 @@ int main (int argc, char** argv) {
       mixingFraction = 40;
 
     bkg->is2015Conds = use2015conds;
-    bkg->useHijingEffs = use2015conds; // for now
     bkg->useHITight = doHITightVar;
 
     if (doMixVarA) {
@@ -290,6 +315,8 @@ int main (int argc, char** argv) {
       bkg->doPPTransMinMixing = false;
       bkg->doPPTransMaxMixing = true;
     }
+//    if (algo == "hijing_mixing")
+//      bkg->nPsi2MixBins = 8;
 
     bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code
     delete bkg;

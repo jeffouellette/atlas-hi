@@ -85,8 +85,8 @@ class MixingAnalysis : public PhysicsAnalysis {
     doPPMBMixing = false;
   }
 
-  void LoadEventWeights () override;
-  void GenerateEventWeights (const char* inFileName = "outFile.root", const char* outFileName = "eventWeightsFile.root");
+  //void LoadEventWeights () override;
+  //void GenerateEventWeights (const char* inFileName = "outFile.root", const char* outFileName = "eventWeightsFile.root");
 
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   void Execute (const char* inFileName, const char* outFileName) override {
@@ -116,33 +116,33 @@ void MixingAnalysis :: LoadHists (const char* histFileName, const bool _finishHi
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Load the event weights into memory
-//////////////////////////////////////////////////////////////////////////////////////////////////
-void MixingAnalysis :: LoadEventWeights () {
-  if (eventWeightsLoaded)
-    return;
-
-  SetupDirectories ("", "ZTrackAnalysis/");
-  TDirectory* _gDirectory = gDirectory;
-
-  eventWeightsFile = new TFile (Form ("%s/MinbiasAnalysis/Nominal/eventWeightsFile.root", rootPath.Data ()), "read");
-
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-        h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-      }
-    }
-  }
-
-  eventWeightsLoaded = true;
-
-  _gDirectory-> cd ();
-  return;
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Load the event weights into memory
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//void MixingAnalysis :: LoadEventWeights () {
+//  if (eventWeightsLoaded)
+//    return;
+//
+//  SetupDirectories ("", "ZTrackAnalysis/");
+//  TDirectory* _gDirectory = gDirectory;
+//
+//  eventWeightsFile = new TFile (Form ("%s/MinbiasAnalysis/Nominal/eventWeightsFile.root", rootPath.Data ()), "read");
+//
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+//        h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+//      }
+//    }
+//  }
+//
+//  eventWeightsLoaded = true;
+//
+//  _gDirectory-> cd ();
+//  return;
+//}
 
 
 
@@ -281,7 +281,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
 
   //// output TTree to store mixed event
-  TFile* mixedEventsFile = (saveMixedEvents ? new TFile (Form ("%s/%s.root", rootPath.Data (), mixedFileName), "recreate") : nullptr);
+  TFile* mixedEventsFile = (saveMixedEvents ? new TFile (Form ("%s/%s", rootPath.Data (), mixedFileName), "recreate") : nullptr);
   TTree* mixedEventsTree = (saveMixedEvents ? new TTree (isPbPb ? "PbPbMixedTree" : "ppMixedTree", isPbPb ? "PbPbMixedTree" : "ppMixedTree") : nullptr);
 
 
@@ -298,10 +298,10 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   float psi2 = 0, psi3 = 0, psi4 = 0, z_psi2 = 0, z_psi3 = 0, z_psi4 = 0;
   float _z_pt = 0, _z_phi = 0, _z_y = 0, _z_m = 0;
   float z_pt = 0, z_phi = 0, z_y = 0, z_m = 0;
-  //float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
-  //float _l1_pt = 0, _l1_eta = 0, _l1_phi = 0, _l1_trk_pt = 0, _l1_trk_eta = 0, _l1_trk_phi = 0, _l2_pt = 0, _l2_eta = 0, _l2_phi = 0, _l2_trk_pt = 0, _l2_trk_eta = 0, _l2_trk_phi = 0;
-  //int l1_charge = 0, l2_charge = 0;
-  //int _l1_charge = 0, _l2_charge = 0;
+  float l1_pt = 0, l1_eta = 0, l1_phi = 0, l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
+  float _l1_pt = 0, _l1_eta = 0, _l1_phi = 0, _l1_trk_pt = 0, _l1_trk_eta = 0, _l1_trk_phi = 0, _l2_pt = 0, _l2_eta = 0, _l2_phi = 0, _l2_trk_pt = 0, _l2_trk_eta = 0, _l2_trk_phi = 0;
+  int l1_charge = 0, l2_charge = 0;
+  int _l1_charge = 0, _l2_charge = 0;
   int ntrk = 0, z_ntrk = 0;
   float trk_pt[10000], trk_eta[10000], trk_phi[10000];
   bool trk_truth_matched[10000];
@@ -316,6 +316,8 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   int**     trks_counts_inPhi   = Get2DArray <int> (maxNPtchBins, 40);
   float**   trks_weights1_inPhi = Get2DArray <float> (maxNPtchBins, 40);
   float**   trks_weights2_inPhi = Get2DArray <float> (maxNPtchBins, 40);
+
+  int nMixed = 0, nNotMixed = 0;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,20 +381,20 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
     zTree->SetBranchAddress ("z_phi",         &_z_phi);
     zTree->SetBranchAddress ("z_y",           &_z_y);
     zTree->SetBranchAddress ("z_m",           &_z_m);
-    //zTree->SetBranchAddress ("l1_pt",         &_l1_pt);
-    //zTree->SetBranchAddress ("l1_eta",        &_l1_eta);
-    //zTree->SetBranchAddress ("l1_phi",        &_l1_phi);
-    //zTree->SetBranchAddress ("l1_trk_pt",     &_l1_trk_pt);
-    //zTree->SetBranchAddress ("l1_trk_eta",    &_l1_trk_eta);
-    //zTree->SetBranchAddress ("l1_trk_phi",    &_l1_trk_phi);
-    //zTree->SetBranchAddress ("l1_charge",     &_l1_charge);
-    //zTree->SetBranchAddress ("l2_pt",         &_l2_pt);
-    //zTree->SetBranchAddress ("l2_eta",        &_l2_eta);
-    //zTree->SetBranchAddress ("l2_phi",        &_l2_phi);
-    //zTree->SetBranchAddress ("l2_trk_pt",     &_l2_trk_pt);
-    //zTree->SetBranchAddress ("l2_trk_eta",    &_l2_trk_eta);
-    //zTree->SetBranchAddress ("l2_trk_phi",    &_l2_trk_phi);
-    //zTree->SetBranchAddress ("l2_charge",     &_l2_charge);
+    zTree->SetBranchAddress ("l1_pt",         &_l1_pt);
+    zTree->SetBranchAddress ("l1_eta",        &_l1_eta);
+    zTree->SetBranchAddress ("l1_phi",        &_l1_phi);
+    zTree->SetBranchAddress ("l1_trk_pt",     &_l1_trk_pt);
+    zTree->SetBranchAddress ("l1_trk_eta",    &_l1_trk_eta);
+    zTree->SetBranchAddress ("l1_trk_phi",    &_l1_trk_phi);
+    zTree->SetBranchAddress ("l1_charge",     &_l1_charge);
+    zTree->SetBranchAddress ("l2_pt",         &_l2_pt);
+    zTree->SetBranchAddress ("l2_eta",        &_l2_eta);
+    zTree->SetBranchAddress ("l2_phi",        &_l2_phi);
+    zTree->SetBranchAddress ("l2_trk_pt",     &_l2_trk_pt);
+    zTree->SetBranchAddress ("l2_trk_eta",    &_l2_trk_eta);
+    zTree->SetBranchAddress ("l2_trk_phi",    &_l2_trk_phi);
+    zTree->SetBranchAddress ("l2_charge",     &_l2_charge);
 
     if (saveMixedEvents) {
       mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/I");
@@ -419,24 +421,26 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("z_phi",           &z_phi,           "z_phi/F");
       mixedEventsTree->Branch ("z_y",             &z_y,             "z_y/F");
       mixedEventsTree->Branch ("z_m",             &z_m,             "z_m/F");
-      //mixedEventsTree->Branch ("l1_pt",           &l1_pt,           "l1_pt/F");
-      //mixedEventsTree->Branch ("l1_eta",          &l1_eta,          "l1_eta/F");
-      //mixedEventsTree->Branch ("l1_phi",          &l1_phi,          "l1_phi/F");
-      //mixedEventsTree->Branch ("l1_trk_pt",       &l1_trk_pt,       "l1_trk_pt/F");
-      //mixedEventsTree->Branch ("l1_trk_eta",      &l1_trk_eta,      "l1_trk_eta/F");
-      //mixedEventsTree->Branch ("l1_trk_phi",      &l1_trk_phi,      "l1_trk_phi/F");
-      //mixedEventsTree->Branch ("l1_charge",       &l1_charge,       "l1_charge/I");
-      //mixedEventsTree->Branch ("l2_pt",           &l2_pt,           "l2_pt/F");
-      //mixedEventsTree->Branch ("l2_eta",          &l2_eta,          "l2_eta/F");
-      //mixedEventsTree->Branch ("l2_phi",          &l2_phi,          "l2_phi/F");
-      //mixedEventsTree->Branch ("l2_trk_pt",       &l2_trk_pt,       "l2_trk_pt/F");
-      //mixedEventsTree->Branch ("l2_trk_eta",      &l2_trk_eta,      "l2_trk_eta/F");
-      //mixedEventsTree->Branch ("l2_trk_phi",      &l2_trk_phi,      "l2_trk_phi/F");
-      //mixedEventsTree->Branch ("l2_charge",       &l2_charge,       "l2_charge/I");
-      mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
-      //mixedEventsTree->Branch ("z_trk_pt",        &z_trk_pt,        "z_trk_pt[z_ntrk]/F");
-      //mixedEventsTree->Branch ("z_trk_eta",       &z_trk_eta,       "z_trk_eta[z_ntrk]/F");
-      //mixedEventsTree->Branch ("z_trk_phi",       &z_trk_phi,       "z_trk_phi[z_ntrk]/F");
+      mixedEventsTree->Branch ("l1_pt",           &l1_pt,           "l1_pt/F");
+      mixedEventsTree->Branch ("l1_eta",          &l1_eta,          "l1_eta/F");
+      mixedEventsTree->Branch ("l1_phi",          &l1_phi,          "l1_phi/F");
+      mixedEventsTree->Branch ("l1_trk_pt",       &l1_trk_pt,       "l1_trk_pt/F");
+      mixedEventsTree->Branch ("l1_trk_eta",      &l1_trk_eta,      "l1_trk_eta/F");
+      mixedEventsTree->Branch ("l1_trk_phi",      &l1_trk_phi,      "l1_trk_phi/F");
+      mixedEventsTree->Branch ("l1_charge",       &l1_charge,       "l1_charge/I");
+      mixedEventsTree->Branch ("l2_pt",           &l2_pt,           "l2_pt/F");
+      mixedEventsTree->Branch ("l2_eta",          &l2_eta,          "l2_eta/F");
+      mixedEventsTree->Branch ("l2_phi",          &l2_phi,          "l2_phi/F");
+      mixedEventsTree->Branch ("l2_trk_pt",       &l2_trk_pt,       "l2_trk_pt/F");
+      mixedEventsTree->Branch ("l2_trk_eta",      &l2_trk_eta,      "l2_trk_eta/F");
+      mixedEventsTree->Branch ("l2_trk_phi",      &l2_trk_phi,      "l2_trk_phi/F");
+      mixedEventsTree->Branch ("l2_charge",       &l2_charge,       "l2_charge/I");
+      if (!doSameFileMixing) {
+        mixedEventsTree->Branch ("z_ntrk",          &z_ntrk,          "z_ntrk/I");
+        mixedEventsTree->Branch ("z_trk_pt",        &z_trk_pt,        "z_trk_pt[z_ntrk]/F");
+        mixedEventsTree->Branch ("z_trk_eta",       &z_trk_eta,       "z_trk_eta[z_ntrk]/F");
+        mixedEventsTree->Branch ("z_trk_phi",       &z_trk_phi,       "z_trk_phi[z_ntrk]/F");
+      }
     }
 
 
@@ -452,22 +456,22 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       z_phi = _z_phi;
       z_y = _z_y;
       z_m = _z_m;
-      //if (saveMixedEvents) {
-      //  l1_pt = _l1_pt;
-      //  l1_eta = _l1_eta;
-      //  l1_phi = _l1_phi;
-      //  l1_trk_pt = _l1_trk_pt;
-      //  l1_trk_eta = _l1_trk_eta;
-      //  l1_trk_phi = _l1_trk_phi;
-      //  l1_charge = _l1_charge;
-      //  l2_pt = _l2_pt;
-      //  l2_eta = _l2_eta;
-      //  l2_phi = _l2_phi;
-      //  l2_trk_pt = _l2_trk_pt;
-      //  l2_trk_eta = _l2_trk_eta;
-      //  l2_trk_phi = _l2_trk_phi;
-      //  l2_charge = _l2_charge;
-      //}
+      if (saveMixedEvents) {
+        l1_pt = _l1_pt;
+        l1_eta = _l1_eta;
+        l1_phi = _l1_phi;
+        l1_trk_pt = _l1_trk_pt;
+        l1_trk_eta = _l1_trk_eta;
+        l1_trk_phi = _l1_trk_phi;
+        l1_charge = _l1_charge;
+        l2_pt = _l2_pt;
+        l2_eta = _l2_eta;
+        l2_phi = _l2_phi;
+        l2_trk_pt = _l2_trk_pt;
+        l2_trk_eta = _l2_trk_eta;
+        l2_trk_phi = _l2_trk_phi;
+        l2_charge = _l2_charge;
+      }
       if (doSameFileMixing) {
         z_run_number = run_number;
         z_event_number = event_number;
@@ -530,9 +534,11 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           goodMixEvent &= (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins)); // do psi3 matching
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
-          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
+          //cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
+          nNotMixed++;
           continue;
         }
+        nMixed++;
         mbEventsUsed[iMBEvt] = true;
 
         // reenable big branches after finding a suitable event
@@ -892,9 +898,11 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           goodMixEvent &= (!doPPTransMaxMixing || (1 < _z_pt && _z_pt < 12 && DeltaPhi (phi_transmax, z_phi) >= 7.*pi/8.)); // alternatively mix with trans-max region
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
-          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+          //cout << "No minbias event to mix with!!! Wrapped around on the same Z!!!" << endl;
+          nNotMixed++;
           continue;
         }
+        nMixed++;
         mbEventsUsed[iMBEvt] = true;
 
         // reenable big branches after finding a suitable event
@@ -1052,6 +1060,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
     cout << endl << "Done minbias pp loop." << endl;
   }
 
+  cout << "Number of events mixed:     " << nMixed << endl;
+  cout << "Number of events not mixed: " << nNotMixed << " (" << ((float)nNotMixed) * 100 / ((float)nNotMixed + (float)nMixed) << "\%)" << endl;
+
   for (int i = 0; i < nZEvts; i++) {
     if (zEventsUsed[i] < mixingFraction) {
       cout << "Warning! Some events used fewer than " << mixingFraction << " times!" << endl;
@@ -1086,147 +1097,147 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Generates weights from pre-mixed events.
-////////////////////////////////////////////////////////////////////////////////////////////////
-void MixingAnalysis :: GenerateEventWeights (const char* inFileName, const char* outFileName) {
-
-  const int nQ2Bins = 20;
-  const double* q2Bins = linspace (0, 0.3, nQ2Bins);
-  const int nPsi2Bins = 8;
-  const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
-  
-  TH1D* h_z_q2_dist[3][numFineCentBins][nPtZBins];
-  TH1D* h_mixed_q2_dist[3][numFineCentBins][nPtZBins];
-  TH1D* h_z_psi2_dist[3][numFineCentBins][nPtZBins];
-  TH1D* h_mixed_psi2_dist[3][numFineCentBins][nPtZBins];
-
-  TFile* inFile = new TFile (inFileName, "read");
-
-  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbMixedTree");
-
-  for (int iSpc = 0; iSpc < 3; iSpc++) {
-    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-    for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      for (int iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-        h_z_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_mixed_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-
-        h_z_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-      }
-    }
-  }
-
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  // Loop over PbPb tree
-  ////////////////////////////////////////////////////////////////////////////////////////////////
-  if (PbPbTree) {
-    bool isEE = false;
-    float fcal_et = 0, z_pt = 0, z_phi = 0, q2 = 0, psi2 = 0, z_q2 = 0, z_psi2 = 0;
-
-    PbPbTree->SetBranchAddress ("isEE",         &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
-    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
-    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
-    PbPbTree->SetBranchAddress ("q2",           &q2);
-    PbPbTree->SetBranchAddress ("psi2",         &psi2);
-    PbPbTree->SetBranchAddress ("z_q2",         &z_q2);
-    PbPbTree->SetBranchAddress ("z_psi2",       &z_psi2);
-
-    const int nEvts = PbPbTree->GetEntries ();
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-      PbPbTree->GetEntry (iEvt);
-
-      const short iFineCent = GetFineCentBin (fcal_et);
-      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
-        continue;
-
-      const short iPtZ = GetPtZBin (z_pt);
-      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-        continue;
-
-      const short iSpc = (isEE ? 0 : 1);
-
-      h_z_q2_dist[iSpc][iFineCent][iPtZ]->Fill (z_q2);
-      h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Fill (q2);
-
-      float dphi = DeltaPhi (z_phi, z_psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
-
-      dphi = DeltaPhi (z_phi, psi2, false);
-      if (dphi > pi/2)
-        dphi = pi - dphi;
-      h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
-    }
-    cout << "Done Pb+Pb loop." << endl;
-  }
-
-  for (short iSpc = 0; iSpc < 2; iSpc++) {
-    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        for (int ix = 1; ix <= h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
-          h_z_q2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
-        for (int ix = 1; ix <= h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
-          h_z_psi2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
-
-        h_z_q2_dist[2][iFineCent][iPtZ]->Add (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
-        h_mixed_q2_dist[2][iFineCent][iPtZ]->Add (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-        h_z_psi2_dist[2][iFineCent][iPtZ]->Add (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
-        h_mixed_psi2_dist[2][iFineCent][iPtZ]->Add (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-      }
-    }
-  }
-
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-      }
-    }
-  }
-
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-      }
-    }
-  }
-
-  if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
-    eventWeightsFile->Close ();
-    eventWeightsLoaded = false;
-  }
-
-  eventWeightsFile = new TFile (outFileName, "recreate");
-  for (short iSpc = 0; iSpc < 3; iSpc++) {
-    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-        SafeWrite (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
-        SafeWrite (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-        SafeWrite (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
-        SafeWrite (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-      }
-    }
-  }
-  eventWeightsFile->Close ();
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Generates weights from pre-mixed events.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//void MixingAnalysis :: GenerateEventWeights (const char* inFileName, const char* outFileName) {
+//
+//  const int nQ2Bins = 20;
+//  const double* q2Bins = linspace (0, 0.3, nQ2Bins);
+//  const int nPsi2Bins = 8;
+//  const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
+//  
+//  TH1D* h_z_q2_dist[3][numFineCentBins][nPtZBins];
+//  TH1D* h_mixed_q2_dist[3][numFineCentBins][nPtZBins];
+//  TH1D* h_z_psi2_dist[3][numFineCentBins][nPtZBins];
+//  TH1D* h_mixed_psi2_dist[3][numFineCentBins][nPtZBins];
+//
+//  TFile* inFile = new TFile (inFileName, "read");
+//
+//  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbMixedTree");
+//
+//  for (int iSpc = 0; iSpc < 3; iSpc++) {
+//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+//    for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//      for (int iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//        h_z_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+//
+//        h_z_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
+//      }
+//    }
+//  }
+//
+//
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  // Loop over PbPb tree
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  if (PbPbTree) {
+//    bool isEE = false;
+//    float fcal_et = 0, z_pt = 0, z_phi = 0, q2 = 0, psi2 = 0, z_q2 = 0, z_psi2 = 0;
+//
+//    PbPbTree->SetBranchAddress ("isEE",         &isEE);
+//    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+//    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+//    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+//    PbPbTree->SetBranchAddress ("q2",           &q2);
+//    PbPbTree->SetBranchAddress ("psi2",         &psi2);
+//    PbPbTree->SetBranchAddress ("z_q2",         &z_q2);
+//    PbPbTree->SetBranchAddress ("z_psi2",       &z_psi2);
+//
+//    const int nEvts = PbPbTree->GetEntries ();
+//    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+//      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+//        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+//      PbPbTree->GetEntry (iEvt);
+//
+//      const short iFineCent = GetFineCentBin (fcal_et);
+//      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
+//        continue;
+//
+//      const short iPtZ = GetPtZBin (z_pt);
+//      if (iPtZ < 0 || iPtZ > nPtZBins-1)
+//        continue;
+//
+//      const short iSpc = (isEE ? 0 : 1);
+//
+//      h_z_q2_dist[iSpc][iFineCent][iPtZ]->Fill (z_q2);
+//      h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Fill (q2);
+//
+//      float dphi = DeltaPhi (z_phi, z_psi2, false);
+//      if (dphi > pi/2)
+//        dphi = pi - dphi;
+//      h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
+//
+//      dphi = DeltaPhi (z_phi, psi2, false);
+//      if (dphi > pi/2)
+//        dphi = pi - dphi;
+//      h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
+//    }
+//    cout << "Done Pb+Pb loop." << endl;
+//  }
+//
+//  for (short iSpc = 0; iSpc < 2; iSpc++) {
+//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        for (int ix = 1; ix <= h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
+//          h_z_q2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
+//        for (int ix = 1; ix <= h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
+//          h_z_psi2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
+//
+//        h_z_q2_dist[2][iFineCent][iPtZ]->Add (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
+//        h_mixed_q2_dist[2][iFineCent][iPtZ]->Add (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+//        h_z_psi2_dist[2][iFineCent][iPtZ]->Add (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
+//        h_mixed_psi2_dist[2][iFineCent][iPtZ]->Add (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
+//      }
+//    }
+//  }
+//
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
+//      }
+//    }
+//  }
+//
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
+//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
+//      }
+//    }
+//  }
+//
+//  if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
+//    eventWeightsFile->Close ();
+//    eventWeightsLoaded = false;
+//  }
+//
+//  eventWeightsFile = new TFile (outFileName, "recreate");
+//  for (short iSpc = 0; iSpc < 3; iSpc++) {
+//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+//        SafeWrite (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
+//        SafeWrite (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
+//        SafeWrite (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
+//        SafeWrite (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
+//      }
+//    }
+//  }
+//  eventWeightsFile->Close ();
+//}
 
 
 
