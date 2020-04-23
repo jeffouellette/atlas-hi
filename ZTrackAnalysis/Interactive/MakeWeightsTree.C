@@ -224,10 +224,14 @@ void MakePbPbMCWeightsTree () {
   MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_100", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
 }
 
-void Make2015HijingWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a884_s3136_r11318_myOutput.root", "*.pp.*", "hijing2015_eventWeightsTree.root");
+void MakeHijingWeightsTree () {
+  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_200", ".PbPb.", ".pp.", "PbPbEventWeightsTree.root");
 }
 
-void Make2018HijingWeightsTree () {
-  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a882_s3136_r11157_myOutput.root", "*.pp.*", "hijing2018_eventWeightsTree.root");
-}
+//void Make2015HijingWeightsTree () {
+//  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a884_s3136_r11318_myOutput.root", "*.pp.*", "hijing2015_eventWeightsTree.root");
+//}
+
+//void Make2018HijingWeightsTree () {
+//  MakeWeightsTree ("/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110", "user.jeouelle.21.2.82.minbias.110.mc16_5TeV.PbPb.420000.Hijing.Flow_JJFV6.recon.AOD.e4962_a882_s3136_r11157_myOutput.root", "*.pp.*", "hijing2018_eventWeightsTree.root");
+//}

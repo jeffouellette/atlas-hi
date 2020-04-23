@@ -33,7 +33,6 @@ class MixingAnalysis : public PhysicsAnalysis {
   double* psi2MixBins = nullptr;
   int nPsi3MixBins = 1;
   double* psi3MixBins = nullptr;
-  
 
   short GetQ2MixBin (const float q2) {
     if (!q2MixBins)
@@ -85,9 +84,6 @@ class MixingAnalysis : public PhysicsAnalysis {
     doPPMBMixing = false;
   }
 
-  //void LoadEventWeights () override;
-  //void GenerateEventWeights (const char* inFileName = "outFile.root", const char* outFileName = "eventWeightsFile.root");
-
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
   void Execute (const char* inFileName, const char* outFileName) override {
     cout << "Error: In MixingAnalysis::Execute: Called invalid function! 4 arguments are required to specify the collision system and mixing file name. Exiting." << endl;
@@ -112,37 +108,6 @@ void MixingAnalysis :: LoadHists (const char* histFileName, const bool _finishHi
 
   PhysicsAnalysis :: CombineHists ();
 }
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////// Load the event weights into memory
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//void MixingAnalysis :: LoadEventWeights () {
-//  if (eventWeightsLoaded)
-//    return;
-//
-//  SetupDirectories ("", "ZTrackAnalysis/");
-//  TDirectory* _gDirectory = gDirectory;
-//
-//  eventWeightsFile = new TFile (Form ("%s/MinbiasAnalysis/Nominal/eventWeightsFile.root", rootPath.Data ()), "read");
-//
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-//        h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-//      }
-//    }
-//  }
-//
-//  eventWeightsLoaded = true;
-//
-//  _gDirectory-> cd ();
-//  return;
-//}
 
 
 
@@ -561,7 +526,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       {
         float dphi = DeltaPhi (z_phi, psi2, false);
         if (dphi > pi/2)  dphi = pi - dphi;
-        if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (fcal_et));
+        if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (z_fcal_et));
         if (useQ2Wgts)    q2_weight   = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
         if (usePsi2Wgts)  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
 
@@ -1093,151 +1058,6 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   if (mbInFile) mbInFile->Close ();
   SaferDelete (&mbInFile);
 }
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//// Generates weights from pre-mixed events.
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//void MixingAnalysis :: GenerateEventWeights (const char* inFileName, const char* outFileName) {
-//
-//  const int nQ2Bins = 20;
-//  const double* q2Bins = linspace (0, 0.3, nQ2Bins);
-//  const int nPsi2Bins = 8;
-//  const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
-//  
-//  TH1D* h_z_q2_dist[3][numFineCentBins][nPtZBins];
-//  TH1D* h_mixed_q2_dist[3][numFineCentBins][nPtZBins];
-//  TH1D* h_z_psi2_dist[3][numFineCentBins][nPtZBins];
-//  TH1D* h_mixed_psi2_dist[3][numFineCentBins][nPtZBins];
-//
-//  TFile* inFile = new TFile (inFileName, "read");
-//
-//  TTree* PbPbTree = (TTree*)inFile->Get ("PbPbMixedTree");
-//
-//  for (int iSpc = 0; iSpc < 3; iSpc++) {
-//    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
-//    for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//      for (int iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//        h_z_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
-//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-//
-//        h_z_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_z_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_mixed_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
-//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Sumw2 ();
-//      }
-//    }
-//  }
-//
-//
-//  ////////////////////////////////////////////////////////////////////////////////////////////////
-//  // Loop over PbPb tree
-//  ////////////////////////////////////////////////////////////////////////////////////////////////
-//  if (PbPbTree) {
-//    bool isEE = false;
-//    float fcal_et = 0, z_pt = 0, z_phi = 0, q2 = 0, psi2 = 0, z_q2 = 0, z_psi2 = 0;
-//
-//    PbPbTree->SetBranchAddress ("isEE",         &isEE);
-//    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
-//    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
-//    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
-//    PbPbTree->SetBranchAddress ("q2",           &q2);
-//    PbPbTree->SetBranchAddress ("psi2",         &psi2);
-//    PbPbTree->SetBranchAddress ("z_q2",         &z_q2);
-//    PbPbTree->SetBranchAddress ("z_psi2",       &z_psi2);
-//
-//    const int nEvts = PbPbTree->GetEntries ();
-//    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-//      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
-//        cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
-//      PbPbTree->GetEntry (iEvt);
-//
-//      const short iFineCent = GetFineCentBin (fcal_et);
-//      if (iFineCent < 1 || iFineCent > numFineCentBins-1)
-//        continue;
-//
-//      const short iPtZ = GetPtZBin (z_pt);
-//      if (iPtZ < 0 || iPtZ > nPtZBins-1)
-//        continue;
-//
-//      const short iSpc = (isEE ? 0 : 1);
-//
-//      h_z_q2_dist[iSpc][iFineCent][iPtZ]->Fill (z_q2);
-//      h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Fill (q2);
-//
-//      float dphi = DeltaPhi (z_phi, z_psi2, false);
-//      if (dphi > pi/2)
-//        dphi = pi - dphi;
-//      h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
-//
-//      dphi = DeltaPhi (z_phi, psi2, false);
-//      if (dphi > pi/2)
-//        dphi = pi - dphi;
-//      h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Fill (dphi);
-//    }
-//    cout << "Done Pb+Pb loop." << endl;
-//  }
-//
-//  for (short iSpc = 0; iSpc < 2; iSpc++) {
-//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        for (int ix = 1; ix <= h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
-//          h_z_q2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_q2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
-//        for (int ix = 1; ix <= h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetNbinsX (); ix++)
-//          h_z_psi2_dist[iSpc][iFineCent][iPtZ]->SetBinError (ix, h_z_psi2_dist[iSpc][iFineCent][iPtZ]->GetBinError (ix) * TMath::Sqrt (40));
-//
-//        h_z_q2_dist[2][iFineCent][iPtZ]->Add (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
-//        h_mixed_q2_dist[2][iFineCent][iPtZ]->Add (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-//        h_z_psi2_dist[2][iFineCent][iPtZ]->Add (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
-//        h_mixed_psi2_dist[2][iFineCent][iPtZ]->Add (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-//      }
-//    }
-//  }
-//
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Scale (1./h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Integral ());
-//      }
-//    }
-//  }
-//
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        h_z_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-//        h_mixed_q2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-//        h_z_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-//        h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]->Divide (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-//      }
-//    }
-//  }
-//
-//  if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
-//    eventWeightsFile->Close ();
-//    eventWeightsLoaded = false;
-//  }
-//
-//  eventWeightsFile = new TFile (outFileName, "recreate");
-//  for (short iSpc = 0; iSpc < 3; iSpc++) {
-//    for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-//      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-//        SafeWrite (h_z_q2_dist[iSpc][iFineCent][iPtZ]);
-//        SafeWrite (h_mixed_q2_dist[iSpc][iFineCent][iPtZ]);
-//        SafeWrite (h_z_psi2_dist[iSpc][iFineCent][iPtZ]);
-//        SafeWrite (h_mixed_psi2_dist[iSpc][iFineCent][iPtZ]);
-//      }
-//    }
-//  }
-//  eventWeightsFile->Close ();
-//}
 
 
 

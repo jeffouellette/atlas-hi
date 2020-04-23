@@ -24,7 +24,7 @@ class HijingAnalysis : public FullAnalysis {
     plotFill = false;
     useAltMarker = false;
     isMC = true;
-    eventWeightsFileName = "MCAnalysis/Nominal/eventWeightsFile.root";
+    eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
   }
 
   void Execute (const char* inFileName, const char* outFileName) override;
@@ -81,10 +81,10 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
   if (PbPbTree) {
     PbPbTree->SetBranchAddress ("z_event_weight", &event_weight);
     PbPbTree->SetBranchAddress ("isEE",       &isEE);
-    PbPbTree->SetBranchAddress ("z_fcal_et",    &fcal_et);
-    PbPbTree->SetBranchAddress ("z_q2",         &q2);
-    PbPbTree->SetBranchAddress ("z_psi2",       &psi2);
-    PbPbTree->SetBranchAddress ("z_vz",         &vz);
+    PbPbTree->SetBranchAddress ("z_fcal_et",  &fcal_et);
+    PbPbTree->SetBranchAddress ("z_q2",       &q2);
+    PbPbTree->SetBranchAddress ("z_psi2",     &psi2);
+    PbPbTree->SetBranchAddress ("z_vz",       &vz);
     PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
     PbPbTree->SetBranchAddress ("z_y",        &z_y);
     PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
@@ -103,14 +103,14 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
     PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
     PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
     PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("z_ntrk",       &ntrk);
-    PbPbTree->SetBranchAddress ("z_trk_pt",     trk_pt);
-    PbPbTree->SetBranchAddress ("z_trk_eta",    trk_eta);
-    PbPbTree->SetBranchAddress ("z_trk_phi",    trk_phi);
+    PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
+    PbPbTree->SetBranchAddress ("z_trk_pt",   trk_pt);
+    PbPbTree->SetBranchAddress ("z_trk_eta",  trk_eta);
+    PbPbTree->SetBranchAddress ("z_trk_phi",  trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
@@ -373,7 +373,7 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 

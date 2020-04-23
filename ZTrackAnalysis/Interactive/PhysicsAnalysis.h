@@ -77,7 +77,8 @@ class PhysicsAnalysis {
   float trkEffNSigma  = 0; // how many sigma to vary the track efficiency by (-1,0,+1 suggested)
   float trkPurNSigma  = 0; // how many sigma to vary the track purity by (-1,0,+1 suggested)
 
-  string eventWeightsFileName = "DataAnalysis/Nominal/eventWeightsFile.root";
+  TString eventWeightsFileName = "DataAnalysis/Nominal/eventWeightsFile.root";
+  TString ewExt = "";
 
   // Analysis checks
   TH1D*   h_fcal_et               = nullptr;
@@ -633,7 +634,6 @@ void PhysicsAnalysis :: ClearHists () {
 // Create new histograms
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void PhysicsAnalysis :: CreateHists () {
-
   h_fcal_et = new TH1D (Form ("h_fcal_et_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins); 
   h_fcal_et->Sumw2 ();
   h_fcal_et_reweighted = new TH1D (Form ("h_fcal_et_reweighted_%s", name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
@@ -1974,7 +1974,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
@@ -2190,7 +2190,7 @@ void PhysicsAnalysis :: Execute (const char* inFileName, const char* outFileName
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
@@ -2618,11 +2618,13 @@ void PhysicsAnalysis :: LoadEventWeights () {
   if (!useCentWgts && !useQ2Wgts && !usePsi2Wgts)
     return;
 
+  const TString ext = (ewExt == "" ? TString (name) : ewExt);
+
   SetupDirectories ("", "ZTrackAnalysis/");
   TDirectory* _gDirectory = gDirectory;
 
-  cout << "Loading event weights from " << rootPath.Data () << "/" << eventWeightsFileName.c_str () << endl;
-  eventWeightsFile = new TFile (Form ("%s/%s", rootPath.Data (), eventWeightsFileName.c_str ()), "read");
+  cout << "Loading event weights from " << rootPath.Data () << "/" << eventWeightsFileName.Data () << endl;
+  eventWeightsFile = new TFile (Form ("%s/%s", rootPath.Data (), eventWeightsFileName.Data ()), "read");
 
   //if (useCentWgts)  h_PbPbFCal_weights = (TH1D*) eventWeightsFile->Get (Form ("h_PbPbFCal_weights_%s", name.c_str ()));
   //for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
@@ -2632,10 +2634,10 @@ void PhysicsAnalysis :: LoadEventWeights () {
   for (short iSpc = 0; iSpc < 3; iSpc++) {
     const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
     for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
-      if (useCentWgts)  h_PbPbFCal_weights[iSpc][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()));
+      if (useCentWgts)  h_PbPbFCal_weights[iSpc][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, ext.Data ()));
       for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
-        if (useQ2Wgts)    h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
-        if (usePsi2Wgts)  h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()));
+        if (useQ2Wgts)    h_PbPbQ2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, ext.Data ()));
+        if (usePsi2Wgts)  h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ] = (TH1D*) eventWeightsFile->Get (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, ext.Data ()));
       }
     }
   }
@@ -2661,12 +2663,14 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies (const bool doRebin) {
   TDirectory* _gDirectory = gDirectory;
 
   TString _effDir = "Nominal";
-  if (useHITight)
+  if (useHijingEffs)
+    _effDir = "Hijing";
+  else if (useHITight)
     _effDir = "Variations/TrackHITightWPVariation";
   else if (doTrackEffVar)
     _effDir = "Variations/TrackEffPionsVariation";
 
-  trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? (useHijingEffs ? "Hijing_15" : "15") : (useHijingEffs ? "Hijing_18" : "18")), "read");
+  trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? "15" : "18"), "read");
 
   for (int iCent = 0; iCent < numTrkCorrCentBins; iCent++) {
   //for (int iCent = 0; iCent < numFineCentBins; iCent++) {

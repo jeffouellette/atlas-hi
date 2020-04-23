@@ -2,7 +2,7 @@
 #define __GenerateWeights_C__
 
 #include "Params.h"
-#include "ZTrackUtilities.h"
+#include "Utilities.h"
 
 #include <ArrayTemplates.h>
 
@@ -315,12 +315,16 @@ void GenerateppMCWeights () {
   GenerateWeights ("mc", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_100/ppEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/mc_100/ppEventWeightsFile.root");
 }
 
-void Generate2015HijingWeights () {
-  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2015_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2015_eventWeightsFile.root");
+void GenerateHijingWeights () {
+  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_200/PbPbEventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_200/PbPbEventWeightsFile.root");
 }
 
-void Generate2018HijingWeights () {
-  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2018_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2018_eventWeightsFile.root");
-}
+//void Generate2015HijingWeights () {
+//  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2015_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2015_eventWeightsFile.root");
+//}
+
+//void Generate2018HijingWeights () {
+//  GenerateWeights ("hijing", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2018_eventWeightsTree.root", "/atlasgpfs01/usatlas/data/jeff/ZTrackAnalysis/data/hijing_110/hijing2018_eventWeightsFile.root");
+//}
 
 #endif

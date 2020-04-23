@@ -112,7 +112,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
@@ -378,7 +378,7 @@ void MCAnalysis :: Execute (const char* inFileName, const char* outFileName) {
 
     const int nEvts = ppTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
-      if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       ppTree->GetEntry (iEvt);
 
