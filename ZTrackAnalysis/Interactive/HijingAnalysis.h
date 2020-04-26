@@ -109,7 +109,7 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
     PbPbTree->SetBranchAddress ("z_trk_eta",  trk_eta);
     PbPbTree->SetBranchAddress ("z_trk_phi",  trk_phi);
 
-    const int nEvts = PbPbTree->GetEntries ();
+    const int nEvts = PbPbTree->GetEntries () / mixingFraction;
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
       if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;

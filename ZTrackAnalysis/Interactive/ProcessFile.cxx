@@ -176,9 +176,9 @@ int main (int argc, char** argv) {
     mc->is2015Conds = use2015conds;
     mc->useHITight = doHITightVar;
     mc->useCentWgts = true;
-    mc->useHijingEffs = true;
 
     mc->ewExt = "hijing";
+    mixingFraction = 2;
 
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
@@ -250,7 +250,7 @@ int main (int argc, char** argv) {
       bkg->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
       bkg->ewExt = TString ("hijing");
       bkg->useCentWgts = true;
-      bkg->useHijingEffs = true;
+      bkg->useImpactParameter = true;
     }
     else if (doHITightVar)    bkg = new MixingAnalysis ("bkg_trackHITightVar");
     else if (doMixVarA)       bkg = new MixingAnalysis ("bkg_mixVarA");
@@ -265,7 +265,9 @@ int main (int argc, char** argv) {
     else if (doPPTransMaxVar) bkg = new MixingAnalysis ("bkg_ppTransMaxVar");
     else                      bkg = new MixingAnalysis ("bkg");
 
-    if ((!isPbPb && !doPPMBMixVar))
+    if (algo == "hijing_mixing")
+      mixingFraction = 2;
+    else if ((!isPbPb && !doPPMBMixVar))
       mixingFraction = 1;
     else if (!isPbPb && !doPPMBMixVar) {
       bkg->doPPMBMixing = true;
@@ -273,8 +275,6 @@ int main (int argc, char** argv) {
     }
     else if (algo == "mcminbias")
       mixingFraction = 10;
-    else if (algo == "hijing_mixing")
-      mixingFraction = 1;
     else if (isPbPb) {
       const int _first = inFileName.find ("iCent") + 5;
       const int _last = inFileName.find (".root");
@@ -323,8 +323,9 @@ int main (int argc, char** argv) {
     }
 
     if (algo == "hijing_mixing") {
-      bkg->doPsi3Mixing = true;
-      bkg->nPsi3MixBins = 3;
+      bkg->nIPBins = 200;
+      bkg->doPsi2Mixing = false;
+      bkg->nPsi2MixBins = 1;
     }
 
     bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code

@@ -2795,7 +2795,7 @@ void PhysicsAnalysis :: LoadTrackingEfficiencies (const bool doRebin) {
     _effDir = "Variations/TrackHITightWPVariation";
   else if (doTrackEffVar)
     _effDir = "Variations/TrackEffPionsVariation";
-
+  cout << Form ("Reading tracking efficiencies from %s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? "15" : "18") << endl;
   trkEffFile = new TFile (Form ("%s/TrackingEfficiencies/%s/trackingEfficiencies_%s.root", rootPath.Data (), _effDir.Data (), is2015Conds ? "15" : "18"), "read");
 
   for (int iCent = 0; iCent < numTrkCorrCentBins; iCent++) {
