@@ -24,6 +24,7 @@ class HijingAnalysis : public FullAnalysis {
     plotFill = false;
     useAltMarker = false;
     isMC = true;
+    useHijingEffs = true;
     eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
   }
 
