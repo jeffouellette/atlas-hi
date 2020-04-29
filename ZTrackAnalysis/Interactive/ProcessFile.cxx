@@ -175,10 +175,11 @@ int main (int argc, char** argv) {
 
     mc->is2015Conds = use2015conds;
     mc->useHITight = doHITightVar;
-    mc->useCentWgts = true;
+    //mc->useCentWgts = true;
+    mc->useHijingEffs = true;
 
-    mc->ewExt = "hijing";
-    mixingFraction = 2;
+    //mc->ewExt = "hijing";
+    mixingFraction = 1;
 
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
@@ -247,10 +248,12 @@ int main (int argc, char** argv) {
       bkg = new MixingAnalysis ("mc_bkg");
     else if (algo == "hijing_mixing") {
       bkg = new MixingAnalysis ("hijing_bkg");
-      bkg->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
-      bkg->ewExt = TString ("hijing");
-      bkg->useCentWgts = true;
+      //bkg->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
+      //bkg->ewExt = TString ("hijing");
+      //bkg->useCentWgts = true;
       bkg->useImpactParameter = true;
+      bkg->useHijingEffs = true;
+      //bkg->doVZMixing = true;
     }
     else if (doHITightVar)    bkg = new MixingAnalysis ("bkg_trackHITightVar");
     else if (doMixVarA)       bkg = new MixingAnalysis ("bkg_mixVarA");
@@ -323,9 +326,9 @@ int main (int argc, char** argv) {
     }
 
     if (algo == "hijing_mixing") {
-      bkg->nIPBins = 200;
-      bkg->doPsi2Mixing = false;
-      bkg->nPsi2MixBins = 1;
+      bkg->nIPBins = 100;
+      //bkg->doPsi2Mixing = false;
+      //bkg->nPsi2MixBins = 1;
     }
 
     bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code

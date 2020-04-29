@@ -28,8 +28,259 @@ class HijingAnalysis : public FullAnalysis {
     eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
   }
 
+  void GenerateEventWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName) override;
   void Execute (const char* inFileName, const char* outFileName) override;
 };
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Generates weights between a weighted sample and a matched sample.
+////////////////////////////////////////////////////////////////////////////////////////////////
+void HijingAnalysis :: GenerateEventWeights (const char* weightedSampleInFilePattern, const char* matchedSampleInFilePattern, const char* outFileName) {
+
+  const int nQ2Bins = 20;
+  const double* q2Bins = linspace (0, 0.3, nQ2Bins);
+  const int nPsi2Bins = 8;
+  const double* psi2Bins = linspace (0, pi/2, nPsi2Bins);
+
+  TH1D* h_fcal_et_dist[2][3][nPtZBins];
+  TH1D* h_q2_dist[2][3][numFineCentBins][nPtZBins];
+  TH1D* h_psi2_dist[2][3][numFineCentBins][nPtZBins];
+
+  for (int iSpc = 0; iSpc < 3; iSpc++) {
+    const char* spc = (iSpc == 0 ? "ee" : (iSpc == 1 ? "mumu" : "comb"));
+    for (int iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      h_fcal_et_dist[0][iSpc][iPtZ] = new TH1D (Form ("h_weighted_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
+      h_fcal_et_dist[0][iSpc][iPtZ]->Sumw2 ();
+      h_fcal_et_dist[1][iSpc][iPtZ] = new TH1D (Form ("h_fcal_et_dist_%s_iPtZ%i_%s", spc, iPtZ, name.c_str ()), "", numSuperFineCentBins-1, superFineCentBins);
+      h_fcal_et_dist[1][iSpc][iPtZ]->Sumw2 ();
+
+      for (int iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+        h_q2_dist[0][iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_weighted_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_q2_dist[0][iSpc][iFineCent][iPtZ]->Sumw2 ();
+        h_q2_dist[1][iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_q2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nQ2Bins, q2Bins);
+        h_q2_dist[1][iSpc][iFineCent][iPtZ]->Sumw2 ();
+
+        h_psi2_dist[0][iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_weighted_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_psi2_dist[0][iSpc][iFineCent][iPtZ]->Sumw2 ();
+        h_psi2_dist[1][iSpc][iFineCent][iPtZ] = new TH1D (Form ("h_psi2_dist_%s_iCent%i_iPtZ%i_%s", spc, iFineCent, iPtZ, name.c_str ()), "", nPsi2Bins, psi2Bins);
+        h_psi2_dist[1][iSpc][iFineCent][iPtZ]->Sumw2 ();
+      }
+    }
+  }
+
+
+  bool isEE = false;
+  float event_weight = 0, fcal_et = 0, z_pt = 0, z_phi = 0, q2 = 0, psi2 = 0;
+
+  TChain* PbPbTree = new TChain ("PbPbMixedTree", "PbPbMixedTree");
+  PbPbTree->Add (weightedSampleInFilePattern);
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Loop over PbPb tree
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  PbPbTree->SetBranchAddress ("isEE",         &isEE);
+  PbPbTree->SetBranchAddress ("z_fcal_et",    &fcal_et);
+  PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+  PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+  PbPbTree->SetBranchAddress ("z_q2",         &q2);
+  PbPbTree->SetBranchAddress ("z_psi2",       &psi2);
+
+  int nEvts = PbPbTree->GetEntries ();
+  for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+    if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+    PbPbTree->GetEntry (iEvt);
+
+    const short iSpc = (isEE ? 0 : 1);
+
+    const short iPtZ = GetPtZBin (z_pt);
+    if (iPtZ < 0 || iPtZ > nPtZBins-1)
+      continue;
+
+    h_fcal_et_dist[0][iSpc][iPtZ]->Fill (fcal_et);
+  }
+  cout << "Done 1st Pb+Pb loop over weighted sample." << endl;
+
+  delete PbPbTree;
+  PbPbTree = new TChain ("PbPbZTrackTree", "PbPbZTrackTree");
+  PbPbTree->Add (matchedSampleInFilePattern);
+
+  PbPbTree->SetBranchAddress ("isEE",         &isEE);
+  PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+  PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+  PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+  PbPbTree->SetBranchAddress ("q2",           &q2);
+  PbPbTree->SetBranchAddress ("psi2",         &psi2);
+
+  nEvts = PbPbTree->GetEntries ();
+  for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+    if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+    PbPbTree->GetEntry (iEvt);
+
+    const short iSpc = (isEE ? 0 : 1);
+
+    const short iPtZ = GetPtZBin (z_pt);
+    if (iPtZ < 0 || iPtZ > nPtZBins-1)
+      continue;
+
+    h_fcal_et_dist[1][iSpc][iPtZ]->Fill (fcal_et);
+  }
+  cout << "Done 1st Pb+Pb loop over matched events." << endl;
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Finalize FCal weighting histograms
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  for (short iSample : {0, 1})
+    for (short iSpc = 0; iSpc < 2; iSpc++)
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
+        h_fcal_et_dist[iSample][2][iPtZ]->Add (h_fcal_et_dist[iSample][iSpc][iPtZ]);
+
+  for (short iSample : {0, 1})
+    for (short iSpc = 0; iSpc < 3; iSpc++)
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
+        h_fcal_et_dist[iSample][iSpc][iPtZ]->Scale (1/h_fcal_et_dist[iSample][iSpc][iPtZ]->Integral ());
+
+  for (short iSpc = 0; iSpc < 3; iSpc++)
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++)
+      h_fcal_et_dist[1][iSpc][iPtZ]->Divide (h_fcal_et_dist[0][iSpc][iPtZ]);
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Loop over PbPb tree for additional q2, psi2 weights
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  delete PbPbTree;
+  PbPbTree = new TChain ("PbPbMixedTree", "PbPbMixedTree");
+  PbPbTree->Add (weightedSampleInFilePattern);
+
+  PbPbTree->SetBranchAddress ("isEE",         &isEE);
+  PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+  PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+  PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+  PbPbTree->SetBranchAddress ("q2",           &q2);
+  PbPbTree->SetBranchAddress ("psi2",         &psi2);
+
+  nEvts = PbPbTree->GetEntries ();
+  for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+    if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+    PbPbTree->GetEntry (iEvt);
+
+    const short iSpc = (isEE ? 0 : 1);
+
+    const short iPtZ = GetPtZBin (z_pt);
+    if (iPtZ < 0 || iPtZ > nPtZBins-1)
+      continue;
+    const short iFineCent = GetFineCentBin (fcal_et);
+    if (iFineCent < 1 || iFineCent > numFineCentBins-1)
+      continue;
+
+    event_weight = h_fcal_et_dist[1][iSpc][iPtZ]->GetBinContent (h_fcal_et_dist[1][iSpc][iPtZ]->FindFixBin (fcal_et));
+
+    h_q2_dist[0][iSpc][iFineCent][iPtZ]->Fill (q2, event_weight);
+
+    float dphi = DeltaPhi (z_phi, psi2, false);
+    if (dphi > pi/2)
+      dphi = pi - dphi;
+    h_psi2_dist[0][iSpc][iFineCent][iPtZ]->Fill (dphi);
+  }
+  cout << "Done 2nd Pb+Pb loop over weighted sample." << endl;
+
+  delete PbPbTree;
+  PbPbTree = new TChain ("PbPbZTrackTree", "PbPbZTrackTree");
+  PbPbTree->Add (matchedSampleInFilePattern);
+
+  PbPbTree->SetBranchAddress ("isEE",         &isEE);
+  PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
+  PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
+  PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
+  PbPbTree->SetBranchAddress ("q2",           &q2);
+  PbPbTree->SetBranchAddress ("psi2",         &psi2);
+
+  nEvts = PbPbTree->GetEntries ();
+  for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+    if (nEvts > 0 && iEvt % (nEvts / 100) == 0)
+      cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
+    PbPbTree->GetEntry (iEvt);
+
+    const short iSpc = (isEE ? 0 : 1);
+
+    const short iPtZ = GetPtZBin (z_pt);
+    if (iPtZ < 0 || iPtZ > nPtZBins-1)
+      continue;
+    const short iFineCent = GetFineCentBin (fcal_et);
+    if (iFineCent < 1 || iFineCent > numFineCentBins-1)
+      continue;
+
+    h_q2_dist[1][iSpc][iFineCent][iPtZ]->Fill (q2);
+
+    float dphi = DeltaPhi (z_phi, psi2, false);
+    if (dphi > pi/2)
+      dphi = pi - dphi;
+    h_psi2_dist[1][iSpc][iFineCent][iPtZ]->Fill (dphi);
+  }
+  cout << "Done 2nd Pb+Pb loop over matched events." << endl;
+
+
+  delete PbPbTree;
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  // Finalize weighting histograms
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  for (short iSample : {0, 1}) {
+    for (short iSpc = 0; iSpc < 2; iSpc++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+          h_q2_dist[iSample][2][iFineCent][iPtZ]->Add (h_q2_dist[iSample][iSpc][iFineCent][iPtZ]);
+          h_psi2_dist[iSample][2][iFineCent][iPtZ]->Add (h_psi2_dist[iSample][iSpc][iFineCent][iPtZ]);
+        }
+      }
+    }
+  }
+
+  for (short iSample : {0, 1}) {
+    for (short iSpc = 0; iSpc < 3; iSpc++) {
+      for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+        for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+          h_q2_dist[iSample][iSpc][iFineCent][iPtZ]->Scale (1/h_q2_dist[iSample][iSpc][iFineCent][iPtZ]->Integral ());
+          h_psi2_dist[iSample][iSpc][iFineCent][iPtZ]->Scale (1/h_psi2_dist[iSample][iSpc][iFineCent][iPtZ]->Integral ());
+        }
+      }
+    }
+  }
+
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+        h_q2_dist[1][iSpc][iFineCent][iPtZ]->Divide (h_q2_dist[0][iSpc][iFineCent][iPtZ]);
+        h_psi2_dist[1][iSpc][iFineCent][iPtZ]->Divide (h_psi2_dist[0][iSpc][iFineCent][iPtZ]);
+      }
+    }
+  }
+
+
+  if (eventWeightsFile && eventWeightsFile->IsOpen ()) {
+    eventWeightsFile->Close ();
+    eventWeightsLoaded = false;
+  }
+
+  eventWeightsFile = new TFile (outFileName, "recreate");
+  for (short iSpc = 0; iSpc < 3; iSpc++) {
+    for (short iPtZ = 0; iPtZ < nPtZBins; iPtZ++) {
+      SafeWrite (h_fcal_et_dist[1][iSpc][iPtZ]);
+      for (short iFineCent = 0; iFineCent < numFineCentBins; iFineCent++) {
+        SafeWrite (h_q2_dist[1][iSpc][iFineCent][iPtZ]);
+        SafeWrite (h_psi2_dist[1][iSpc][iFineCent][iPtZ]);
+      }
+    }
+  }
+  eventWeightsFile->Close ();
+}
 
 
 
@@ -62,7 +313,7 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
 
   bool isEE = false;
   float event_weight = 1, fcal_weight = 1, q2_weight = 1, psi2_weight = 1;
-  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0;
+  float fcal_et = 0, q2 = 0, psi2 = 0, vz = 0, ip = 0, eventPlane = 0;
   float z_pt = 0, z_eta = 0, z_y = 0, z_phi = 0, z_m = 0;
   float l1_pt = 0, l1_eta = 0, l1_phi = 0, l2_pt = 0, l2_eta = 0, l2_phi = 0;
   float l1_trk_pt = 0, l1_trk_eta = 0, l1_trk_phi = 0, l2_trk_pt = 0, l2_trk_eta = 0, l2_trk_phi = 0;
@@ -81,33 +332,35 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
     PbPbTree->SetBranchAddress ("z_event_weight", &event_weight);
-    PbPbTree->SetBranchAddress ("isEE",       &isEE);
-    PbPbTree->SetBranchAddress ("z_fcal_et",  &fcal_et);
-    PbPbTree->SetBranchAddress ("z_q2",       &q2);
-    PbPbTree->SetBranchAddress ("z_psi2",     &psi2);
-    PbPbTree->SetBranchAddress ("z_vz",       &vz);
-    PbPbTree->SetBranchAddress ("z_pt",       &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",        &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",      &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",        &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",      &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",     &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",     &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge",  &l1_charge);
-    PbPbTree->SetBranchAddress ("l1_trk_pt",  &l1_trk_pt);
-    PbPbTree->SetBranchAddress ("l1_trk_eta", &l1_trk_eta);
-    PbPbTree->SetBranchAddress ("l1_trk_phi", &l1_trk_phi);
-    PbPbTree->SetBranchAddress ("l2_pt",      &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",     &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",     &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge",  &l2_charge);
-    PbPbTree->SetBranchAddress ("l2_trk_pt",  &l2_trk_pt);
-    PbPbTree->SetBranchAddress ("l2_trk_eta", &l2_trk_eta);
-    PbPbTree->SetBranchAddress ("l2_trk_phi", &l2_trk_phi);
-    PbPbTree->SetBranchAddress ("z_ntrk",     &ntrk);
-    PbPbTree->SetBranchAddress ("z_trk_pt",   trk_pt);
-    PbPbTree->SetBranchAddress ("z_trk_eta",  trk_eta);
-    PbPbTree->SetBranchAddress ("z_trk_phi",  trk_phi);
+    PbPbTree->SetBranchAddress ("isEE",           &isEE);
+    PbPbTree->SetBranchAddress ("z_fcal_et",      &fcal_et);
+    PbPbTree->SetBranchAddress ("z_ip",           &ip);
+    PbPbTree->SetBranchAddress ("z_eventPlane",   &eventPlane);
+    PbPbTree->SetBranchAddress ("z_q2",           &q2);
+    PbPbTree->SetBranchAddress ("z_psi2",         &psi2);
+    PbPbTree->SetBranchAddress ("z_vz",           &vz);
+    PbPbTree->SetBranchAddress ("z_pt",           &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",            &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",          &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",            &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",          &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",         &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",         &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",      &l1_charge);
+    PbPbTree->SetBranchAddress ("l1_trk_pt",      &l1_trk_pt);
+    PbPbTree->SetBranchAddress ("l1_trk_eta",     &l1_trk_eta);
+    PbPbTree->SetBranchAddress ("l1_trk_phi",     &l1_trk_phi);
+    PbPbTree->SetBranchAddress ("l2_pt",          &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",         &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",         &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",      &l2_charge);
+    PbPbTree->SetBranchAddress ("l2_trk_pt",      &l2_trk_pt);
+    PbPbTree->SetBranchAddress ("l2_trk_eta",     &l2_trk_eta);
+    PbPbTree->SetBranchAddress ("l2_trk_phi",     &l2_trk_phi);
+    PbPbTree->SetBranchAddress ("z_ntrk",         &ntrk);
+    PbPbTree->SetBranchAddress ("z_trk_pt",       trk_pt);
+    PbPbTree->SetBranchAddress ("z_trk_eta",      trk_eta);
+    PbPbTree->SetBranchAddress ("z_trk_phi",      trk_phi);
 
     const int nEvts = PbPbTree->GetEntries () / mixingFraction;
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -127,7 +380,8 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
-      const short iCent = GetCentBin (fcal_et);
+      const short iCent = GetIPCentBin (ip);
+      //const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1) continue;
 
       const short iFineCent = GetFineCentBin (fcal_et);

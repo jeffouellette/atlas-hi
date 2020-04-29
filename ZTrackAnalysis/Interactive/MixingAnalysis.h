@@ -27,6 +27,7 @@ class MixingAnalysis : public PhysicsAnalysis {
   bool doPPTransMinMixing = true; // by default analyses are not performing trans-min mixing. Only really applies to pp bkg.
   bool doPPTransMaxMixing = false; // variation for analyses to use trans-max mixing. Only really applies to pp bkg.
   bool useImpactParameter = true; // whether to use impact parameter mixing (instead of FCal Sum Et) -- only applicable for Hijing
+  bool doVZMixing = false;
 
   int nQ2MixBins = 1;
   double* q2MixBins = nullptr;
@@ -274,7 +275,8 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   bool isEE = false;//, passes_toroid = false;
   bool _isEE = false;
   float event_weight = 1., z_event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
-  float fcal_et = 0, vz = 0, zdcEnergy = 0, ip = 0, z_fcal_et = 0, z_vz = 0, z_zdcEnergy = 0, z_ip = 0;
+  float fcal_et = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_vz = 0, z_zdcEnergy = 0;
+  float ip = 0, eventPlane = 0, z_ip = 0, z_eventPlane = 0;
   float phi_transmin = 0, phi_transmax = 0;
   //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0, z_q2x_a = 0, z_q2y_a = 0, z_q2x_c = 0, z_q2y_c = 0;
   float q2 = 0, q3 = 0, q4 = 0, z_q2 = 0, z_q3 = 0, z_q4 = 0;
@@ -313,8 +315,10 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
     mbTree->SetBranchAddress ("event_weight",     &event_weight);
     mbTree->SetBranchAddress ("fcal_et",          &fcal_et);
     mbTree->SetBranchAddress ("zdcEnergy",        &zdcEnergy);
-    if (useImpactParameter) 
+    if (useImpactParameter)  {
       mbTree->SetBranchAddress ("impactParameter",  &ip);
+      mbTree->SetBranchAddress ("eventPlane",       &eventPlane);
+    }
     //mbTree->SetBranchAddress ("q2x_a",            &q2x_a);
     //mbTree->SetBranchAddress ("q2y_a",            &q2y_a);
     //mbTree->SetBranchAddress ("q2x_c",            &q2x_c);
@@ -345,8 +349,10 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       zTree->SetBranchAddress ("event_weight",    &z_event_weight);
       zTree->SetBranchAddress ("fcal_et",         &z_fcal_et);
       zTree->SetBranchAddress ("zdcEnergy",       &z_zdcEnergy);
-      if (useImpactParameter) 
+      if (useImpactParameter) {
         zTree->SetBranchAddress ("impactParameter", &z_ip);
+        zTree->SetBranchAddress ("eventPlane",      &z_eventPlane);
+      }
       //zTree->SetBranchAddress ("q2x_a",           &z_q2x_a);
       //zTree->SetBranchAddress ("q2y_a",           &z_q2y_a);
       //zTree->SetBranchAddress ("q2x_c",           &z_q2x_c);
@@ -387,6 +393,10 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/I");
       mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/I");
       mixedEventsTree->Branch ("fcal_et",         &fcal_et,         "fcal_et/F");
+      if (useImpactParameter) {
+        mixedEventsTree->Branch ("ip",            &ip,              "ip/F");
+        mixedEventsTree->Branch ("eventPlane",    &eventPlane,      "eventPlane/F");
+      }
       mixedEventsTree->Branch ("zdcEnergy",       &zdcEnergy,       "zdcEnergy/F");
       mixedEventsTree->Branch ("q2",              &q2,              "q2/F");
       mixedEventsTree->Branch ("psi2",            &psi2,            "psi2/F");
@@ -400,6 +410,10 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/I");
       mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
       mixedEventsTree->Branch ("z_fcal_et",       &z_fcal_et,       "z_fcal_et/F");
+      if (useImpactParameter) {
+        mixedEventsTree->Branch ("z_ip",          &z_ip,            "z_ip/F");
+        mixedEventsTree->Branch ("z_eventPlane",  &z_eventPlane,    "z_eventPlane/F");
+      }
       mixedEventsTree->Branch ("z_zdcEnergy",     &z_zdcEnergy,     "z_zdcEnergy/F");
       mixedEventsTree->Branch ("z_q2",            &z_q2,            "z_q2/F");
       mixedEventsTree->Branch ("z_psi2",          &z_psi2,          "z_psi2/F");
@@ -466,6 +480,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         z_fcal_et = fcal_et;
         z_zdcEnergy = zdcEnergy;
         z_ip = ip;
+        z_eventPlane = eventPlane;
         //z_q2x_a = q2x_a;
         //z_q2x_c = q2x_c;
         //z_q2y_a = q2y_a;
@@ -524,8 +539,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
           goodMixEvent &= (!doSameFileMixing || iMBEvt != iZEvt); // don't mix with the exact same event
           goodMixEvent &= (!doCentMixing || (!useImpactParameter && iFCalEt == GetSuperFineCentBin (fcal_et)) || (useImpactParameter && iIP == GetIPBin (ip))); // do centrality matching
           goodMixEvent &= (!doQ2Mixing   || iQ2 == GetQ2MixBin (q2)); // do q2 matching
-          goodMixEvent &= (!doPsi2Mixing || DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)); // do psi2 matching
+          goodMixEvent &= (!doPsi2Mixing || (!useImpactParameter && DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)) || (useImpactParameter && DeltaPhi (eventPlane, z_eventPlane) < (pi / nPsi2MixBins))); // do psi2 matching
           goodMixEvent &= (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins)); // do psi3 matching
+          goodMixEvent &= (!doVZMixing || fabs (vz - z_vz) < 15);
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
           //cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
@@ -546,7 +562,8 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       if (saveMixedEvents) mixedEventsTree->Fill ();
 
       const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
-      const short iCent = GetCentBin (z_fcal_et);
+      const short iCent = (useImpactParameter ? GetIPCentBin (z_ip) : GetCentBin (z_fcal_et));
+      //const short iCent = GetCentBin (z_fcal_et);
       if (iCent < 1 || iCent > numCentBins-1) continue;
       const short iFineCent = GetFineCentBin (z_fcal_et);
       if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
@@ -600,8 +617,8 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
         if (trkpt < trk_min_pt) continue;
 
-        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
-        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkEff = GetTrackingEfficiency (z_fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkPur = GetTrackingPurity (z_fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkPur == 0 || trkEff == 0) continue;
         const float trkWeight = trkPur / trkEff;
 

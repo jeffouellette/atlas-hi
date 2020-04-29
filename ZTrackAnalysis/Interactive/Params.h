@@ -59,6 +59,21 @@ const int numFineEtaTrkBins = 40;
 const double* fineEtaTrkBins = linspace (-2.5, 2.5, numFineEtaTrkBins);
 
 
+// Centrality cuts in impact parameter from Glauber
+const double ipCentBins[4] = {14.031, 8.582, 4.952, 0};
+const int numIPCentBins = sizeof (ipCentBins) / sizeof (ipCentBins[0]);
+short GetIPCentBin (const float ip) {
+  short i = 0;
+  while (i < numIPCentBins) {
+    if (ip > ipCentBins[i])
+      break;
+    i++;
+  }
+  return i;
+}
+
+
+
 // Centrality cuts in GeV:  80%  -  30%  -  10%  -   0%
 //const double centBins[4] = {63.719, 1368.75, 2989.31, 5000}; // 2015 recommendations, old Glauber MC
 const double centBins[4] = {66.402, 1378.92, 2995.94, 5000}; // updated 2015 recommendations, new Glauber MC

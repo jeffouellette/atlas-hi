@@ -2868,6 +2868,8 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
       else
         iCent++;
     }
+    if (iCent == numTrkCorrCentBins)
+      iCent--;
     if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }
@@ -2988,6 +2990,8 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
       else
         iCent++;
     }
+    if (iCent == numTrkCorrCentBins)
+      iCent--;
     if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }
