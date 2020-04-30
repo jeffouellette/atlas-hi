@@ -64,6 +64,7 @@ class PhysicsAnalysis {
 
   bool isMC           = false;
   bool isBkg          = false; // whether analysis represents a background (UE) track yield.
+  bool useImpactParameter = true; // whether to use impact parameter mixing (instead of FCal Sum Et) -- only applicable for Hijing
   bool doPPMBMixing   = false; // whether analysis uses Minimum Bias mixing in pp collisions
   bool subtractPP     = true;  // whether analysis should subtract pp background
   bool useCentWgts    = false; // whether to reweight this analysis to the data centrality distribution (important for getting correct tracking efficiencies)
@@ -2861,7 +2862,7 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
     LoadTrackingEfficiencies ();
 
   short iCent = 0;
-  if (isPbPb) {
+  if (isPbPb && !useImpactParameter) {
     while (iCent < numTrkCorrCentBins) {
       if (fcal_et < trkCorrCentBins[iCent])
         break;
@@ -2870,6 +2871,11 @@ double PhysicsAnalysis :: GetTrackingEfficiency (const float fcal_et, float trk_
     }
     if (iCent == numTrkCorrCentBins)
       iCent--;
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
+      return 0;
+  }
+  else if (isPbPb && useImpactParameter) {
+    iCent = GetIPCentBin (fcal_et); // fcal_et variable is actually impact parameter if it is being used
     if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }
@@ -2983,7 +2989,7 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
     LoadTrackingPurities ();
 
   short iCent = 0;
-  if (isPbPb) {
+  if (isPbPb && !useImpactParameter) {
     while (iCent < numTrkCorrCentBins) {
       if (fcal_et < trkCorrCentBins[iCent])
         break;
@@ -2992,6 +2998,11 @@ double PhysicsAnalysis :: GetTrackingPurity (const float fcal_et, float trk_pt, 
     }
     if (iCent == numTrkCorrCentBins)
       iCent--;
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
+      return 0;
+  }
+  else if (isPbPb && useImpactParameter) {
+    iCent = GetIPCentBin (fcal_et); // fcal_et variable is actually impact parameter if it is being used
     if (iCent < 1 || iCent > numTrkCorrCentBins-1)
       return 0;
   }

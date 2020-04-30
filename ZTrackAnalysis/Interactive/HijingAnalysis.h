@@ -25,6 +25,7 @@ class HijingAnalysis : public FullAnalysis {
     useAltMarker = false;
     isMC = true;
     useHijingEffs = true;
+    useImpactParameter = true;
     eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
   }
 
@@ -384,8 +385,9 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
       //const short iCent = GetCentBin (fcal_et);
       if (iCent < 1 || iCent > numCentBins-1) continue;
 
-      const short iFineCent = GetFineCentBin (fcal_et);
-      if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
+      //const short iFineCent = GetFineCentBin (fcal_et);
+      //if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
+      const short iFineCent = 1;
 
       const short iPtZ = GetPtZBin (z_pt); // find z-pt bin
       if (iPtZ < 0 || iPtZ > nPtZBins-1) continue;
@@ -470,10 +472,11 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
           h_lepton_trk_dr[iCent][iSpc]->Fill (mindr, ptdiff);
         }
 
-        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
-        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkEff = GetTrackingEfficiency (ip, trkpt, trk_eta[iTrk], true);
+        const double trkPur = GetTrackingPurity (ip, trkpt, trk_eta[iTrk], true);
         if (trkEff == 0 || trkPur == 0) continue;
         const float trkWeight = trkPur / trkEff;
+        //const float trkWeight = 1;
 
         h_trk_pt[iCent][iSpc]->Fill (trkpt, event_weight * trkWeight);
 
@@ -838,7 +841,7 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
   SaveHists (outFileName);
 
   if (inFile) inFile->Close ();
-  SaferDelete (&inFile);
+  //SaferDelete (&inFile);
 }
 
 

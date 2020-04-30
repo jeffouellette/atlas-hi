@@ -26,7 +26,6 @@ class MixingAnalysis : public PhysicsAnalysis {
   bool doPsi3Mixing = false;
   bool doPPTransMinMixing = true; // by default analyses are not performing trans-min mixing. Only really applies to pp bkg.
   bool doPPTransMaxMixing = false; // variation for analyses to use trans-max mixing. Only really applies to pp bkg.
-  bool useImpactParameter = true; // whether to use impact parameter mixing (instead of FCal Sum Et) -- only applicable for Hijing
   bool doVZMixing = false;
 
   int nQ2MixBins = 1;
@@ -402,9 +401,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("psi2",            &psi2,            "psi2/F");
       mixedEventsTree->Branch ("vz",              &vz,              "vz/F");
       mixedEventsTree->Branch ("ntrk",            &ntrk,            "ntrk/I");
-      //mixedEventsTree->Branch ("trk_pt",          &trk_pt,          "trk_pt[ntrk]/F");
-      //mixedEventsTree->Branch ("trk_eta",         &trk_eta,         "trk_eta[ntrk]/F");
-      //mixedEventsTree->Branch ("trk_phi",         &trk_phi,         "trk_phi[ntrk]/F");
+      mixedEventsTree->Branch ("trk_pt",          &trk_pt,          "trk_pt[ntrk]/F");
+      mixedEventsTree->Branch ("trk_eta",         &trk_eta,         "trk_eta[ntrk]/F");
+      mixedEventsTree->Branch ("trk_phi",         &trk_phi,         "trk_phi[ntrk]/F");
       mixedEventsTree->Branch ("isEE",            &isEE,            "isEE/O");
       mixedEventsTree->Branch ("z_run_number",    &z_run_number,    "z_run_number/I");
       mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/I");
@@ -565,8 +564,9 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       const short iCent = (useImpactParameter ? GetIPCentBin (z_ip) : GetCentBin (z_fcal_et));
       //const short iCent = GetCentBin (z_fcal_et);
       if (iCent < 1 || iCent > numCentBins-1) continue;
-      const short iFineCent = GetFineCentBin (z_fcal_et);
-      if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
+      //const short iFineCent = GetFineCentBin (z_fcal_et);
+      //if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
+      const short iFineCent = 1;
 
       // do a reweighting procedure
       {
@@ -617,10 +617,11 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
         if (trkpt < trk_min_pt) continue;
 
-        const double trkEff = GetTrackingEfficiency (z_fcal_et, trkpt, trk_eta[iTrk], true);
-        const double trkPur = GetTrackingPurity (z_fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkEff = GetTrackingEfficiency (useImpactParameter ? z_ip : z_fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkPur = GetTrackingPurity (useImpactParameter ? z_ip : z_fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkPur == 0 || trkEff == 0) continue;
         const float trkWeight = trkPur / trkEff;
+        //const float trkWeight = 1;
 
         // Study correlations (requires dPhi in -pi/2 to 3pi/2)
         float dPhi = DeltaPhi (z_phi, trk_phi[iTrk], true);
