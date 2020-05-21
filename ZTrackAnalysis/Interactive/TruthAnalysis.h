@@ -27,7 +27,19 @@ class TruthAnalysis : public FullAnalysis {
   }
 
   void Execute (const char* inFileName, const char* outFileName) override;
+  virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//// Load histograms into memory, then combine channels.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+void TruthAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
+  PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
+  PhysicsAnalysis :: CombineHists ();
+}
 
 
 

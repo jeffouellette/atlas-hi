@@ -25,8 +25,11 @@ class HijingAnalysis : public FullAnalysis {
     useAltMarker = false;
     isMC = true;
     useHijingEffs = true;
+    //useHITight = true;
     useImpactParameter = true;
     eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
+    unfoldPbPb = false;
+    subtractPP = false;
   }
 
   void GenerateEventWeights (const char* weightedSampleInFileName, const char* matchedSampleInFileName, const char* outFileName) override;

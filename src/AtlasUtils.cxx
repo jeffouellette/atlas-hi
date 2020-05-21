@@ -670,7 +670,7 @@ void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const in
 
     TMarker *marker = new TMarker(x - (0.8*tsize)+0.02-0.02*bsize, y+0.25*tsize, 8);
     marker->SetNDC();
-    marker->SetMarkerColor (mcolor);
+    marker->SetMarkerColor (IsOpenMarker (mstyle) ? kBlack : mcolor);
     marker->SetMarkerStyle (mstyle);
     marker->SetMarkerSize (msize);
 
