@@ -1522,8 +1522,8 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       //h->Rebin (2);
       h->GetXaxis ()->SetTitle (Form ("Minimum #DeltaR (track, %s)", iSpc == 0 ? "electrons" : (iSpc == 1 ? "muons" : "leptons")));
       h->GetYaxis ()->SetTitle ("Tracks / Event");
-      h->SetLineColor (colors[iCent]);
-      h->SetMarkerColor (colors[iCent]);
+      h->SetLineColor (finalColors[iCent]);
+      h->SetMarkerColor (finalColors[iCent]);
       h->GetXaxis ()->SetRangeUser (0, 0.16);
       //h->GetYaxis ()->SetRangeUser (0.5, 0.5e4);
       h->GetYaxis ()->SetRangeUser (0, 1);
@@ -1533,7 +1533,7 @@ void FullAnalysis :: PlotLeptonTrackDRProjX () {
       //delete h;
 
       if (iCent != 0) {
-        myText (0.22, 0.80-iCent*0.06, colors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
+        myText (0.22, 0.80-iCent*0.06, finalColors[iCent], Form ("Pb+Pb, %i-%i%%", (int)centCuts[iCent], (int)centCuts[iCent-1]), 0.04);
       }
       else {
         myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.05);

@@ -1608,17 +1608,17 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPhi (const short pSpc, const short p
   
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
-            g_highs->SetLineStyle (iSys+2);
+            g_highs->SetLineStyle (iSys%7+2);
   
             g_highs->Draw ("L");
   
             g_lows->SetMarkerSize (0);
             g_lows->SetLineColor (colors[iSys+1]);
-            g_lows->SetLineStyle (iSys+2);
+            g_lows->SetLineStyle (iSys%7+2);
   
             g_lows->Draw ("L");
 
-            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
@@ -1741,17 +1741,17 @@ void Systematic :: PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt, const shor
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
-          g_highs->SetLineStyle (iSys+2);
+          g_highs->SetLineStyle (iSys%7+2);
 
           g_highs->Draw ("L");
 
           g_lows->SetMarkerSize (0);
           g_lows->SetLineColor (colors[iSys+1]);
-          g_lows->SetLineStyle (iSys+2);
+          g_lows->SetLineStyle (iSys%7+2);
 
           g_lows->Draw ("L");
 
-          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
@@ -1873,17 +1873,17 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
   
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
-            g_highs->SetLineStyle (iSys+2);
+            g_highs->SetLineStyle (iSys%7+2);
   
             g_highs->Draw ("L");
   
             g_lows->SetMarkerSize (0);
             g_lows->SetLineColor (colors[iSys+1]);
-            g_lows->SetLineStyle (iSys+2);
+            g_lows->SetLineStyle (iSys%7+2);
   
             g_lows->Draw ("L");
 
-            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
@@ -2007,17 +2007,17 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
-          g_highs->SetLineStyle (iSys+2);
+          g_highs->SetLineStyle (iSys%7+2);
 
           g_highs->Draw ("L");
 
           g_lows->SetMarkerSize (0);
           g_lows->SetLineColor (colors[iSys+1]);
-          g_lows->SetLineStyle (iSys+2);
+          g_lows->SetLineStyle (iSys%7+2);
 
           g_lows->Draw ("L");
 
-          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
@@ -2136,17 +2136,17 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
   
             g_highs->SetMarkerSize (0);
             g_highs->SetLineColor (colors[iSys+1]);
-            g_highs->SetLineStyle (iSys+2);
+            g_highs->SetLineStyle (iSys%7+2);
   
             g_highs->Draw ("L");
   
             g_lows->SetMarkerSize (0);
             g_lows->SetLineColor (colors[iSys+1]);
-            g_lows->SetLineStyle (iSys+2);
+            g_lows->SetLineStyle (iSys%7+2);
   
             g_lows->Draw ("L");
 
-            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+            myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
             iSys++;
           } // end loop over systematics
 
@@ -2267,17 +2267,17 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
 
           g_highs->SetMarkerSize (0);
           g_highs->SetLineColor (colors[iSys+1]);
-          g_highs->SetLineStyle (iSys+2);
+          g_highs->SetLineStyle (iSys%7+2);
 
           g_highs->Draw ("L");
 
           g_lows->SetMarkerSize (0);
           g_lows->SetLineColor (colors[iSys+1]);
-          g_lows->SetLineStyle (iSys+2);
+          g_lows->SetLineStyle (iSys%7+2);
 
           g_lows->Draw ("L");
 
-          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+          myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
 
@@ -2392,17 +2392,17 @@ void Systematic :: PlotMeanTrackSys (const bool useTrkPt, const short pSpc) {
 
         g_highs->SetMarkerSize (0);
         g_highs->SetLineColor (colors[iSys+1]);
-        g_highs->SetLineStyle (iSys+2);
+        g_highs->SetLineStyle (iSys%7+2);
 
         g_highs->Draw ("L");
 
         g_lows->SetMarkerSize (0);
         g_lows->SetLineColor (colors[iSys+1]);
-        g_lows->SetLineStyle (iSys+2);
+        g_lows->SetLineStyle (iSys%7+2);
 
         g_lows->Draw ("L");
 
-        myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys+2, sys->description.c_str (), 1, 0.026);
+        myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
         iSys++;
       } // end loop over systematics
 

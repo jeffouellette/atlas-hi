@@ -9,8 +9,6 @@
 #include <ArrayTemplates.h>
 
 #include <iostream>
-#include <algorithm>
-#include <map>
 
 using namespace std;
 using namespace atlashi;
@@ -20,10 +18,9 @@ class ReweightingVariation {
   protected:
   string name;
 
+  public:
   TH1D**** relVarPt = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
   TH1D**** relVarX  = Get3DArray <TH1D*> (3, nPtZBins, numCentBins); // iSpc, iPtZ, iCent
-
-  public:
 
   //ReweightingVariation (PhysicsAnalysis* nom, const char* _name = "systematics", const char* _desc = "systematic") : Systematic (nom, _name, _desc) { }
   ReweightingVariation (const char* _name = "reweightingVariation") {

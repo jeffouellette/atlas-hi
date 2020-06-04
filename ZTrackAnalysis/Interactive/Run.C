@@ -4,6 +4,7 @@
 #include "PhysicsAnalysis.h"
 #include "FullAnalysis.h"
 #include "MCAnalysis.h"
+#include "HijingAnalysis.h"
 #include "MixingAnalysis.h"
 #include "TruthAnalysis.h"
 #include "Auxiliary.h"
@@ -14,6 +15,7 @@
 #include "SystematicFits.h"
 #include "LowPtVariation.h"
 #include "BinWidthSystematic.h"
+#include "NonClosureVariation.h"
 
 #include "PlotHybridModel.h"
 
@@ -22,14 +24,20 @@ int mixingFraction = 0;
 
 // nominal analyses
 FullAnalysis* data18 = nullptr;
-//FullAnalysis* data15 = nullptr;
 MixingAnalysis* bkg18 = nullptr;
-//MixingAnalysis* bkg15 = nullptr;
 MCAnalysis* mc = nullptr;
 MixingAnalysis* mc_bkg = nullptr;
 TruthAnalysis* truth = nullptr;
-MCAnalysis* hijing = nullptr;
+HijingAnalysis* hijing = nullptr;
 MixingAnalysis* hijing_bkg = nullptr;
+TruthAnalysis* hijing_truth = nullptr;
+
+
+// MC closure systematics
+PhysicsAnalysis* hijing_bkgStatUpVar = nullptr, *hijing_bkgStatDownVar = nullptr;
+MixingAnalysis* hijing_bkg_statUpVar = nullptr, *hijing_bkg_statDownVar = nullptr;
+Systematic* hijingBkgStatSys = nullptr;
+
 
 // master systematics objects
 Systematic* combSys = nullptr;
@@ -48,6 +56,8 @@ SystematicFits* data_muonPtUpSysFits = nullptr, *data_muonPtDownSysFits = nullpt
 Systematic* muonPtSys = nullptr;
 Systematic* lowPtSys = nullptr;
 LowPtVariation* lowPtSysWeights = nullptr;
+Systematic* nonClosureSys = nullptr;
+NonClosureVariation* nonClosureVar = nullptr;
 Systematic* binCenterSys = nullptr;
 
 //Systematic* mcBkgStatSys = nullptr;
@@ -83,24 +93,24 @@ MCAnalysis* mc_muonPtUp = nullptr, *mc_muonPtDown = nullptr;
 
 PhysicsAnalysis* data_lowPtUpVar = nullptr, *data_lowPtDownVar = nullptr;
 
+PhysicsAnalysis* data_nonClosureUpVar = nullptr, *data_nonClosureDownVar = nullptr;
+
 PhysicsAnalysis* data_binCenterUpVar = nullptr, *data_binCenterDownVar = nullptr;
 
 
 
 void Run () {
   data18    = new FullAnalysis ("data18");
-  //data15  = new FullAnalysis ("data15");
-  //data15->is2015Conds = true;
-  //data15->useHijingEffs = true;
   bkg18     = new MixingAnalysis ("bkg");
-  //bkg15->is2015Conds = true;
-  //bkg15->useHijingEffs = true;
 
   mc      = new MCAnalysis ();
-  mc_bkg  = new MixingAnalysis ("mc_bkg");
-  //truth   = new TruthAnalysis ();
-  hijing  = new MCAnalysis ("hijing");
-  hijing_bkg = new MixingAnalysis ("hijing_bkg");
+  //mc_bkg  = new MixingAnalysis ("mc_bkg");
+
+  //hijing  = new HijingAnalysis ("hijing");
+  //hijing->subtractPP = false;
+  //hijing_bkg = new MixingAnalysis ("hijing_bkg");
+  //hijing_bkg->subtractPP = false;
+  //hijing_truth = new TruthAnalysis ("hijing_truth");
 
   //if (doSys) {
   //  mc_bkgStatUpVar         = new PhysicsAnalysis ("mc_bkgStatUpVar");
@@ -110,7 +120,9 @@ void Run () {
   //}
 
   //data18->Execute   ("DataAnalysis/Nominal/data18hi.root",   "DataAnalysis/Nominal/data18hi_hists.root");
-  //data15->Execute ("DataAnalysis/Nominal/data15hi.root",  "DataAnalysis/Nominal/data15hi_hists.root");
+    data_trackHItight = new PhysicsAnalysis ("data_trackHITightVar");
+    data_trackHItight->useHITight = true;
+    data_trackHItight->LoadHists ("DataAnalysis/Variations/TrackHITightWPVariation/data18hi_hists.root");
 
   //if (doSys) {
   //  data_leptonRejVar       = new PhysicsAnalysis ("data_leptonRejVar");
@@ -135,8 +147,8 @@ void Run () {
   //}
 
 
-  //mc->LoadHists ("MCAnalysis/Nominal/savedHists.root");
-  //mc->CombineHists ();
+  mc->LoadHists ("MCAnalysis/Nominal/savedHists.root");
+  mc->CombineHists ();
 
   //mc->LoadHists ("MCAnalysis/Nominal/PbPb18_pp_Zee_Hijing/savedHists.root");
   //mc_bkg->LoadHists ("MCAnalysis/Variations/PPMixingVariation/mixedHists.root");
@@ -145,30 +157,54 @@ void Run () {
   //mc->CalculateIAA ();
   //SaferDelete (&mc_bkg);
 
+  //hijing->LoadHists ("MCAnalysis/Hijing/savedHists.root");
+  //hijing_bkg->LoadHists ("MCAnalysis/Hijing/mixedHists.root");
+  //hijing->SubtractBackground (hijing_bkg);
+  //hijing_truth->LoadHists ("TruthAnalysis/Hijing/savedHists.root");
 
-  //data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
-  ////data15->LoadHists ("DataAnalysis/Nominal/data15hi_hists.root");
-  //bkg18->LoadHists ("MixingAnalysis/Nominal/data18hi_hists.root");
-  ////bkg15->LoadHists ("MixingAnalysis/Nominal/data15hi_hists.root");
-  ////truth->LoadHists ("TruthAnalysis/Nominal/savedHists.root");
+  data18->LoadHists ("DataAnalysis/Nominal/data18hi_hists.root");
+  bkg18->LoadHists ("MixingAnalysis/Nominal/data18hi_hists.root");
 
-  //data18->SubtractBackground (bkg18);
+  data18->SubtractBackground (bkg18);
   //data18->CalculateTrackMeans (data18, data18->h_z_pt);
   //data18->CalculateIAA ();
 
-  //data15->SubtractBackground (bkg15);
-  //data15->CalculateIAA ();
-
-  //truth->SubtractBackground ();
-  //truth->CalculateIAA ();
-
-/*
   if (doSys) {
     cout << "Initializing systematic objects. " << endl;
 
 
+    //cout << "Calculating bkg. stat. systematic errors for Hijing closure check" << endl;
+    //hijingBkgStatSys = new Systematic (hijing, "hijingBkgStatSys", "Bkg. Modeling Unc.");
+    //hijingBkgStatSys->cancelIAA = false;
+    //hijingBkgStatSys->meanTrackUncStoredAtCentralValues = false;
+    //hijing_bkgStatUpVar = new PhysicsAnalysis ("hijing_bkgStatUpVar");
+    //hijing_bkgStatUpVar->CopyAnalysis (hijing, false);
+    //hijing_bkgStatDownVar = new PhysicsAnalysis ("hijing_bkgStatDownVar");
+    //hijing_bkgStatDownVar->CopyAnalysis (hijing, false);
+    //hijing_bkg_statUpVar = new MixingAnalysis ("hijing_bkg_statUpVar");
+    //hijing_bkg_statUpVar->CopyAnalysis (hijing_bkg, false);
+    //hijing_bkg_statUpVar->ConvertToStatVariation (true, 1);
+    //hijing_bkg_statDownVar = new MixingAnalysis ("hijing_bkg_statDownVar");
+    //hijing_bkg_statDownVar->CopyAnalysis (hijing_bkg, false);
+    //hijing_bkg_statDownVar->ConvertToStatVariation (false, 1);
+    //hijing_bkgStatUpVar->SubtractBackground (hijing_bkg_statUpVar);
+    //hijing_bkgStatDownVar->SubtractBackground (hijing_bkg_statDownVar);
+    //hijing_bkgStatUpVar->CalculateTrackMeans (hijing, hijing->h_z_pt, hijing_bkg_statUpVar);
+    //hijing_bkgStatDownVar->CalculateTrackMeans (hijing, hijing->h_z_pt, hijing_bkg_statDownVar);
+    //hijing_bkgStatUpVar->CalculateIAA ();
+    //hijing_bkgStatDownVar->CalculateIAA ();
+    //hijingBkgStatSys->AddVariation (hijing_bkgStatUpVar, true);
+    //hijingBkgStatSys->AddVariation (hijing_bkgStatDownVar, true);
+    //hijingBkgStatSys->AddVariations ();
+    //SaferDelete (&hijing_bkgStatUpVar);
+    //SaferDelete (&hijing_bkgStatDownVar);
+    //SaferDelete (&hijing_bkg_statUpVar);
+    //SaferDelete (&hijing_bkg_statDownVar);
+
+
+
     cout << "Calculating bkg. stat. systematic errors." << endl;
-    bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Modeling Unc.");
+    bkgStatSys = new Systematic (data18, "bkgStatSys", "Bkg. Stat. Unc.");
     bkgStatSys->cancelIAA = false;
     bkgStatSys->meanTrackUncStoredAtCentralValues = false;
     data_bkgStatUpVar = new PhysicsAnalysis ("data_bkgStatUpVar");
@@ -319,6 +355,7 @@ void Run () {
     ////SaferDelete (&data_ppTransMaxVar);
 
 
+
     cout << "Calculating track ID relative systematic errors." << endl;
     trkSys = new TrackIDSystematic (data18, "trkSys", "Track ID Cuts");
     data_trackHItight = new PhysicsAnalysis ("data_trackHITightVar");
@@ -406,26 +443,30 @@ void Run () {
     cout << "Calculating track purity systematic errors." << endl;
     trkPurSys = new Systematic (data18, "trkPurSys", "Purity Correction");
     data_trkPurUpVar = new PhysicsAnalysis ("data_trkPurUpVar");
-    data_trkPurUpVar->doTrackPurVar = true; data_trkPurUpVar->trkPurNSigma = 1;
+    data_trkPurUpVar->doTrackPurVar = true;
+    data_trkPurUpVar->trkPurNSigma = 1;
     data_trkPurUpVar->LoadHists ("DataAnalysis/Variations/TrackPurityUpVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingVariation ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurUpVar);
     data_trkPurUpVar->CopyAnalysis (data18, false);
     bkg_trkPurUpVar = new MixingAnalysis ("bkg_trkPurUpVar");
-    bkg_trkPurUpVar->doTrackPurVar = true; bkg_trkPurUpVar->trkPurNSigma = 1;
+    bkg_trkPurUpVar->doTrackPurVar = true;
+    bkg_trkPurUpVar->trkPurNSigma = 1;
     bkg_trkPurUpVar->CopyAnalysis (bkg18, false);
     trkPurSysWeights->ApplyRelativeVariations (data_trkPurUpVar, true);
     trkPurSysWeights->ApplyRelativeVariations (bkg_trkPurUpVar, true);
     SaferDelete (&trkPurSysWeights);
 
     data_trkPurDownVar = new PhysicsAnalysis ("data_trkPurDownVar");
-    data_trkPurDownVar->doTrackPurVar = true; data_trkPurDownVar->trkPurNSigma = -1;
+    data_trkPurDownVar->doTrackPurVar = true;
+    data_trkPurDownVar->trkPurNSigma = -1;
     data_trkPurDownVar->LoadHists ("DataAnalysis/Variations/TrackPurityDownVariation/data18hi_hists.root");
     trkPurSysWeights = new ReweightingVariation ("trkPurSysWeights");
     trkPurSysWeights->GetRelativeVariations (data18, data_trkPurDownVar);
     data_trkPurDownVar->CopyAnalysis (data18, false);
     bkg_trkPurDownVar = new MixingAnalysis ("bkg_trkPurDownVar");
-    bkg_trkPurDownVar->doTrackPurVar = true; bkg_trkPurDownVar->trkPurNSigma = -1;
+    bkg_trkPurDownVar->doTrackPurVar = true;
+    bkg_trkPurDownVar->trkPurNSigma = -1;
     bkg_trkPurDownVar->CopyAnalysis (bkg18, false);
     trkPurSysWeights->ApplyRelativeVariations (data_trkPurDownVar, false);
     trkPurSysWeights->ApplyRelativeVariations (bkg_trkPurDownVar, false);
@@ -440,10 +481,10 @@ void Run () {
     trkPurSys->AddVariation (data_trkPurUpVar);
     trkPurSys->AddVariation (data_trkPurDownVar);
     trkPurSys->AddVariations ();
-    SaferDelete (&data_trkPurUpVar);
-    SaferDelete (&data_trkPurDownVar);
-    SaferDelete (&bkg_trkPurUpVar);
-    SaferDelete (&bkg_trkPurDownVar);
+    //SaferDelete (&data_trkPurUpVar);
+    //SaferDelete (&data_trkPurDownVar);
+    //SaferDelete (&bkg_trkPurUpVar);
+    //SaferDelete (&bkg_trkPurDownVar);
 
 
 
@@ -538,7 +579,7 @@ void Run () {
 
 
     cout << "Calculating low pT additional systematic errors." << endl;
-    lowPtSys = new Systematic (data18, "lowPtSys", "ee/#mu#mu channel difference");
+    lowPtSys = new Systematic (data18, "lowPtSys", "Channel dependence");
     lowPtSysWeights = new LowPtVariation ("lowPtSysWeights");
     lowPtSysWeights->GetRelativeVariations (data18, bkg18);
     data_lowPtUpVar = new PhysicsAnalysis ("data_lowPtUpVar");
@@ -561,6 +602,33 @@ void Run () {
 
 
 
+    nonClosureSys = new Systematic (data18, "nonClosureSys", "MC Non-Closure");
+    nonClosureSys->cancelIAA = false;
+    nonClosureVar = new NonClosureVariation ();
+    nonClosureVar->GetRelativeVariations (data18);
+
+    data_nonClosureUpVar = new PhysicsAnalysis ("data_nonClosureUpVar");
+    data_nonClosureUpVar->CopyAnalysis (data18, true, false);
+    cout << "Applying relative variations to " << data_nonClosureUpVar->Name () << endl;
+    nonClosureVar->ApplyRelativeVariations (data_nonClosureUpVar, true);
+    data_nonClosureDownVar = new PhysicsAnalysis ("data_nonClosureDownVar");
+    data_nonClosureDownVar->CopyAnalysis (data18, true, false);
+    cout << "Applying relative variations to " << data_nonClosureDownVar->Name () << endl;
+    nonClosureVar->ApplyRelativeVariations (data_nonClosureDownVar, false);
+    SaferDelete (&nonClosureVar);
+
+    data_nonClosureUpVar->CalculateTrackMeans (data18, data18->h_z_pt);
+    data_nonClosureDownVar->CalculateTrackMeans (data18, data18->h_z_pt);
+    data_nonClosureUpVar->CalculateIAA ();
+    data_nonClosureDownVar->CalculateIAA ();
+    nonClosureSys->AddVariation (data_nonClosureUpVar);
+    nonClosureSys->AddVariation (data_nonClosureDownVar);
+    nonClosureSys->AddVariations ();
+    SaferDelete (&data_nonClosureUpVar);
+    SaferDelete (&data_nonClosureDownVar);
+
+
+
     cout << "Calculating bin width systematic error in <pTch>, <xhZ> measurements." << endl;
     binCenterSys = new BinWidthSystematic (data18, "binCenterSys", "Bin center variation");
     data_binCenterUpVar = new PhysicsAnalysis ("data_binCenterUpVar");
@@ -574,6 +642,7 @@ void Run () {
     SaferDelete (&data_binCenterDownVar);
 
 
+
     cout << "Adding errors in quadrature." << endl;
     combSys = new Systematic (data18, "combSys", "Total");
     combSys->AddSystematic (trkSys);
@@ -584,29 +653,21 @@ void Run () {
     combSys->AddSystematic (muonPtSys);
     combSys->AddSystematic (lowPtSys);
     combSys->AddSystematic (bkgStatSys);
+    combSys->AddSystematic (nonClosureSys);
     combSys->AddSystematic (binCenterSys);
     combSys->AddSystematics ();
 
-    // the following lines are necessary to avoid messing up xhZ systematic plots!
-    //cout << "Truncating excess bins." << endl;
-    //trkSys->TruncatePhysicsPlots ();
-    //trkEffSys->TruncatePhysicsPlots ();
-    //trkPurSys->TruncatePhysicsPlots ();
-    //leptonRejSys->TruncatePhysicsPlots ();
-    //electronPtSys->TruncatePhysicsPlots ();
-    //muonPtSys->TruncatePhysicsPlots ();
-    //lowPtSys->TruncatePhysicsPlots ();
-    //bkgStatSys->TruncatePhysicsPlots ();
-    //binCenterSys->TruncatePhysicsPlots ();
-    //combSys->TruncatePhysicsPlots ();
-
-
     combSys->SaveGraphs ("Systematics/CombinedSys.root"); 
   }
-*/
 
-  //data18->CalculateTrackMeans (data18, data18->h_z_pt);
-  //data18->CalculateIAA ();
+  data18->CalculateTrackMeans (data18, data18->h_z_pt);
+  bkg18->TruncatePhysicsPlots ();
+  data18->CalculateIAA ();
+
+  //hijing->CalculateTrackMeans (hijing, hijing->h_z_pt);
+  //hijing_truth->TruncatePhysicsPlots ();
+  //hijing_bkg->TruncatePhysicsPlots ();
+  //hijing->CalculateIAA ();
 
   SetupDirectories ("", "ZTrackAnalysis/");
 

@@ -19,7 +19,7 @@
 #include <string>
 
 const Color_t jewelColor  = tcolor->GetColor (255, 170, 50);
-const double  jewelAlpha  = 0.5;
+const double  jewelAlpha  = 0.2;
 
 void PlotJewel () {
 
@@ -277,7 +277,7 @@ void PlotJewel () {
     g->Draw ("3");
   }
 
-  c2->SaveAs ("jewel_test.jpg");
+  c2->SaveAs ("jewel_test.eps");
 
 }
 

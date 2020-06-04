@@ -23,9 +23,9 @@ TColor* tcolor = new TColor ();
 
 //const Style_t markerStyles[7] = {kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCrossX, kFullCircle, kFullSquare, kFullDiamond};
 const Style_t markerStyles[7] = {kFullCircle, kFullSquare, kFullDiamond, kFullCrossX, kFullCircle, kFullSquare, kFullDiamond};
-//const Color_t colors[10] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
-const Color_t colors[10] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1};
-const Color_t fillColors[10] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, kMagenta-9, kCyan-6, kOrange, kGreen-2, kGray};
+//const Color_t colors[11] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1, kPink-5};
+const Color_t colors[11] =    {kBlack, kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1, kPink-5};
+const Color_t fillColors[11] = {kGray, kRed-9, kAzure-9, kGreen-10, kViolet-2, kMagenta-9, kCyan-6, kOrange, kGreen-2, kGray, kPink-4};
 const Color_t modelFillColors[8] = {kGray, kRed+2, kBlue-3, kGreen+3, kViolet-6, kMagenta+2, kCyan+3, kOrange+2};
 
 const Color_t finalColors[4]          = {(Color_t) tcolor->GetColor (0, 0, 0), (Color_t) tcolor->GetColor ( 87, 132, 198), (Color_t) tcolor->GetColor (130,  10, 130), (Color_t) tcolor->GetColor (255,  12,  73)};
