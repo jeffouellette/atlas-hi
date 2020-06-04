@@ -74,6 +74,7 @@ void PlotJewel () {
 
   for (int iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
     c->cd (iPtZ-2+1);
+    gPad->SetFillStyle (4000);
     gPad->SetLogx ();
 
     {
@@ -139,6 +140,7 @@ void PlotJewel () {
 
     c->cd (iPtZ-2+4);
     gPad->SetLogx ();
+    gPad->SetFillStyle (4000);
 
     {
       TH1D* h = new TH1D ("", "", nXhZBins[iPtZ], xhZBins[iPtZ]);
@@ -201,7 +203,81 @@ void PlotJewel () {
     g->SetFillColorAlpha (jewelColor, jewelAlpha);
     g->Draw ("3");
   }
-  c->SaveAs ("jewel_allIAAs.pdf");
+  c->SaveAs ("jewel_allIAAs.png");
+
+
+  TCanvas* c2 = new TCanvas ("c2", "", 1500, 800);
+  c2->SetFillStyle (4000);
+  c2->SetFrameFillStyle (4000);
+  double llMargin = 0.17;
+  double lrMargin = 0.025;
+  double rlMargin = 0.028;
+  double rrMargin = 0.02;
+
+  double a = (double) 1./(2. + (llMargin+lrMargin)/(1.-llMargin-lrMargin) + (rlMargin+rrMargin)/(1.-rlMargin-rrMargin));
+  double xPadMiddle = a * (1 + (llMargin+lrMargin)/(1.-llMargin-lrMargin));
+
+  TPad* lPad = new TPad ("lPad", "", 0, 0, xPadMiddle, 1);
+  TPad* rPad = new TPad ("rPad", "", xPadMiddle, 0, 1, 1);
+
+  lPad->SetLeftMargin (llMargin);
+  lPad->SetRightMargin (lrMargin);
+  rPad->SetLeftMargin (rlMargin);
+  rPad->SetRightMargin (rrMargin);
+
+  lPad->SetFillStyle (4000);
+  lPad->SetFrameFillStyle (4000);
+  rPad->SetFillStyle (4000);
+  rPad->SetFrameFillStyle (4000);
+
+  lPad->Draw ();
+  rPad->Draw ();
+
+  TPad* pads[2] = {lPad, rPad};
+
+  for (int iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+    pads[iPtZ-3]->cd ();
+
+    TH1D* h = new TH1D ("", "", nXhZBins[iPtZ], xhZBins[iPtZ]);
+    h->GetXaxis ()->SetRangeUser (xhZBins[iPtZ][0], 1.);
+    h->GetYaxis ()->SetRangeUser (0, 2.5);
+
+    h->GetXaxis ()->SetMoreLogLabels ();
+
+    h->GetXaxis ()->SetTitle ("#it{x}_{hZ}");
+    h->GetYaxis ()->SetTitle ("#it{I}_{AA}");
+
+    h->GetXaxis ()->SetTitleFont (43);
+    h->GetYaxis ()->SetTitleFont (43);
+    h->GetXaxis ()->SetLabelFont (43);
+    h->GetYaxis ()->SetLabelFont (43);
+
+    h->GetXaxis ()->SetTitleSize (36);
+    h->GetYaxis ()->SetTitleSize (36);
+    h->GetXaxis ()->SetTitleOffset (1.5);
+    h->GetYaxis ()->SetTitleOffset (1.5);
+    h->GetXaxis ()->SetLabelSize (36);
+
+    if (gPad == lPad)
+      h->GetYaxis ()->SetLabelSize (32);
+    else
+      h->GetYaxis ()->SetLabelSize (0);
+
+    h->Draw ("");
+  }
+
+  for (int iPtZ = nPtZBins-1; iPtZ >= 3; iPtZ--) {
+    pads[iPtZ-3]->cd ();
+
+    gPad->SetLogx ();
+
+    TGAE* g = g_jewel_xhz[iPtZ];
+
+    g->SetFillColorAlpha (jewelColor, jewelAlpha);
+    g->Draw ("3");
+  }
+
+  c2->SaveAs ("jewel_test.jpg");
 
 }
 

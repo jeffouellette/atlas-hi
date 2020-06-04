@@ -551,9 +551,6 @@ void Systematic :: AddVariations () {
             sys = GetOrigTGAE (h_trk_pt_ptz_sub[iSpc][iPtZ][iCent]);
             var = a->h_trk_pt_ptz_sub[iSpc][iPtZ][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            //sys = GetOrigTGAE (h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
-            //var = a->h_trk_pt_ptz_sig_to_bkg[iSpc][iPtZ][iCent];
-            //if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
 
             sys = GetOrigTGAE (h_trk_xhz_ptz[iSpc][iPtZ][iCent]);
             var = a->h_trk_xhz_ptz[iSpc][iPtZ][iCent];
@@ -561,9 +558,6 @@ void Systematic :: AddVariations () {
             sys = GetOrigTGAE (h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent]);
             var = a->h_trk_xhz_ptz_sub[iSpc][iPtZ][iCent];
             if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
-            //sys = GetOrigTGAE (h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent]);
-            //var = a->h_trk_xhz_ptz_sig_to_bkg[iSpc][iPtZ][iCent];
-            //if (sys && var) CalcSystematics (sys, var, variationDirs[a]);
           } // end loop over iCent
 
 

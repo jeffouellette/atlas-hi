@@ -179,7 +179,8 @@ void LowPtVariation :: GetRelativeVariations (PhysicsAnalysis* nominal, PhysicsA
       h = (TH1D*) nominal->h_trk_xhz_ptz_sub[2][iPtZ][iCent]->Clone (Form ("h_relVarX_comb_iPtZ%i_iCent%i_%s", iPtZ, iCent, name.c_str ()));
       relVarX[2][iPtZ][iCent] = h;
       for (short iX = 1; iX <= h->GetNbinsX (); iX++) {
-        const double rUnc = (iPtZ != 2 ? 0 : fmax (fabs (f_ratio_xhZ[0][iCent]->Eval (h->GetBinCenter (iX))), fabs (f_ratio_xhZ[1][iCent]->Eval (h->GetBinCenter (iX)))) / sqrt (12.));
+        // systematic uncertainty vs. x_hZ deemed not needed.
+        const double rUnc = 0;//(iPtZ != 2 ? 0 : fmax (fabs (f_ratio_xhZ[0][iCent]->Eval (h->GetBinCenter (iX))), fabs (f_ratio_xhZ[1][iCent]->Eval (h->GetBinCenter (iX)))) / sqrt (12.));
         h->SetBinContent (iX, rUnc * h->GetBinContent (iX));
         h->SetBinError (iX, 0);
       }
