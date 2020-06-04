@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 
 using namespace std;
 using namespace atlashi;
@@ -34,7 +35,7 @@ class MixingAnalysis : public PhysicsAnalysis {
   double* psi2MixBins = nullptr;
   int nPsi3MixBins = 1;
   double* psi3MixBins = nullptr;
-  int nIPBins = 100;
+  const int nIPBins = 156;//2640;//508;//298;//478;//298;//156;
   double* ipBins = nullptr;
 
   short GetQ2MixBin (const float q2) {
@@ -77,7 +78,7 @@ class MixingAnalysis : public PhysicsAnalysis {
     if (!useImpactParameter)
       return -1;
     short i = 0;
-    while (i < nIPBins) {
+    while (i < nIPBins-1) {
       if (ip < ipBins[i+1])
         break;
       i++;
@@ -110,6 +111,56 @@ class MixingAnalysis : public PhysicsAnalysis {
   void Execute (const bool isPbPb, const char* inFileName, const char* mbInFileName, const char* outFileName, const char* mixedFileName);
 
   void PlotCentralityDists ();
+
+
+  private:
+  // impact parameter centralities
+  // 0%     1%      10%     20%     30%     40%     50%     60%     70%     80%
+  // 0      1.564   4.953   7.009   8.582   9.911   11.083  12.136  13.111  14.032
+  void GenerateIPMixBins () {
+    int i = 0;
+    ipBins = new double[nIPBins+1];
+
+    for (i = 0; i < 10; i++)
+      ipBins[i] = i*(1.564)/10.; // 0-1% central
+    for (i = 10; i < 36; i++)
+      ipBins[i] = 1.564 + (i-10)*(4.953-1.564)/36.; // 1-10% central
+    for (i = 36; i < 126; i++)
+      ipBins[i] = 4.953 + (i-36)*(11.083-4.953)/80.; // 10-50% central
+    for (i = 126; i < 156; i++)
+      ipBins[i] = 11.083 + (i-126)*(14.032-11.083)/30.; // 50-80% central
+    ipBins[156] = 14.032;
+
+    //for (i = 0; i < 160; i++)
+    //  ipBins[i] = i*(1.564)/160.; // 0-1% central
+    //for (i = 160; i < 880; i++)
+    //  ipBins[i] = 1.564 + (i-160)*(4.953-1.564)/720.; // 1-10% central
+    //for (i = 880; i < 2160; i++)
+    //  ipBins[i] = 4.953 + (i-880)*(11.083-4.953)/1280.; // 10-50% central
+    //for (i = 2160; i < 2640; i++)
+    //  ipBins[i] = 11.083 + (i-2160)*(14.032-11.083)/480.; // 50-80% central
+    //ipBins[2640] = 14.032;
+
+    //for (i = 0; i < 40; i++)
+    //  ipBins[i] = i*(1.564)/40.;
+    //for (i = 40; i < 188; i++)
+    //  ipBins[i] = 1.564 + (i-40)*(4.953-1.564)/144.;
+    //for (i = 188; i < 268; i++)
+    //  ipBins[i] = 4.953 + (i-188)*(11.083-4.953)/80.;
+    //for (i = 268; i < 298; i++)
+    //  ipBins[i] = 11.083 + (i-268)*(14.032-11.083)/30.;
+    //ipBins[298] = 14.032;
+
+    //for (i = 0; i < 80; i++)
+    //  ipBins[i] = i*(1.564)/80.;
+    //for (i = 80; i < 368; i++)
+    //  ipBins[i] = 1.564 + (i-80)*(4.953-1.564)/288.;
+    //for (i = 368; i < 448; i++)
+    //  ipBins[i] = 4.953 + (i-368)*(11.083-4.953)/80.;
+    //for (i = 448; i < 508; i++)
+    //  ipBins[i] = 11.083 + (i-448)*(14.032-11.083)/60.;
+    //ipBins[508] = 14.032;
+  }
 };
 
 
@@ -181,7 +232,11 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   }
   if (useImpactParameter) {
     cout << "Resorting to impact parameter matched mixing with " << nIPBins << " bins in b" << endl;
-    ipBins = linspace (0, 25, nIPBins);
+  //  ipBins = linspace (0, 25, nIPBins);
+    GenerateIPMixBins ();
+    //for (int i = 0; i <= nIPBins; i++) {
+    //  cout << ipBins[i] << endl;
+    //}
   }
 
   CreateHists ();
@@ -275,9 +330,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   bool _isEE = false;
   float event_weight = 1., z_event_weight = 1., fcal_weight = 1., q2_weight = 1., psi2_weight = 1.;
   float fcal_et = 0, vz = 0, zdcEnergy = 0, z_fcal_et = 0, z_vz = 0, z_zdcEnergy = 0;
-  float ip = 0, eventPlane = 0, z_ip = 0, z_eventPlane = 0;
   float phi_transmin = 0, phi_transmax = 0;
-  //float q2x_a = 0, q2y_a = 0, q2x_c = 0, q2y_c = 0, z_q2x_a = 0, z_q2y_a = 0, z_q2x_c = 0, z_q2y_c = 0;
   float q2 = 0, q3 = 0, q4 = 0, z_q2 = 0, z_q3 = 0, z_q4 = 0;
   float psi2 = 0, psi3 = 0, psi4 = 0, z_psi2 = 0, z_psi3 = 0, z_psi4 = 0;
   float _z_pt = 0, _z_phi = 0, _z_y = 0, _z_m = 0;
@@ -302,26 +355,19 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
   float**   trks_weights2_inPhi = Get2DArray <float> (maxNPtchBins, 40);
 
   int nMixed = 0, nNotMixed = 0;
+  //std::unordered_set <int> unMixableEvents;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Do this if TTree is PbPb
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (isPbPb) {
-    mbTree->LoadBaskets (4000000000); //2000000000 = 2GB
+    mbTree->LoadBaskets (7000000000); //2000000000 = 2GB
     mbTree->SetBranchAddress ("run_number",       &run_number);
     mbTree->SetBranchAddress ("event_number",     &event_number);
     mbTree->SetBranchAddress ("event_weight",     &event_weight);
     mbTree->SetBranchAddress ("fcal_et",          &fcal_et);
     mbTree->SetBranchAddress ("zdcEnergy",        &zdcEnergy);
-    if (useImpactParameter)  {
-      mbTree->SetBranchAddress ("impactParameter",  &ip);
-      mbTree->SetBranchAddress ("eventPlane",       &eventPlane);
-    }
-    //mbTree->SetBranchAddress ("q2x_a",            &q2x_a);
-    //mbTree->SetBranchAddress ("q2y_a",            &q2y_a);
-    //mbTree->SetBranchAddress ("q2x_c",            &q2x_c);
-    //mbTree->SetBranchAddress ("q2y_c",            &q2y_c);
     mbTree->SetBranchAddress ("q2",               &q2);
     mbTree->SetBranchAddress ("psi2",             &psi2);
     mbTree->SetBranchAddress ("q3",               &q3);
@@ -342,20 +388,12 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
 
     if (!doSameFileMixing) {
-      zTree->LoadBaskets (2000000000);
+      zTree->LoadBaskets (1000000000);
       zTree->SetBranchAddress ("run_number",      &z_run_number);
       zTree->SetBranchAddress ("event_number",    &z_event_number);
       zTree->SetBranchAddress ("event_weight",    &z_event_weight);
       zTree->SetBranchAddress ("fcal_et",         &z_fcal_et);
       zTree->SetBranchAddress ("zdcEnergy",       &z_zdcEnergy);
-      if (useImpactParameter) {
-        zTree->SetBranchAddress ("impactParameter", &z_ip);
-        zTree->SetBranchAddress ("eventPlane",      &z_eventPlane);
-      }
-      //zTree->SetBranchAddress ("q2x_a",           &z_q2x_a);
-      //zTree->SetBranchAddress ("q2y_a",           &z_q2y_a);
-      //zTree->SetBranchAddress ("q2x_c",           &z_q2x_c);
-      //zTree->SetBranchAddress ("q2y_c",           &z_q2y_c);
       zTree->SetBranchAddress ("q2",              &z_q2);
       zTree->SetBranchAddress ("psi2",            &z_psi2);
       zTree->SetBranchAddress ("q3",              &z_q3);
@@ -392,13 +430,13 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("run_number",      &run_number,      "run_number/I");
       mixedEventsTree->Branch ("event_number",    &event_number,    "event_number/I");
       mixedEventsTree->Branch ("fcal_et",         &fcal_et,         "fcal_et/F");
-      if (useImpactParameter) {
-        mixedEventsTree->Branch ("ip",            &ip,              "ip/F");
-        mixedEventsTree->Branch ("eventPlane",    &eventPlane,      "eventPlane/F");
-      }
       mixedEventsTree->Branch ("zdcEnergy",       &zdcEnergy,       "zdcEnergy/F");
       mixedEventsTree->Branch ("q2",              &q2,              "q2/F");
       mixedEventsTree->Branch ("psi2",            &psi2,            "psi2/F");
+      mixedEventsTree->Branch ("q3",              &q3,              "q3/F");
+      mixedEventsTree->Branch ("psi3",            &psi3,            "psi3/F");
+      mixedEventsTree->Branch ("q4",              &q4,              "q4/F");
+      mixedEventsTree->Branch ("psi4",            &psi4,            "psi4/F");
       mixedEventsTree->Branch ("vz",              &vz,              "vz/F");
       mixedEventsTree->Branch ("ntrk",            &ntrk,            "ntrk/I");
       mixedEventsTree->Branch ("trk_pt",          &trk_pt,          "trk_pt[ntrk]/F");
@@ -409,13 +447,13 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       mixedEventsTree->Branch ("z_event_number",  &z_event_number,  "z_event_number/I");
       mixedEventsTree->Branch ("z_event_weight",  &z_event_weight,  "z_event_weight/F");
       mixedEventsTree->Branch ("z_fcal_et",       &z_fcal_et,       "z_fcal_et/F");
-      if (useImpactParameter) {
-        mixedEventsTree->Branch ("z_ip",          &z_ip,            "z_ip/F");
-        mixedEventsTree->Branch ("z_eventPlane",  &z_eventPlane,    "z_eventPlane/F");
-      }
       mixedEventsTree->Branch ("z_zdcEnergy",     &z_zdcEnergy,     "z_zdcEnergy/F");
       mixedEventsTree->Branch ("z_q2",            &z_q2,            "z_q2/F");
       mixedEventsTree->Branch ("z_psi2",          &z_psi2,          "z_psi2/F");
+      mixedEventsTree->Branch ("z_q3",            &z_q3,            "z_q3/F");
+      mixedEventsTree->Branch ("z_psi3",          &z_psi3,          "z_psi3/F");
+      mixedEventsTree->Branch ("z_q4",            &z_q4,            "z_q4/F");
+      mixedEventsTree->Branch ("z_psi4",          &z_psi4,          "z_psi4/F");
       mixedEventsTree->Branch ("z_vz",            &z_vz,            "z_vz/F");
       mixedEventsTree->Branch ("z_pt",            &z_pt,            "z_pt/F");
       mixedEventsTree->Branch ("z_phi",           &z_phi,           "z_phi/F");
@@ -450,6 +488,13 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
       zTree->GetEntry (zEventOrder[iZEvt % nZEvts]);
       zEventsUsed[iZEvt % nZEvts]++;
+      //zTree->GetEntry (zEventOrder[iZEvt / mixingFraction]);
+      //zEventsUsed[iZEvt / mixingFraction]++;
+
+      //if (unMixableEvents.find (iZEvt / mixingFraction) == unMixableEvents.end ()) {
+      //  nNotMixed++;
+      //  continue;
+      //}
 
       isEE = _isEE;
       z_pt = _z_pt;
@@ -478,12 +523,6 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         z_event_weight = event_weight;
         z_fcal_et = fcal_et;
         z_zdcEnergy = zdcEnergy;
-        z_ip = ip;
-        z_eventPlane = eventPlane;
-        //z_q2x_a = q2x_a;
-        //z_q2x_c = q2x_c;
-        //z_q2y_a = q2y_a;
-        //z_q2y_c = q2y_c;
         z_q2 = q2;
         z_psi2 = psi2;
         z_q3 = q3;
@@ -510,12 +549,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       // Find the next unused minimum bias event
       {
         const short iFCalEt = GetSuperFineCentBin (z_fcal_et);
-        if (!useImpactParameter && (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1)) continue;
-        const short iIP = GetIPBin (z_ip);
-        if (useImpactParameter && (iIP < 0 || iIP > nIPBins-1)) {
-          cout << "Out-of-bounds impact parameter, skipping this Z!" << endl;
-          continue;
-        }
+        if (iFCalEt < 1 || iFCalEt > numSuperFineCentBins-1) continue;
         const short iQ2 = GetQ2MixBin (z_q2);
         if (doQ2Mixing && (iQ2 < 0 || iQ2 > nQ2MixBins-1)) {
           cout << "Out-of-bounds q2, skipping this Z!" << endl;
@@ -532,19 +566,20 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         do {
           iMBEvt = (iMBEvt+1) % nMBEvts;
           mbTree->GetEntry (mbEventOrder[iMBEvt]);
-          goodMixEvent = (fabs (vz) < 150 && event_weight != 0); // always require these conditions
-          //goodMixEvent &= (!doSameFileMixing || mixingFraction != 1 || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
-          goodMixEvent &= (!doSameFileMixing || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+          goodMixEvent = (event_weight != 0); // always require these conditions
+          //goodMixEvent &= (doSameFileMixing || mixingFraction != 1 || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
+          goodMixEvent &= (doSameFileMixing || !mbEventsUsed[iMBEvt]); // checks for uniqueness (if applicable)
           goodMixEvent &= (!doSameFileMixing || iMBEvt != iZEvt); // don't mix with the exact same event
-          goodMixEvent &= (!doCentMixing || (!useImpactParameter && iFCalEt == GetSuperFineCentBin (fcal_et)) || (useImpactParameter && iIP == GetIPBin (ip))); // do centrality matching
+          goodMixEvent &= (!doCentMixing || iFCalEt == GetSuperFineCentBin (fcal_et)); // do centrality matching
           goodMixEvent &= (!doQ2Mixing   || iQ2 == GetQ2MixBin (q2)); // do q2 matching
-          goodMixEvent &= (!doPsi2Mixing || (!useImpactParameter && DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)) || (useImpactParameter && DeltaPhi (eventPlane, z_eventPlane) < (pi / nPsi2MixBins))); // do psi2 matching
-          goodMixEvent &= (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (2.*pi/3. / nPsi3MixBins)); // do psi3 matching
-          goodMixEvent &= (!doVZMixing || fabs (vz - z_vz) < 15);
+          goodMixEvent &= (!doPsi2Mixing || DeltaPhi (psi2, z_psi2) < (pi / nPsi2MixBins)); // do psi2 matching
+          goodMixEvent &= (!doPsi3Mixing || DeltaPhi (psi3, z_psi3) < (pi / nPsi3MixBins)); // do psi3 matching
+          goodMixEvent &= (!doVZMixing || fabs (vz - z_vz) < 15); // ad hoc z vertex matching for debugging
         } while (!goodMixEvent && iMBEvt != _iMBEvt); // only check each event once
         if (_iMBEvt == iMBEvt) {
-          //cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
+          cout << "No minbias event to mix with!!! Wrapped around on the same Z!!! Sum Et = " << z_fcal_et << ", q2 = " << z_q2 << ", psi2 = " << z_psi2 << endl;
           nNotMixed++;
+          //unMixableEvents.insert (iZEvt / mixingFraction);
           continue;
         }
         nMixed++;
@@ -561,20 +596,21 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
       if (saveMixedEvents) mixedEventsTree->Fill ();
 
       const short iSpc = (isEE ? 0 : 1); // 0 for electrons, 1 for muons, 2 for combined
-      const short iCent = (useImpactParameter ? GetIPCentBin (z_ip) : GetCentBin (z_fcal_et));
-      //const short iCent = GetCentBin (z_fcal_et);
+      const short iCent = GetCentBin (z_fcal_et);
       if (iCent < 1 || iCent > numCentBins-1) continue;
-      //const short iFineCent = GetFineCentBin (z_fcal_et);
-      //if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
-      const short iFineCent = 1;
+      const short iFineCent = GetFineCentBin (z_fcal_et);
+      if (iFineCent < 1 || iFineCent > numFineCentBins-1) continue;
 
       // do a reweighting procedure
+      // only uses weights if the appropriate flags have been set. In most cases these default to false (exception is centrality weighting which can be default true).
       {
-        float dphi = DeltaPhi (z_phi, psi2, false);
-        if (dphi > pi/2)  dphi = pi - dphi;
         if (useCentWgts)  fcal_weight = h_PbPbFCal_weights[iSpc][iPtZ]->GetBinContent (h_PbPbFCal_weights[iSpc][iPtZ]->FindBin (z_fcal_et));
         if (useQ2Wgts)    q2_weight   = h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbQ2_weights[iSpc][iFineCent][iPtZ]->FindBin (q2));
-        if (usePsi2Wgts)  psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
+        if (usePsi2Wgts) {
+          float dphi = DeltaPhi (z_phi, psi2, false);
+          if (dphi > pi/2)  dphi = pi - dphi;
+          psi2_weight = h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->GetBinContent (h_PbPbPsi2_weights[iSpc][iFineCent][iPtZ]->FindBin (dphi));
+        }
 
         z_event_weight *= fcal_weight * q2_weight * psi2_weight;
       }
@@ -617,8 +653,8 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
 
         if (trkpt < trk_min_pt) continue;
 
-        const double trkEff = GetTrackingEfficiency (useImpactParameter ? z_ip : z_fcal_et, trkpt, trk_eta[iTrk], true);
-        const double trkPur = GetTrackingPurity (useImpactParameter ? z_ip : z_fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], true);
+        const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], true);
         if (trkPur == 0 || trkEff == 0) continue;
         const float trkWeight = trkPur / trkEff;
         //const float trkWeight = 1;
@@ -872,10 +908,6 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         z_event_weight = event_weight;
         z_fcal_et = fcal_et;
         //z_zdcEnergy = zdcEnergy;
-        //z_q2x_a = q2x_a;
-        //z_q2x_c = q2x_c;
-        //z_q2y_a = q2y_a;
-        //z_q2y_c = q2y_c;
         z_vz = vz;
         z_ntrk = 0; // placeholder
       }
@@ -951,6 +983,7 @@ void MixingAnalysis :: Execute (const bool isPbPb, const char* inFileName, const
         const double trkEff = GetTrackingEfficiency (fcal_et, trkpt, trk_eta[iTrk], false);
         const double trkPur = GetTrackingPurity (fcal_et, trkpt, trk_eta[iTrk], false);
         if (trkPur == 0 || trkEff == 0) continue;
+        //const float trkWeight = trkPur / trkEff;
         const float trkWeight = trkPur / trkEff;
 
         // Study correlations (requires dPhi in -pi/2 to 3pi/2)
@@ -1146,7 +1179,7 @@ void MixingAnalysis :: PlotCentralityDists () {
   myMarkerTextNoLine (0.22, 0.30, colors[2], kFullCircle, "HLT_noalg_pc_L1TE50_VTE600_0ETA49 (PC)", 1.25, 0.04);
   myMarkerTextNoLine (0.22, 0.25, colors[3], kFullCircle, "HLT_noalg_cc_L1TE600_0ETA49 (CC)", 1.25, 0.04);
 
-  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+  myText (0.22, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.04);
   myText (0.22, 0.81, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV", 0.04);
 
   c->SaveAs (Form ("%s/CentralityDist.pdf", plotPath.Data ()));

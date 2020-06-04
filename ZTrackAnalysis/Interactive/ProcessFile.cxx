@@ -4,6 +4,8 @@
 #include "TruthAnalysis.h"
 #include "MixingAnalysis.h"
 #include "HijingAnalysis.h"
+#include "HijingMixedAnalysis.h"
+#include "HijingTruthAnalysis.h"
 
 int mixingFraction = 40;
 
@@ -27,10 +29,14 @@ int main (int argc, char** argv) {
 
   string inDir = "DataAnalysis/";
   string histDir = "DataAnalysis/";
-  if (algo == "mcminbias" || algo == "mc" || algo == "hijing_mixing") {
+  if (algo == "mcminbias" || algo == "mc"/* || algo == "hijing_mixing"*/) {
     inDir = "MCAnalysis/"; 
     histDir = "MCAnalysis/";
     //outFileName = "Background/" + outFileName;
+  }
+  if (algo == "hijing_truth") {
+    inDir = isPbPb ? "MixedEvents/" : "TruthAnalysis/";
+    histDir = "TruthAnalysis/";
   }
   if (algo == "hijing") {
     inDir = isPbPb ? "MixedEvents/" : "MCAnalysis/";
@@ -39,6 +45,10 @@ int main (int argc, char** argv) {
   if (algo == "minbias") {
     inDir = "DataAnalysis/";
     histDir = "MixingAnalysis/";
+  }
+  if (algo == "hijing_mixing") {
+    inDir = isPbPb ? "MixedEvents/" : "MCAnalysis/";
+    histDir = "MCAnalysis/";
   }
 
   const bool doHITightVar         = (string (argv[8]) == "doHITightVar");
@@ -179,10 +189,28 @@ int main (int argc, char** argv) {
     mc->useHijingEffs = true;
 
     //mc->ewExt = "hijing";
-    mixingFraction = 1;
+    mixingFraction = 10;
 
     mc->Execute (inFileName.c_str (), outFileName.c_str ());
     delete mc;
+  }
+  else if (algo == "hijing_truth") {
+
+    HijingTruthAnalysis* truth = nullptr;
+    inFileName = inDir + inFileName;
+    outFileName = histDir + outFileName;
+
+    truth = new HijingTruthAnalysis ("hijing_truth");
+
+    truth->is2015Conds = use2015conds;
+    truth->useHITight = doHITightVar;
+    //truth->useCentWgts = true;
+    truth->useHijingEffs = true;
+
+    mixingFraction = 10;
+
+    truth->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete truth;
   }
 
   //else if (algo == "mcclosure") {
@@ -229,32 +257,36 @@ int main (int argc, char** argv) {
     delete truth;
   }
 
-  //else if (algo == "minbias") {
-  else if (algo == "minbias" || algo == "mcminbias" || algo == "hijing_mixing") {
+  else if (algo == "hijing_mixing") {
+    HijingMixedAnalysis* bkg = nullptr;
+
+    inFileName = inDir + inFileName;
+    outFileName = histDir + outFileName;
+
+    bkg = new HijingMixedAnalysis ("hijing_bkg");
+
+    bkg->is2015Conds = use2015conds;
+    bkg->useHITight = doHITightVar;
+
+    bkg->Execute (inFileName.c_str (), outFileName.c_str ());
+    delete bkg;
+  }
+
+  else if (algo == "minbias" || algo == "mcminbias"/* || algo == "hijing_mixing"*/) {
     MixingAnalysis* bkg = nullptr;
 
     inFileName = inDir + inFileName;
 
     if (!doPPMBMixVar && !isPbPb && algo == "minbias")
       mbInFileName = "DataAnalysis/" + mbInFileName;
-    else if (!doPPMBMixVar && !isPbPb && (algo == "mcminbias" || algo == "hijing_mixing"))
+    else if (!doPPMBMixVar && !isPbPb && (algo == "mcminbias"/* || algo == "hijing_mixing"*/))
       mbInFileName = inFileName;
     else
       mbInFileName = "MixingAnalysis/" + mbInFileName;
 
     outFileName = histDir + outFileName;
 
-    if (algo == "mcminbias")
-      bkg = new MixingAnalysis ("mc_bkg");
-    else if (algo == "hijing_mixing") {
-      bkg = new MixingAnalysis ("hijing_bkg");
-      //bkg->eventWeightsFileName = "MCAnalysis/Hijing/eventWeightsFile.root";
-      //bkg->ewExt = TString ("hijing");
-      //bkg->useCentWgts = true;
-      bkg->useImpactParameter = true;
-      bkg->useHijingEffs = true;
-      //bkg->doVZMixing = true;
-    }
+    if (algo == "mcminbias")  bkg = new MixingAnalysis ("mc_bkg");
     else if (doHITightVar)    bkg = new MixingAnalysis ("bkg_trackHITightVar");
     else if (doMixVarA)       bkg = new MixingAnalysis ("bkg_mixVarA");
     else if (doMixVarB)       bkg = new MixingAnalysis ("bkg_mixVarB");
@@ -268,9 +300,9 @@ int main (int argc, char** argv) {
     else if (doPPTransMaxVar) bkg = new MixingAnalysis ("bkg_ppTransMaxVar");
     else                      bkg = new MixingAnalysis ("bkg");
 
-    if (algo == "hijing_mixing")
-      mixingFraction = 2;
-    else if ((!isPbPb && !doPPMBMixVar))
+    //if (algo == "hijing_mixing")
+    //  mixingFraction = 5;
+    if ((!isPbPb && !doPPMBMixVar))
       mixingFraction = 1;
     else if (!isPbPb && !doPPMBMixVar) {
       bkg->doPPMBMixing = true;
@@ -323,12 +355,6 @@ int main (int argc, char** argv) {
     } else if (doPPTransMaxVar) {
       bkg->doPPTransMinMixing = false;
       bkg->doPPTransMaxMixing = true;
-    }
-
-    if (algo == "hijing_mixing") {
-      bkg->nIPBins = 100;
-      //bkg->doPsi2Mixing = false;
-      //bkg->nPsi2MixBins = 1;
     }
 
     bkg->Execute (isPbPb, inFileName.c_str (), mbInFileName.c_str (), outFileName.c_str (), mixedFileName.c_str ()); // new code

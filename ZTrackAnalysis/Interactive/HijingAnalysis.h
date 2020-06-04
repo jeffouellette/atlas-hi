@@ -363,21 +363,13 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
     PbPbTree->SetBranchAddress ("z_trk_eta",      trk_eta);
     PbPbTree->SetBranchAddress ("z_trk_phi",      trk_phi);
 
-    const int nEvts = PbPbTree->GetEntries () / mixingFraction;
-    for (int iEvt = 0; iEvt < nEvts; iEvt++) {
+    const int nEvts = PbPbTree->GetEntries ();
+    for (int iEvt = 0; iEvt < nEvts; iEvt += mixingFraction) {
       if (nEvts > 100 && iEvt % (nEvts / 100) == 0)
         cout << iEvt / (nEvts / 100) << "\% done...\r" << flush;
       PbPbTree->GetEntry (iEvt);
 
       if (fabs (vz) > 150) continue; // vertex cut
-
-      //{
-      //  CorrectQ2Vector (q2x_a, q2y_a, q2x_c, q2y_c);
-      //  const float q2x = q2x_a + q2x_c;
-      //  const float q2y = q2y_a + q2y_c;
-      //  q2 = sqrt (q2x*q2x + q2y*q2y) / fcal_et;
-      //  psi2 = 0.5 * atan2 (q2y, q2x);
-      //}
 
       const short iSpc = isEE ? 0 : 1; // 0 for electrons, 1 for muons, 2 for combined
 
@@ -403,7 +395,7 @@ void HijingAnalysis :: Execute (const char* inFileName, const char* outFileName)
         event_weight *= fcal_weight * q2_weight * psi2_weight;
       }
 
-      if (event_weight == 0) continue;
+      //if (event_weight == 0) continue;
 
       TLorentzVector zvec;
       zvec.SetPxPyPzE (z_pt*cos(z_phi), z_pt*sin(z_phi), sqrt(z_pt*z_pt+z_m*z_m)*sinh(z_y), sqrt(z_pt*z_pt+z_m*z_m)*cosh(z_y));

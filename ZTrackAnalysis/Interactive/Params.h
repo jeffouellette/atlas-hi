@@ -62,10 +62,12 @@ const double* fineEtaTrkBins = linspace (-2.5, 2.5, numFineEtaTrkBins);
 // Centrality cuts in impact parameter from Glauber
 const double ipCentBins[4] = {14.031, 8.582, 4.952, 0};
 const int numIPCentBins = sizeof (ipCentBins) / sizeof (ipCentBins[0]);
+// extended range: 0%     1%      10%     20%     30%     40%     50%     60%     70%     80%
+//                 0      1.564   4.953   7.009   8.582   9.911   11.083  12.136  13.111  14.032
 short GetIPCentBin (const float ip) {
   short i = 0;
   while (i < numIPCentBins) {
-    if (ip > ipCentBins[i])
+    if (ip >= ipCentBins[i])
       break;
     i++;
   }

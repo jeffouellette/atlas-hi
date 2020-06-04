@@ -43,7 +43,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   cout << "Read input file from " << Form ("%s/%s", rootPath.Data (), inFileName) << endl;
 
   TTree* PbPbTree = (TTree*)inFile->Get ("PbPbZTrackTree");
-  TTree* ppTree = (TTree*)inFile->Get ("ZTrackTree");
+  TTree* ppTree = (TTree*)inFile->Get ("ppZTrackTree");
 
   CreateHists ();
 
@@ -67,30 +67,30 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
   // Loop over PbPb tree
   ////////////////////////////////////////////////////////////////////////////////////////////////
   if (PbPbTree) {
-    PbPbTree->SetBranchAddress ("event_weight", &event_weight);
-    PbPbTree->SetBranchAddress ("isEE",         &isEE);
-    PbPbTree->SetBranchAddress ("fcal_et",      &fcal_et);
-    PbPbTree->SetBranchAddress ("ip",           &ip);
-    PbPbTree->SetBranchAddress ("eventPlane",   &eventPlane);
-    PbPbTree->SetBranchAddress ("q2",           &q2);
-    PbPbTree->SetBranchAddress ("psi2",         &psi2);
-    PbPbTree->SetBranchAddress ("vz",           &vz);
-    PbPbTree->SetBranchAddress ("z_pt",         &z_pt);
-    PbPbTree->SetBranchAddress ("z_y",          &z_y);
-    PbPbTree->SetBranchAddress ("z_phi",        &z_phi);
-    PbPbTree->SetBranchAddress ("z_m",          &z_m);
-    PbPbTree->SetBranchAddress ("l1_pt",        &l1_pt);
-    PbPbTree->SetBranchAddress ("l1_eta",       &l1_eta);
-    PbPbTree->SetBranchAddress ("l1_phi",       &l1_phi);
-    PbPbTree->SetBranchAddress ("l1_charge",    &l1_charge);
-    PbPbTree->SetBranchAddress ("l2_pt",        &l2_pt);
-    PbPbTree->SetBranchAddress ("l2_eta",       &l2_eta);
-    PbPbTree->SetBranchAddress ("l2_phi",       &l2_phi);
-    PbPbTree->SetBranchAddress ("l2_charge",    &l2_charge);
-    PbPbTree->SetBranchAddress ("ntrk",         &ntrk);
-    PbPbTree->SetBranchAddress ("trk_pt",       &trk_pt);
-    PbPbTree->SetBranchAddress ("trk_eta",      &trk_eta);
-    PbPbTree->SetBranchAddress ("trk_phi",      &trk_phi);
+    PbPbTree->SetBranchAddress ("event_weight",     &event_weight);
+    PbPbTree->SetBranchAddress ("isEE",             &isEE);
+    PbPbTree->SetBranchAddress ("fcal_et",          &fcal_et);
+    PbPbTree->SetBranchAddress ("impactParameter",  &ip);
+    PbPbTree->SetBranchAddress ("eventPlane",       &eventPlane);
+    PbPbTree->SetBranchAddress ("q2",               &q2);
+    PbPbTree->SetBranchAddress ("psi2",             &psi2);
+    PbPbTree->SetBranchAddress ("vz",               &vz);
+    PbPbTree->SetBranchAddress ("z_pt",             &z_pt);
+    PbPbTree->SetBranchAddress ("z_y",              &z_y);
+    PbPbTree->SetBranchAddress ("z_phi",            &z_phi);
+    PbPbTree->SetBranchAddress ("z_m",              &z_m);
+    PbPbTree->SetBranchAddress ("l1_pt",            &l1_pt);
+    PbPbTree->SetBranchAddress ("l1_eta",           &l1_eta);
+    PbPbTree->SetBranchAddress ("l1_phi",           &l1_phi);
+    PbPbTree->SetBranchAddress ("l1_charge",        &l1_charge);
+    PbPbTree->SetBranchAddress ("l2_pt",            &l2_pt);
+    PbPbTree->SetBranchAddress ("l2_eta",           &l2_eta);
+    PbPbTree->SetBranchAddress ("l2_phi",           &l2_phi);
+    PbPbTree->SetBranchAddress ("l2_charge",        &l2_charge);
+    PbPbTree->SetBranchAddress ("ntrk",             &ntrk);
+    PbPbTree->SetBranchAddress ("trk_pt",           &trk_pt);
+    PbPbTree->SetBranchAddress ("trk_eta",          &trk_eta);
+    PbPbTree->SetBranchAddress ("trk_phi",          &trk_phi);
 
     const int nEvts = PbPbTree->GetEntries ();
     for (int iEvt = 0; iEvt < nEvts; iEvt++) {
@@ -202,7 +202,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
             }
           }
         } // end loop over idPhi
-        if (3*pi/4 <= dPhi) {
+        if (7*pi/8 <= dPhi) {
           if (iPtch != -1 && iPtch < maxNPtchBins) {
             trks_counts[0][iPtch][numPhiBins]   += 1;
             trks_weights1[0][iPtch][numPhiBins] += trkWeight;
@@ -356,8 +356,9 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
         h_z_phi[iCent][iSpc]->Fill (2*dphi, event_weight);
       }
 
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5, event_weight);
-      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (0.5);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (1.5, event_weight);
+      h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
         const float trkpt = trk_pt[iTrk];
@@ -487,9 +488,13 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
     cout << "Done truth-level pp loop." << endl;
   }
 
-  //CombineHists ();
-  //ScaleHists ();
-  
+  Delete3DArray (&trks_counts, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights1, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete3DArray (&trks_weights2, 2, max (maxNPtchBins, maxNXhZBins), numPhiBins+1);
+  Delete2DArray (&trks_counts_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights1_inPhi, maxNPtchBins, 40);
+  Delete2DArray (&trks_weights2_inPhi, maxNPtchBins, 40);
+
   SaveHists (outFileName);
 
   inFile->Close ();
