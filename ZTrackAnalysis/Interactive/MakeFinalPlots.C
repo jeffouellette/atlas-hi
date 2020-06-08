@@ -183,6 +183,31 @@ void MakeFinalPlots () {
   }
 
 
+  TGAE* tg_CMS_Zh_IAA_0_30_syst = new TGAE ();
+  TGAE* tg_CMS_Zh_IAA_0_30_stat = new TGAE ();
+
+  {
+    const string fileName = "../DataThieving/CMS_Zh_IAA_HP2020/0_30centrality.dat";
+    ifstream f;
+    f.open (fileName.c_str ());
+
+    double xlo, x, xhi, y, ystathi, ystatlo, ysysthi, ysystlo;
+    f >> xlo >> x >> xhi >> y >> ystathi >> ystatlo >> ysysthi >> ysystlo;
+    do {
+      tg_CMS_Zh_IAA_0_30_syst->SetPoint (tg_CMS_Zh_IAA_0_30_syst->GetN (), x, y);
+      tg_CMS_Zh_IAA_0_30_stat->SetPoint (tg_CMS_Zh_IAA_0_30_stat->GetN (), x, y);
+
+      tg_CMS_Zh_IAA_0_30_syst->SetPointEXlow (tg_CMS_Zh_IAA_0_30_syst->GetN () - 1, fabs (x-xlo));
+      tg_CMS_Zh_IAA_0_30_syst->SetPointEXhigh (tg_CMS_Zh_IAA_0_30_syst->GetN () - 1, fabs (xhi-x));
+      tg_CMS_Zh_IAA_0_30_syst->SetPointEYlow (tg_CMS_Zh_IAA_0_30_syst->GetN () - 1, fabs (y-ysystlo));
+      tg_CMS_Zh_IAA_0_30_syst->SetPointEYhigh (tg_CMS_Zh_IAA_0_30_syst->GetN () - 1, fabs (ysysthi-y));
+      tg_CMS_Zh_IAA_0_30_stat->SetPointEYlow (tg_CMS_Zh_IAA_0_30_stat->GetN () - 1, fabs (y-ystatlo));
+      tg_CMS_Zh_IAA_0_30_stat->SetPointEYhigh (tg_CMS_Zh_IAA_0_30_stat->GetN () - 1, fabs (ystathi-y));
+      f >> xlo >> x >> xhi >> y >> ystathi >> ystatlo >> ysysthi >> ysystlo;
+    } while (f);
+  }
+
+
   TGAE** g_pythia_pth_ptz = Get1DArray <TGAE*> (nPtZBins);
   TGAE** g_pythia_finepth_ptz = Get1DArray <TGAE*> (nPtZBins);
   TGAE** g_pythia_xhz_ptz = Get1DArray <TGAE*> (nPtZBins);
@@ -342,7 +367,7 @@ void MakeFinalPlots () {
     const bool useTrkPt = false;
     //const string modelFileName = (useTrkPt ? "../HybridModel/IAAs/010_IAA_pt_wake_0_ignore_neg_0.dat" : "../HybridModel/IAAs/010_IAA_z_wake_0_ignore_neg_0.dat"); // means no medium response.data"
     string modelFileName = "../HybridModel/IAAs/010_IAA_z_wake_1_ignore_neg_0.dat"; // means medium response including only the positive contribution from the wake
-    //const string modelFileName = (useTrkPt ? "../HybridModel/IAAs/010_IAA_pt_wake_1_ignore_neg_1.dat" : "../HybridModel/IAAs/010_IAA_z_wake_1_ignore_neg_1.dat"); // means full medium response, including also the negative contribution from the wake
+    //string modelFileName = "../HybridModel/IAAs/010_IAA_pt_wake_1_ignore_neg_1.dat"; // means full medium response, including also the negative contribution from the wake
     ifstream f;
     f.open (modelFileName.c_str ());
     float dummy = 0, x = 0, y1 = 0, y2 = 0, y = 0, yerr = 0;
@@ -364,6 +389,7 @@ void MakeFinalPlots () {
     f.close ();
 
     modelFileName = "../HybridModel/IAAs/010_IAA_pt_wake_1_ignore_neg_0.dat";
+    //modelFileName = "../HybridModel/IAAs/010_IAA_z_wake_1_ignore_neg_1.dat";
     f.open (modelFileName.c_str ());
     ix = 0;
     while (f) {
@@ -3941,7 +3967,199 @@ void MakeFinalPlots () {
 
     c15->SaveAs ("../Plots/FinalPlots/iaa_xhZ_theoryComp_iPtZ4.pdf");
   }
-}
+
+
+
+  {
+    TCanvas* c16 = new TCanvas ("c16", "", 800, 800);
+    const double lMargin = 0.15;
+    const double rMargin = 0.04;
+    const double bMargin = 0.15;
+    const double tMargin = 0.04;
+  
+    c16->SetLeftMargin (lMargin);
+    c16->SetRightMargin (rMargin);
+    c16->SetBottomMargin (bMargin);
+    c16->SetTopMargin (tMargin);
+  
+    short iPtZ = nPtZBins-1;
+  
+    {
+      gPad->SetLogx ();
+      gPad->SetLogy ();
+  
+      TH1D* h = new TH1D ("", "", nPtchBins[iPtZ], pTchBins[iPtZ]);
+  
+      TAxis* xax = h->GetXaxis ();
+      TAxis* yax = h->GetYaxis ();
+  
+      xax->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+      xax->SetTitleOffset (0.9 * xax->GetTitleOffset ());
+      xax->SetRangeUser (pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+      xax->SetLabelSize (0);
+  
+      yax->SetTitle ("#it{I}_{AA} (#it{p}_{T}^{ch})");
+      yax->SetLabelOffset (1.8 * yax->GetLabelOffset ());
+      yax->SetMoreLogLabels ();
+      const double ymin = 0.18;
+      const double ymax = 7;
+      //const double ymin = 0.;
+      //const double ymax = 3.6;
+      yax->SetRangeUser (ymin, ymax);
+  
+      h->SetLineWidth (0);
+  
+      h->DrawCopy ("");
+      SaferDelete (&h);
+  
+      tl->SetTextFont (43);
+      tl->SetTextSize (36);
+      tl->SetTextAlign (21);
+  
+      const double yoff = ymin / exp (0.05 * (log (ymax) - log (ymin)) / (1.-tMargin-bMargin));
+      //const double yoff = ymin - 0.05 * (ymax-ymin) / (1.-tMargin-bMargin);
+      tl->DrawLatex (1,  yoff, "1");
+      tl->DrawLatex (2,  yoff, "2");
+      tl->DrawLatex (3,  yoff, "3");
+      tl->DrawLatex (4,  yoff, "4");
+      tl->DrawLatex (5,  yoff, "5");
+      tl->DrawLatex (6,  yoff, "6");
+      tl->DrawLatex (7,  yoff, "7");
+      tl->DrawLatex (10, yoff, "10");
+      tl->DrawLatex (20, yoff, "20");
+      tl->DrawLatex (30, yoff, "30");
+      tl->DrawLatex (40, yoff, "40");
+      tl->DrawLatex (60, yoff, "60");
+  
+      l->SetLineStyle (2);
+      l->SetLineWidth (2);
+      //l->SetLineColor (kPink-8);
+      l->DrawLine (pTchBins[iPtZ][0], 1, pTchBins[iPtZ][nPtchBins[iPtZ]], 1);
+    }
+  
+    TGAE* g = nullptr;
+  
+    g = (TGAE*) tg_CMS_Zh_IAA_0_30_syst->Clone ();
+    g->SetMarkerSize (0);
+    g->SetMarkerColor (cmsColor);
+    g->SetLineColor (kGray+2);
+    g->SetLineWidth (1);
+    g->SetFillColorAlpha (kGray+2, 0.3);
+    ((TGE*) g->Clone ())->Draw ("5P");
+  
+    SaferDelete (&g);
+  
+    g = (TGAE*) tg_CMS_Zh_IAA_0_30_stat->Clone ();
+    g->SetMarkerStyle (kFullCircle);
+    g->SetMarkerSize (1.8);
+    g->SetMarkerColor (kBlack);
+    g->SetLineColor (kBlack);
+    g->SetLineWidth (3);
+    ((TGE*) g->Clone ())->Draw ("P");
+
+    SaferDelete (&g);
+
+  
+    TGAE* g_syst = (TGAE*) g_trk_pt_ptz_iaa_syst[iPtZ][3]->Clone ();
+    RecenterGraph (g_syst);
+    ResetXErrors (g_syst);
+    SetConstantXErrors (g_syst, 0.060, true, pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+  
+    g_syst->SetMarkerSize (0);
+    g_syst->SetMarkerColor (finalColors[3]);
+    g_syst->SetLineColor (finalColors[3]);
+    g_syst->SetLineWidth (1);
+    g_syst->SetFillColorAlpha (finalFillColors[3], 0.3);
+  
+    ((TGAE*) g_syst->Clone ())->Draw ("5P");
+
+    SaferDelete (&g_syst);
+  
+    TGAE* g_stat = make_graph (h_trk_pt_ptz_iaa_stat[iPtZ][3]);
+  
+    RecenterGraph (g_stat);
+    ResetXErrors (g_stat);
+  
+    g_stat->SetMarkerStyle (kFullDiamond);
+    g_stat->SetMarkerSize (2.4);
+    g_stat->SetLineWidth (3);
+    g_stat->SetMarkerColor (finalColors[3]);
+    g_stat->SetLineColor (finalColors[3]);
+  
+    ((TGAE*) g_stat->Clone ())->Draw ("P");
+  
+    g_stat->SetMarkerStyle (kOpenDiamond);
+    g_stat->SetMarkerSize (2.4);
+    g_stat->SetLineWidth (0);
+    g_stat->SetMarkerColor (kBlack);
+  
+    ((TGAE*) g_stat->Clone ())->Draw ("P");
+  
+    SaferDelete (&g_stat);
+
+
+    g_syst = (TGAE*) g_trk_pt_ptz_iaa_syst[iPtZ][2]->Clone ();
+    RecenterGraph (g_syst);
+    ResetXErrors (g_syst);
+    SetConstantXErrors (g_syst, 0.060, true, pTchBins[iPtZ][0], pTchBins[iPtZ][nPtchBins[iPtZ]]);
+  
+    g_syst->SetMarkerSize (0);
+    g_syst->SetMarkerColor (finalColors[2]);
+    g_syst->SetLineColor (finalColors[2]);
+    g_syst->SetLineWidth (1);
+    g_syst->SetFillColorAlpha (finalFillColors[2], 0.3);
+  
+    ((TGAE*) g_syst->Clone ())->Draw ("5P");
+
+    SaferDelete (&g_syst);
+  
+    g_stat = make_graph (h_trk_pt_ptz_iaa_stat[iPtZ][2]);
+  
+    RecenterGraph (g_stat);
+    ResetXErrors (g_stat);
+  
+    g_stat->SetMarkerStyle (kFullSquare);
+    g_stat->SetMarkerSize (1.8);
+    g_stat->SetLineWidth (3);
+    g_stat->SetMarkerColor (finalColors[2]);
+    g_stat->SetLineColor (finalColors[2]);
+  
+    ((TGAE*) g_stat->Clone ())->Draw ("P");
+  
+    g_stat->SetMarkerStyle (kOpenSquare);
+    g_stat->SetMarkerSize (1.8);
+    g_stat->SetLineWidth (0);
+    g_stat->SetMarkerColor (kBlack);
+  
+    ((TGAE*) g_stat->Clone ())->Draw ("P");
+  
+    SaferDelete (&g_stat);
+  
+    myMarkerAndBoxAndLineText (0.33, 0.90-0.012, 1.4, 1001, finalFillColors[3], 0.30, finalColors[3], kFullDiamond,  2.4, "ATLAS #it{p}_{T}^{Z} > 60 GeV, 0-10%", 0.032);
+    myMarkerAndBoxAndLineText (0.33, 0.85-0.012, 1.4, 1001, finalFillColors[2], 0.30, finalColors[2], kFullSquare,  1.8, "ATLAS #it{p}_{T}^{Z} > 60 GeV, 10-30%", 0.032);
+    myMarkerAndBoxAndLineText (0.33, 0.80-0.012, 1.4, 1001, kGray+2, 0.30, kBlack,  kFullCircle, 1.8, "CMS #it{p}_{T}^{Z} > 30 GeV, 0-30% (#it{preliminary})", 0.032);
+  
+    tl->SetTextColor (kBlack);
+    tl->SetTextAlign (11);
+  
+    tl->SetTextSize (32);
+    tl->DrawLatexNDC (0.24, 0.310, "#bf{#it{ATLAS}} Internal");
+    tl->SetTextSize (30);
+    tl->DrawLatexNDC (0.26, 0.260, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
+    tl->DrawLatexNDC (0.26, 0.210, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
+
+    //TPad* p_hamburglar = new TPad ("p_hamburglar", "", 0.65, 0.50, 0.90, 0.75);
+    //p_hamburglar->Draw ();
+    //p_hamburglar->cd ();
+
+    //TImage* image = TImage::Open ("../DataThieving/CMS_Zh_IAA_HP2020/Hamburglar.jpg");
+    //image->Draw ();
+
+
+    c16->SaveAs ("../Plots/FinalPlots/iaa_pTch_cmsComp.pdf");
+  }
+
+} // end of macro
 
 #endif
 

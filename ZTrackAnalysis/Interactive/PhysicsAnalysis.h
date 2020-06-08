@@ -2924,7 +2924,15 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
     h2_den_trk_purs[iCent]->RebinX (4);
 
     h2_trk_purs[iCent] = (TH2D*) h2_num_trk_purs[iCent]->Clone (Form ("h2_trk_pur_iCent%i", iCent));
-    h2_trk_purs[iCent]->Divide (h2_den_trk_purs[iCent]);
+
+    for (int iX = 1; iX <= h2_trk_purs[iCent]->GetNbinsX (); iX++) {
+      for (int iY = 1; iY <= h2_trk_purs[iCent]->GetNbinsY (); iY++) {
+        const float num = h2_trk_purs[iCent]->GetBinContent (iX, iY);
+        const float den = h2_den_trk_purs[iCent]->GetBinContent (iX, iY);
+        if (den != 0 && num != 0)
+          h2_trk_purs[iCent]->SetBinContent (iX, iY, num / den);
+      }
+    }
 
     if (doTrackPurVar) {
       for (int ix = 1; ix <= h2_trk_purs[iCent]->GetNbinsX (); ix++) {
@@ -2951,6 +2959,8 @@ void PhysicsAnalysis :: LoadTrackingPurities (const bool doRebin) {
       for (int ix = 1; ix <= h_trk_purs[iCent][iEta]->GetNbinsX (); ix++) {
         const float passes = num->GetBinContent (ix);
         const float trials = den->GetBinContent (ix);
+        if (passes == 0 || trials == 0)
+          continue;
         h_trk_purs[iCent][iEta]->SetBinContent (ix, passes/trials);
         h_trk_purs[iCent][iEta]->SetBinError (ix, sqrt ((passes/trials)*(1-(passes/trials)) * (*den->GetSumw2 ())[ix] / pow (trials, 2)));
         //h_trk_purs[iCent][iEta]->SetBinError (ix, sqrt ((passes+1)*(passes+2) / ((trials+2)*(trials+3)) - pow (passes+1, 2) / pow (trials+2, 2)));
@@ -4088,7 +4098,7 @@ void PhysicsAnalysis :: PlotTrackingPurities () {
     l->Draw ("same");
   }
 
-  c->SaveAs (Form ("%s/TrackingPurities/TrackingPurities.png", plotPath.Data ()));
+  c->SaveAs (Form ("%s/TrackingPurities/TrackingPurities.pdf", plotPath.Data ()));
 }
 
 
@@ -4202,8 +4212,8 @@ void PhysicsAnalysis :: PlotTrackingPuritiesComparison (PhysicsAnalysis* a) {
     a->PlotTrackingPuritiesComparison ();
     a->useAltMarker = temp;
 
-    if (a->useHITight) c->SaveAs (Form ("%s/TrackingPurities/TrackingPuritiesIDComp.png", plotPath.Data ()));
-    else c->SaveAs (Form ("%s/TrackingPurities/TrackingPuritiesComparison.png", plotPath.Data ()));
+    if (a->useHITight) c->SaveAs (Form ("%s/TrackingPurities/TrackingPuritiesIDComp.pdf", plotPath.Data ()));
+    else c->SaveAs (Form ("%s/TrackingPurities/TrackingPuritiesComparison.pdf", plotPath.Data ()));
   }
 }
 
