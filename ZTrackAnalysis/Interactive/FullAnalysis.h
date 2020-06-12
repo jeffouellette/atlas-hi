@@ -468,7 +468,7 @@ void FullAnalysis :: ScaleHists () {
 
       if (h_z_pt[iCent][iSpc]) {
         h_z_pt[iCent][iSpc]->Rebin (10);
-        //h_z_pt[iCent][iSpc]->Scale (1./16.);
+        //h_z_pt[iCent][iSpc]->Scale (1./10.);
         if (h_z_pt[iCent][iSpc]->Integral () > 0)
           h_z_pt[iCent][iSpc]->Scale (1 / h_z_pt[iCent][iSpc]->Integral (), "width");
       }
@@ -1117,12 +1117,11 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
         htemp->GetXaxis ()->SetMoreLogLabels ();
         htemp->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
         htemp->GetYaxis ()->SetTitle (Form ("(1/N_{Z}) (dN_{%s}/d#it{p}_{T}) [GeV^{-1}]", spc));
-        htemp->GetXaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetXaxis ()->SetTitleSize (0);
         htemp->GetYaxis ()->SetTitleSize (0.04/0.6);
-        htemp->GetXaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetXaxis ()->SetLabelSize (0);
         htemp->GetYaxis ()->SetLabelSize (0.04/0.6);
-        htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->GetYaxis ()->SetTitleOffset (1.1);
         htemp->DrawCopy ("hist");
         SaferDelete (&htemp);
       }
@@ -1167,15 +1166,15 @@ void FullAnalysis :: PlotLeptonPtSpectra (FullAnalysis* a) {
       TH1D* htemp = (TH1D*) h->Clone ("htemp");
       htemp->Reset ();
       htemp->GetXaxis ()->SetMoreLogLabels ();
-      htemp->GetYaxis ()->SetRangeUser (0.0, 2.0);
+      htemp->GetYaxis ()->SetRangeUser (0.1, 1.9);
       htemp->GetXaxis ()->SetTitle (Form ("#it{p}_{T}^{ %s} [GeV]", spc));
       htemp->GetYaxis ()->SetTitle ("Data / MC");
       htemp->GetXaxis ()->SetTitleSize (0.04/0.4);
       htemp->GetYaxis ()->SetTitleSize (0.04/0.4);
       htemp->GetXaxis ()->SetLabelSize (0.04/0.4);
       htemp->GetYaxis ()->SetLabelSize (0.04/0.4);
-      htemp->GetXaxis ()->SetTitleOffset (2.5*0.4);
-      htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
+      htemp->GetXaxis ()->SetTitleOffset (1.2);
+      htemp->GetYaxis ()->SetTitleOffset (1.1);
       htemp->GetYaxis ()->CenterTitle ();
       htemp->DrawCopy ("hist");
       SaferDelete (&htemp);
@@ -1617,15 +1616,14 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       if (!canvasExists) {
         TH1D* htemp = (TH1D*) h->Clone ("htemp");
         htemp->Reset ();
-        htemp->GetYaxis ()->SetRangeUser (1.2e-5, 4);
+        htemp->GetYaxis ()->SetRangeUser (1.2e-6, 0.90);
         htemp->GetXaxis ()->SetTitle ("#it{p}_{T}^{ Z} [GeV]");
         htemp->GetYaxis ()->SetTitle ("(1/N_{Z}) (dN/d#it{p}_{T}) [GeV^{-1}]");
-        htemp->GetXaxis ()->SetTitleSize (0.04/0.6);
+        htemp->GetXaxis ()->SetTitleSize (0);
         htemp->GetYaxis ()->SetTitleSize (0.04/0.6);
-        htemp->GetXaxis ()->SetLabelSize (0.04/0.6);
+        htemp->GetXaxis ()->SetLabelSize (0);
         htemp->GetYaxis ()->SetLabelSize (0.04/0.6);
-        htemp->GetXaxis ()->SetTitleOffset (1.5*0.6);
-        htemp->GetYaxis ()->SetTitleOffset (1.5*0.6);
+        htemp->GetYaxis ()->SetTitleOffset (1.1);
         htemp->DrawCopy ("hist");
         SaferDelete (&htemp);
       }
@@ -1676,8 +1674,8 @@ void FullAnalysis :: PlotZPtSpectra (FullAnalysis* a) {
       htemp->GetYaxis ()->SetTitleSize (0.04/0.4);
       htemp->GetXaxis ()->SetLabelSize (0.04/0.4);
       htemp->GetYaxis ()->SetLabelSize (0.04/0.4);
-      htemp->GetXaxis ()->SetTitleOffset (2.5*0.4);
-      htemp->GetYaxis ()->SetTitleOffset (1.5*0.4);
+      htemp->GetXaxis ()->SetTitleOffset (1.2);
+      htemp->GetYaxis ()->SetTitleOffset (1.1);
       htemp->GetYaxis ()->CenterTitle ();
       htemp->DrawCopy ("hist");
       SaferDelete (&htemp);
