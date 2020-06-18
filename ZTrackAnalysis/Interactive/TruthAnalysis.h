@@ -8,6 +8,8 @@
 #include <Utilities.h>
 #include <ArrayTemplates.h>
 
+#include <TRandom3.h>
+
 #include <iostream>
 
 using namespace std;
@@ -16,6 +18,13 @@ using namespace atlashi;
 class TruthAnalysis : public FullAnalysis {
 
   public:
+
+  bool doSmearing = false;
+  TFile* trkMomResFile = nullptr;
+  bool tmrsLoaded   = false;
+
+  TH2D** h2_tmr_factors = Get1DArray <TH2D*> (numCentBins);
+  TRandom3* tmr_rndm = nullptr;
 
   TruthAnalysis (const char* _name = "truth") : FullAnalysis () {
     name = _name;
@@ -28,13 +37,92 @@ class TruthAnalysis : public FullAnalysis {
 
   void Execute (const char* inFileName, const char* outFileName) override;
   virtual void LoadHists (const char* histFileName = "savedHists.root", const bool _finishHists = true) override;
+
+  void LoadTrackMomentumResolutions ();
+  double SmearTrackMomentum (const float fcal_et, const double truth_pt, const double truth_eta, const bool isPbPb);
 };
 
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-//// Load histograms into memory, then combine channels.
+// Load track momentum resolution factors into memory for truth-level smearing.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+void TruthAnalysis :: LoadTrackMomentumResolutions () {
+  if (tmrsLoaded)
+    return;
+
+  SetupDirectories ("", "ZTrackAnalysis/");
+  TDirectory* _gDirectory = gDirectory; 
+  TString _tmrDir = "Nominal";
+  if (useHITight)
+    _tmrDir = "Variations/TrackHITightWPVariation";
+  else if (doTrackEffVar)
+    _tmrDir = "Variations/TrackEffPionsVariation";
+  cout << Form ("Reading tracking efficiencies from %s/TrackingMomentumResolution/%s/trackingMomentumResolutionFactors.root", rootPath.Data (), _tmrDir.Data ()) << endl;
+  trkMomResFile = new TFile (Form ("%s/TrackingMomentumResolution/%s/trackingMomentumResolutionFactors.root", rootPath.Data (), _tmrDir.Data ()), "read");
+
+  for (int iCent = 0; iCent < numTrkCorrCentBins; iCent++) {
+    h2_tmr_factors[iCent] = (TH2D*) trkMomResFile->Get (Form ("h2_avg_tmr_iCent%i", iCent));
+  }
+
+  tmrsLoaded = true;
+
+  tmr_rndm = new TRandom3 ();
+  tmr_rndm->SetSeed (8141995);
+
+  _gDirectory->cd ();
+  return;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Smears track momentum by the resolution factors to identify any unfolding effect.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+double TruthAnalysis :: SmearTrackMomentum (const float fcal_et, const double truth_pt, const double truth_eta, const bool isPbPb) {
+  if (!tmrsLoaded)
+    LoadTrackMomentumResolutions ();
+
+  short iCent = 0;
+  if (isPbPb && !useImpactParameter) {
+    while (iCent < numTrkCorrCentBins) {
+      if (fcal_et < trkCorrCentBins[iCent])
+        break;
+      else
+        iCent++;
+    }
+    if (iCent == numTrkCorrCentBins) // force ultra-central events to behave like 0-10% Pb+Pb
+      iCent--;
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
+      return 0;
+  }
+  else if (isPbPb && useImpactParameter) {
+    iCent = GetIPCentBin (fcal_et); // fcal_et variable should actually be impact parameter if useImpactParameter is true
+    if (iCent < 1 || iCent > numTrkCorrCentBins-1)
+      return 0;
+  }
+
+  TH2D* h2 = h2_tmr_factors[iCent];
+
+  const int xbin = h2->GetXaxis ()->FindFixBin (truth_eta);
+  const int ybin = h2->GetYaxis ()->FindFixBin (truth_pt);
+  if (xbin < 1 || h2->GetXaxis ()->GetNbins () < xbin)
+    return 0;
+  if (ybin < 1 || h2->GetYaxis ()->GetNbins () < ybin)
+    return 0;
+
+  const double tmr = h2->GetBinContent (xbin, ybin);
+
+  return tmr_rndm->Gaus (1, tmr/100.) * truth_pt;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Load histograms into memory, then combine channels.
 //////////////////////////////////////////////////////////////////////////////////////////////////
 void TruthAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
@@ -164,7 +252,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_PbPb_vz_reweighted->Fill (vz, event_weight);
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt[iTrk];
+        const float trkpt = (doSmearing ? SmearTrackMomentum (fcal_et, trk_pt[iTrk], trk_eta[iTrk], true) : trk_pt[iTrk]);
         const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt) continue;
@@ -373,7 +461,7 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
       h_z_counts[iSpc][iPtZ][iCent]->Fill (2.5, pow (event_weight, 2));
 
       for (int iTrk = 0; iTrk < ntrk; iTrk++) {
-        const float trkpt = trk_pt[iTrk];
+        const float trkpt = (doSmearing ? SmearTrackMomentum (fcal_et, trk_pt[iTrk], trk_eta[iTrk], false) : trk_pt[iTrk]);
         const float xhz = trkpt / z_pt;
 
         if (trkpt < trk_min_pt) continue;

@@ -66,11 +66,12 @@ int main (int argc, char** argv) {
   const bool doMixVarH            = (string (argv[8]) == "doMixVarH");
   const bool doPPMBMixVar         = (string (argv[8]) == "doPPMBMixVar");
   const bool doPPTransMaxVar      = (string (argv[8]) == "doPPTransMaxVar");
+  const bool doSmearingVar        = (string (argv[8]) == "doSmearingVar");
   const bool doPPMixVar           = (doPPMBMixVar || doPPTransMaxVar);
   const bool doPbPbMixVar         = (doMixVarA || doMixVarB || doMixVarC || doMixVarD || doMixVarE || doMixVarF || doMixVarG || doMixVarH);
 
 
-  if (!doHITightVar && !doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doPbPbMixVar && !doPPMixVar) {
+  if (!doHITightVar && !doElectronPtUpVar && !doElectronPtDownVar && !doMuonPtUpVar && !doMuonPtDownVar && !doPbPbMixVar && !doPPMixVar && !doSmearingVar) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Nominal/" + outFileName;
@@ -134,6 +135,10 @@ int main (int argc, char** argv) {
     inFileName = "Nominal/" + inFileName;
     mbInFileName = "Nominal/" + mbInFileName;
     outFileName = "Variations/PPTransMaxVariation/" + outFileName;
+  } else if (doSmearingVar) {
+    inFileName = "Nominal/" + inFileName;
+    mbInFileName = "Nominal/" + mbInFileName;
+    outFileName = "Variations/SmearingVariation/" + outFileName;
   }
 
 
@@ -253,6 +258,7 @@ int main (int argc, char** argv) {
     inFileName = "TruthAnalysis/" + inFileName;
     outFileName = "TruthAnalysis/" + outFileName;
     truth = new TruthAnalysis ("truth");
+    truth->doSmearing = doSmearingVar;
     truth->Execute (inFileName.c_str (), outFileName.c_str ());
     delete truth;
   }
