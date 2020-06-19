@@ -106,14 +106,17 @@ double TruthAnalysis :: SmearTrackMomentum (const float fcal_et, const double tr
 
   TH2D* h2 = h2_tmr_factors[iCent];
 
-  const int xbin = h2->GetXaxis ()->FindFixBin (truth_eta);
-  const int ybin = h2->GetYaxis ()->FindFixBin (truth_pt);
+  const int xbin = h2->GetXaxis ()->FindFixBin (truth_pt);
+  const int ybin = h2->GetYaxis ()->FindFixBin (truth_eta);
   if (xbin < 1 || h2->GetXaxis ()->GetNbins () < xbin)
     return 0;
   if (ybin < 1 || h2->GetYaxis ()->GetNbins () < ybin)
     return 0;
 
   const double tmr = h2->GetBinContent (xbin, ybin);
+
+  if (tmr == 0)
+    return truth_pt;
 
   return tmr_rndm->Gaus (1, tmr/100.) * truth_pt;
 }
