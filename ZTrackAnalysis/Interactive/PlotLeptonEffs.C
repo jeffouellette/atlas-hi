@@ -14,69 +14,47 @@ typedef TGraphAsymmErrors TGAE;
 
 TEfficiency* t_muonTrigEff_pt_pp;
 TEfficiency* t_muonTrigEff_pt_PbPb18;
-TEfficiency* t_muonTrigEff_pt_PbPb15;
 TEfficiency* t_muonTrigEff_fcal_PbPb18;
-TEfficiency* t_muonTrigEff_fcal_PbPb15;
 TEfficiency* t_muonTrigEff_eta_phi_pp;
 TEfficiency* t_muonTrigEff_eta_phi_PbPb18;
-TEfficiency* t_muonTrigEff_eta_phi_PbPb15;
 TEfficiency* t_muonTrigEff_eta_pp;
 TEfficiency* t_muonTrigEff_eta_PbPb18;
-TEfficiency* t_muonTrigEff_eta_PbPb15;
 
 //TEfficiency* t_muonMed_IDEff_pt_pp[3];
 //TEfficiency* t_muonMed_IDEff_pt_PbPb18[3];
-//TEfficiency* t_muonMed_IDEff_pt_PbPb15[3];
 //TEfficiency* t_muonMed_IDEff_eta_pp[3];
 //TEfficiency* t_muonMed_IDEff_eta_PbPb18[3];
-//TEfficiency* t_muonMed_IDEff_eta_PbPb15[3];
 //TEfficiency* t_muonMed_IDEff_fcal_PbPb18[3];
-//TEfficiency* t_muonMed_IDEff_fcal_PbPb15[3];
 //
 //TEfficiency* t_muonID_MSEff_pt_pp[3];
 //TEfficiency* t_muonID_MSEff_pt_PbPb18[3];
-//TEfficiency* t_muonID_MSEff_pt_PbPb15[3];
 //TEfficiency* t_muonID_MSEff_eta_pp[3];
 //TEfficiency* t_muonID_MSEff_eta_PbPb18[3];
-//TEfficiency* t_muonID_MSEff_eta_PbPb15[3];
 //TEfficiency* t_muonID_MSEff_fcal_PbPb18[3];
-//TEfficiency* t_muonID_MSEff_fcal_PbPb15[3];
 
 TEfficiency* t_muonIDEff_pt_pp;
 TEfficiency* t_muonIDEff_pt_PbPb18;
-TEfficiency* t_muonIDEff_pt_PbPb15;
 TEfficiency* t_muonIDEff_fcal_PbPb18;
-TEfficiency* t_muonIDEff_fcal_PbPb15;
 TEfficiency* t_muonIDEff_eta_phi_pp;
 TEfficiency* t_muonIDEff_eta_phi_PbPb18;
-TEfficiency* t_muonIDEff_eta_phi_PbPb15;
 TEfficiency* t_muonIDEff_eta_pp;
 TEfficiency* t_muonIDEff_eta_PbPb18;
-TEfficiency* t_muonIDEff_eta_PbPb15;
 
 TEfficiency* t_electronTrigEff_pt_pp;
 TEfficiency* t_electronTrigEff_pt_PbPb18;
-TEfficiency* t_electronTrigEff_pt_PbPb15;
 TEfficiency* t_electronTrigEff_eta_pp;
 TEfficiency* t_electronTrigEff_eta_PbPb18;
-TEfficiency* t_electronTrigEff_eta_PbPb15;
 TEfficiency* t_electronTrigEff_pt_eta_pp;
 TEfficiency* t_electronTrigEff_pt_eta_PbPb18;
-TEfficiency* t_electronTrigEff_pt_eta_PbPb15;
 TEfficiency* t_electronTrigEff_fcal_PbPb18;
-TEfficiency* t_electronTrigEff_fcal_PbPb15;
 
 TEfficiency* t_electronIDEff_pt_pp;
 TEfficiency* t_electronIDEff_pt_PbPb18;
-TEfficiency* t_electronIDEff_pt_PbPb15;
 TEfficiency* t_electronIDEff_eta_pp;
 TEfficiency* t_electronIDEff_eta_PbPb18;
-TEfficiency* t_electronIDEff_eta_PbPb15;
 TEfficiency* t_electronIDEff_pt_eta_pp;
 TEfficiency* t_electronIDEff_pt_eta_PbPb18;
-TEfficiency* t_electronIDEff_pt_eta_PbPb15;
 TEfficiency* t_electronIDEff_fcal_PbPb18;
-TEfficiency* t_electronIDEff_fcal_PbPb15;
 
 
 bool isPbPb = true;
@@ -107,73 +85,49 @@ void PlotLeptonEffs () {
   h_muonTrigEffDen_pt[0] = (TH1D*) inFile->Get ("h_muonTrigEffDen_pt_pp");
   h_muonTrigEffNum_pt[1] = (TH1D*) inFile->Get ("h_muonTrigEffNum_pt_PbPb18");
   h_muonTrigEffDen_pt[1] = (TH1D*) inFile->Get ("h_muonTrigEffDen_pt_PbPb18");
-  //h_muonTrigEffNum_pt[2] = (TH1D*) inFile->Get ("h_muonTrigEffNum_pt_PbPb15");
-  //h_muonTrigEffDen_pt[2] = (TH1D*) inFile->Get ("h_muonTrigEffDen_pt_PbPb15");
   h_muonIDEffNum_pt[0]   = (TH1D*) inFile->Get ("h_muonIDEffNum_pt_pp");
   h_muonIDEffDen_pt[0]   = (TH1D*) inFile->Get ("h_muonIDEffDen_pt_pp");
   h_muonIDEffNum_pt[1]   = (TH1D*) inFile->Get ("h_muonIDEffNum_pt_PbPb18");
   h_muonIDEffDen_pt[1]   = (TH1D*) inFile->Get ("h_muonIDEffDen_pt_PbPb18");
-  //h_muonIDEffNum_pt[2]   = (TH1D*) inFile->Get ("h_muonIDEffNum_pt_PbPb15");
-  //h_muonIDEffDen_pt[2]   = (TH1D*) inFile->Get ("h_muonIDEffDen_pt_PbPb15");
 
   t_muonTrigEff_pt_pp = new TEfficiency (*(h_muonTrigEffNum_pt[0]), *(h_muonTrigEffDen_pt[0]));
   t_muonTrigEff_pt_PbPb18 = new TEfficiency (*(h_muonTrigEffNum_pt[1]), *(h_muonTrigEffDen_pt[1]));
-  //t_muonTrigEff_pt_PbPb15 = new TEfficiency (*(h_muonTrigEffNum_pt[2]), *(h_muonTrigEffDen_pt[2]));
   t_muonIDEff_pt_pp = new TEfficiency (*(h_muonIDEffNum_pt[0]), *(h_muonIDEffDen_pt[0]));
   t_muonIDEff_pt_PbPb18 = new TEfficiency (*(h_muonIDEffNum_pt[1]), *(h_muonIDEffDen_pt[1]));
-  //t_muonIDEff_pt_PbPb15 = new TEfficiency (*(h_muonIDEffNum_pt[2]), *(h_muonIDEffDen_pt[2]));
 
   h2_muonTrigEffNum_eta_phi[0] = (TH2D*) inFile->Get ("h2_muonTrigEffNum_eta_phi_pp");
   h2_muonTrigEffDen_eta_phi[0] = (TH2D*) inFile->Get ("h2_muonTrigEffDen_eta_phi_pp");
   h2_muonTrigEffNum_eta_phi[1] = (TH2D*) inFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb18");
   h2_muonTrigEffDen_eta_phi[1] = (TH2D*) inFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb18");
-  //h2_muonTrigEffNum_eta_phi[2] = (TH2D*) inFile->Get ("h2_muonTrigEffNum_eta_phi_PbPb15");
-  //h2_muonTrigEffDen_eta_phi[2] = (TH2D*) inFile->Get ("h2_muonTrigEffDen_eta_phi_PbPb15");
   h2_muonIDEffNum_eta_phi[0]   = (TH2D*) inFile->Get ("h2_muonIDEffNum_eta_phi_pp");
   h2_muonIDEffDen_eta_phi[0]   = (TH2D*) inFile->Get ("h2_muonIDEffDen_eta_phi_pp");
   h2_muonIDEffNum_eta_phi[1]   = (TH2D*) inFile->Get ("h2_muonIDEffNum_eta_phi_PbPb18");
   h2_muonIDEffDen_eta_phi[1]   = (TH2D*) inFile->Get ("h2_muonIDEffDen_eta_phi_PbPb18");
-  //h2_muonIDEffNum_eta_phi[2]   = (TH2D*) inFile->Get ("h2_muonIDEffNum_eta_phi_PbPb15");
-  //h2_muonIDEffDen_eta_phi[2]   = (TH2D*) inFile->Get ("h2_muonIDEffDen_eta_phi_PbPb15");
 
   h_muonTrigEffNum_eta[0] = (TH1D*) h2_muonTrigEffNum_eta_phi[0]->ProjectionX ("h_muonTrigEffNum_eta_pp");
   h_muonTrigEffDen_eta[0] = (TH1D*) h2_muonTrigEffDen_eta_phi[0]->ProjectionX ("h_muonTrigEffDen_eta_pp");
   h_muonTrigEffNum_eta[1] = (TH1D*) h2_muonTrigEffNum_eta_phi[1]->ProjectionX ("h_muonTrigEffNum_eta_PbPb18");
   h_muonTrigEffDen_eta[1] = (TH1D*) h2_muonTrigEffDen_eta_phi[1]->ProjectionX ("h_muonTrigEffDen_eta_PbPb18");
-  //h_muonTrigEffNum_eta[2] = (TH1D*) h2_muonTrigEffNum_eta_phi[2]->ProjectionX ("h_muonTrigEffNum_eta_PbPb15");
-  //h_muonTrigEffDen_eta[2] = (TH1D*) h2_muonTrigEffDen_eta_phi[2]->ProjectionX ("h_muonTrigEffDen_eta_PbPb15");
   h_muonIDEffNum_eta[0]   = (TH1D*) h2_muonIDEffNum_eta_phi[0]->ProjectionX ("h_muonIDEffNum_eta_pp");
   h_muonIDEffDen_eta[0]   = (TH1D*) h2_muonIDEffDen_eta_phi[0]->ProjectionX ("h_muonIDEffDen_eta_pp");
   h_muonIDEffNum_eta[1]   = (TH1D*) h2_muonIDEffNum_eta_phi[1]->ProjectionX ("h_muonIDEffNum_eta_PbPb18");
   h_muonIDEffDen_eta[1]   = (TH1D*) h2_muonIDEffDen_eta_phi[1]->ProjectionX ("h_muonIDEffDen_eta_PbPb18");
-  //h_muonIDEffNum_eta[2]   = (TH1D*) h2_muonIDEffNum_eta_phi[2]->ProjectionX ("h_muonIDEffNum_eta_PbPb15");
-  //h_muonIDEffDen_eta[2]   = (TH1D*) h2_muonIDEffDen_eta_phi[2]->ProjectionX ("h_muonIDEffDen_eta_PbPb15");
 
   t_muonTrigEff_eta_phi_pp = new TEfficiency (*(h2_muonTrigEffNum_eta_phi[0]), *(h2_muonTrigEffDen_eta_phi[0]));
   t_muonTrigEff_eta_phi_PbPb18 = new TEfficiency (*(h2_muonTrigEffNum_eta_phi[1]), *(h2_muonTrigEffDen_eta_phi[1]));
-  //t_muonTrigEff_eta_phi_PbPb15 = new TEfficiency (*(h2_muonTrigEffNum_eta_phi[2]), *(h2_muonTrigEffDen_eta_phi[2]));
   t_muonTrigEff_eta_pp = new TEfficiency (*(h_muonTrigEffNum_eta[0]), *(h_muonTrigEffDen_eta[0]));
   t_muonTrigEff_eta_PbPb18 = new TEfficiency (*(h_muonTrigEffNum_eta[1]), *(h_muonTrigEffDen_eta[1]));
-  //t_muonTrigEff_eta_PbPb15 = new TEfficiency (*(h_muonTrigEffNum_eta[2]), *(h_muonTrigEffDen_eta[2]));
   t_muonIDEff_eta_phi_pp = new TEfficiency (*(h2_muonIDEffNum_eta_phi[0]), *(h2_muonIDEffDen_eta_phi[0]));
   t_muonIDEff_eta_phi_PbPb18 = new TEfficiency (*(h2_muonIDEffNum_eta_phi[1]), *(h2_muonIDEffDen_eta_phi[1]));
-  //t_muonIDEff_eta_phi_PbPb15 = new TEfficiency (*(h2_muonIDEffNum_eta_phi[2]), *(h2_muonIDEffDen_eta_phi[2]));
   t_muonIDEff_eta_pp = new TEfficiency (*(h_muonIDEffNum_eta[0]), *(h_muonIDEffDen_eta[0]));
   t_muonIDEff_eta_PbPb18 = new TEfficiency (*(h_muonIDEffNum_eta[1]), *(h_muonIDEffDen_eta[1]));
-  //t_muonIDEff_eta_PbPb15 = new TEfficiency (*(h_muonIDEffNum_eta[2]), *(h_muonIDEffDen_eta[2]));
 
   h_muonTrigEffNum_fcal[0] = (TH1D*) inFile->Get ("h_muonTrigEffNum_fcal_PbPb18");
   h_muonTrigEffDen_fcal[0] = (TH1D*) inFile->Get ("h_muonTrigEffDen_fcal_PbPb18");
-  //h_muonTrigEffNum_fcal[1] = (TH1D*) inFile->Get ("h_muonTrigEffNum_fcal_PbPb15");
-  //h_muonTrigEffDen_fcal[1] = (TH1D*) inFile->Get ("h_muonTrigEffDen_fcal_PbPb15");
   t_muonTrigEff_fcal_PbPb18 = new TEfficiency (*(h_muonTrigEffNum_fcal[0]), *(h_muonTrigEffDen_fcal[0]));
-  //t_muonTrigEff_fcal_PbPb15 = new TEfficiency (*(h_muonTrigEffNum_fcal[1]), *(h_muonTrigEffDen_fcal[1]));
   h_muonIDEffNum_fcal[0] = (TH1D*) inFile->Get ("h_muonIDEffNum_fcal_PbPb18");
   h_muonIDEffDen_fcal[0] = (TH1D*) inFile->Get ("h_muonIDEffDen_fcal_PbPb18");
-  //h_muonIDEffNum_fcal[1] = (TH1D*) inFile->Get ("h_muonIDEffNum_fcal_PbPb15");
-  //h_muonIDEffDen_fcal[1] = (TH1D*) inFile->Get ("h_muonIDEffDen_fcal_PbPb15");
   t_muonIDEff_fcal_PbPb18 = new TEfficiency (*(h_muonIDEffNum_fcal[0]), *(h_muonIDEffDen_fcal[0]));
-  //t_muonIDEff_fcal_PbPb15 = new TEfficiency (*(h_muonIDEffNum_fcal[1]), *(h_muonIDEffDen_fcal[1]));
 
   //TH1D* h_muonMed_IDEffNum_pt[3][3];
   //TH1D* h_muonMed_IDEffDen_pt[3][3];
@@ -194,60 +148,42 @@ void PlotLeptonEffs () {
   //  h_muonMed_IDEffDen_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_pp_sign%i", iSign));
   //  h_muonMed_IDEffNum_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_pt_PbPb18_sign%i", iSign));
   //  h_muonMed_IDEffDen_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_PbPb18_sign%i", iSign));
-  //  h_muonMed_IDEffNum_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_pt_PbPb15_sign%i", iSign));
-  //  h_muonMed_IDEffDen_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_pt_PbPb15_sign%i", iSign));
 
   //  t_muonMed_IDEff_pt_pp[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[0][iSign]), *(h_muonMed_IDEffDen_pt[0][iSign]));
   //  t_muonMed_IDEff_pt_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[1][iSign]), *(h_muonMed_IDEffDen_pt[1][iSign]));
-  //  t_muonMed_IDEff_pt_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_pt[2][iSign]), *(h_muonMed_IDEffDen_pt[2][iSign]));
 
   //  h_muonMed_IDEffNum_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_pp_sign%i", iSign));
   //  h_muonMed_IDEffDen_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_pp_sign%i", iSign));
   //  h_muonMed_IDEffNum_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_PbPb18_sign%i", iSign));
   //  h_muonMed_IDEffDen_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_PbPb18_sign%i", iSign));
-  //  h_muonMed_IDEffNum_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_eta_PbPb15_sign%i", iSign));
-  //  h_muonMed_IDEffDen_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_eta_PbPb15_sign%i", iSign));
 
   //  t_muonMed_IDEff_eta_pp[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[0][iSign]), *(h_muonMed_IDEffDen_eta[0][iSign]));
   //  t_muonMed_IDEff_eta_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[1][iSign]), *(h_muonMed_IDEffDen_eta[1][iSign]));
-  //  t_muonMed_IDEff_eta_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_eta[2][iSign]), *(h_muonMed_IDEffDen_eta[2][iSign]));
 
   //  h_muonMed_IDEffNum_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_fcal_PbPb18_sign%i", iSign));
   //  h_muonMed_IDEffDen_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_fcal_PbPb18_sign%i", iSign));
-  //  h_muonMed_IDEffNum_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffNum_fcal_PbPb15_sign%i", iSign));
-  //  h_muonMed_IDEffDen_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonMed_IDEffDen_fcal_PbPb15_sign%i", iSign));
   //  t_muonMed_IDEff_fcal_PbPb18[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[0][iSign]), *(h_muonMed_IDEffDen_fcal[0][iSign]));
-  //  t_muonMed_IDEff_fcal_PbPb15[iSign] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[1][iSign]), *(h_muonMed_IDEffDen_fcal[1][iSign]));
 
 
   //  h_muonID_MSEffNum_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_pp_sign%i", iSign));
   //  h_muonID_MSEffDen_pt[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_pp_sign%i", iSign));
   //  h_muonID_MSEffNum_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_PbPb18_sign%i", iSign));
   //  h_muonID_MSEffDen_pt[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_PbPb18_sign%i", iSign));
-  //  h_muonID_MSEffNum_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_pt_PbPb15_sign%i", iSign));
-  //  h_muonID_MSEffDen_pt[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_pt_PbPb15_sign%i", iSign));
 
   //  t_muonID_MSEff_pt_pp[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[0][iSign]), *(h_muonID_MSEffDen_pt[0][iSign]));
   //  t_muonID_MSEff_pt_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[1][iSign]), *(h_muonID_MSEffDen_pt[1][iSign]));
-  //  t_muonID_MSEff_pt_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_pt[2][iSign]), *(h_muonID_MSEffDen_pt[2][iSign]));
 
   //  h_muonID_MSEffNum_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_pp_sign%i", iSign));
   //  h_muonID_MSEffDen_eta[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_pp_sign%i", iSign));
   //  h_muonID_MSEffNum_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_PbPb18_sign%i", iSign));
   //  h_muonID_MSEffDen_eta[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_PbPb18_sign%i", iSign));
-  //  h_muonID_MSEffNum_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_eta_PbPb15_sign%i", iSign));
-  //  h_muonID_MSEffDen_eta[2][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_eta_PbPb15_sign%i", iSign));
 
   //  t_muonID_MSEff_eta_pp[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[0][iSign]), *(h_muonID_MSEffDen_eta[0][iSign]));
   //  t_muonID_MSEff_eta_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[1][iSign]), *(h_muonID_MSEffDen_eta[1][iSign]));
-  //  t_muonID_MSEff_eta_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_eta[2][iSign]), *(h_muonID_MSEffDen_eta[2][iSign]));
 
   //  h_muonID_MSEffNum_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_fcal_PbPb18_sign%i", iSign));
   //  h_muonID_MSEffDen_fcal[0][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_fcal_PbPb18_sign%i", iSign));
-  //  h_muonID_MSEffNum_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffNum_fcal_PbPb15_sign%i", iSign));
-  //  h_muonID_MSEffDen_fcal[1][iSign] = (TH1D*) inFile->Get (Form ("h_muonID_MSEffDen_fcal_PbPb15_sign%i", iSign));
   //  t_muonID_MSEff_fcal_PbPb18[iSign] = new TEfficiency (*(h_muonID_MSEffNum_fcal[0][iSign]), *(h_muonID_MSEffDen_fcal[0][iSign]));
-  //  t_muonID_MSEff_fcal_PbPb15[iSign] = new TEfficiency (*(h_muonID_MSEffNum_fcal[1][iSign]), *(h_muonID_MSEffDen_fcal[1][iSign]));
   //}
 
   //{
@@ -255,8 +191,6 @@ void PlotLeptonEffs () {
   //  h_muonMed_IDEffDen_pt[0][2] = (TH1D*) h_muonMed_IDEffDen_pt[0][1]->Clone ("h_muonMed_IDEffDen_pt_pp_sign2");
   //  h_muonMed_IDEffNum_pt[1][2] = (TH1D*) h_muonMed_IDEffNum_pt[1][1]->Clone ("h_muonMed_IDEffNum_pt_PbPb18_sign2");
   //  h_muonMed_IDEffDen_pt[1][2] = (TH1D*) h_muonMed_IDEffDen_pt[1][1]->Clone ("h_muonMed_IDEffDen_pt_PbPb18_sign2");
-  //  h_muonMed_IDEffNum_pt[2][2] = (TH1D*) h_muonMed_IDEffNum_pt[2][1]->Clone ("h_muonMed_IDEffNum_pt_PbPb15_sign2");
-  //  h_muonMed_IDEffDen_pt[2][2] = (TH1D*) h_muonMed_IDEffDen_pt[2][1]->Clone ("h_muonMed_IDEffDen_pt_PbPb15_sign2");
   //  h_muonMed_IDEffNum_pt[0][2]->Add (h_muonMed_IDEffNum_pt[0][0], -1);
   //  h_muonMed_IDEffDen_pt[0][2]->Add (h_muonMed_IDEffDen_pt[0][0], -1);
   //  h_muonMed_IDEffNum_pt[1][2]->Add (h_muonMed_IDEffNum_pt[1][0], -1);
@@ -266,14 +200,11 @@ void PlotLeptonEffs () {
 
   //  t_muonMed_IDEff_pt_pp[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[0][2]), *(h_muonMed_IDEffDen_pt[0][2]));
   //  t_muonMed_IDEff_pt_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[1][2]), *(h_muonMed_IDEffDen_pt[1][2]));
-  //  t_muonMed_IDEff_pt_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_pt[2][2]), *(h_muonMed_IDEffDen_pt[2][2]));
 
   //  h_muonMed_IDEffNum_eta[0][2] = (TH1D*) h_muonMed_IDEffNum_eta[0][1]->Clone ("h_muonMed_IDEffNum_eta_pp_sign2");
   //  h_muonMed_IDEffDen_eta[0][2] = (TH1D*) h_muonMed_IDEffDen_eta[0][1]->Clone ("h_muonMed_IDEffDen_eta_pp_sign2");
   //  h_muonMed_IDEffNum_eta[1][2] = (TH1D*) h_muonMed_IDEffNum_eta[1][1]->Clone ("h_muonMed_IDEffNum_eta_PbPb18_sign2");
   //  h_muonMed_IDEffDen_eta[1][2] = (TH1D*) h_muonMed_IDEffDen_eta[1][1]->Clone ("h_muonMed_IDEffDen_eta_PbPb18_sign2");
-  //  h_muonMed_IDEffNum_eta[2][2] = (TH1D*) h_muonMed_IDEffNum_eta[2][1]->Clone ("h_muonMed_IDEffNum_eta_PbPb15_sign2");
-  //  h_muonMed_IDEffDen_eta[2][2] = (TH1D*) h_muonMed_IDEffDen_eta[2][1]->Clone ("h_muonMed_IDEffDen_eta_PbPb15_sign2");
   //  h_muonMed_IDEffNum_eta[0][2]->Add (h_muonMed_IDEffNum_eta[0][0], -1);
   //  h_muonMed_IDEffDen_eta[0][2]->Add (h_muonMed_IDEffDen_eta[0][0], -1);
   //  h_muonMed_IDEffNum_eta[1][2]->Add (h_muonMed_IDEffNum_eta[1][0], -1);
@@ -283,27 +214,21 @@ void PlotLeptonEffs () {
 
   //  t_muonMed_IDEff_eta_pp[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[0][2]), *(h_muonMed_IDEffDen_eta[0][2]));
   //  t_muonMed_IDEff_eta_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[1][2]), *(h_muonMed_IDEffDen_eta[1][2]));
-  //  t_muonMed_IDEff_eta_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_eta[2][2]), *(h_muonMed_IDEffDen_eta[2][2]));
 
   //  h_muonMed_IDEffNum_fcal[0][2] = (TH1D*) h_muonMed_IDEffNum_fcal[0][1]->Clone ("h_muonMed_IDEffNum_fcal_PbPb18_sign2");
   //  h_muonMed_IDEffDen_fcal[0][2] = (TH1D*) h_muonMed_IDEffDen_fcal[0][1]->Clone ("h_muonMed_IDEffDen_fcal_PbPb18_sign2");
-  //  h_muonMed_IDEffNum_fcal[1][2] = (TH1D*) h_muonMed_IDEffNum_fcal[1][1]->Clone ("h_muonMed_IDEffNum_fcal_PbPb15_sign2");
-  //  h_muonMed_IDEffDen_fcal[1][2] = (TH1D*) h_muonMed_IDEffDen_fcal[1][1]->Clone ("h_muonMed_IDEffDen_fcal_PbPb15_sign2");
   //  h_muonMed_IDEffNum_fcal[0][2]->Add (h_muonMed_IDEffNum_fcal[0][0], -1);
   //  h_muonMed_IDEffDen_fcal[0][2]->Add (h_muonMed_IDEffDen_fcal[0][0], -1);
   //  h_muonMed_IDEffNum_fcal[1][2]->Add (h_muonMed_IDEffNum_fcal[1][0], -1);
   //  h_muonMed_IDEffDen_fcal[1][2]->Add (h_muonMed_IDEffDen_fcal[1][0], -1);
 
   //  t_muonMed_IDEff_fcal_PbPb18[2] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[0][2]), *(h_muonMed_IDEffDen_fcal[0][2]));
-  //  t_muonMed_IDEff_fcal_PbPb15[2] = new TEfficiency (*(h_muonMed_IDEffNum_fcal[1][2]), *(h_muonMed_IDEffDen_fcal[1][2]));
 
 
   //  h_muonID_MSEffNum_pt[0][2] = (TH1D*) h_muonID_MSEffNum_pt[0][1]->Clone ("h_muonID_MSEffNum_pt_pp_sign2");
   //  h_muonID_MSEffDen_pt[0][2] = (TH1D*) h_muonID_MSEffDen_pt[0][1]->Clone ("h_muonID_MSEffDen_pt_pp_sign2");
   //  h_muonID_MSEffNum_pt[1][2] = (TH1D*) h_muonID_MSEffNum_pt[1][1]->Clone ("h_muonID_MSEffNum_pt_PbPb18_sign2");
   //  h_muonID_MSEffDen_pt[1][2] = (TH1D*) h_muonID_MSEffDen_pt[1][1]->Clone ("h_muonID_MSEffDen_pt_PbPb18_sign2");
-  //  h_muonID_MSEffNum_pt[2][2] = (TH1D*) h_muonID_MSEffNum_pt[2][1]->Clone ("h_muonID_MSEffNum_pt_PbPb15_sign2");
-  //  h_muonID_MSEffDen_pt[2][2] = (TH1D*) h_muonID_MSEffDen_pt[2][1]->Clone ("h_muonID_MSEffDen_pt_PbPb15_sign2");
   //  h_muonID_MSEffNum_pt[0][2]->Add (h_muonID_MSEffNum_pt[0][0], -1);
   //  h_muonID_MSEffDen_pt[0][2]->Add (h_muonID_MSEffDen_pt[0][0], -1);
   //  h_muonID_MSEffNum_pt[1][2]->Add (h_muonID_MSEffNum_pt[1][0], -1);
@@ -313,14 +238,11 @@ void PlotLeptonEffs () {
 
   //  t_muonID_MSEff_pt_pp[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[0][2]), *(h_muonID_MSEffDen_pt[0][2]));
   //  t_muonID_MSEff_pt_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[1][2]), *(h_muonID_MSEffDen_pt[1][2]));
-  //  t_muonID_MSEff_pt_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_pt[2][2]), *(h_muonID_MSEffDen_pt[2][2]));
 
   //  h_muonID_MSEffNum_eta[0][2] = (TH1D*) h_muonID_MSEffNum_eta[0][1]->Clone ("h_muonID_MSEffNum_eta_pp_sign2");
   //  h_muonID_MSEffDen_eta[0][2] = (TH1D*) h_muonID_MSEffDen_eta[0][1]->Clone ("h_muonID_MSEffDen_eta_pp_sign2");
   //  h_muonID_MSEffNum_eta[1][2] = (TH1D*) h_muonID_MSEffNum_eta[1][1]->Clone ("h_muonID_MSEffNum_eta_PbPb18_sign2");
   //  h_muonID_MSEffDen_eta[1][2] = (TH1D*) h_muonID_MSEffDen_eta[1][1]->Clone ("h_muonID_MSEffDen_eta_PbPb18_sign2");
-  //  h_muonID_MSEffNum_eta[2][2] = (TH1D*) h_muonID_MSEffNum_eta[2][1]->Clone ("h_muonID_MSEffNum_eta_PbPb15_sign2");
-  //  h_muonID_MSEffDen_eta[2][2] = (TH1D*) h_muonID_MSEffDen_eta[2][1]->Clone ("h_muonID_MSEffDen_eta_PbPb15_sign2");
   //  h_muonID_MSEffNum_eta[0][2]->Add (h_muonID_MSEffNum_eta[0][0], -1);
   //  h_muonID_MSEffDen_eta[0][2]->Add (h_muonID_MSEffDen_eta[0][0], -1);
   //  h_muonID_MSEffNum_eta[1][2]->Add (h_muonID_MSEffNum_eta[1][0], -1);
@@ -330,19 +252,15 @@ void PlotLeptonEffs () {
 
   //  t_muonID_MSEff_eta_pp[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[0][2]), *(h_muonID_MSEffDen_eta[0][2]));
   //  t_muonID_MSEff_eta_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[1][2]), *(h_muonID_MSEffDen_eta[1][2]));
-  //  t_muonID_MSEff_eta_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_eta[2][2]), *(h_muonID_MSEffDen_eta[2][2]));
 
   //  h_muonID_MSEffNum_fcal[0][2] = (TH1D*) h_muonID_MSEffNum_fcal[0][1]->Clone ("h_muonID_MSEffNum_fcal_PbPb18_sign2");
   //  h_muonID_MSEffDen_fcal[0][2] = (TH1D*) h_muonID_MSEffDen_fcal[0][1]->Clone ("h_muonID_MSEffDen_fcal_PbPb18_sign2");
-  //  h_muonID_MSEffNum_fcal[1][2] = (TH1D*) h_muonID_MSEffNum_fcal[1][1]->Clone ("h_muonID_MSEffNum_fcal_PbPb15_sign2");
-  //  h_muonID_MSEffDen_fcal[1][2] = (TH1D*) h_muonID_MSEffDen_fcal[1][1]->Clone ("h_muonID_MSEffDen_fcal_PbPb15_sign2");
   //  h_muonID_MSEffNum_fcal[0][2]->Add (h_muonID_MSEffNum_fcal[0][0], -1);
   //  h_muonID_MSEffDen_fcal[0][2]->Add (h_muonID_MSEffDen_fcal[0][0], -1);
   //  h_muonID_MSEffNum_fcal[1][2]->Add (h_muonID_MSEffNum_fcal[1][0], -1);
   //  h_muonID_MSEffDen_fcal[1][2]->Add (h_muonID_MSEffDen_fcal[1][0], -1);
 
   //  t_muonID_MSEff_fcal_PbPb18[2] = new TEfficiency (*(h_muonID_MSEffNum_fcal[0][2]), *(h_muonID_MSEffDen_fcal[0][2]));
-  //  t_muonID_MSEff_fcal_PbPb15[2] = new TEfficiency (*(h_muonID_MSEffNum_fcal[1][2]), *(h_muonID_MSEffDen_fcal[1][2]));
   //}
 
 
@@ -424,7 +342,7 @@ void PlotLeptonEffs () {
   line->DrawLine (-2.5, 1, 2.5, 1);
 
   myText (0.61, 0.89, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.042);
-  //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
+  //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 260 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.893, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
   c_1->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/pp_PbPb18_pt_eta.pdf");
@@ -490,7 +408,7 @@ void PlotLeptonEffs () {
   line->DrawLine (-2.5, 1, 2.5, 1);
 
   myText (0.61, 0.89, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.042);
-  //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
+  //myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 260 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.893, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.4 nb^{-1}", 1.5, 0.042);
 
   c_1->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/pp_PbPb18_pt_eta.pdf");
@@ -591,7 +509,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.20, kBlack, "Medium muons", 0.04);
   myMarkerTextNoLine (0.65, 0.900, kBlack, kOpenCircle, "HLT_mu14", 1.25, 0.04);
   c_3->SaveAs ("../Plots/LeptonPerformance/MuonTrigEffs/PbPb18_cent.pdf");
-  SaferDelete (f_muonTrigEff_fcal_PbPb18);
+  SaferDelete (&f_muonTrigEff_fcal_PbPb18);
 
 
   TH1D* h_electronTrigEffNum_pt[3];
@@ -618,79 +536,54 @@ void PlotLeptonEffs () {
   h_electronTrigEffDen_pt[0] = (TH1D*) inFile->Get ("h_electronTrigEffDen_pt_pp");
   h_electronTrigEffNum_pt[1] = (TH1D*) inFile->Get ("h_electronTrigEffNum_pt_PbPb18");
   h_electronTrigEffDen_pt[1] = (TH1D*) inFile->Get ("h_electronTrigEffDen_pt_PbPb18");
-  //h_electronTrigEffNum_pt[2] = (TH1D*) inFile->Get ("h_electronTrigEffNum_pt_PbPb15");
-  //h_electronTrigEffDen_pt[2] = (TH1D*) inFile->Get ("h_electronTrigEffDen_pt_PbPb15");
   h_electronTrigEffNum_eta[0] = (TH1D*) inFile->Get ("h_electronTrigEffNum_eta_pp");
   h_electronTrigEffDen_eta[0] = (TH1D*) inFile->Get ("h_electronTrigEffDen_eta_pp");
   h_electronTrigEffNum_eta[1] = (TH1D*) inFile->Get ("h_electronTrigEffNum_eta_PbPb18");
   h_electronTrigEffDen_eta[1] = (TH1D*) inFile->Get ("h_electronTrigEffDen_eta_PbPb18");
-  //h_electronTrigEffNum_eta[2] = (TH1D*) inFile->Get ("h_electronTrigEffNum_eta_PbPb15");
-  //h_electronTrigEffDen_eta[2] = (TH1D*) inFile->Get ("h_electronTrigEffDen_eta_PbPb15");
   h2_electronTrigEffNum_pt_eta[0] = (TH2D*) inFile->Get ("h2_electronTrigEffNum_pt_eta_pp");
   h2_electronTrigEffDen_pt_eta[0] = (TH2D*) inFile->Get ("h2_electronTrigEffDen_pt_eta_pp");
   h2_electronTrigEffNum_pt_eta[1] = (TH2D*) inFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb18");
   h2_electronTrigEffDen_pt_eta[1] = (TH2D*) inFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb18");
-  //h2_electronTrigEffNum_pt_eta[2] = (TH2D*) inFile->Get ("h2_electronTrigEffNum_pt_eta_PbPb15");
-  //h2_electronTrigEffDen_pt_eta[2] = (TH2D*) inFile->Get ("h2_electronTrigEffDen_pt_eta_PbPb15");
 
   h_electronTrigEffNum_fcal[0] = (TH1D*) inFile->Get ("h_electronTrigEffNum_fcal_PbPb18");
   h_electronTrigEffDen_fcal[0] = (TH1D*) inFile->Get ("h_electronTrigEffDen_fcal_PbPb18");
-  //h_electronTrigEffNum_fcal[1] = (TH1D*) inFile->Get ("h_electronTrigEffNum_fcal_PbPb15");
-  //h_electronTrigEffDen_fcal[1] = (TH1D*) inFile->Get ("h_electronTrigEffDen_fcal_PbPb15");
   h_electronIDEffNum_pt[0] = (TH1D*) inFile->Get ("h_electronIDEffNum_pt_pp");
   h_electronIDEffDen_pt[0] = (TH1D*) inFile->Get ("h_electronIDEffDen_pt_pp");
   h_electronIDEffNum_pt[1] = (TH1D*) inFile->Get ("h_electronIDEffNum_pt_PbPb18");
   h_electronIDEffDen_pt[1] = (TH1D*) inFile->Get ("h_electronIDEffDen_pt_PbPb18");
-  //h_electronIDEffNum_pt[2] = (TH1D*) inFile->Get ("h_electronIDEffNum_pt_PbPb15");
-  //h_electronIDEffDen_pt[2] = (TH1D*) inFile->Get ("h_electronIDEffDen_pt_PbPb15");
   h_electronIDEffNum_eta[0] = (TH1D*) inFile->Get ("h_electronIDEffNum_eta_pp");
   h_electronIDEffDen_eta[0] = (TH1D*) inFile->Get ("h_electronIDEffDen_eta_pp");
   h_electronIDEffNum_eta[1] = (TH1D*) inFile->Get ("h_electronIDEffNum_eta_PbPb18");
   h_electronIDEffDen_eta[1] = (TH1D*) inFile->Get ("h_electronIDEffDen_eta_PbPb18");
-  //h_electronIDEffNum_eta[2] = (TH1D*) inFile->Get ("h_electronIDEffNum_eta_PbPb15");
-  //h_electronIDEffDen_eta[2] = (TH1D*) inFile->Get ("h_electronIDEffDen_eta_PbPb15");
   h2_electronIDEffNum_pt_eta[0] = (TH2D*) inFile->Get ("h2_electronIDEffNum_pt_eta_pp");
   h2_electronIDEffDen_pt_eta[0] = (TH2D*) inFile->Get ("h2_electronIDEffDen_pt_eta_pp");
   h2_electronIDEffNum_pt_eta[1] = (TH2D*) inFile->Get ("h2_electronIDEffNum_pt_eta_PbPb18");
   h2_electronIDEffDen_pt_eta[1] = (TH2D*) inFile->Get ("h2_electronIDEffDen_pt_eta_PbPb18");
-  //h2_electronIDEffNum_pt_eta[2] = (TH2D*) inFile->Get ("h2_electronIDEffNum_pt_eta_PbPb15");
-  //h2_electronIDEffDen_pt_eta[2] = (TH2D*) inFile->Get ("h2_electronIDEffDen_pt_eta_PbPb15");
 
   h_electronIDEffNum_fcal[0] = (TH1D*) inFile->Get ("h_electronIDEffNum_fcal_PbPb18");
   h_electronIDEffDen_fcal[0] = (TH1D*) inFile->Get ("h_electronIDEffDen_fcal_PbPb18");
-  //h_electronIDEffNum_fcal[1] = (TH1D*) inFile->Get ("h_electronIDEffNum_fcal_PbPb15");
-  //h_electronIDEffDen_fcal[1] = (TH1D*) inFile->Get ("h_electronIDEffDen_fcal_PbPb15");
 
   t_electronTrigEff_pt_pp = new TEfficiency (*(h_electronTrigEffNum_pt[0]), *(h_electronTrigEffDen_pt[0]));
   t_electronTrigEff_pt_PbPb18 = new TEfficiency (*(h_electronTrigEffNum_pt[1]), *(h_electronTrigEffDen_pt[1]));
-  //t_electronTrigEff_pt_PbPb15 = new TEfficiency (*(h_electronTrigEffNum_pt[2]), *(h_electronTrigEffDen_pt[2]));
   t_electronTrigEff_eta_pp = new TEfficiency (*(h_electronTrigEffNum_eta[0]), *(h_electronTrigEffDen_eta[0]));
   t_electronTrigEff_eta_PbPb18 = new TEfficiency (*(h_electronTrigEffNum_eta[1]), *(h_electronTrigEffDen_eta[1]));
-  //t_electronTrigEff_eta_PbPb15 = new TEfficiency (*(h_electronTrigEffNum_eta[2]), *(h_electronTrigEffDen_eta[2]));
   t_electronTrigEff_pt_eta_pp = new TEfficiency (*(h2_electronTrigEffNum_pt_eta[0]), *(h2_electronTrigEffDen_pt_eta[0]));
   t_electronTrigEff_pt_eta_PbPb18 = new TEfficiency (*(h2_electronTrigEffNum_pt_eta[1]), *(h2_electronTrigEffDen_pt_eta[1]));
-  //t_electronTrigEff_pt_eta_PbPb15 = new TEfficiency (*(h2_electronTrigEffNum_pt_eta[2]), *(h2_electronTrigEffDen_pt_eta[2]));
 
   t_electronTrigEff_fcal_PbPb18 = new TEfficiency (*(h_electronTrigEffNum_fcal[0]), *(h_electronTrigEffDen_fcal[0]));
-  //t_electronTrigEff_fcal_PbPb15 = new TEfficiency (*(h_electronTrigEffNum_fcal[1]), *(h_electronTrigEffDen_fcal[1]));
 
   t_electronIDEff_pt_pp = new TEfficiency (*(h_electronIDEffNum_pt[0]), *(h_electronIDEffDen_pt[0]));
   t_electronIDEff_pt_PbPb18 = new TEfficiency (*(h_electronIDEffNum_pt[1]), *(h_electronIDEffDen_pt[1]));
-  //t_electronIDEff_pt_PbPb15 = new TEfficiency (*(h_electronIDEffNum_pt[2]), *(h_electronIDEffDen_pt[2]));
   t_electronIDEff_eta_pp = new TEfficiency (*(h_electronIDEffNum_eta[0]), *(h_electronIDEffDen_eta[0]));
   t_electronIDEff_eta_PbPb18 = new TEfficiency (*(h_electronIDEffNum_eta[1]), *(h_electronIDEffDen_eta[1]));
-  //t_electronIDEff_eta_PbPb15 = new TEfficiency (*(h_electronIDEffNum_eta[2]), *(h_electronIDEffDen_eta[2]));
   t_electronIDEff_pt_eta_pp = new TEfficiency (*(h2_electronIDEffNum_pt_eta[0]), *(h2_electronIDEffDen_pt_eta[0]));
   t_electronIDEff_pt_eta_PbPb18 = new TEfficiency (*(h2_electronIDEffNum_pt_eta[1]), *(h2_electronIDEffDen_pt_eta[1]));
-  //t_electronIDEff_pt_eta_PbPb15 = new TEfficiency (*(h2_electronIDEffNum_pt_eta[2]), *(h2_electronIDEffDen_pt_eta[2]));
 
   t_electronIDEff_fcal_PbPb18 = new TEfficiency (*(h_electronIDEffNum_fcal[0]), *(h_electronIDEffDen_fcal[0]));
-  //t_electronIDEff_fcal_PbPb15 = new TEfficiency (*(h_electronIDEffNum_fcal[1]), *(h_electronIDEffDen_fcal[1]));
 
 
   TGAE* g_electronTrigEffPtpp = TEff2TGAE (t_electronTrigEff_pt_pp);
   TGAE* g_electronTrigEffPtPbPb18 = TEff2TGAE (t_electronTrigEff_pt_PbPb18);
-  //TGAE* g_electronTrigEffPtPbPb15 = TEff2TGAE (t_electronTrigEff_pt_PbPb15);
 
   g_electronTrigEffPtpp->GetXaxis ()->SetTitle ("#it{p}_{T}^{e} [GeV]");
   g_electronTrigEffPtPbPb18->GetXaxis ()->SetTitle ("#it{p}_{T}^{e} [GeV]");
@@ -748,7 +641,7 @@ void PlotLeptonEffs () {
   line->DrawLine (-2.5, 1, 2.5, 1);
 
   myText (0.61, 0.89, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.042);
-  myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
+  myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 260 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.7 nb^{-1}", 1.5, 0.042);
 
   c_1->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/pp_PbPb18_pt_eta.pdf");
@@ -813,7 +706,7 @@ void PlotLeptonEffs () {
   line->DrawLine (-2.5, 1, 2.5, 1);
 
   myText (0.61, 0.89, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.042);
-  myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 258 pb^{-1}", 1.5, 0.042);
+  myMarkerTextNoLine (0.22, 0.893, kAzure+2, kOpenSquare, "2017 #it{pp}, 260 pb^{-1}", 1.5, 0.042);
   myMarkerTextNoLine (0.22, 0.835, kRed+1, kOpenCircle, "2018 Pb+Pb, 1.7 nb^{-1}", 1.5, 0.042);
 
   c_1->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/pp_PbPb18_pt_eta.pdf");
@@ -917,7 +810,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.20, kBlack, "LHLoose_HI electrons", 0.04);
   myMarkerTextNoLine (0.55, 0.90, kBlack, kOpenCircle, "HLT_e15_lhloose_ion_L1EM12", 1.25, 0.04);
   c_3->SaveAs ("../Plots/LeptonPerformance/ElectronTrigEffs/PbPb18_cent.pdf");
-  SaferDelete (f_electronTrigEff_fcal_PbPb18);
+  SaferDelete (&f_electronTrigEff_fcal_PbPb18);
 
 
 
@@ -925,29 +818,48 @@ void PlotLeptonEffs () {
   TH2D* h2_zmumuTrigEffDen_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zmumuTrigEffDen_pt_y_pp");
   TH2D* h2_zmumuTrigEffNum_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zmumuTrigEffNum_pt_y_PbPb18");
   TH2D* h2_zmumuTrigEffDen_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zmumuTrigEffDen_pt_y_PbPb18");
-  //TH2D* h2_zmumuTrigEffNum_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zmumuTrigEffNum_pt_y_PbPb15");
-  //TH2D* h2_zmumuTrigEffDen_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zmumuTrigEffDen_pt_y_PbPb15");
+  TH1D** h_zmumuTrigEffNum_y_PbPb18 = Get1DArray <TH1D*> (8);
+  TH1D** h_zmumuTrigEffDen_y_PbPb18 = Get1DArray <TH1D*> (8);
+  for (int iPt = 0; iPt < 8; iPt++) {
+    h_zmumuTrigEffNum_y_PbPb18[iPt] = (TH1D*) h2_zmumuTrigEffNum_pt_y_PbPb18->ProjectionX (Form ("h2_zmumuTrigEffNum_y_PbPb18_iPt%i", iPt), 2*iPt+1, 2*iPt+2);
+    h_zmumuTrigEffNum_y_PbPb18[iPt]->Rebin (2);
+    h_zmumuTrigEffDen_y_PbPb18[iPt] = (TH1D*) h2_zmumuTrigEffDen_pt_y_PbPb18->ProjectionX (Form ("h2_zmumuTrigEffDen_y_PbPb18_iPt%i", iPt), 2*iPt+1, 2*iPt+2);
+    h_zmumuTrigEffDen_y_PbPb18[iPt]->Rebin (2);
+  }
+
 
   TH2D* h2_zmumuTrigEff_pt_y_pp = (TH2D*) h2_zmumuTrigEffNum_pt_y_pp->Clone ("h2_zmumuTrigEffNum_pt_y_pp");
   h2_zmumuTrigEff_pt_y_pp->Divide (h2_zmumuTrigEffDen_pt_y_pp);
   TH2D* h2_zmumuTrigEff_pt_y_PbPb18 = (TH2D*) h2_zmumuTrigEffNum_pt_y_PbPb18->Clone ("h2_zmumuTrigEffNum_pt_y_PbPb18");
   h2_zmumuTrigEff_pt_y_PbPb18->Divide (h2_zmumuTrigEffDen_pt_y_PbPb18);
-  //TH2D* h2_zmumuTrigEff_pt_y_PbPb15 = (TH2D*) h2_zmumuTrigEffNum_pt_y_PbPb15->Clone ("h2_zmumuTrigEffNum_pt_y_PbPb15");
-  //h2_zmumuTrigEff_pt_y_PbPb15->Divide (h2_zmumuTrigEffDen_pt_y_PbPb15);
+  TH1D** h_zmumuTrigEff_y_PbPb18 = Get1DArray <TH1D*> (8);
+  for (int iPt = 0; iPt < 8; iPt++) {
+    h_zmumuTrigEff_y_PbPb18[iPt] = (TH1D*) h_zmumuTrigEffNum_y_PbPb18[iPt]->Clone (Form ("h_zmumuTrigEffNum_y_PbPb18_iPt%i", iPt));
+    h_zmumuTrigEff_y_PbPb18[iPt]->Divide (h_zmumuTrigEffDen_y_PbPb18[iPt]);
+  }
 
   TH2D* h2_zeeTrigEffNum_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zeeTrigEffNum_pt_y_pp");
   TH2D* h2_zeeTrigEffDen_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zeeTrigEffDen_pt_y_pp");
   TH2D* h2_zeeTrigEffNum_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zeeTrigEffNum_pt_y_PbPb18");
   TH2D* h2_zeeTrigEffDen_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zeeTrigEffDen_pt_y_PbPb18");
-  //TH2D* h2_zeeTrigEffNum_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zeeTrigEffNum_pt_y_PbPb15");
-  //TH2D* h2_zeeTrigEffDen_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zeeTrigEffDen_pt_y_PbPb15");
+  TH1D** h_zeeTrigEffNum_y_PbPb18 = Get1DArray <TH1D*> (8);
+  TH1D** h_zeeTrigEffDen_y_PbPb18 = Get1DArray <TH1D*> (8);
+  for (int iPt = 0; iPt < 8; iPt++) {
+    h_zeeTrigEffNum_y_PbPb18[iPt] = (TH1D*) h2_zeeTrigEffNum_pt_y_PbPb18->ProjectionX (Form ("h2_zeeTrigEffNum_y_PbPb18_iPt%i", iPt), 2*iPt+1, 2*iPt+2);
+    h_zeeTrigEffNum_y_PbPb18[iPt]->Rebin (2);
+    h_zeeTrigEffDen_y_PbPb18[iPt] = (TH1D*) h2_zeeTrigEffDen_pt_y_PbPb18->ProjectionX (Form ("h2_zeeTrigEffDen_y_PbPb18_iPt%i", iPt), 2*iPt+1, 2*iPt+2);
+    h_zeeTrigEffDen_y_PbPb18[iPt]->Rebin (2);
+  }
 
   TH2D* h2_zeeTrigEff_pt_y_pp = (TH2D*) h2_zeeTrigEffNum_pt_y_pp->Clone ("h2_zeeTrigEffNum_pt_y_pp");
   h2_zeeTrigEff_pt_y_pp->Divide (h2_zeeTrigEffDen_pt_y_pp);
   TH2D* h2_zeeTrigEff_pt_y_PbPb18 = (TH2D*) h2_zeeTrigEffNum_pt_y_PbPb18->Clone ("h2_zeeTrigEffNum_pt_y_PbPb18");
   h2_zeeTrigEff_pt_y_PbPb18->Divide (h2_zeeTrigEffDen_pt_y_PbPb18);
-  //TH2D* h2_zeeTrigEff_pt_y_PbPb15 = (TH2D*) h2_zeeTrigEffNum_pt_y_PbPb15->Clone ("h2_zeeTrigEffNum_pt_y_PbPb15");
-  //h2_zeeTrigEff_pt_y_PbPb15->Divide (h2_zeeTrigEffDen_pt_y_PbPb15);
+  TH1D** h_zeeTrigEff_y_PbPb18 = Get1DArray <TH1D*> (8);
+  for (int iPt = 0; iPt < 8; iPt++) {
+    h_zeeTrigEff_y_PbPb18[iPt] = (TH1D*) h_zeeTrigEffNum_y_PbPb18[iPt]->Clone (Form ("h_zeeTrigEffNum_y_PbPb18_iPt%i", iPt));
+    h_zeeTrigEff_y_PbPb18[iPt]->Divide (h_zeeTrigEffDen_y_PbPb18[iPt]);
+  }
 
 
   TCanvas* c_4 = new TCanvas ("c_4", "", 1000, 800);
@@ -963,7 +875,7 @@ void PlotLeptonEffs () {
   h2_zmumuTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zmumuTrigEff_pt_y_pp->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_mu14", 0.04);
   c_4->SaveAs ("../Plots/LeptonPerformance/ZmumuTrigEffs/pp_pt_y.pdf");
 
@@ -997,7 +909,7 @@ void PlotLeptonEffs () {
   h2_zeeTrigEff_pt_y_pp->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zeeTrigEff_pt_y_pp->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_e15_lhloose_L1EM12", 0.04);
   c_6->SaveAs ("../Plots/LeptonPerformance/ZeeTrigEffs/pp_pt_y.pdf");
 
@@ -1014,7 +926,7 @@ void PlotLeptonEffs () {
   h2_zeeTrigEff_pt_y_PbPb18->GetZaxis ()->SetRangeUser (0.75, 1);
   h2_zeeTrigEff_pt_y_PbPb18->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.7 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "HLT_e15_lhloose_ion_L1EM12", 0.04);
   c_7->SaveAs ("../Plots/LeptonPerformance/ZeeTrigEffs/PbPb18_pt_y.pdf");
 
@@ -1024,29 +936,21 @@ void PlotLeptonEffs () {
   TH2D* h2_zmumuIDEffDen_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zmumuIDEffDen_pt_y_pp");
   TH2D* h2_zmumuIDEffNum_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zmumuIDEffNum_pt_y_PbPb18");
   TH2D* h2_zmumuIDEffDen_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zmumuIDEffDen_pt_y_PbPb18");
-  //TH2D* h2_zmumuIDEffNum_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zmumuIDEffNum_pt_y_PbPb15");
-  //TH2D* h2_zmumuIDEffDen_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zmumuIDEffDen_pt_y_PbPb15");
 
   TH2D* h2_zmumuIDEff_pt_y_pp = (TH2D*) h2_zmumuIDEffNum_pt_y_pp->Clone ("h2_zmumuIDEffNum_pt_y_pp");
   h2_zmumuIDEff_pt_y_pp->Divide (h2_zmumuIDEffDen_pt_y_pp);
   TH2D* h2_zmumuIDEff_pt_y_PbPb18 = (TH2D*) h2_zmumuIDEffNum_pt_y_PbPb18->Clone ("h2_zmumuIDEffNum_pt_y_PbPb18");
   h2_zmumuIDEff_pt_y_PbPb18->Divide (h2_zmumuIDEffDen_pt_y_PbPb18);
-  //TH2D* h2_zmumuIDEff_pt_y_PbPb15 = (TH2D*) h2_zmumuIDEffNum_pt_y_PbPb15->Clone ("h2_zmumuIDEffNum_pt_y_PbPb15");
-  //h2_zmumuIDEff_pt_y_PbPb15->Divide (h2_zmumuIDEffDen_pt_y_PbPb15);
 
   TH2D* h2_zeeIDEffNum_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zeeIDEffNum_pt_y_pp");
   TH2D* h2_zeeIDEffDen_pt_y_pp = (TH2D*) (inFile)->Get ("h2_zeeIDEffDen_pt_y_pp");
   TH2D* h2_zeeIDEffNum_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zeeIDEffNum_pt_y_PbPb18");
   TH2D* h2_zeeIDEffDen_pt_y_PbPb18 = (TH2D*) (inFile)->Get ("h2_zeeIDEffDen_pt_y_PbPb18");
-  //TH2D* h2_zeeIDEffNum_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zeeIDEffNum_pt_y_PbPb15");
-  //TH2D* h2_zeeIDEffDen_pt_y_PbPb15 = (TH2D*) (inFile)->Get ("h2_zeeIDEffDen_pt_y_PbPb15");
 
   TH2D* h2_zeeIDEff_pt_y_pp = (TH2D*) h2_zeeIDEffNum_pt_y_pp->Clone ("h2_zeeIDEffNum_pt_y_pp");
   h2_zeeIDEff_pt_y_pp->Divide (h2_zeeIDEffDen_pt_y_pp);
   TH2D* h2_zeeIDEff_pt_y_PbPb18 = (TH2D*) h2_zeeIDEffNum_pt_y_PbPb18->Clone ("h2_zeeIDEffNum_pt_y_PbPb18");
   h2_zeeIDEff_pt_y_PbPb18->Divide (h2_zeeIDEffDen_pt_y_PbPb18);
-  //TH2D* h2_zeeIDEff_pt_y_PbPb15 = (TH2D*) h2_zeeIDEffNum_pt_y_PbPb15->Clone ("h2_zeeIDEffNum_pt_y_PbPb15");
-  //h2_zeeIDEff_pt_y_PbPb15->Divide (h2_zeeIDEffDen_pt_y_PbPb15);
 
 
   FormatTH2Canvas (c_3, false);
@@ -1083,7 +987,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{#mu} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "Medium muons", 0.04);
   c_3->SaveAs ("../Plots/LeptonPerformance/MuonIDEffs/PbPb18_cent.pdf");
-  SaferDelete (f_muonIDEff_fcal_PbPb18);
+  SaferDelete (&f_muonIDEff_fcal_PbPb18);
 
 
   FormatTH2Canvas (c_3, false);
@@ -1122,7 +1026,7 @@ void PlotLeptonEffs () {
   myText (0.62, 0.25, kBlack, "#it{p}_{T}^{e} > 20 GeV", 0.04);
   myText (0.62, 0.20, kBlack, "LHLoose_HI electrons", 0.04);
   c_3->SaveAs ("../Plots/LeptonPerformance/ElectronIDEffs/PbPb18_cent.pdf");
-  //SaferDelete (f_electronIDEff_fcal_PbPb18);
+  //SaferDelete (&f_electronIDEff_fcal_PbPb18);
 
 
   TCanvas* c_8 = new TCanvas ("c_8", "", 1000, 800);
@@ -1138,7 +1042,7 @@ void PlotLeptonEffs () {
   h2_zmumuIDEff_pt_y_pp->GetZaxis ()->SetRangeUser (0., 1);
   h2_zmumuIDEff_pt_y_pp->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "Medium muons", 0.04);
   c_8->SaveAs ("../Plots/LeptonPerformance/ZmumuIDEffs/pp_pt_y.pdf");
 
@@ -1172,7 +1076,7 @@ void PlotLeptonEffs () {
   h2_zeeIDEff_pt_y_pp->GetZaxis ()->SetRangeUser (0., 1);
   h2_zeeIDEff_pt_y_pp->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 258 pb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2017 #it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "LHLoose electrons", 0.04);
   c_10->SaveAs ("../Plots/LeptonPerformance/ZeeIDEffs/pp_pt_y.pdf");
 
@@ -1189,9 +1093,66 @@ void PlotLeptonEffs () {
   h2_zeeIDEff_pt_y_PbPb18->GetZaxis ()->SetRangeUser (0., 1);
   h2_zeeIDEff_pt_y_PbPb18->Draw ("lego2");
   myText (0.08, 0.95, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
-  myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4 nb^{-1}", 0.04);
+  myText (0.08, 0.90, kBlack, "2018 Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.7 nb^{-1}", 0.04);
   myText (0.08, 0.85, kBlack, "LHLoose_HI electrons", 0.04);
   c_11->SaveAs ("../Plots/LeptonPerformance/ZeeIDEffs/PbPb18_pt_y.pdf");
+
+
+
+  {
+    c_3->cd ();
+    TColor* tcolor = new TColor ();
+    const Color_t trigcolors[8] = {
+      (Color_t) tcolor->GetColor (34, 34, 194),
+      (Color_t) tcolor->GetColor (0, 0, 255),
+      //(Color_t) tcolor->GetColor (153, 0, 153),
+      (Color_t) tcolor->GetColor (153, 0, 102),
+      //(Color_t) tcolor->GetColor (255, 0, 0),
+      (Color_t) tcolor->GetColor (204, 0, 51),
+      (Color_t) tcolor->GetColor (255, 191, 0),
+      (Color_t) tcolor->GetColor (255, 255, 0)
+    };
+    const double zPtBins[17] = {0, 3, 6, 10, 15, 20, 25, 30, 40, 50, 70, 90, 110, 140, 170, 200, 240};
+      
+    for (int iY = 0; iY < 6; iY++) {
+      TH1D* h = h_zmumuTrigEff_y_PbPb18[iY];
+      h->GetXaxis ()->SetTitle ("#it{y}_{Z}");
+      h->GetYaxis ()->SetTitle ("Average Z#rightarrow#mu#mu trigger efficiency");
+      h->GetYaxis ()->SetRangeUser (0.78, 1.06);
+      h->SetLineColor (trigcolors[iY]);
+      h->Draw (iY == 0 ? "hist" : "hist same");
+      if (iY >= 3)
+        myMarkerText (0.42, 0.84-0.04*(iY-3), trigcolors[iY], kDot, Form ("%g-%g GeV", zPtBins[2*iY+1], zPtBins[2*iY+2]), 1.0, 0.032);
+      else
+        myMarkerText (0.24, 0.84-0.04*iY, trigcolors[iY], kDot, Form ("%g-%g GeV", zPtBins[2*iY+1], zPtBins[2*iY+2]), 1.0, 0.032);
+    }
+    myMarkerText (0.22, 0.88, kWhite, kDot, "#it{p}_{T}^{Z} range", 1.0, 0.032);
+    myText (0.57, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+    myText (0.57, 0.83, kBlack, "2018 Pb+Pb, 1.4 nb^{-1}", 0.04);
+    myText (0.57, 0.78, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+    myText (0.57, 0.73, kBlack, "HLT_mu14", 0.04);
+    c_3->SaveAs ("../Plots/LeptonPerformance/ZmumuTrigEffs/PbPb18_pt.pdf");
+
+
+    for (int iY = 0; iY < 6; iY++) {
+      TH1D* h = h_zeeTrigEff_y_PbPb18[iY];
+      h->GetXaxis ()->SetTitle ("#it{y}_{Z}");
+      h->GetYaxis ()->SetTitle ("Average Z#rightarrow ee trigger efficiency");
+      h->GetYaxis ()->SetRangeUser (0.78, 1.06);
+      h->SetLineColor (trigcolors[iY]);
+      h->Draw (iY == 0 ? "hist" : "hist same");
+      if (iY >= 3)
+        myMarkerText (0.42, 0.84-0.04*(iY-3), trigcolors[iY], kDot, Form ("%g-%g GeV", zPtBins[2*iY+1], zPtBins[2*iY+2]), 1.0, 0.032);
+      else
+        myMarkerText (0.24, 0.84-0.04*iY, trigcolors[iY], kDot, Form ("%g-%g GeV", zPtBins[2*iY+1], zPtBins[2*iY+2]), 1.0, 0.032);
+    }
+    myMarkerText (0.22, 0.88, kWhite, kDot, "#it{p}_{T}^{Z} range", 1.0, 0.032);
+    myText (0.57, 0.88, kBlack, "#bf{#it{ATLAS}} Internal", 0.045);
+    myText (0.57, 0.83, kBlack, "2018 Pb+Pb, 1.7 nb^{-1}", 0.04);
+    myText (0.57, 0.78, kBlack, "#sqrt{s_{NN}} = 5.02 TeV", 0.04);
+    myText (0.57, 0.73, kBlack, "HLT_e15_lhloose_ion_L1EM12", 0.04);
+    c_3->SaveAs ("../Plots/LeptonPerformance/ZeeTrigEffs/PbPb18_pt.pdf");
+  }
 
 }
 

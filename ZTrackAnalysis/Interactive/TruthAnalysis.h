@@ -40,6 +40,8 @@ class TruthAnalysis : public FullAnalysis {
 
   void LoadTrackMomentumResolutions ();
   double SmearTrackMomentum (const float fcal_et, const double truth_pt, const double truth_eta, const bool isPbPb);
+
+  void ComparePPYields (TruthAnalysis* ta);
 };
 
 
@@ -130,6 +132,7 @@ double TruthAnalysis :: SmearTrackMomentum (const float fcal_et, const double tr
 void TruthAnalysis :: LoadHists (const char* histFileName, const bool _finishHists) {
   PhysicsAnalysis :: LoadHists (histFileName, _finishHists);
   PhysicsAnalysis :: CombineHists ();
+  PhysicsAnalysis :: TruncatePhysicsPlots ();
 }
 
 
@@ -602,6 +605,287 @@ void TruthAnalysis :: Execute (const char* inFileName, const char* outFileName) 
 
   inFile->Close ();
   if (inFile) { delete inFile; inFile = nullptr; }
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Compare pp yields with a variation of the truth analysis.
+// Designed for studying potential impact of hadron yield unfolding.
+//////////////////////////////////////////////////////////////////////////////////////////////////
+void TruthAnalysis :: ComparePPYields (TruthAnalysis* ta) {
+  TLatex* tl = new TLatex ();
+
+  TCanvas* c_truth_pp_compare = new TCanvas ("c_truth_pp_compare", "", 800, 880);
+
+  const double lMargin = 0.15;
+  const double rMargin = 0.04;
+  const double utMargin = 0.04;
+  const double ubMargin = 0;//0.01;
+  const double dtMargin = 0;//0.02;
+  const double dbMargin = 0.35;
+
+  TPad* uPad = new TPad ("c_truth_pp_compare_uPad", "", 0, 0.3, 1, 1);
+  TPad* dPad = new TPad ("c_truth_pp_compare_dPad", "", 0, 0, 1, 0.3);
+
+  uPad->SetLeftMargin (lMargin);
+  uPad->SetRightMargin (rMargin);
+  dPad->SetLeftMargin (lMargin);
+  dPad->SetRightMargin (rMargin);
+  uPad->SetTopMargin (utMargin);
+  uPad->SetBottomMargin (ubMargin);
+  dPad->SetTopMargin (dtMargin);
+  dPad->SetBottomMargin (dbMargin);
+
+  uPad->Draw ();
+  dPad->Draw ();
+
+  uPad->cd ();
+  uPad->SetLogx ();
+  uPad->SetLogy ();
+
+  {
+    TH1D* h = new TH1D ("", "", nPtchBins[nPtZBins-1], pTchBins[nPtZBins-1]);
+
+    TAxis* xax = h->GetXaxis ();
+    TAxis* yax = h->GetYaxis ();
+
+    xax->SetTitle ("#it{p}_{T}^{truth} [GeV]");
+    xax->SetTitleSize (0);
+    xax->SetTickLength (0.03 * (1.-utMargin-ubMargin) / uPad->GetHNDC ());
+    xax->SetTickLength (0.03);
+    xax->SetLabelSize (0);
+
+    xax->SetRangeUser (pTchBins[nPtZBins-1][0], pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
+
+    yax->SetTitle ("(1/N_{Z}) (d^{2}N_{ch} / d#it{p}_{T} d#Delta#phi) [GeV^{-1}]");
+    yax->SetTitleFont (43);
+    yax->SetTitleSize (36);
+    yax->SetTickLength (0.02 * (1.-utMargin-ubMargin) / uPad->GetHNDC ());
+    yax->SetLabelFont (43);
+    yax->SetLabelSize (32);
+    double ymin = 2e-3;
+    double ymax = 8e3;
+    yax->SetRangeUser (ymin, ymax);
+
+    h->SetLineWidth (0);
+
+    h->DrawCopy ("");
+    SaferDelete (&h);
+  }
+
+  for (short iPtZ = 2; iPtZ < 5; iPtZ++) {
+    const int iCent = 0;
+
+    TGAE* g = make_graph (h_trk_pt_ptz[2][iPtZ][iCent]);
+
+    Style_t markerStyle = kOpenCircle;
+    float markerSize = 1.6;
+
+    OffsetYAxis (g, pow (10, iPtZ-2), true);
+    RecenterGraph (g);
+    ResetXErrors (g);
+    deltaize (g, 0.95, true);
+    ResetXErrors (g);
+
+    g->SetMarkerStyle (markerStyle);
+    g->SetMarkerSize (markerSize);
+    g->SetLineWidth (3);
+    g->SetMarkerColor (finalColors[iPtZ-1]);
+    g->SetLineColor (finalColors[iPtZ-1]);
+
+    ((TGAE*) g->Clone ())->Draw ("P");
+
+    //markerStyle = kDot;
+
+    //g->SetMarkerStyle (markerStyle);
+    g->SetMarkerSize (0);
+    //g->SetMarkerColor (kBlack);
+
+    ((TGAE*) g->Clone ())->Draw ("P");
+
+    SaferDelete (&g);
+  } // end loop over iPtZ
+
+
+  for (short iPtZ = 2; iPtZ < 5; iPtZ++) {
+    const int iCent = 0;
+
+    TGAE* g = make_graph (ta->h_trk_pt_ptz[2][iPtZ][iCent]);
+
+    Style_t markerStyle = kOpenSquare;
+    float markerSize = 1.6;
+
+    OffsetYAxis (g, pow (10, iPtZ-2), true);
+    RecenterGraph (g);
+    ResetXErrors (g);
+    deltaize (g, 1.05, true);
+    ResetXErrors (g);
+
+    g->SetMarkerStyle (markerStyle);
+    g->SetMarkerSize (markerSize);
+    g->SetLineWidth (3);
+    g->SetMarkerColor (finalColors[iPtZ-1]);
+    g->SetLineColor (finalColors[iPtZ-1]);
+
+    ((TGAE*) g->Clone ())->Draw ("P");
+
+    //markerStyle = kDot;
+
+    //g->SetMarkerStyle (markerStyle);
+    g->SetMarkerSize (0);
+    //g->SetMarkerColor (kBlack);
+
+    ((TGAE*) g->Clone ())->Draw ("P");
+
+    SaferDelete (&g);
+  } // end loop over iPtZ
+
+  tl->SetTextFont (43);
+  tl->SetTextColor (kBlack);
+  tl->SetTextAlign (11);
+
+  tl->SetTextSize (28);
+  tl->DrawLatexNDC (0.20, 0.14, "#bf{#it{ATLAS}} Internal");
+  tl->SetTextSize (28);
+  tl->DrawLatexNDC (0.20, 0.09, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
+  tl->DrawLatexNDC (0.20, 0.04, "Powheg + Pythia 8.186");
+
+  tl->SetTextSize (22);
+  tl->DrawLatexNDC (0.730, 0.885, "Truth #it{p}_{T}^{Z} [GeV]");
+  tl->DrawLatexNDC (0.730, 0.835, "15-30 (#times 1)");
+  tl->DrawLatexNDC (0.730, 0.785, "30-60 (#times 10)");
+  tl->DrawLatexNDC (0.730, 0.735, "60+ (#times 10^{2})");
+  MakeDataBox   (0.56, 0.840, finalFillColors[1], 0.00, kOpenCircle, 1.6);
+  MakeDataBox   (0.56, 0.790, finalFillColors[2], 0.00, kOpenCircle, 1.6);
+  MakeDataBox   (0.56, 0.740, finalFillColors[3], 0.00, kOpenCircle, 1.6);
+  MakeDataBox   (0.70, 0.840, finalFillColors[1], 0.00, kOpenSquare, 1.6);
+  MakeDataBox   (0.70, 0.790, finalFillColors[2], 0.00, kOpenSquare, 1.6);
+  MakeDataBox   (0.70, 0.740, finalFillColors[3], 0.00, kOpenSquare, 1.6);
+  //myMarkerAndBoxAndLineText (0.72, 0.840, 1.4, 1001, finalFillColors[1], 0.00, finalColors[1], kOpenSquare, 1.6, "", 0.036);
+  //myMarkerAndBoxAndLineText (0.63, 0.840, 1.4, 1001, finalFillColors[1], 0.00, finalColors[1], kOpenCircle, 1.6, "", 0.036);
+  //myMarkerAndBoxAndLineText (0.72, 0.790, 1.4, 1001, finalFillColors[2], 0.00, finalColors[2], kOpenSquare, 1.6, "", 0.036);
+  //myMarkerAndBoxAndLineText (0.63, 0.790, 1.4, 1001, finalFillColors[2], 0.00, finalColors[2], kOpenCircle, 1.6, "", 0.036);
+  //myMarkerAndBoxAndLineText (0.72, 0.740, 1.4, 1001, finalFillColors[3], 0.00, finalColors[3], kOpenSquare, 1.6, "", 0.036);
+  //myMarkerAndBoxAndLineText (0.63, 0.740, 1.4, 1001, finalFillColors[3], 0.00, finalColors[3], kOpenCircle, 1.6, "", 0.036);
+
+  tl->SetTextSize (22);
+  tl->DrawLatexNDC (0.450, 0.885, "Nominal");
+  tl->SetTextSize (22);
+  tl->DrawLatexNDC (0.585, 0.885, "Smeared");
+  dPad->cd ();
+  dPad->SetLogx ();
+
+  {
+    TH1D* h = new TH1D ("", "", nPtchBins[nPtZBins-1], pTchBins[nPtZBins-1]);
+
+    TAxis* xax = h->GetXaxis ();
+    TAxis* yax = h->GetYaxis ();
+
+    xax->SetTitle ("#it{p}_{T}^{ch} [GeV]");
+    xax->SetTitleFont (43);
+    xax->SetTitleSize (36);
+    xax->SetTitleOffset (3.6);
+    xax->SetTickLength (0.03 * (1.-dtMargin-dbMargin) / dPad->GetHNDC ());
+    xax->SetLabelSize (0);
+    xax->SetRangeUser (pTchBins[nPtZBins-1][0], pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]]);
+
+    yax->SetTitle ("Ratio");
+    yax->SetTitleFont (43);
+    yax->SetTitleSize (36);
+    yax->CenterTitle (true);
+    yax->SetTickLength (0.02 * (1.-dtMargin-dbMargin) / dPad->GetHNDC ());
+    yax->SetLabelFont (43);
+    yax->SetLabelSize (32);
+    double ymin = 0.993;
+    double ymax = 1.007;
+    yax->SetRangeUser (ymin, ymax);
+    yax->SetNdivisions (504);
+
+    h->SetLineWidth (0);
+
+    h->DrawCopy ("");
+    SaferDelete (&h);
+
+    tl->SetTextFont (43);
+    tl->SetTextSize (32);
+    tl->SetTextAlign (21);
+    const double yoff = ymin - (0.12 * (ymax - ymin) / (1.-dtMargin-dbMargin));
+    tl->DrawLatex (1,  yoff, "1");
+    tl->DrawLatex (2,  yoff, "2");
+    tl->DrawLatex (3,  yoff, "3");
+    tl->DrawLatex (4,  yoff, "4");
+    tl->DrawLatex (5,  yoff, "5");
+    tl->DrawLatex (6,  yoff, "6");
+    tl->DrawLatex (7,  yoff, "7");
+    tl->DrawLatex (10, yoff, "10");
+    tl->DrawLatex (20, yoff, "20");
+    tl->DrawLatex (30, yoff, "30");
+    tl->DrawLatex (40, yoff, "40");
+    tl->DrawLatex (60, yoff, "60");
+
+    TLine* line = new TLine (pTchBins[nPtZBins-1][0], 1., pTchBins[nPtZBins-1][nPtchBins[nPtZBins-1]], 1.);
+    line->SetLineColor (kBlack);
+    line->SetLineStyle (2);
+    line->Draw ("same");
+  }
+
+  for (short iPtZ = 2; iPtZ < 5; iPtZ++) {
+    const int iCent = 0;
+    TGAE* this_graph = make_graph (h_trk_pt_ptz[2][iPtZ][iCent]);
+    TGAE* that_graph = make_graph (ta->h_trk_pt_ptz[2][iPtZ][iCent]);
+
+    RecenterGraph (this_graph);
+    RecenterGraph (that_graph);
+
+    TGAE* g_ratio = new TGAE ();
+
+    double x, y_num, y_den;
+    double y_this_hi, y_this_lo, y_that_hi, y_that_lo;
+    for (int iX = 0; iX < this_graph->GetN (); iX++) {
+      that_graph->GetPoint (iX, x, y_num);
+      this_graph->GetPoint (iX, x, y_den);
+
+      y_this_hi = this_graph->GetErrorYhigh (iX);
+      y_this_lo = this_graph->GetErrorYlow (iX);
+      y_that_hi = that_graph->GetErrorYhigh (iX);
+      y_that_lo = that_graph->GetErrorYlow (iX);
+
+      const double ratio = y_num / y_den;
+
+      g_ratio->SetPoint (g_ratio->GetN (), x, ratio);
+      g_ratio->SetPointEYhigh (g_ratio->GetN () - 1, fabs (ratio) * sqrt (fabs (pow (y_that_hi/y_num, 2) - pow (y_this_hi/y_den, 2))));
+      g_ratio->SetPointEYlow (g_ratio->GetN () - 1, fabs (ratio) * sqrt (fabs (pow (y_that_lo/y_num, 2) - pow (y_this_lo/y_den, 2))));
+    }
+
+    Style_t markerStyle = kOpenCircle;
+    float markerSize = 1.6;
+
+    g_ratio->SetMarkerStyle (markerStyle);
+    g_ratio->SetMarkerSize (markerSize);
+    g_ratio->SetLineWidth (3);
+    g_ratio->SetMarkerColor (finalColors[iPtZ-1]);
+    g_ratio->SetLineColor (finalColors[iPtZ-1]);
+
+    ((TGAE*) g_ratio->Clone ())->Draw ("P");
+
+    markerStyle = kDot;
+
+    g_ratio->SetMarkerStyle (markerStyle);
+    g_ratio->SetMarkerSize (markerSize);
+    g_ratio->SetMarkerColor (finalColors[iPtZ-1]);
+
+    ((TGAE*) g_ratio->Clone ())->Draw ("P");
+
+    SaferDelete (&g_ratio);
+
+    SaferDelete (&this_graph);
+    SaferDelete (&that_graph);
+  }
+
+  c_truth_pp_compare->SaveAs ("../Plots/TrackMomentumResolutionStudy/truth_comparison_pTch.pdf");
+
 }
 
 

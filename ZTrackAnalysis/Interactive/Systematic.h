@@ -185,9 +185,9 @@ class Systematic : public PhysicsAnalysis {
   void PlotTotalTrkYieldRelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
   void PlotTotalTrkYieldRelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
   void PlotSignalTrkYieldRelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  void PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2, PhysicsAnalysis* stat = nullptr);
   void PlotIAARelSys_dPhi (const short pSpc = 2, const short pPtZ = nPtZBins-1);
-  void PlotIAARelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2);
+  void PlotIAARelSys_dPtZ (const bool useTrkPt = true, const short pSpc = 2, PhysicsAnalysis* stat = nullptr);
   void PlotMeanTrackSys (const bool useTrkPt = true, const short pSpc = 2);
 
   virtual void PrintIAA (const bool printErrs, const bool useTrkPt = true, const short iCent = numCentBins-1, const short iPtZ = nPtZBins-1, const short iSpc = 2) override;
@@ -1916,7 +1916,7 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPhi (const short pSpc, const short 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on the signal track yield binned in pT^Z
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const short pSpc, PhysicsAnalysis* stat) {
   const char* canvasName = "c_signalYield_sys_dPtZ";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -2020,6 +2020,26 @@ void Systematic :: PlotSignalTrkYieldRelSys_dPtZ (const bool useTrkPt, const sho
           myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
+
+
+        if (stat) {
+          centralVals = (useTrkPt ? stat->h_trk_pt_ptz_sub : stat->h_trk_xhz_ptz_sub)[iSpc][iPtZ][iCent];
+          TGAE* g_centralVals = stat->GetTGAE (centralVals);
+
+          double x, y;
+          for (int i = 0; i < g_centralVals->GetN (); i++) {
+            g_centralVals->GetPoint (i, x, y);
+            g_centralVals->SetPoint (i, x, 0);
+            if (y > 0) g_centralVals->SetPointEYhigh (i, 100 * g_centralVals->GetErrorYhigh (i) / y);
+            if (y > 0) g_centralVals->SetPointEYlow (i, 100 * g_centralVals->GetErrorYlow (i) / y);
+          }
+
+          g_centralVals->SetFillStyle (1001);
+          g_centralVals->SetFillColorAlpha (kGray, 0.2);
+  
+          g_centralVals->Draw ("3");
+        }
+
 
         myText (0.22, 0.28, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
         if (iCent == 0) myText (0.22, 0.22, kBlack, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}", 0.045);
@@ -2179,7 +2199,7 @@ void Systematic :: PlotIAARelSys_dPhi (const short pSpc, const short pPtZ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Plot this set of systematics on I_AA binned in pT^Z
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
+void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc, PhysicsAnalysis* stat) {
   const char* canvasName = "c_iaa_sys_dPtZ";
   const bool canvasExists = (gDirectory->Get (canvasName) != nullptr);
   TCanvas* c = nullptr;
@@ -2280,6 +2300,26 @@ void Systematic :: PlotIAARelSys_dPtZ (const bool useTrkPt, const short pSpc) {
           myLineColorText (0.65, 0.89-0.026*iSys, colors[iSys+1], iSys%7+2, sys->description.c_str (), 1, 0.026);
           iSys++;
         } // end loop over systematics
+
+
+        if (stat) {
+          centralVals = (useTrkPt ? stat->h_trk_pt_ptz_iaa : stat->h_trk_xhz_ptz_iaa)[iSpc][iPtZ][iCent];
+          TGAE* g_centralVals = stat->GetTGAE (centralVals);
+
+          double x, y;
+          for (int i = 0; i < g_centralVals->GetN (); i++) {
+            g_centralVals->GetPoint (i, x, y);
+            g_centralVals->SetPoint (i, x, 0);
+            if (y > 0) g_centralVals->SetPointEYhigh (i, 100 * g_centralVals->GetErrorYhigh (i) / y);
+            if (y > 0) g_centralVals->SetPointEYlow (i, 100 * g_centralVals->GetErrorYlow (i) / y);
+          }
+
+          g_centralVals->SetFillStyle (1001);
+          g_centralVals->SetFillColorAlpha (kGray, 0.3);
+  
+          g_centralVals->Draw ("3");
+        }
+
 
         myText (0.22, 0.32, kBlack, "#bf{#it{ATLAS}} Internal", 0.056);
         myText (0.22, 0.26, kBlack, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}", 0.045);

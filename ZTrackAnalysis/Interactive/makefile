@@ -8,5 +8,8 @@ all : ProcessFile
 ProcessFile : ProcessFile.cxx *.h
 	$(CC) -o ${ATLAS_PATH}/ZTrackAnalysis/Interactive/ProcessFile ${ATLAS_PATH}/ZTrackAnalysis/Interactive/ProcessFile.cxx
 
+DoMixing : DoMixing.cxx
+	$(CC) -o ${ATLAS_PATH}/ZTrackAnalysis/Interactive/DoMixing ${ATLAS_PATH}/ZTrackAnalysis/Interactive/DoMixing.cxx
+
 clean :
 	rm ${ATLAS_PATH}/ZTrackAnalysis/Interactive/ProcessFile

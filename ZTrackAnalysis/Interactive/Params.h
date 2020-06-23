@@ -4,6 +4,7 @@
 #include <GlobalParams.h>
 #include <Utilities.h>
 #include <ArrayTemplates.h>
+#include <AtlasUtils.h>
 
 #include <set>
 #include <map>
@@ -13,6 +14,9 @@
 #include <math.h>
 
 #include <TColor.h>
+#include <TPave.h>
+#include <TLine.h>
+#include <TMarker.h>
 
 using namespace std;
 using namespace atlashi;
@@ -801,6 +805,72 @@ short GetRunGroup (int rn) {
       return rg;
   }
   return -1;
+}
+
+
+void MakeTheoryBox (const double x, const double y, const Color_t color, const double colorAlpha, const double boxMultiplier = 1.) {
+  const double ytsize = 0.07;
+  const double xtsize = 0.18;
+  const double y1 = y - 0.25*ytsize;
+  const double y2 = y + 0.25*ytsize;
+  const double x2 = x - 0.15*xtsize;
+  const double x1 = x - 0.55*xtsize*boxMultiplier;
+  TPave *mbox = new TPave (x1, y1, x2, y2, 0, "NDC");
+  mbox->SetFillColorAlpha (color, colorAlpha);
+  mbox->SetFillStyle (1001);
+  mbox->Draw ();
+
+  TLine mline;
+  mline.SetLineWidth (1);
+  mline.SetLineColor (color);
+  //mline.SetLineStyle (lstyle);
+  mline.SetLineStyle (0);
+  Double_t y_new = (y1+y2)/2.;
+  //mline.DrawLineNDC (x1, y_new, x2, y_new);
+  mline.DrawLineNDC (x1, y1, x2, y1);
+  mline.DrawLineNDC (x1, y2, x2, y2);
+  mline.DrawLineNDC (x1, y1, x1, y2);
+  mline.DrawLineNDC (x2, y1, x2, y2);
+  return;
+}
+
+
+void MakeDataBox (const double x, const double y, const Color_t color, const double colorAlpha, const Style_t mstyle, const double msize) {
+  MakeTheoryBox (x, y, color, colorAlpha);
+
+  const double ytsize = 0.07;
+  const double xtsize = 0.18;
+
+  const double y1 = y - 0.25*ytsize;
+  const double y2 = y + 0.25*ytsize;
+  const double x2 = x - 0.15*xtsize;
+  const double x1 = x - 0.55*xtsize;
+
+  TLine* ml = new TLine ();
+  ml->SetNDC();
+  ml->SetLineColor (color);
+  ml->SetLineStyle (1);
+  ml->SetLineWidth (2);
+
+  ml->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
+  ml->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
+
+  TMarker* marker = new TMarker (x-0.35*0.18, y, 0);
+  marker->SetNDC();
+  marker->SetMarkerColor (color);
+  marker->SetMarkerStyle (mstyle);
+  marker->SetMarkerSize (msize);
+  marker->Draw ();
+
+  if (IsFullMarker (mstyle)) {
+    TMarker* marker2 = new TMarker (x-0.35*0.18, y, 0);
+    marker2->SetNDC();
+    marker2->SetMarkerColor (kBlack);
+    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+    marker2->SetMarkerSize (msize);
+    marker2->Draw();
+  }
+  return;
 }
 
 

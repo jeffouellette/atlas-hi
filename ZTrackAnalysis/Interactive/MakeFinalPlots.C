@@ -60,70 +60,70 @@ void SetMinErrors (TGAE* g, const double minerr, const bool logy) {
 }
 
 
-void MakeTheoryBox (const double x, const double y, const Color_t color, const double colorAlpha, const double boxMultiplier = 1.) {
-  const double ytsize = 0.07;
-  const double xtsize = 0.18;
-  const double y1 = y - 0.25*ytsize;
-  const double y2 = y + 0.25*ytsize;
-  const double x2 = x - 0.15*xtsize;
-  const double x1 = x - 0.55*xtsize*boxMultiplier;
-  TPave *mbox = new TPave (x1, y1, x2, y2, 0, "NDC");
-  mbox->SetFillColorAlpha (color, colorAlpha);
-  mbox->SetFillStyle (1001);
-  mbox->Draw ();
-
-  TLine mline;
-  mline.SetLineWidth (1);
-  mline.SetLineColor (color);
-  //mline.SetLineStyle (lstyle);
-  mline.SetLineStyle (0);
-  Double_t y_new = (y1+y2)/2.;
-  //mline.DrawLineNDC (x1, y_new, x2, y_new);
-  mline.DrawLineNDC (x1, y1, x2, y1);
-  mline.DrawLineNDC (x1, y2, x2, y2);
-  mline.DrawLineNDC (x1, y1, x1, y2);
-  mline.DrawLineNDC (x2, y1, x2, y2);
-  return;
-}
-
-
-void MakeDataBox (const double x, const double y, const Color_t color, const double colorAlpha, const Style_t mstyle, const double msize) {
-  MakeTheoryBox (x, y, color, colorAlpha);
-
-  const double ytsize = 0.07;
-  const double xtsize = 0.18;
-
-  const double y1 = y - 0.25*ytsize;
-  const double y2 = y + 0.25*ytsize;
-  const double x2 = x - 0.15*xtsize;
-  const double x1 = x - 0.55*xtsize;
-
-  TLine* ml = new TLine ();
-  ml->SetNDC();
-  ml->SetLineColor (color);
-  ml->SetLineStyle (1);
-  ml->SetLineWidth (2);
-
-  ml->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
-  ml->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
-
-  TMarker* marker = new TMarker (x-0.35*0.18, y, 0);
-  marker->SetNDC();
-  marker->SetMarkerColor (color);
-  marker->SetMarkerStyle (mstyle);
-  marker->SetMarkerSize (msize);
-  marker->Draw ();
-
-  if (IsFullMarker (mstyle)) {
-    TMarker* marker2 = new TMarker (x-0.35*0.18, y, 0);
-    marker2->SetNDC();
-    marker2->SetMarkerColor (kBlack);
-    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
-    marker2->SetMarkerSize (msize);
-    marker2->Draw();
-  }
-  return;
-}
+//void MakeTheoryBox (const double x, const double y, const Color_t color, const double colorAlpha, const double boxMultiplier = 1.) {
+//  const double ytsize = 0.07;
+//  const double xtsize = 0.18;
+//  const double y1 = y - 0.25*ytsize;
+//  const double y2 = y + 0.25*ytsize;
+//  const double x2 = x - 0.15*xtsize;
+//  const double x1 = x - 0.55*xtsize*boxMultiplier;
+//  TPave *mbox = new TPave (x1, y1, x2, y2, 0, "NDC");
+//  mbox->SetFillColorAlpha (color, colorAlpha);
+//  mbox->SetFillStyle (1001);
+//  mbox->Draw ();
+//
+//  TLine mline;
+//  mline.SetLineWidth (1);
+//  mline.SetLineColor (color);
+//  //mline.SetLineStyle (lstyle);
+//  mline.SetLineStyle (0);
+//  Double_t y_new = (y1+y2)/2.;
+//  //mline.DrawLineNDC (x1, y_new, x2, y_new);
+//  mline.DrawLineNDC (x1, y1, x2, y1);
+//  mline.DrawLineNDC (x1, y2, x2, y2);
+//  mline.DrawLineNDC (x1, y1, x1, y2);
+//  mline.DrawLineNDC (x2, y1, x2, y2);
+//  return;
+//}
+//
+//
+//void MakeDataBox (const double x, const double y, const Color_t color, const double colorAlpha, const Style_t mstyle, const double msize) {
+//  MakeTheoryBox (x, y, color, colorAlpha);
+//
+//  const double ytsize = 0.07;
+//  const double xtsize = 0.18;
+//
+//  const double y1 = y - 0.25*ytsize;
+//  const double y2 = y + 0.25*ytsize;
+//  const double x2 = x - 0.15*xtsize;
+//  const double x1 = x - 0.55*xtsize;
+//
+//  TLine* ml = new TLine ();
+//  ml->SetNDC();
+//  ml->SetLineColor (color);
+//  ml->SetLineStyle (1);
+//  ml->SetLineWidth (2);
+//
+//  ml->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
+//  ml->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
+//
+//  TMarker* marker = new TMarker (x-0.35*0.18, y, 0);
+//  marker->SetNDC();
+//  marker->SetMarkerColor (color);
+//  marker->SetMarkerStyle (mstyle);
+//  marker->SetMarkerSize (msize);
+//  marker->Draw ();
+//
+//  if (IsFullMarker (mstyle)) {
+//    TMarker* marker2 = new TMarker (x-0.35*0.18, y, 0);
+//    marker2->SetNDC();
+//    marker2->SetMarkerColor (kBlack);
+//    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+//    marker2->SetMarkerSize (msize);
+//    marker2->Draw();
+//  }
+//  return;
+//}
 
 void MakeFinalPlots () {
 
@@ -174,25 +174,44 @@ void MakeFinalPlots () {
   TFile* sysFile = new TFile ("../rootFiles/Systematics/CombinedSys.root", "read");
 
   TH1D*** h_trk_pt_ptz_iaa_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
-  TH1D*** h_trk_pt_ptz_iaa_stat_2015proj = Get2DArray <TH1D*> (nPtZBins, numCentBins);
+  //TH1D*** h_trk_pt_ptz_iaa_stat_2015proj = Get2DArray <TH1D*> (nPtZBins, numCentBins);
   TH1D*** h_trk_xhz_ptz_iaa_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
-  TH1D*** h_trk_xhz_ptz_iaa_stat_2015proj = Get2DArray <TH1D*> (nPtZBins, numCentBins);
+  //TH1D*** h_trk_xhz_ptz_iaa_stat_2015proj = Get2DArray <TH1D*> (nPtZBins, numCentBins);
   TH1D*** h_trk_pt_ptz_sub_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
   TH1D*** h_trk_xhz_ptz_sub_stat = Get2DArray <TH1D*> (nPtZBins, numCentBins);
 
   TGAE** g_trk_avg_pt_ptz_stat = Get1DArray <TGAE*> (numCentBins);
   TGAE** g_trk_avg_xhz_ptz_stat = Get1DArray <TGAE*> (numCentBins);
 
+  const double abbrev_xhz_bins[4] = {1./8., 1./4., 1./2., 1.};
+  const short num_abbrev_xhz_bins = 3;
   for (short iPtZ = 2; iPtZ < nPtZBins; iPtZ++) {
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       h_trk_pt_ptz_iaa_stat[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_pt_ptz_iaa_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
-      h_trk_pt_ptz_iaa_stat_2015proj[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_pt_ptz_iaa_2015proj_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
+      //h_trk_pt_ptz_iaa_stat_2015proj[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_pt_ptz_iaa_2015proj_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
       h_trk_xhz_ptz_iaa_stat[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_xhz_ptz_iaa_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
-      h_trk_xhz_ptz_iaa_stat_2015proj[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_xhz_ptz_iaa_2015proj_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
+      //h_trk_xhz_ptz_iaa_stat_2015proj[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_xhz_ptz_iaa_2015proj_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
+
+      if (iPtZ == 2) {
+        TH1D* h = new TH1D (Form ("h_trk_xhz_ptz_iaa_comb_iPtZ%i_iCent%i_data18_abbrev", iPtZ, iCent), "", num_abbrev_xhz_bins, abbrev_xhz_bins);
+        for (int iX = 1; iX <= num_abbrev_xhz_bins; iX++) {
+          h->SetBinContent (iX, h_trk_xhz_ptz_iaa_stat[iPtZ][iCent]->GetBinContent (h_trk_xhz_ptz_iaa_stat[iPtZ][iCent]->FindFixBin (h->GetBinCenter (iX))));
+          h->SetBinError (iX, h_trk_xhz_ptz_iaa_stat[iPtZ][iCent]->GetBinError (h_trk_xhz_ptz_iaa_stat[iPtZ][iCent]->FindFixBin (h->GetBinCenter (iX))));
+        }
+        h_trk_xhz_ptz_iaa_stat[iPtZ][iCent] = h;
+      }
     }
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       h_trk_pt_ptz_sub_stat[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_pt_ptz_sub_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
       h_trk_xhz_ptz_sub_stat[iPtZ][iCent] = (TH1D*) resultsFile->Get (Form ("h_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_data18", iPtZ, iCent));
+      if (iPtZ == 2) {
+        TH1D* h = new TH1D (Form ("h_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_data18_abbrev", iPtZ, iCent), "", num_abbrev_xhz_bins, abbrev_xhz_bins);
+        for (int iX = 1; iX <= num_abbrev_xhz_bins; iX++) {
+          h->SetBinContent (iX, h_trk_xhz_ptz_sub_stat[iPtZ][iCent]->GetBinContent (h_trk_xhz_ptz_sub_stat[iPtZ][iCent]->FindFixBin (h->GetBinCenter (iX))));
+          h->SetBinError (iX, h_trk_xhz_ptz_sub_stat[iPtZ][iCent]->GetBinError (h_trk_xhz_ptz_sub_stat[iPtZ][iCent]->FindFixBin (h->GetBinCenter (iX))));
+        }
+        h_trk_xhz_ptz_sub_stat[iPtZ][iCent] = h;
+      }
     }
   }
   for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -211,10 +230,16 @@ void MakeFinalPlots () {
     for (short iCent = 1; iCent < numCentBins; iCent++) {
       g_trk_pt_ptz_iaa_syst[iPtZ][iCent] = (TGAE*) sysFile->Get (Form ("g_trk_pt_ptz_iaa_comb_iPtZ%i_iCent%i_combSys", iPtZ, iCent));
       g_trk_xhz_ptz_iaa_syst[iPtZ][iCent] = (TGAE*) sysFile->Get (Form ("g_trk_xhz_ptz_iaa_comb_iPtZ%i_iCent%i_combSys", iPtZ, iCent));
+      if (iPtZ == 2) {
+        g_trk_xhz_ptz_iaa_syst[iPtZ][iCent]->RemovePoint (0);
+      }
     }
     for (short iCent = 0; iCent < numCentBins; iCent++) {
       g_trk_pt_ptz_sub_syst[iPtZ][iCent] = (TGAE*) sysFile->Get (Form ("g_trk_pt_ptz_sub_comb_iPtZ%i_iCent%i_combSys", iPtZ, iCent));
       g_trk_xhz_ptz_sub_syst[iPtZ][iCent] = (TGAE*) sysFile->Get (Form ("g_trk_xhz_ptz_sub_comb_iPtZ%i_iCent%i_combSys", iPtZ, iCent));
+      if (iPtZ == 2) {
+        g_trk_xhz_ptz_sub_syst[iPtZ][iCent]->RemovePoint (0);
+      }
     }
   }
   for (short iCent = 0; iCent < numCentBins; iCent++) {
@@ -861,7 +886,9 @@ void MakeFinalPlots () {
         TAxis* yax = h->GetYaxis ();
 
         xax->SetTitle ("#it{x}_{hZ} = #it{p}_{T}^{ch} #/#it{p}_{T}^{Z}");
-        xax->SetRangeUser (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
+
+        const double xmin = (iPtZ == 2 ? 1./8. : xhZBins[iPtZ][0]);
+        xax->SetRangeUser (xmin, xhZBins[iPtZ][nXhZBins[iPtZ]]);
         xax->SetTitleFont (43);
         xax->SetTitleSize (30);
         xax->SetTitleOffset (plotXhZ ? 2.5 : 1.25);
@@ -899,7 +926,7 @@ void MakeFinalPlots () {
         l->SetLineStyle (2);
         l->SetLineWidth (2);
         //l->SetLineColor (kPink-8);
-        l->DrawLine (xhZBins[iPtZ][0], 1, xhZBins[iPtZ][nXhZBins[iPtZ]], 1);
+        l->DrawLine (xmin, 1, xhZBins[iPtZ][nXhZBins[iPtZ]], 1);
       } // end loop over iPtZ
 
       for (short iPtZ = 2; iPtZ < 5; iPtZ++) {
@@ -1142,8 +1169,8 @@ void MakeFinalPlots () {
     tl->SetTextSize (28);
     tl->DrawLatexNDC (0.19, 0.890, "#bf{#it{ATLAS}} Internal");
     tl->SetTextSize (26);
-    tl->DrawLatexNDC (0.45, 0.890, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
-    tl->DrawLatexNDC (0.45, 0.840, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
+    tl->DrawLatexNDC (0.43, 0.890, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
+    tl->DrawLatexNDC (0.43, 0.840, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
 
     tl->SetTextSize (24);
     tl->DrawLatex (13, 1.28, "15 < #it{p}_{T}^{Z} < 30 GeV (#times 1)");
@@ -1998,7 +2025,8 @@ void MakeFinalPlots () {
         TAxis* yax = h->GetYaxis ();
 
         xax->SetTitle ("#it{x}_{hZ} = #it{p}_{T}^{ch} #/#it{p}_{T}^{Z}");
-        xax->SetRangeUser (xhZBins[iPtZ][0], xhZBins[iPtZ][nXhZBins[iPtZ]]);
+        const double xmin = (iPtZ == 2 ? 1./8. : xhZBins[iPtZ][0]);
+        xax->SetRangeUser (xmin, xhZBins[iPtZ][nXhZBins[iPtZ]]);
         xax->SetTitleFont (43);
         xax->SetTitleSize (30);
         xax->SetTitleOffset (plotXhZ ? 2.5 : 1.25);
@@ -2273,8 +2301,8 @@ void MakeFinalPlots () {
     tl->SetTextSize (28);
     tl->DrawLatexNDC (0.19, 0.890, "#bf{#it{ATLAS}} Internal");
     tl->SetTextSize (26);
-    tl->DrawLatexNDC (0.45, 0.890, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
-    tl->DrawLatexNDC (0.45, 0.840, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
+    tl->DrawLatexNDC (0.43, 0.890, "#it{pp}, #sqrt{s} = 5.02 TeV, 260 pb^{-1}");
+    tl->DrawLatexNDC (0.43, 0.840, "Pb+Pb, #sqrt{s_{NN}} = 5.02 TeV, 1.4-1.7 nb^{-1}");
 
     tl->SetTextSize (24);
     tl->SetTextAngle (-35);
