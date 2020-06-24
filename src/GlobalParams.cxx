@@ -6,8 +6,6 @@
  * Dated: 4/25/2018
  */
 
-namespace atlashi {
-
 TString workPath = ""; // Home analysis directory, should be modified in code outside this path structure
 TString externalWorkPath = ""; // External drive storage directory, should be modified in code below
 TString intWorkPath = ""; // Base directory for intermediate root files, should be modified in code outside this path structure
@@ -21,5 +19,3 @@ TString xPath = ""; // Where the xa/xp module output is stored.
 TString RpPbPath = ""; // Where the R_pPb module output is stored.
 
 int numtrigs = 0; // number of triggers that have been initialized
-
-} // end namespace

@@ -2,6 +2,9 @@
 // ATLAS Style, based on a style file from BaBar
 //
 
+#ifndef __AtlasStyle_cxx__
+#define __AtlasStyle_cxx__
+
 #include <iostream>
 
 #include "../include/AtlasStyle.h"
@@ -96,3 +99,5 @@ TStyle* AtlasStyle() {
 
 }
 
+
+#endif // __AtlasStyle_cxx__

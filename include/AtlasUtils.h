@@ -9,25 +9,23 @@
 //   $Id: AtlasUtils.h, v0.0   Thu 25 Mar 2010 10:34:20 CET $
 
 
-#ifndef __ATLASUTILS_H
-#define __ATLASUTILS_H
+#ifndef __AtlasUtils_h__
+#define __AtlasUtils_h__
 
-#include "TGraphErrors.h"
-#include "TGraphAsymmErrors.h"
-#include "TH1D.h"
-#include "TCanvas.h"
+#include <TGraphErrors.h>
+#include <TGraphAsymmErrors.h>
+#include <TH1D.h>
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TString.h>
+#include <TProfile.h>
+#include <TH2D.h>
+#include <TH3D.h>
+#include <TEfficiency.h>
 
-bool IsOpenMarker (const Style_t ms);
-
-bool IsFullMarker (const Style_t ms);
-
-Style_t FullToOpenMarker (const Style_t ms);
-
-Style_t OpenToFullMarker (const Style_t ms);
+typedef TGraphAsymmErrors TGAE;
 
 void SetStyle ();
-
-void FormatTH2Canvas (TCanvas* c, const bool zAxisSpace=true);
 
 void ATLAS_LABEL (double x, double y, Color_t color=1); 
 
@@ -39,26 +37,78 @@ TGraphAsymmErrors* myMakeBand (TGraphErrors* g0, TGraphErrors* g1, TGraphErrors*
 
 void myAddtoBand (TGraphErrors* g1, TGraphAsymmErrors* g2);
 
-TGraphErrors* TH1TOTGraph (TH1 *h1);
+/**
+ * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
+ */
+bool InDisabledHEC (const double eta, double phi, const double dr = 0.4);
 
-void BinomialDivide (TH1D* n, TH1D* d);
 
-void myText (double x, double y,  Color_t color, const char *text, double tsize=0.04);
+/**
+ * Returns true iff this eta lies within the EMCal.
+ */
+bool InEMCal (const float eta);
 
-void myBoxText (double x, double y, double boxsize, int mcolor, const char *text);
 
-void myLineText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize);
+/**
+ * Returns true iff this object is within a given radius in the HCal.
+ */
+bool InHadCal (const float eta, const float R = 0.4);
 
-void myLineColorText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize);
 
-void myMarkerText (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032);
+///**
+// * Modifies the directory strings to point to the correct locations.
+// */
+//void SetupDirectories (const TString dataSubDir, const TString thisWorkPath);
+//
+//
+///**
+// * Clears sub-directory information from the directory strings
+// */
+//void ResetDirectories ();
 
-void myMarkerTextNoLine (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032);
 
-void myOnlyBoxText (double x, double y, double boxsize, int mcolor, int lcolor, int lstyle, const char *text, double tsize, int bstyle, double balpha);
 
-TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2);
+///**
+// * Returns the appropriate file in the given directory.
+// * For MC, inFileName MUST be specified.
+// */
+//TFile* GetFile (const char* directory, const int dataSet, const bool isMC, const char* inFileName = "");
 
-void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032);
 
-#endif // __ATLASUTILS_H
+/**
+ * Returns an abbreviated, unique identifier for a given dataset.
+ */
+TString GetIdentifier (const int dataSet, const char* inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA);
+
+
+/**
+ * Returns the TProfile of an input histogram along the x axis. Can use either statistical mean or gaussian mean.
+ */
+TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit = false, const double* xlo = NULL, const double* xhi = NULL);
+
+
+/**
+ * Returns the TProfile of an input histogram along the y axis. Can use either statistical mean or gaussian mean.
+ */
+TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit = false, const double* ylo = NULL, const double* yhi = NULL);
+
+
+/**
+ * Returns a histogram with the TProfile of data over the TProfile of MC along either the x or y axes. Can use either the statistical or gaussian mean.
+ */
+TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit = false, const TString axis = "x", const double* lo = NULL, const double* hi = NULL);
+
+
+/**
+ * Converts a TProfile to a TH1D.
+ */
+TH1D* TProfile2TH1D (const char* name, TProfile* p, const int nx, const double* x);
+
+
+/**
+ * Reflects the contents of h around the n-th bin in x.
+ */
+void GetReflectionX (TH1D* h, const int n);
+
+
+#endif // __AtlasUtils_h__

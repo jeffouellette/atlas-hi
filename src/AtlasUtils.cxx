@@ -1,87 +1,28 @@
+#ifndef __AtlasUtils_cxx__
+#define __AtlasUtils_cxx__
+
+#include "AtlasUtils.h"
+#include "AtlasStyle.h"
+#include "GlobalParams.h"
+
+#include <Utilities.h>
+
+#include <TROOT.h>
+#include <TLine.h>
+#include <TLatex.h>
+#include <TMarker.h>
+#include <TPave.h>
+#include <TH1.h>
+#include <TH1D.h>
+#include <TStyle.h>
+#include <TSystemDirectory.h>
+#include <TList.h>
+#include <TSystemFile.h>
+#include <TF1.h>
 
 #include <iostream>
 #include <cmath>
 
-#include "../include/AtlasUtils.h"
-#include "../include/AtlasStyle.h"
-
-#include "TROOT.h"
-#include "TLine.h"
-#include "TLatex.h"
-#include "TMarker.h"
-#include "TPave.h"
-#include "TH1.h"
-#include "TH1D.h"
-#include "TStyle.h"
-
-bool IsOpenMarker (const Style_t ms) {
-  return ms == kOpenCircle ||
-         ms == kOpenSquare ||
-         ms == kOpenTriangleUp ||
-         ms == kOpenDiamond ||
-         ms == kOpenCross ||
-         ms == kOpenStar ||
-         ms == kOpenTriangleDown ||
-         ms == kOpenDiamondCross ||
-         ms == kOpenSquareDiagonal ||
-         ms == kOpenThreeTriangles ||
-         ms == kOpenFourTrianglesX ||
-         ms == kOpenDoubleDiamond ||
-         ms == kOpenFourTrianglesPlus ||
-         ms == kOpenCrossX;
-}
-
-bool IsFullMarker (const Style_t ms) {
-  return ms == kFullCircle ||
-         ms == kFullSquare ||
-         ms == kFullTriangleUp ||
-         ms == kFullDiamond ||
-         ms == kFullCross ||
-         ms == kFullStar ||
-         ms == kFullTriangleDown ||
-         ms == kFullThreeTriangles ||
-         ms == kFullFourTrianglesX ||
-         ms == kFullDoubleDiamond ||
-         ms == kFullFourTrianglesPlus ||
-         ms == kFullCrossX;
-}
-
-Style_t FullToOpenMarker (const Style_t ms) {
-  switch (ms) {
-    case kFullCircle: return kOpenCircle;
-    case kFullSquare: return kOpenSquare;
-    case kFullDiamond: return kOpenDiamond;
-    case kFullCross: return kOpenCross;
-    case kFullTriangleUp: return kOpenTriangleUp;
-    case kFullTriangleDown: return kOpenTriangleDown;
-    case kFullStar: return kOpenStar;
-    case kFullCrossX: return kOpenCrossX;
-    case kFullFourTrianglesPlus: return kOpenFourTrianglesPlus;
-    case kFullFourTrianglesX: return kOpenFourTrianglesX;
-    case kFullThreeTriangles: return kOpenThreeTriangles;
-    case kFullDoubleDiamond: return kOpenDoubleDiamond;
-    default: return kDot;
-  }
-}
-
-
-Style_t OpenToFullMarker (const Style_t ms) {
-  switch (ms) {
-    case kOpenCircle: return kFullCircle;
-    case kOpenSquare: return kFullSquare;
-    case kOpenDiamond: return kFullDiamond;
-    case kOpenCross: return kFullCross;
-    case kOpenTriangleUp: return kFullTriangleUp;
-    case kOpenTriangleDown: return kFullTriangleDown;
-    case kOpenStar: return kFullStar;
-    case kOpenCrossX: return kFullCrossX;
-    case kOpenFourTrianglesPlus: return kFullFourTrianglesPlus;
-    case kOpenFourTrianglesX: return kFullFourTrianglesX;
-    case kOpenThreeTriangles: return kFullThreeTriangles;
-    case kOpenDoubleDiamond: return kFullDoubleDiamond;
-    default: return kDot;
-  }
-}
 
 void SetStyle () {
   TStyle* myStyle = AtlasStyle();
@@ -92,26 +33,6 @@ void SetStyle () {
   gROOT->ForceStyle();
   return;
 }
-
-void FormatTH2Canvas (TCanvas* c, const bool zAxisSpace) {
-  SetStyle();
-  if (zAxisSpace) c->SetRightMargin (0.18);
-  else c->SetRightMargin (0.06);
-
-  c->SetLeftMargin (0.15); 
-}
-
-
-void ATLAS_LABEL (double x, double y,Color_t color) {
-  TLatex l; //l.SetTextAlign(12); l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.SetTextFont(72);
-  l.SetTextColor(color);
-  l.DrawLatex(x,y,"ATLAS");
-}
-
-
-
 
 TGraphErrors* myTGraphErrorsDivide (TGraphErrors* g1, TGraphErrors* g2) {
  
@@ -401,314 +322,411 @@ void myAddtoBand (TGraphErrors* g1, TGraphAsymmErrors* g2) {
 
 
 
+/**
+ * Returns true iff this eta, phi coordinate lies in the disabled HEC region.
+ */
+bool InDisabledHEC (const double eta, double phi, const double dr) {
+  phi = InTwoPi (phi);
+  return 1.5-dr < eta && eta < 3.2+dr &&
+         M_PI-dr < phi && phi < 3*M_PI/2+dr;
+}
 
-TGraphErrors* TH1TOTGraph (TH1 *h1) {
+
+/**
+ * Returns true iff this eta lies within the EMCal.
+ */
+bool InEMCal (const float eta) {
+  return TMath::Abs(eta) < 1.37 || (1.56 < TMath::Abs(eta) && TMath::Abs(eta) < 2.47);
+}
 
 
-  if (!h1) std::cout << "TH1TOTGraph: histogram not found !" << std::endl;
+/**
+ * Returns true iff this object is within a given radius in the HCal.
+ */
+bool InHadCal (const float eta, const float R) {
+  return TMath::Abs(eta) <= 4.9 - R;
+}
 
- TGraphErrors* g1= new TGraphErrors();
 
- double x, y, ex, ey;
- for (int i=1 ; i<=h1->GetNbinsX(); i++) {
-   y=h1->GetBinContent(i);
-   ey=h1->GetBinError(i);
-   x=h1->GetBinCenter(i);
-   ex=h1->GetBinWidth(i);
-   
-  //   cout << " x,y = " << x << " " << y << " ex,ey = " << ex << " " << ey << endl;
+///**
+// * Modifies the directory strings to point to the correct locations.
+// */
+//void SetupDirectories (const TString dataSubDir, const TString thisWorkPath) {
+//  ResetDirectories ();
+//
+//  workPath = homePath + "/" + thisWorkPath;
+//  externalWorkPath = drivePath + "/" + thisWorkPath;
+//  intWorkPath = intPath + "/" + thisWorkPath;
+//
+//  rootPath = intWorkPath + "/rootFiles/" + dataSubDir;
+//  dataPath = externalWorkPath + "/data/" + dataSubDir;
+//  plotPath = workPath + "/Plots/" + dataSubDir;
+//  ptPath = rootPath + "/ptData/";
+//  trigPath = rootPath + "/trigData/";
+//  effPath = rootPath + "/effData/";
+//  xPath = rootPath + "/xData/";
+//  RpPbPath = rootPath + "/RpPbData/";
+//
+//  return;
+//}
+//
+//
+///**
+// * Clears sub-directory information from the directory strings
+// */
+//void ResetDirectories () {
+//  workPath = ""; // Home analysis directory, should be modified in code outside this path structure
+//  externalWorkPath = ""; // External drive storage directory, should be modified in code below
+//  intWorkPath = ""; // Base directory for intermediate root files, should be modified in code outside this path structure
+//  rootPath = ""; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
+//  dataPath = ""; // Where the *.root raw data files (from the CERN grid) are stored.
+//  plotPath = ""; // Where plots are stored.
+//  ptPath = ""; // Where the pt analysis module output is stored.
+//  trigPath = "";  // Where the trigger fire count module output is stored.
+//  effPath = ""; // Where the trigger efficiency module output is stored.
+//  xPath = ""; // Where the xa/xp module output is stored.
+//  RpPbPath = ""; // Where the R_pPb module output is stored.
+//}
+//
 
-   g1->SetPoint(i-1,x,y);
-   g1->SetPointError(i-1,ex,ey);
 
- }
 
- //g1->Print();
 
- return g1;
+///**
+// * Returns the appropriate file in the given directory.
+// * For MC, inFileName MUST be specified.
+// */
+//TFile* GetFile (const char* directory, const int dataSet, const bool isMC, const char* inFileName) {
+//  TFile* file = NULL;
+//
+//  // First figure out the file we are looking for
+//  TString fileIdentifier;
+//  if (TString (inFileName) == "") {
+//   if (!isMC) fileIdentifier = to_string (dataSet);
+//   else {
+//    cout << "Error: In Utilities.cxx: Cannot identify this MC file! Will return null!" << endl;
+//    return NULL;
+//   }
+//  }
+//  else fileIdentifier = inFileName;
+//
+//  // Now get the list of files
+//  const TString dataPathTemp = dataPath + "/" + directory + "/";
+//  TSystemDirectory dir (dataPathTemp.Data (), dataPathTemp.Data ());
+//  TList* sysfiles = dir.GetListOfFiles ();
+//  if (!sysfiles) {
+//   cout << "Error: In Utilities.cxx: Cannot get list of files! Will return null!" << endl;
+//   return NULL;
+//  }
+//  TSystemFile* sysfile;
+//  TString fname;
+//  TIter next (sysfiles);
+//
+//  while ( (sysfile = (TSystemFile*)next ())) {
+//   fname = sysfile->GetName ();
+//   if (!sysfile->IsDirectory () && fname.EndsWith (".root")) {
+//    if (debugStatements) cout << "Status: In Utilities.cxx: Found " << fname.Data () << endl;
+//    
+//    if (fname.Contains (fileIdentifier)) {
+//     file = new TFile (dataPathTemp+fname, "READ");
+//     break;
+//    }
+//   }
+//  }
+//
+//  if (!file) {
+//   cout << "Error: In Utilities.cxx: TFile not obtained for given data set. Will return null!" << endl;
+//   return NULL;
+//  }
+//  else return file;
+//}
+  
+
+/**
+ * Returns an abbreviated, unique identifier for a given dataset.
+ */
+TString GetIdentifier (const int dataSet, const char* inFileName, const bool isMC, const bool isSignalOnlySample, const bool periodA) {
+  if (!isMC) return to_string (dataSet);
+
+  TString id = (periodA ? "pPb_" : "Pbp_");
+
+  id = id + (isSignalOnlySample ? "Signal_" : "Overlay_");
+
+  if (TString (inFileName).Contains ("42310") && TString (inFileName).Contains ("Slice")) { // gamma+jet
+   if (dataSet <= 0) return "";
+   id = id + "GammaJet_Slice" + to_string (dataSet);
+  }
+  else if (TString (inFileName).Contains ("ZeeJet")) { // Zee+jet
+   if (dataSet < 0) return "";
+   id = id + "ZeeJet" + (dataSet == 0 ? "" : "_Slice" + to_string (dataSet));
+  }
+  else if (TString (inFileName).Contains ("ZmumuJet")) { // Zmumu+jet
+   if (dataSet != 0) return "";
+   id = id + "ZmumuJet";
+  }
+  else if (TString (inFileName).Contains ("Dstar")) { // D* samples
+   id = id + "Dstar";
+   if (TString (inFileName).Contains ("Minus"))
+    id = id + "Minus";
+   else if (TString (inFileName).Contains ("Plus"))
+    id = id + "Plus";
+
+   if (TString (inFileName).Contains ("JZ1WA"))
+    id = id + "_JZ1WA";
+   else if (TString (inFileName).Contains ("JZRW1B"))
+    id = id + "_JZRW1B";
+  }
+  else if (TString (inFileName).Contains ("jetjet")) { // dijet
+   if (dataSet <= 0) return "";
+   id = id + "Dijet_Slice" + to_string (dataSet);
+  }
+
+  return id;
 }
 
 
 
 
-void BinomialDivide (TH1D* n, TH1D* d) {
-  for (int ix = 1; ix <= n->GetNbinsX (); ix++) {
-    float eff = n->GetBinContent (ix);
-    if (d->GetBinContent (ix) != 0)
-      eff = eff / d->GetBinContent (ix);
+/**
+ * Returns the TProfile of an input histogram along the x axis. Can use either statistical mean or gaussian mean.
+ */
+TH1D* GetProfileX (const TString name, TH2D* hist, const int nbinsx, const double* xbins, const bool useFit, const double* xlos, const double* xhis) {
 
-    float var = (eff - eff*eff);
-    if (d->GetBinContent (ix) != 0)
-      var = var / d->GetBinContent (ix);
+  TH1D* prof = new TH1D (name, "", nbinsx, xbins);
 
-    n->SetBinContent (ix, eff);
-    n->SetBinError (ix, sqrt (fabs (var)));
+  const bool useCustomBounds = (xlos && xhis);
+
+  for (int xbin = 1; xbin <= nbinsx; xbin++) {
+    TH1D* proj = hist->ProjectionY ("proj", xbin, xbin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
+
+    double mean, mean_err;
+
+    // Calculate gaussian mean
+    if (useFit) {
+      TF1* gaus;
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", xlos[xbin-1], xhis[xbin-1]);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
+      mean = gaus->GetParameter (1);
+      mean_err = gaus->GetParError (1);
+      if (gaus) { delete gaus; gaus = NULL; }
+    }
+
+    // Calculate statistical mean
+    else {
+      mean = proj->GetMean ();
+      mean_err = proj->GetMeanError ();
+    }
+
+    prof->SetBinContent (xbin, mean);
+    prof->SetBinError (xbin, mean_err);
+    if (proj) { delete proj; proj = NULL; }
   }
+
+  return prof;
+}
+
+
+/**
+ * Returns the TProfile of an input histogram along the y axis. Can use either statistical mean or gaussian mean.
+ */
+TH1D* GetProfileY (const TString name, TH2D* hist, const int nbinsy, const double* ybins, const bool useFit, const double* ylos, const double* yhis) {
+
+  TH1D* prof = new TH1D (name, "", nbinsy, ybins);
+
+  const bool useCustomBounds = (ylos && yhis);
+
+  for (int ybin = 1; ybin <= nbinsy; ybin++) {
+    TH1D* proj = hist->ProjectionX ("proj", ybin, ybin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
+
+    double mean, mean_err;
+
+    // Calculate gaussian mean
+    if (useFit) {
+      TF1* gaus;
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", ylos[ybin-1], yhis[ybin-1]);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
+      mean = gaus->GetParameter (1);
+      mean_err = gaus->GetParError (1);
+      if (gaus) { delete gaus; gaus = NULL; }
+    }
+
+    // Calculate statistical mean
+    else {
+      mean = proj->GetMean ();
+      mean_err = proj->GetMeanError ();
+    }
+
+    prof->SetBinContent (ybin, mean);
+    prof->SetBinError (ybin, mean_err);
+    if (proj) { delete proj; proj = NULL; }
+  }
+
+  return prof;
+}
+
+
+/**
+ * Returns a histogram with the TProfile of data over the TProfile of MC along either the x or y axes. Can use either the statistical or gaussian mean.
+ */
+TH1D* GetDataOverMC (const TString name, TH2D* data, TH2D* mc, const int numbins, const double* bins, const bool useFit, const TString axis, const double* los, const double* his) {
+
+  // figure out which axis to use
+  if (axis != "x" && axis != "y" && axis != "X" && axis != "Y") {
+    cout << "JetCalibration::GetDataOverMC: Invalid axis specified!" << endl;
+    return NULL;
+  }
+  const bool useXaxis = (axis == "x" || axis == "X");
+  const bool useCustomBounds = (los && his);
+
+  TH1D* dataOverMC = new TH1D (name, "", numbins, bins);
+
+  TH1D* proj = NULL;
+
+  double dataAvg, dataErr, mcAvg, mcErr;
+
+  for (int bin = 1; bin <= numbins; bin++) {
+
+    // first calculate the data value (numerator)
+    if (useXaxis) proj = data->ProjectionY (name + Form ("data_bin%i", bin), bin, bin);
+    else proj = data->ProjectionX (name + Form ("data_bin%i", bin), bin, bin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
+
+    // Calculate gaussian mean
+    if (useFit) {
+      TF1* gaus;
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", los[bin-1], his[bin-1]);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
+      dataAvg = gaus->GetParameter (1);
+      dataErr = gaus->GetParError (1);
+      if (gaus) { delete gaus; gaus = NULL; }
+    }
+
+    // Calculate statistical mean
+    if (!useFit) {
+      dataAvg = proj->GetMean ();
+      dataErr = proj->GetMeanError ();
+    }
+
+    if (proj) { delete proj; proj = NULL; }
+
+    // next calculate the MC value (denominator)
+    if (useXaxis) proj = mc->ProjectionY (name + Form ("mc_bin%i", bin), bin, bin);
+    else proj = mc->ProjectionX (name + Form ("mc_bin%i", bin), bin, bin);
+    if (proj->Integral () != 0)
+      proj->Scale (1.0 / proj->Integral ());
+
+    // Calculate gaussian mean
+    if (useFit) {
+      TF1* gaus;
+      if (useCustomBounds)
+        gaus = new TF1 ("gaus", "gaus(0)", los[bin-1], his[bin-1]);
+      else
+        gaus = new TF1 ("gaus", "gaus(0)", proj->GetMean ()-2.8*proj->GetStdDev (), proj->GetMean ()+2.8*proj->GetStdDev ());
+      gaus->SetParameter (1, proj->GetMean ());
+      gaus->SetParameter (2, proj->GetStdDev ());
+      proj->Fit (gaus, "Q0R");
+      mcAvg = gaus->GetParameter (1);
+      mcErr = gaus->GetParError (1);
+      if (gaus) { delete gaus; gaus = NULL; }
+    }
+
+    // Calculate statistical mean
+    else {
+      mcAvg = proj->GetMean ();
+      mcErr = proj->GetMeanError ();
+    }
+
+    if (proj) { delete proj; proj = NULL; }
+
+    // now set the nominal value to the numerator over denominator
+    if (!(dataAvg == 0 || isnan (dataAvg) || mcAvg == 0 || isnan (mcAvg))) {
+      const double dataOverMCavg = dataAvg/mcAvg;
+      const double dataOverMCerr = sqrt (pow (dataErr/mcAvg, 2) + pow (dataOverMCavg * mcErr/mcAvg, 2));
+      dataOverMC->SetBinContent (bin, dataOverMCavg);
+      dataOverMC->SetBinError (bin, dataOverMCerr);
+    }
+  }
+
+  if (useXaxis) dataOverMC->GetXaxis ()->SetTitle (data->GetXaxis ()->GetTitle ()); // copy x axis title
+  else dataOverMC->GetXaxis ()->SetTitle (data->GetYaxis ()->GetTitle ()); // copy y axis title
+  return dataOverMC;
+}
+
+
+/**
+ * Converts a TProfile to a TH1D.
+ */
+TH1D* TProfile2TH1D (const char* name, TProfile* p, const int nx, const double* x) {
+  TH1D* h = new TH1D (name, "", nx, x);
+  h->Sumw2 ();
+
+  for (int ix = 1; ix <= nx; ix++) {
+    h->SetBinContent (ix, p->GetBinContent (ix));
+    h->SetBinError (ix, p->GetBinError (ix));
+  }
+  return h;
+}
+
+
+/**
+ * Reflects the contents of h around the n-th bin in x.
+ */
+void GetReflectionX (TH1D* h, const int n) {
+  if (n < 1 || h->GetNbinsX () < n) {
+    cout << "Invalid choice of n! Exiting gracefully." << endl;
+    return;
+  }
+
+  const int d = std::max (n, h->GetNbinsX () - n);
+  int start = n - d + (h->GetNbinsX () % 2) + 1;
+  int end = n + d;
+  while (start < end) {
+    if (1 <= start && end <= h->GetNbinsX ()) {
+      const double temp = h->GetBinContent (start); 
+      const double temperr = h->GetBinError (start);
+
+      h->SetBinContent (start, h->GetBinContent (end)); 
+      h->SetBinError (start, h->GetBinError (end));
+
+      h->SetBinContent (end, temp);
+      h->SetBinError (end, temperr);
+    }
+    else {
+      if (start < 1) {
+        h->SetBinContent (end, 0);
+        h->SetBinError (end, 0);
+      }
+      if (end > h->GetNbinsX ()) {
+        h->SetBinContent (start, 0);
+        h->SetBinError (start, 0);
+      }
+    }
+    start++; 
+    end--; 
+  } 
+
   return;
 }
 
 
-
-
-void myText (double x, double y, Color_t color, const char *text, double tsize) {
-
-//  double tsize=0.04;
-  TLatex l; /*l.SetTextAlign(12);*/ l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.SetTextColor(color);
-  l.DrawLatex(x,y,text);
-}
- 
-
-
-
-void myBoxText (double x, double y, double boxsize, int mcolor, const char *text) {
-
-  double tsize=0.06;
-
-  TLatex l; l.SetTextAlign(12); //l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
-
-  double y1=y-0.25*tsize;
-  double y2=y+0.25*tsize;
-  double x2=x-0.3*tsize;
-  double x1=x2-boxsize;
-
-  printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
-
-  TPave *mbox= new TPave(x1,y1,x2,y2,0,"NDC");
-
-  mbox->SetFillColor(mcolor);
-  mbox->SetFillStyle(1001);
-  mbox->Draw();
-
-  TLine mline;
-  mline.SetLineWidth(4);
-  mline.SetLineColor(1);
-  mline.SetLineStyle(1);
-  double y_new=(y1+y2)/2.;
-  mline.DrawLineNDC(x1,y_new,x2,y_new);
-
-}
-
-
-
-
-/*void myMarkerText(double x,double y,int color,int mstyle, const char *text) 
-{
-  double tsize=0.032;
-  float msize = 0.75;
-  TMarker *marker = new TMarker(x-(0.4*tsize),y,8);
-  marker->SetMarkerColor(color);  marker->SetNDC();
-  marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(msize);
-  marker->Draw();
-
-  TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
-  l.SetNDC();
-  l.DrawLatex(x,y,text);
-}*/
-
-
-
-
-void myLineText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize) {
-  TLine *markerLine = new TLine(x-(0.8*tsize)-0.02*lsize, y, x-(0.8*tsize)+0.02*lsize, y);
-  markerLine->SetNDC();
-  markerLine->SetLineColor(color);
-  markerLine->SetLineStyle(lstyle);
-  markerLine->SetLineWidth(2);
-  markerLine->Draw();
-
-  if (text[0] != '\0') {
-    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); /*l.SetTextColor (color);*/
-    l.SetNDC();
-    l.DrawLatex(x,y,text);
-  }
-}
-
-
-
-
-void myLineColorText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize) {
-  TLine *markerLine = new TLine(x-(0.8*tsize)-0.02*lsize, y, x-(0.8*tsize)+0.02*lsize, y);
-  markerLine->SetNDC();
-  markerLine->SetLineColor(color);
-  markerLine->SetLineStyle(lstyle);
-  markerLine->SetLineWidth(2);
-  markerLine->Draw();
-
-  if (text[0] != '\0') {
-    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); l.SetTextColor (color);
-    l.SetNDC();
-    l.DrawLatex(x,y,text);
-  }
-}
-
-
-
-
-void myMarkerText (double x, double y, int color, int mstyle, const char *text, float msize, double tsize) {
-//  double tsize=0.032;
-  //TMarker *marker = new TMarker(x-(0.44*tsize),y,8);
-  TMarker *marker = new TMarker(x-(0.8*tsize),y,8);
-  marker->SetMarkerColor(color);  marker->SetNDC();
-  marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(msize);
-  marker->Draw();
-
-  //TLine *markerLine = new TLine(marker->GetX()-0.018*msize, marker->GetY(), marker->GetX()+0.018*msize, marker->GetY());
-  TLine *markerLine = new TLine(x-(0.8*tsize)-0.02, y, x-(0.8*tsize)+0.02, y);
-  markerLine->SetNDC();
-  markerLine->SetLineColor(color);
-  markerLine->SetLineStyle(1);
-  markerLine->SetLineWidth(2);
-  markerLine->Draw();
-
-  if (text[0] != '\0') {
-    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
-    l.SetNDC();
-    l.DrawLatex(x,y,text);
-  }
-}
-
-
-
-
-void myMarkerTextNoLine (double x, double y, int color, int mstyle, const char *text, float msize, double tsize) {
-//  double tsize=0.032;
-  //TMarker *marker = new TMarker(x-(0.44*tsize),y,8);
-  TMarker *marker = new TMarker(x-(0.8*tsize),y,8);
-  marker->SetMarkerColor(color);  marker->SetNDC();
-  marker->SetMarkerStyle(mstyle);
-  marker->SetMarkerSize(msize);
-  marker->Draw();
-
-  if (text[0] != '\0') {
-    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize); 
-    l.SetNDC();
-    l.DrawLatex(x,y,text);
-  }
-}
-
-
-
-
-void myOnlyBoxText (double x, double y, double boxsize, int mcolor, int lcolor, int lstyle, const char *text, double tsize, int bstyle, double balpha) {
-  double y1=y-0.25*tsize;
-  double y2=y+0.25*tsize;
-  double x2=x-0.8*tsize+0.02*boxsize;
-  double x1=x-0.8*tsize-0.02*boxsize;
-  //double x2=x-0.15*tsize;
-  //double x1=x-0.95*tsize;
-  //printf("x1= %f x2= %f y1= %f y2= %f \n",x1,x2,y1,y2);
-  TPave *mbox= new TPave(x1,y1,x2,y2,0,"NDC");
-  mbox->SetFillColorAlpha(mcolor,balpha);
-  mbox->SetFillStyle(bstyle);
-  mbox->Draw();
-  TLine mline;
-  mline.SetLineWidth(1);
-  mline.SetLineColor(lcolor);
-  //mline.SetLineStyle(lstyle);
-  mline.SetLineStyle(lstyle);
-  //double y_new=(y1+y2)/2.;
-  //mline.DrawLineNDC(x1,y_new,x2,y_new);
-  mline.DrawLineNDC(x1,y1,x2,y1);
-  mline.DrawLineNDC(x1,y2,x2,y2);
-  mline.DrawLineNDC(x1,y1,x1,y2);
-  mline.DrawLineNDC(x2,y1,x2,y2);
-
-  if (text[0] != '\0') {
-    TLatex l; l.SetTextAlign(12); l.SetTextSize(tsize);
-    l.SetNDC();
-    l.DrawLatex(x,y,text);
-  }
-}
-
-
-
-
-TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2) {
-  TPad* p;
-  if (gDirectory->Get ("box_pad"))
-    p = (TPad*)gDirectory->Get ("box_pad");
-  else {
-    p = new TPad ("box_pad", "box_pad", 0., 0., 1., 1.);
-    p->SetFillStyle (0);
-  } 
-  p->Draw ();
-  p->cd ();
-  TBox* b = new TBox (x1, y1, x2, y2);
-  return b;
-}
-
-
-
-
-void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize) {
-  const double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
-  const double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
-  const double x2 = x - (0.8*tsize) + 0.02;
-  const double x1 = x - (0.8*tsize) + 0.02 - (0.04*bsize);
-
-  TPave *mbox= new TPave (x1, y1, x2, y2, 0, "NDC");
-  mbox->SetFillColorAlpha (bcolor, balpha);
-  mbox->SetFillStyle (bstyle);
-  mbox->Draw ();
-
-  TLine mline;
-  mline.SetLineWidth (1);
-  mline.SetLineColor (mcolor);
-  mline.SetLineStyle (1);
-  mline.DrawLineNDC (x1, y1, x2, y1);
-  mline.DrawLineNDC (x1, y2, x2, y2);
-  mline.DrawLineNDC (x1, y1, x1, y2);
-  mline.DrawLineNDC (x2, y1, x2, y2);
-
-  if (mstyle != -1) {
-
-    TMarker *marker = new TMarker(x - (0.8*tsize)+0.02-0.02*bsize, y+0.25*tsize, 8);
-    marker->SetNDC();
-    marker->SetMarkerColor (IsOpenMarker (mstyle) ? kBlack : mcolor);
-    marker->SetMarkerStyle (mstyle);
-    marker->SetMarkerSize (msize);
-
-    //TLine *markerLine = new TLine(marker->GetX()-0.018*msize, marker->GetY(), marker->GetX()+0.018*msize, marker->GetY());
-    TLine *markerLine = new TLine ();
-    markerLine->SetNDC();
-    markerLine->SetLineColor(mcolor);
-    markerLine->SetLineStyle(1);
-    markerLine->SetLineWidth(2);
-
-    markerLine->DrawLineNDC (0.9*x1+0.1*x2, 0.5*(y1+y2), 0.1*x1+0.9*x2, 0.5*(y1+y2));
-    markerLine->DrawLineNDC (0.5*(x1+x2), 0.9*y1+0.1*y2, 0.5*(x1+x2), 0.1*y1+0.9*y2);
-
-    //if (IsOpenMarker (mstyle) {
-    //  Rectangle_t bb = marker->GetBBox ();
-
-    //  const double xbbl_user = gPad->PixelToUser (bb.fX);
-    //  const short xbbl = bb.fX- 0.5*bb.fWidth ();
-    //  const short ybbl = bb.fY + 0.5*bb.fWidth ();
-
-    //  
-    //}
-
-    marker->Draw();
-
-    if (FullToOpenMarker (mstyle) != kDot) {
-      TMarker *marker2 = new TMarker(x - (0.8*tsize)+0.02-0.02*bsize, y+0.25*tsize, 8);
-      marker2->SetNDC();
-      marker2->SetMarkerColor (kBlack);
-      marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
-      marker2->SetMarkerSize (msize);
-      marker2->Draw();
-    }
-  }
-  
-  TLatex l;
-  l.SetTextAlign (11);
-  l.SetTextSize (tsize);
-  l.SetNDC ();
-  l.DrawLatex (x, y, text);
-}
+#endif // __AtlasUtils_cxx__

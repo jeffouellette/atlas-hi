@@ -1,1 +1,0 @@
-Distribution of reconstructed photons in the transverse momentum interval from 50 to 550 GeV. Photons are selected in the barrel ($0 < \left|\eta\right| < 1.37$) and the endcaps ($1.52 < \left|\eta\right| < 2.37$). Photons are required to meet the "tight" identification criteria.

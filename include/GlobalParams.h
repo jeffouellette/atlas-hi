@@ -6,8 +6,6 @@
 
 using namespace std;
 
-namespace atlashi {
-
 /**
  * Contains useful variables and directory information for 2016 pPb data analyses.
  * Author: Jeff Ouellette
@@ -34,20 +32,20 @@ const int full_run_list[30] = {313063, 313067, 313100, 313107, 313136, 313187, 3
 
 /** General (non-user defined) paramters **/
 
-// More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
-extern TString workPath; // Home analysis directory, should be modified in code outside this path structure
-extern TString externalWorkPath; // External drive storage directory, should be modified in code below
-extern TString intWorkPath; // Base directory for intermediate root files, should be modified in code outside this path structure
-extern TString rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
-extern TString dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
-extern TString plotPath; // Where plots are stored.
-extern TString ptPath; // Where the pt analysis module output is stored.
-extern TString trigPath;  // Where the trigger fire count module output is stored.
-extern TString effPath; // Where the trigger efficiency module output is stored.
-extern TString xPath; // Where the xa/xp module output is stored.
-extern TString RpPbPath; // Where the R_pPb module output is stored.
-
-extern int numtrigs; // Total number of triggers
+//// More directory information - PLEASE DO NOT CHANGE!!! These values are overwritten when calling triggerUtil::initialize().
+//extern TString workPath; // Home analysis directory, should be modified in code outside this path structure
+//extern TString externalWorkPath; // External drive storage directory, should be modified in code below
+//extern TString intWorkPath; // Base directory for intermediate root files, should be modified in code outside this path structure
+//extern TString rootPath; // Where analyzed *.root files are stored. Different analysis modules have different subdirectories here.
+//extern TString dataPath; // Where the *.root raw data files (from the CERN grid) are stored.
+//extern TString plotPath; // Where plots are stored.
+//extern TString ptPath; // Where the pt analysis module output is stored.
+//extern TString trigPath;  // Where the trigger fire count module output is stored.
+//extern TString effPath; // Where the trigger efficiency module output is stored.
+//extern TString xPath; // Where the xa/xp module output is stored.
+//extern TString RpPbPath; // Where the R_pPb module output is stored.
+//
+//extern int numtrigs; // Total number of triggers
 
 // Transverse momentum and pseudorapidity binning
 const int MAX_PT = 6000; // Maximum transverse momentum allowed
@@ -65,7 +63,5 @@ const double Z_width = 2.4952; // width of the Z peak in GeV
 
 /** End general parameters **/
 
-
-} // end namespace
 
 #endif
