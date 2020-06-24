@@ -8,15 +8,6 @@ all : GlobalParams AtlasUtils AtlasStyle
 GlobalParams :
 	$(CC) -o lib/libGlobalParams.so src/GlobalParams.cxx
 
-#Utilities :
-#	$(CC) -lGlobalParams -o ${ATLAS_PATH}/lib/libUtilities.so ${ATLAS_PATH}/src/Utilities.cxx
-
-#Trigger :
-#	$(CC) -o lib/libTrigger.so src/Trigger.cxx
-
-#Initialization :
-#	$(CC) -lTrigger -lGlobalParams -o lib/libInitialization.so src/Initialization.cxx
-
 AtlasUtils : src/AtlasUtils.cxx AtlasStyle
 	$(CC) -lAtlasStyle -o lib/libAtlasUtils.so src/AtlasUtils.cxx
 
