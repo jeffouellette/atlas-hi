@@ -58,6 +58,8 @@ const double A = 208;  // value of A for Pb
 const double sqrt_s_nn = 8160; // Collision energy in CoM frame (GeV)
 const double electron_mass = 0.000511; // mass of the electron in GeV
 const double muon_mass = 0.105658; // mass of the muon in GeV
+const double pion_mass = 0.13957018; // PDG 2018 mass of the charged pion in GeV
+const double proton_mass = 0.93827208816; // PDG 2018 mass of the proton in GeV
 const double Z_mass = 91.2; // mass of the Z in GeV
 const double Z_width = 2.4952; // width of the Z peak in GeV
 
